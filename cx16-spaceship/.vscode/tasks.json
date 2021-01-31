@@ -10,7 +10,7 @@
                 "-Sc",
                 "-Si",
                 //"-v",
-                "${workspaceRoot}\\Space.c"
+                "${workspaceRoot}/Space.c"
             ],
             "type": "shell",
             "presentation": {
