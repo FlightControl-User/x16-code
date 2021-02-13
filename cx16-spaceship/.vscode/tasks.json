@@ -2,15 +2,15 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "compile",
+            "label": "X16-Compile",
             "command": "kickc_dev",
             "args": [
                 "-t=cx16",
-                "-a"
+                "-a",
                 "-Sc",
                 "-Si",
-                //"-v",
-                "${workspaceRoot}/Space.c"
+                "-Xassembler=showmem",
+                "${fileDirname}/Space.c"
             ],
             "type": "shell",
             "presentation": {
@@ -36,14 +36,15 @@
                     "message": 5
                 }
             }
-        }
+        },
         {
             "label": "x16",
             "command": "x16emu",
             "args": [
                 "-prg",
                 "space.prg",
-                "-run"
+                "-run",
+                "-debug"
             ],
             "type": "shell",
             "presentation": {

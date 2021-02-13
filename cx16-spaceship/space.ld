@@ -1,16 +1,22 @@
-// Create a D64 disk containing the program and a sprite file
+// Create CX16 files containing the program and a sprite file
 .file [name="%O", type="prg", segments="Program"]
-.file [name="SPRITES", type="bin", segments="Sprites"]
-.file [name="TILES", type="bin", segments="TileS"]
-.file [name="TILEB", type="bin", segments="TileB"]
-.file [name="PALETTES", type="bin", segments="Palettes"]
+//.file [name="PLAYER", type="bin", segments="Player"]
+//.file [name="ENEMY2", type="bin", segments="Enemy2"]
+//.file [name="TILES", type="bin", segments="TileS"]
+//.file [name="SQUAREMETAL", type="bin", segments="SquareMetal"]
+//.file [name="TILEMETAL", type="bin", segments="TileMetal"]
+//.file [name="SQUARERASTER", type="bin", segments="SquareRaster"]
+//.file [name="PALETTES", type="bin", segments="Palettes"]
 .segmentdef Program [segments="Basic, Code, Data"]
 .segmentdef Basic [start=$0801]
 .segmentdef Code [start=%P]
-.segmentdef Data [startAfter="Code"]
+.segmentdef Data [startAfter="Code", align=$1000]
 .segment Basic
 :BasicUpstart(%E)
-.segmentdef Sprites
-.segmentdef TileS
-.segmentdef TileB
-.segmentdef Palettes
+//.segmentdef Player 
+//.segmentdef Enemy2 
+//.segmentdef TileS 
+//.segmentdef SquareMetal 
+//.segmentdef TileMetal 
+//.segmentdef SquareRaster 
+//.segmentdef Palettes

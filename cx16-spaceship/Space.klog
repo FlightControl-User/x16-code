@@ -1,0 +1,22 @@
+parsing
+flex pass 1
+flex pass 2
+flex pass 3
+Output pass
+Writing prg file: Space.prg
+
+Memory Map
+----------
+Program-segment:
+
+Basic-segment:
+  $0801-$080c Basic
+
+Code-segment:
+  $080d-$1ca6 Code
+
+Data-segment:
+  $2000-$21b1 Data
+
+Writing Vice symbol file: Space.vs
+Writing Symbol file: Space.sym

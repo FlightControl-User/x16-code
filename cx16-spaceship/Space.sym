@@ -1,0 +1,497 @@
+.label RADIX_OCTAL_VALUES_CHAR=$2111
+.label FILE_SPRITES=$215e
+.label FILE_SQUAREMETAL=$2189
+.label vera_layer_set_text_color_mode=$18d3 {
+  .label addr=$5a
+}
+.label rand_state=$2b
+.label rand=$f15 {
+  .label __1=$53
+  .label __0=$55
+  .label __2=$b
+  .label return=$b
+}
+.label CONIO_SCREEN_BANK=$57
+.label cbm_k_chkin=$196b {
+  .label channel=$65
+  .label status=$6e
+}
+.label vera_tile_element=$fa6 {
+  .label __b1=$1047
+  .label shift=$d
+  .label TileTotal=$4f
+  .label mapbase=$f
+  .label vera_vram_address01=$1063
+  .label TileCount=$50
+  .label __3=$b
+  .label __b6=$10c4
+  .label __b7=$10d2
+  .label TileOffset=$4e
+  .label TileColumns=$51
+  .label __b2=$1052
+  .label __b3=$104e
+  .label __b4=$1096
+  .label __b5=$10c2
+  .label vera_vram_address01___2=$b
+  .label i=$e
+  .label Tile=$b
+  .label vera_vram_address01___0=$b
+  .label rowskip=$53
+  .label j=$d
+  .label __18=$b
+  .label vera_vram_address01___4=$55
+  .label r=$13
+  .label x=$d
+  .label y=$e
+  .label PaletteOffset=$52
+}
+.label vera_mapbase_address=$20ba
+.label cscroll=$1bc5 {
+  .label __b3=$1bde
+  .label __b4=$1bdf
+}
+.label VIA1=$9f60
+.label VERA_L0_VSCROLL_H=$9f33
+.label FILE_TILEMETAL=$2172
+.label VERA_L0_VSCROLL_L=$9f32
+.label printf_buffer=$219e
+.label RADIX_BINARY_VALUES_CHAR=$210a
+.label RADIX_DECIMAL_VALUES_CHAR=$2113
+.label vera_layer_set_backcolor=$11e8 {
+}
+.label VERA_L0_CONFIG=$9f2d
+.label cbm_k_chrin=$197b {
+  .label value=$6f
+}
+.label VERA_LAYER_WIDTH=$20a4
+.label VERA_CTRL=$9f25
+.label a=$3c
+.label vera_layer_enable=$20da
+.label modr16u=$f5e {
+  .label quotient=$53
+  .label __b1=$f69
+  .label dividend=$b
+  .label rem=$55
+  .label __b2=$f7b
+  .label __b3=$fa0
+  .label return=$55
+}
+.label cbm_k_setlfs=$1953 {
+  .label secondary=$64
+  .label channel=$62
+  .label device=$63
+}
+.label tile_background=$16e7 {
+  .label __3=$69
+  .label r=$2d
+  .label c=$47
+  .label __b1=$16f1
+  .label __b2=$16fc
+  .label __b3=$1707
+  .label __b4=$16f8
+}
+.label i=$3a
+.label j=$3b
+.label vera_layer_get_backcolor=$1930 {
+}
+.label bnkcpy_vram_address=$15bb {
+  .label __b1=$1691
+  .label beg=$27
+  .label num=$23
+  .label __15=$75
+  .label __26=$67
+  .label __17=$69
+  .label __18=$2e
+  .label __12=$69
+  .label __13=$69
+  .label __14=$75
+  .label __25=$69
+  .label __0=$67
+  .label __2=$2e
+  .label __10=$2e
+  .label __4=$67
+  .label pos=$27
+  .label vdest=$1f
+  .label __7=$72
+  .label __8=$72
+  .label end=$23
+  .label addr=$2e
+  .label __b2=$16b0
+  .label __b3=$16c9
+}
+.label screenlayer=$115d {
+  .label __2=$5a
+  .label vera_layer_get_height1_return=$5a
+  .label __5=$5a
+  .label __4=$5c
+  .label vera_layer_get_width1_config=$5a
+  .label vera_layer_get_width1_return=$5a
+  .label vera_layer_get_height1_config=$5a
+}
+.label vera_sprite_attributes_set=$18af {
+  .label __0=$b
+  .label __4=$b
+  .label sprite_offset=$b
+  .label sprite_attr=$77
+}
+.label uctoa_append=$1bae {
+  .label sub=$2d
+  .label __b1=$1bb0
+  .label buffer=$72
+  .label __b2=$1bbc
+}
+.label cx16_load_ram_banked=$1485 {
+  .label address=$1f
+  .label __b1=$1535
+  .label ch=$47
+  .label __11=$69
+  .label __33=$67
+  .label __34=$2e
+  .label __1=$67
+  .label __0=$67
+  .label __3=$2e
+  .label bank=$48
+  .label __10=$67
+  .label filename=$75
+  .label __5=$67
+  .label __7=$72
+  .label __6=$67
+  .label __b6=$157e
+  .label __8=$72
+  .label addr=$69
+  .label __b2=$1545
+  .label __b3=$154d
+  .label return=$2d
+  .label __b4=$1563
+  .label status=$2d
+}
+.label vera_layer_backcolor=$20ee
+.label SquareRaster=$2122
+.label vera_layer_get_rowshift=$18fb {
+}
+.label cx16_ram_bank=$1938 {
+}
+.label cbm_k_setnam=$193c {
+  .label __0=$67
+  .label filename=$60
+  .label filename_len=$6c
+}
+.label Enemy2Sprites=$2146
+.label strlen=$1b31 {
+  .label str=$2e
+  .label __b1=$1b37
+  .label len=$67
+  .label __b2=$1b40
+  .label return=$67
+}
+.label vera_tilebase_offset=$20c2
+.label __start=$80d {
+}
+.label vera_layer_textcolor=$20ec
+.label TileDB=$2128
+.label FILE_SQUARERASTER=$217c
+.label VERA_L0_MAPBASE=$9f2e
+.label VERA_L1_TILEBASE=$9f36
+.label VERA_ISR=$9f27
+.label vera_layer_set_textcolor=$11e2 {
+}
+.label SquareMetal=$2116
+.label vscroll=$3d
+.label VERA_DATA0=$9f23
+.label memcpy_to_vram=$1af5 {
+  .label s=$55
+  .label __b1=$1b14
+  .label src=$77
+  .label vdest=$b
+  .label end=$7f
+  .label __b2=$1b21
+}
+.label DIGITS=$20fa
+.label VERA_DATA1=$9f24
+.label vera_layer_get_rowskip=$18ff {
+  .label return=$5c
+}
+.label PlayerSprites=$212e
+.label GETIN=$ffe4
+.label conio_scroll_enable=$20f8
+.label vera_layer_get_color=$1b4f {
+  .label __b1=$1b71
+  .label addr=$72
+}
+.label conio_height=$35
+.label VERA_DC_HSCALE=$9f2a
+.label memcpy_in_vram=$ec0 {
+  .label dest_bank=$d
+  .label __b1=$ef7
+  .label src=$55
+  .label num=$53
+  .label i=$b
+  .label dest=$b
+  .label __b2=$f06
+}
+.label conio_screen_width=$30
+.label vera_layer_get_mapbase_bank=$18ea {
+}
+.label FILE_ENEMY2=$2165
+.label fgetc=$18a5 {
+  .label ch=$6b
+}
+.label vera_layer_set_config=$190c {
+  .label addr=$5a
+}
+.label vera_layer_get_mapbase_offset=$18ee {
+  .label return=$5c
+}
+.label vera_layer_rowskip=$20d2
+.label vera_layer_config=$20d6
+.label conio_screen_layer=$32
+.label KERNEL_IRQ=$314
+.label CONIO_SCREEN_TEXT=$58
+.label cputln=$1b75 {
+  .label temp=$2e
+}
+.label create_sprites_player=$1733 {
+  .label __10=$67
+  .label s=$48
+  .label __b1=$173b
+  .label __5=$75
+  .label __6=$67
+  .label PLAYER_SPRITE_OFFSET=$2e
+  .label __9=$75
+  .label x=$75
+  .label y=$67
+  .label __b2=$1742
+}
+.label screensize=$1134 {
+  .label x=$30
+  .label y=$31
+}
+.label cbm_k_readst=$1985 {
+  .label status=$70
+}
+.label VERA_ADDRX_H=$9f22
+.label vera_layer_mode_tile=$1236 {
+  .label __b1=$124b
+  .label __b13=$12a7
+  .label __b11=$13ba
+  .label __b10=$13d5
+  .label layer=$14
+  .label tilewidth=$1d
+  .label __b18=$13ac
+  .label __b17=$13b3
+  .label __1=$5a
+  .label __2=$5a
+  .label __10=$5a
+  .label tilebase_address=$19
+  .label mapwidth=$5c
+  .label __4=$5a
+  .label __7=$5a
+  .label __8=$5a
+  .label __b9=$13f0
+  .label __b2=$1250
+  .label __b3=$1255
+  .label __b4=$125a
+  .label __b5=$125c
+  .label __b26=$13a6
+  .label __19=$5e
+  .label mapheight=$5a
+  .label __b23=$1396
+  .label __b20=$12de
+  .label tileheight=$1e
+  .label __20=$5f
+  .label mapbase_address=$15
+}
+.label conio_rowskip=$38
+.label clrscr=$1407 {
+  .label __1=$2d
+  .label __b1=$1425
+  .label color=$2d
+  .label line_text=$75
+  .label __b2=$1443
+  .label __b4=$145e
+  .label __b5=$1477
+}
+.label printf_number_buffer=$1ae0 {
+  .label buffer_digits=$219f
+  .label __b2=$1ae9
+}
+.label scroll_action=$3f
+.label conio_cursor_y=$20f2
+.label conio_width=$33
+.label conio_cursor_x=$20f0
+.label VERA_ADDRX_L=$9f20
+.label VERA_ADDRX_M=$9f21
+.label insertup=$1be9 {
+  .label __b1=$1bf7
+  .label cy=$2d
+  .label line=$75
+  .label width=$74
+  .label start=$75
+  .label __b2=$1c03
+}
+.label VERA_L1_MAPBASE=$9f35
+.label uctoa=$1a28 {
+  .label __b1=$1a84
+  .label __b10=$1ac6
+  .label started=$49
+  .label max_digits=$47
+  .label __b6=$1a92
+  .label digit_values=$75
+  .label __b7=$1ab0
+  .label buffer=$2e
+  .label __b9=$1ac1
+  .label __b2=$1a4b
+  .label __b3=$1a5a
+  .label __b4=$1a69
+  .label digit=$48
+  .label __b5=$1a78
+}
+.label TileMetal=$211c
+.label VERA_IEN=$9f26
+.label printf_uchar=$15ac {
+}
+.label vera_layer_get_textcolor=$1934 {
+}
+.label VERA_DC_VSCALE=$9f2b
+.label cputs=$1595 {
+  .label s=$69
+  .label __b1=$1595
+  .label __b2=$15a4
+}
+.label vera_layer_tilebase=$20e0
+.label vera_tilebase_address=$20c8
+.label main=$9ba {
+  .label __b15=$dd3
+  .label s4=$202c
+  .label __b1=$ab2
+  .label s6=$2040
+  .label s8=$205a
+  .label status_6=$49
+  .label status_5=$4d
+  .label s=$2000
+  .label s10=$2072
+  .label s12=$208d
+  .label __b6=$bfc
+  .label __b7=$c33
+  .label status_2=$4a
+  .label __b2=$af4
+  .label status_1=$48
+  .label __b3=$b36
+  .label status_4=$4c
+  .label __b4=$b78
+  .label s1=$2015
+  .label status=$47
+  .label status_3=$4b
+  .label __b5=$bba
+  .label s2=$2017
+}
+.label clearline=$1c4e {
+  .label c=$67
+  .label __b1=$1c84
+  .label addr=$67
+  .label __b2=$1c96
+}
+.label conio_x16_init=$982 {
+  .label __b1=$9b4
+  .label line=$4
+  .label BASIC_CURSOR_LINE=$d6
+}
+.label vera_tilebase_bank=$20c6
+.label VERA_DC_VIDEO=$9f29
+.label create_sprites_enemy2=$17e7 {
+  .label __10=$2e
+  .label s=$2d
+  .label __b1=$17f3
+  .label __5=$2e
+  .label __6=$67
+  .label x=$2e
+  .label y=$67
+  .label ENEMY2_SPRITE_OFFSET=$75
+  .label __11=$67
+  .label __b2=$17fa
+}
+.label cputc=$19a3 {
+  .label c=$2d
+  .label __b1=$1a24
+  .label __breturn=$1a16
+  .label __16=$67
+  .label conio_addr=$2e
+  .label __b5=$1a17
+}
+.label gotoxy=$11fe {
+  .label __b1=$1208
+  .label __6=$5c
+  .label line_offset=$5c
+}
+.label irq_vsync=$844 {
+  .label c=$3
+  .label __b1=$8ba
+  .label __b13=$956
+  .label __b12=$94b
+  .label vera_layer_set_vertical_scroll1_scroll=$43
+  .label __b10=$90b
+  .label __16=$45
+  .label r=$2
+  .label __2=$41
+  .label __b7=$8ae
+  .label __b9=$917
+  .label __b2=$93f
+  .label __b3=$947
+}
+.label conio_screen_height=$31
+.label FILE_PALETTES=$2195
+.label conio_rowshift=$37
+.label FILE_TILES=$216c
+.label VERA_L1_CONFIG=$9f34
+.label vera_layer_mode_text=$10ef {
+  .label layer=$1
+}
+.label vera_layer_rowshift=$20d0
+.label VERA_LAYER_HEIGHT=$20ac
+.label conio_line_text=$20f4
+.label VERA_L0_TILEBASE=$9f2f
+.label vera_layer_vscroll_h=$20e8
+.label vera_layer_set_mapbase=$11ec {
+  .label addr=$5a
+}
+.label vera_mapbase_bank=$20b8
+.label VERA_L1_VSCROLL_H=$9f3a
+.label RADIX_HEXADECIMAL_VALUES_CHAR=$2115
+.label VERA_L1_VSCROLL_L=$9f39
+.label vera_layer_set_tilebase=$191e {
+  .label addr=$5a
+}
+.label cbm_k_open=$195d {
+  .label status=$6d
+}
+.label vera_layer_mapbase=$20dc
+.label cbm_k_clrchn=$199f {
+}
+.label cbm_k_close=$198f {
+  .label channel=$66
+  .label status=$71
+}
+.label vera_mapbase_offset=$20b4
+.label vera_layer_vscroll_l=$20e4
+.label SPRITE_ATTR=$21aa
+.label rotate_sprites=$de0 {
+  .label rotate=$43
+  .label __b1=$de4
+  .label max=$41
+  .label __15=$9
+  .label i=$9
+  .label __12=$9
+  .label __13=$9
+  .label __14=$9
+  .label __10=$9
+  .label s=$2
+  .label __5=$9
+  .label spriteaddresses=$45
+  .label basex=$5
+  .label __6=$9
+  .label __9=$9
+  .label __8=$9
+  .label __b2=$def
+  .label __b3=$e15
+  .label base=$7
+}

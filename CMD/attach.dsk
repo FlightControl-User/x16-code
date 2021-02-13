@@ -1,0 +1,5 @@
+select vdisk file="D:\Users\svenv\OneDrive\Documents\GitHub\X16_Code\VHD\X16.vhd"
+attach vdisk
+list volume
+select volume 5
+assign letter=X
