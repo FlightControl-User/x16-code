@@ -13,10 +13,10 @@ Basic-segment:
   $0801-$080c Basic
 
 Code-segment:
-  $080d-$1cfd Code
+  $080d-$222a Code
 
 Data-segment:
-  $2000-$21bf Data
+  $3000-$31e7 Data
 
 Writing Vice symbol file: Space.vs
 Writing Symbol file: Space.sym

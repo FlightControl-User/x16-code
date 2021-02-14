@@ -1,0 +1,7 @@
+*.mon
+*.vs
+*.brk
+*.prg
+*.sym
+*.klog
+*.asm

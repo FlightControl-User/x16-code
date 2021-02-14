@@ -1345,7 +1345,7 @@
       Code,$080d,__start,1,82,1,82,8
       Code,$0814,conio_x16_init,1,99,1,99,15
       Code,$00d6,BASIC_CURSOR_LINE,1,101,12,101,28
-      Code,$0002,line,1,102,12,102,15
+      Code,$0003,line,1,102,12,102,15
       Code,$0849,__b1,1,176,3,176,7
       Code,$0851,main,1,192,1,192,5
       Code,$0881,vera_layer_mode_text,1,277,1,277,21
@@ -1355,88 +1355,88 @@
       Code,$0888,screensize,1,297,1,297,11
       Code,$08b3,screenlayer,1,348,1,348,12
       Code,$0001,layer,1,349,12,349,16
-      Code,$0005,__1,1,350,12,350,14
-      Code,$0005,__5,1,351,12,351,14
-      Code,$0005,vera_layer_get_width1_config,1,352,12,352,39
-      Code,$0005,vera_layer_get_width1_return,1,353,12,353,39
-      Code,$0005,vera_layer_get_height1_config,1,354,12,354,40
-      Code,$0005,vera_layer_get_height1_return,1,355,12,355,40
+      Code,$0006,__1,1,350,12,350,14
+      Code,$0006,__5,1,351,12,351,14
+      Code,$0006,vera_layer_get_width1_config,1,352,12,352,39
+      Code,$0006,vera_layer_get_width1_return,1,353,12,353,39
+      Code,$0006,vera_layer_get_height1_config,1,354,12,354,40
+      Code,$0006,vera_layer_get_height1_return,1,355,12,355,40
       Code,$0934,vera_layer_set_textcolor,1,482,1,482,25
       Code,$0938,vera_layer_set_backcolor,1,497,1,497,25
       Code,$093e,vera_layer_set_mapbase,1,515,1,515,23
-      Code,$0005,addr,1,516,12,516,15
+      Code,$0006,addr,1,516,12,516,15
       Code,$0950,cursor,1,540,1,540,7
       Code,$0956,gotoxy,1,554,1,554,7
-      Code,$0005,__6,1,555,12,555,14
-      Code,$0005,line_offset,1,556,12,556,22
+      Code,$0006,__6,1,555,12,555,14
+      Code,$0006,line_offset,1,556,12,556,22
       Code,$0961,__b1,1,571,3,571,7
       Code,$0968,__b2,1,584,3,584,7
       Code,$0998,clrscr,1,628,1,628,7
-      Code,$0007,__1,1,629,12,629,14
-      Code,$0003,line_text,1,630,12,630,20
-      Code,$0007,color,1,631,12,631,16
-      Code,$0008,conio_map_height,1,632,12,632,27
-      Code,$000a,conio_map_width,1,633,12,633,26
+      Code,$0008,__1,1,629,12,629,14
+      Code,$0004,line_text,1,630,12,630,20
+      Code,$0008,color,1,631,12,631,16
+      Code,$0009,conio_map_height,1,632,12,632,27
+      Code,$000b,conio_map_width,1,633,12,633,26
       Code,$09ce,__b1,1,684,3,684,7
       Code,$09ed,__b2,1,714,3,714,7
       Code,$0a09,__b4,1,745,3,745,7
       Code,$0a24,__b5,1,770,3,770,7
       Code,$0a32,cputs,1,789,1,789,6
-      Code,$0003,s,1,790,12,790,12
+      Code,$0004,s,1,790,12,790,12
       Code,$0a32,__b1,1,794,3,794,7
       Code,$0a41,__b2,1,812,3,812,7
       Code,$0a49,vera_layer_mode_tile,1,838,1,838,21
       Code,$7c00,tilebase_address,1,840,12,840,27
       Code,$0060,config,1,842,12,842,17
       Code,$0aa8,vera_layer_set_text_color_mode,1,923,1,923,31
-      Code,$0005,addr,1,924,12,924,15
+      Code,$0006,addr,1,924,12,924,15
       Code,$0abf,vera_layer_get_mapbase_bank,1,950,1,950,28
       Code,$0ac3,vera_layer_get_mapbase_offset,1,963,1,963,30
-      Code,$0005,return,1,964,12,964,17
+      Code,$0006,return,1,964,12,964,17
       Code,$0ace,vera_layer_get_rowshift,1,980,1,980,24
       Code,$0ad2,vera_layer_get_rowskip,1,993,1,993,23
-      Code,$0005,return,1,994,12,994,17
+      Code,$0006,return,1,994,12,994,17
       Code,$0add,vera_layer_get_backcolor,1,1013,1,1013,25
       Code,$0ae1,vera_layer_get_textcolor,1,1029,1,1029,25
       Code,$0ae5,cputc,1,1042,1,1042,6
-      Code,$0008,__16,1,1043,12,1043,15
-      Code,$0008,conio_screen_text,1,1044,12,1044,28
-      Code,$000a,conio_map_width,1,1045,12,1045,26
-      Code,$0008,conio_addr,1,1046,12,1046,21
-      Code,$0007,c,1,1047,12,1047,12
+      Code,$0009,__16,1,1043,12,1043,15
+      Code,$0009,conio_screen_text,1,1044,12,1044,28
+      Code,$000b,conio_map_width,1,1045,12,1045,26
+      Code,$0009,conio_addr,1,1046,12,1046,21
+      Code,$0008,c,1,1047,12,1047,12
       Code,$0b76,__breturn,1,1173,3,1173,12
       Code,$0b77,__b5,1,1178,3,1178,7
       Code,$0b86,__b1,1,1193,3,1193,7
       Code,$0b8a,vera_layer_set_config,1,1203,1,1203,22
-      Code,$0005,addr,1,1204,12,1204,15
+      Code,$0006,addr,1,1204,12,1204,15
       Code,$0b9b,vera_layer_set_tilebase,1,1227,1,1227,24
-      Code,$0005,addr,1,1228,12,1228,15
+      Code,$0006,addr,1,1228,12,1228,15
       Code,$0bac,vera_layer_get_color,1,1252,1,1252,21
-      Code,$0008,addr,1,1253,12,1253,15
+      Code,$0009,addr,1,1253,12,1253,15
       Code,$0bce,__b1,1,1291,3,1291,7
       Code,$0bd2,cputln,1,1299,1,1299,7
-      Code,$0008,temp,1,1300,12,1300,15
+      Code,$0009,temp,1,1300,12,1300,15
       Code,$0c15,cscroll,1,1352,1,1352,8
       Code,$0c2d,__b3,1,1372,3,1372,7
       Code,$0c2e,__b4,1,1379,3,1379,7
       Code,$0c3b,insertup,1,1398,1,1398,9
-      Code,$0007,cy,1,1399,12,1399,13
-      Code,$000c,width,1,1400,12,1400,16
-      Code,$0008,line,1,1401,12,1401,15
-      Code,$0008,start,1,1402,12,1402,16
+      Code,$0008,cy,1,1399,12,1399,13
+      Code,$000d,width,1,1400,12,1400,16
+      Code,$0009,line,1,1401,12,1401,15
+      Code,$0009,start,1,1402,12,1402,16
       Code,$0c4b,__b1,1,1417,3,1417,7
       Code,$0c57,__b2,1,1434,3,1434,7
       Code,$0c9c,clearline,1,1490,1,1490,10
-      Code,$000d,conio_line,1,1491,12,1491,21
-      Code,$000d,addr,1,1492,12,1492,15
-      Code,$0008,c,1,1493,12,1493,12
+      Code,$000e,conio_line,1,1491,12,1491,21
+      Code,$000e,addr,1,1492,12,1492,15
+      Code,$0009,c,1,1493,12,1493,12
       Code,$0cde,__b1,1,1554,3,1554,7
       Code,$0cf6,__b2,1,1576,3,1576,7
       Code,$0d07,memcpy_in_vram,1,1607,1,1607,15
-      Code,$0008,i,1,1608,12,1608,12
-      Code,$0008,dest,1,1609,12,1609,15
-      Code,$000d,src,1,1610,12,1610,14
-      Code,$000a,num,1,1611,12,1611,14
+      Code,$0009,i,1,1608,12,1608,12
+      Code,$0009,dest,1,1609,12,1609,15
+      Code,$000e,src,1,1610,12,1610,14
+      Code,$000b,num,1,1611,12,1611,14
       Code,$0d3b,__b1,1,1665,3,1665,7
       Code,$0d4a,__b2,1,1681,3,1681,7
       Basic,$080b,upstartEnd,0,43,1,43,11

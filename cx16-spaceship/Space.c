@@ -28,8 +28,8 @@ byte TileMetal[6] = { 16+64, 64, 16, 4, 4, 5 };
 byte SquareRaster[6] = { 16+64+64, 64, 16, 4, 4, 6 };
 byte* TileDB[3] = {SquareMetal, TileMetal, SquareRaster};
 
-word PlayerSprites[NUM_PLAYER];
-word Enemy2Sprites[NUM_ENEMY2];
+dword PlayerSprites[NUM_PLAYER];
+dword Enemy2Sprites[NUM_ENEMY2];
 
 // Addressed used for graphics in main banked memory.
 const dword BANK_PLAYER = 0x02000;
@@ -99,15 +99,12 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, byte* Tile 
     }
 }
 
-void rotate_sprites(word base, word rotate, word max, word *spriteaddresses, word basex, word basey) {
+void rotate_sprites(byte base, word rotate, word max, dword *spriteaddresses, word basex, word basey) {
     for(byte s=0;s<max;s++) {
         word i = s+rotate;
         if(i>=max) i-=max;
-        SPRITE_ATTR.ADDR = spriteaddresses[i];
-        SPRITE_ATTR.X = basex+((word)(s&03)<<6);
-        SPRITE_ATTR.Y = basey+((word)(s>>2)<<6);
-        // Copy sprite positions to VRAM (the 4 relevant bytes in VERA_SPRITE_ATTR)
-        vera_sprite_attributes_set((byte)(s+base),SPRITE_ATTR);
+        vera_sprite_address(s+base, spriteaddresses[i]);
+        vera_sprite_xy(s+base, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6));
     }
 
 }
@@ -121,7 +118,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         a=4;
 
         rotate_sprites(0, i,NUM_PLAYER,PlayerSprites,40,100);
-        rotate_sprites(16, j,NUM_ENEMY2,Enemy2Sprites,340,100);
+        rotate_sprites(12, j,NUM_ENEMY2,Enemy2Sprites,340,100);
 
         i++;
         if(i>=NUM_PLAYER) i=0;
@@ -154,33 +151,37 @@ void create_sprites_player() {
 
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM    
-    word PLAYER_SPRITE_OFFSET = <(VRAM_PLAYER/32)|VERA_SPRITE_4BPP;
-    for(char s=0;s<NUM_PLAYER;s++) {
-        word x = ((word)(s&03)<<6);
-        word y = ((word)(s>>2)<<6);
-        PlayerSprites[s] = PLAYER_SPRITE_OFFSET;
-        SPRITE_ATTR.ADDR = PLAYER_SPRITE_OFFSET;
-        SPRITE_ATTR.X = 40+x;
-        SPRITE_ATTR.Y = 100+y;
-        SPRITE_ATTR.CTRL2 = VERA_SPRITE_WIDTH_32 | VERA_SPRITE_HEIGHT_32 | 0x1;
-        vera_sprite_attributes_set(s,SPRITE_ATTR);
-        PLAYER_SPRITE_OFFSET += 16;
+    dword player_sprite_address = VRAM_PLAYER;
+    for(byte s=0;s<NUM_PLAYER;s++) {
+        vera_sprite_4bpp(s);
+        PlayerSprites[s] = player_sprite_address;
+        vera_sprite_address(s, player_sprite_address);
+        vera_sprite_xy(s, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
+        vera_sprite_height_32(s);
+        vera_sprite_width_32(s);
+        vera_sprite_zdepth_in_front(s);
+        vera_sprite_VFlip_off(s);
+        vera_sprite_HFlip_off(s);
+        vera_sprite_palette_offset(s,1);
+        player_sprite_address += 32*32/2;
     }
 }
 
 void create_sprites_enemy2() {
-
-    word ENEMY2_SPRITE_OFFSET = <(VRAM_ENEMY2/32)|VERA_SPRITE_4BPP;
-    for(char s=0;s<NUM_ENEMY2;s++) {
-        word x = ((word)(s&03)<<6);
-        word y = ((word)(s>>2)<<6);
-        Enemy2Sprites[s] = ENEMY2_SPRITE_OFFSET;
-        SPRITE_ATTR.ADDR = ENEMY2_SPRITE_OFFSET;
-        SPRITE_ATTR.X = 340+x;
-        SPRITE_ATTR.Y = 100+y;
-        SPRITE_ATTR.CTRL2 = VERA_SPRITE_WIDTH_32 | VERA_SPRITE_HEIGHT_32 | 0x2;
-        vera_sprite_attributes_set(s+16,SPRITE_ATTR);
-        ENEMY2_SPRITE_OFFSET += 16;
+    dword enemy2_sprite_address = VRAM_ENEMY2;
+    byte const base = 12;
+    for(byte s=0;s<NUM_ENEMY2;s++) {
+        vera_sprite_4bpp(s+base);
+        Enemy2Sprites[s] = enemy2_sprite_address;
+        vera_sprite_address(s+base, enemy2_sprite_address);
+        vera_sprite_xy(s+base, 40+((word)(s&03)<<6), 340+((word)(s>>2)<<6));
+        vera_sprite_height_32(s+base);
+        vera_sprite_width_32(s+base);
+        vera_sprite_zdepth_in_front(s+base);
+        vera_sprite_VFlip_off(s+base);
+        vera_sprite_HFlip_off(s+base);
+        vera_sprite_palette_offset(s+base,2);
+        enemy2_sprite_address += 32*32/2;
     }
 }
 
@@ -250,9 +251,7 @@ void main() {
     create_sprites_player();
     create_sprites_enemy2();
 
-    // Enable sprites
-    *VERA_CTRL &= ~VERA_DCSEL;
-    *VERA_DC_VIDEO |= VERA_SPRITES_ENABLE;
+    vera_sprite_on();
 
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)

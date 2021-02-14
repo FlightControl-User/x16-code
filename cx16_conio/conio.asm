@@ -99,7 +99,7 @@ __start: {
 conio_x16_init: {
     // Position cursor at current line
     .label BASIC_CURSOR_LINE = $d6
-    .label line = 2
+    .label line = 3
     // line = *BASIC_CURSOR_LINE
     // [6] conio_x16_init::line#0 = *conio_x16_init::BASIC_CURSOR_LINE -- vbuz1=_deref_pbuc1 
     lda BASIC_CURSOR_LINE
@@ -347,12 +347,12 @@ screensize: {
 // - layer: value of 0 or 1.
 screenlayer: {
     .label layer = 1
-    .label __1 = 5
-    .label __5 = 5
-    .label vera_layer_get_width1_config = 5
-    .label vera_layer_get_width1_return = 5
-    .label vera_layer_get_height1_config = 5
-    .label vera_layer_get_height1_return = 5
+    .label __1 = 6
+    .label __5 = 6
+    .label vera_layer_get_width1_config = 6
+    .label vera_layer_get_width1_return = 6
+    .label vera_layer_get_height1_config = 6
+    .label vera_layer_get_height1_return = 6
     // cx16_conio.conio_screen_layer = layer
     // [53] *((byte*)&cx16_conio) = screenlayer::layer#0 -- _deref_pbuc1=vbuc2 
     lda #layer
@@ -513,7 +513,7 @@ vera_layer_set_backcolor: {
 //   so the resulting address in the VERA VRAM is always aligned to a multiple of 512 bytes.
 // vera_layer_set_mapbase(byte register(A) layer, byte register(X) mapbase)
 vera_layer_set_mapbase: {
-    .label addr = 5
+    .label addr = 6
     // addr = vera_layer_mapbase[layer]
     // [89] vera_layer_set_mapbase::$0 = vera_layer_set_mapbase::layer#3 << 1 -- vbuaa=vbuaa_rol_1 
     asl
@@ -552,8 +552,8 @@ cursor: {
 // Set the cursor to the specified position
 // gotoxy(byte register(Y) x, byte register(X) y)
 gotoxy: {
-    .label __6 = 5
-    .label line_offset = 5
+    .label __6 = 6
+    .label line_offset = 6
     // if(y>cx16_conio.conio_screen_height)
     // [96] if(gotoxy::y#5<=*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto gotoxy::@3 -- vbuxx_le__deref_pbuc1_then_la1 
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
@@ -626,11 +626,11 @@ gotoxy: {
   // clrscr
 // clears the screen and moves the cursor to the upper left-hand corner of the screen.
 clrscr: {
-    .label __1 = 7
-    .label line_text = 3
-    .label color = 7
-    .label conio_map_height = 8
-    .label conio_map_width = $a
+    .label __1 = 8
+    .label line_text = 4
+    .label color = 8
+    .label conio_map_height = 9
+    .label conio_map_width = $b
     // line_text = cx16_conio.conio_screen_text
     // [109] clrscr::line_text#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) -- pbuz1=_deref_qbuc1 
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
@@ -785,9 +785,9 @@ clrscr: {
 }
   // cputs
 // Output a NUL-terminated string at the current cursor position
-// cputs(byte* zp(3) s)
+// cputs(byte* zp(4) s)
 cputs: {
-    .label s = 3
+    .label s = 4
     // [144] phi from cputs cputs::@2 to cputs::@1 [phi:cputs/cputs::@2->cputs::@1]
     // [144] phi cputs::s#3 = cputs::s#4 [phi:cputs/cputs::@2->cputs::@1#0] -- register_copy 
     // cputs::@1
@@ -921,7 +921,7 @@ vera_layer_mode_tile: {
 // - layer: Value of 0 or 1.
 // - color_mode: Specifies the color mode to be VERA_LAYER_CONFIG_16 or VERA_LAYER_CONFIG_256 for text mode.
 vera_layer_set_text_color_mode: {
-    .label addr = 5
+    .label addr = 6
     // addr = vera_layer_config[layer]
     // [166] vera_layer_set_text_color_mode::addr#0 = *(vera_layer_config+vera_layer_mode_text::layer#0*SIZEOF_POINTER) -- pbuz1=_deref_qbuc1 
     lda vera_layer_config+vera_layer_mode_text.layer*SIZEOF_POINTER
@@ -961,7 +961,7 @@ vera_layer_get_mapbase_bank: {
 // - layer: Value of 0 or 1.
 // - return: Offset in vera vram of the specified bank.
 vera_layer_get_mapbase_offset: {
-    .label return = 5
+    .label return = 6
     // return vera_mapbase_offset[layer];
     // [172] vera_layer_get_mapbase_offset::return#0 = *(vera_mapbase_offset+screenlayer::layer#0*SIZEOF_WORD) -- vwuz1=_deref_pwuc1 
     lda vera_mapbase_offset+screenlayer.layer*SIZEOF_WORD
@@ -991,7 +991,7 @@ vera_layer_get_rowshift: {
 // - layer: Value of 0 or 1.
 // - return: Skip value to calculate fast from a y value to line offset in tile mode.
 vera_layer_get_rowskip: {
-    .label return = 5
+    .label return = 6
     // return vera_layer_rowskip[layer];
     // [176] vera_layer_get_rowskip::return#0 = *(vera_layer_rowskip+screenlayer::layer#0*SIZEOF_WORD) -- vwuz1=_deref_pwuc1 
     lda vera_layer_rowskip+screenlayer.layer*SIZEOF_WORD
@@ -1038,13 +1038,13 @@ vera_layer_get_textcolor: {
   // cputc
 // Output one character at the current cursor position
 // Moves the cursor forward. Scrolls the entire screen if needed
-// cputc(byte zp(7) c)
+// cputc(byte zp(8) c)
 cputc: {
-    .label __16 = 8
-    .label conio_screen_text = 8
-    .label conio_map_width = $a
-    .label conio_addr = 8
-    .label c = 7
+    .label __16 = 9
+    .label conio_screen_text = 9
+    .label conio_map_width = $b
+    .label conio_addr = 9
+    .label c = 8
     // vera_layer_get_color(cx16_conio.conio_screen_layer)
     // [182] vera_layer_get_color::layer#0 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
     ldx cx16_conio
@@ -1201,7 +1201,7 @@ cputc: {
 // - layer: Value of 0 or 1.
 // - config: Specifies the modes which are specified using T256C / 'Bitmap Mode' / 'Color Depth'.
 vera_layer_set_config: {
-    .label addr = 5
+    .label addr = 6
     // addr = vera_layer_config[layer]
     // [215] vera_layer_set_config::addr#0 = *(vera_layer_config+vera_layer_mode_text::layer#0*SIZEOF_POINTER) -- pbuz1=_deref_qbuc1 
     lda vera_layer_config+vera_layer_mode_text.layer*SIZEOF_POINTER
@@ -1225,7 +1225,7 @@ vera_layer_set_config: {
 //   Note that the register only specifies bits 16:11 of the address,
 //   so the resulting address in the VERA VRAM is always aligned to a multiple of 2048 bytes!
 vera_layer_set_tilebase: {
-    .label addr = 5
+    .label addr = 6
     // addr = vera_layer_tilebase[layer]
     // [218] vera_layer_set_tilebase::addr#0 = *(vera_layer_tilebase+vera_layer_mode_text::layer#0*SIZEOF_POINTER) -- pbuz1=_deref_qbuc1 
     lda vera_layer_tilebase+vera_layer_mode_text.layer*SIZEOF_POINTER
@@ -1250,7 +1250,7 @@ vera_layer_set_tilebase: {
 //   Note that on the VERA, the transparent color has value 0.
 // vera_layer_get_color(byte register(X) layer)
 vera_layer_get_color: {
-    .label addr = 8
+    .label addr = 9
     // addr = vera_layer_config[layer]
     // [222] vera_layer_get_color::$3 = vera_layer_get_color::layer#2 << 1 -- vbuaa=vbuxx_rol_1 
     txa
@@ -1297,7 +1297,7 @@ vera_layer_get_color: {
   // cputln
 // Print a newline
 cputln: {
-    .label temp = 8
+    .label temp = 9
     // temp = conio_line_text[cx16_conio.conio_screen_layer]
     // [231] cputln::$2 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
     lda cx16_conio
@@ -1396,10 +1396,10 @@ cscroll: {
   // insertup
 // Insert a new line, and scroll the upper part of the screen up.
 insertup: {
-    .label cy = 7
-    .label width = $c
-    .label line = 8
-    .label start = 8
+    .label cy = 8
+    .label width = $d
+    .label line = 9
+    .label start = 9
     // cy = conio_cursor_y[cx16_conio.conio_screen_layer]
     // [249] insertup::cy#0 = conio_cursor_y[*((byte*)&cx16_conio)] -- vbuz1=pbuc1_derefidx_(_deref_pbuc2) 
     ldy cx16_conio
@@ -1488,9 +1488,9 @@ insertup: {
 }
   // clearline
 clearline: {
-    .label conio_line = $d
-    .label addr = $d
-    .label c = 8
+    .label conio_line = $e
+    .label addr = $e
+    .label c = 9
     // *VERA_CTRL &= ~VERA_ADDRSEL
     // [264] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     // Select DATA0
@@ -1603,12 +1603,12 @@ clearline: {
 // - dest: pointer to the location to copy to. Note that the address is a 16 bit value!
 // - dest_increment: the increment indicator, VERA needs this because addressing increment is automated by VERA at each access.
 // - num: The number of bytes to copy
-// memcpy_in_vram(void* zp(8) dest, byte* zp($d) src, word zp($a) num)
+// memcpy_in_vram(void* zp(9) dest, byte* zp($e) src, word zp($b) num)
 memcpy_in_vram: {
-    .label i = 8
-    .label dest = 8
-    .label src = $d
-    .label num = $a
+    .label i = 9
+    .label dest = 9
+    .label src = $e
+    .label num = $b
     // *VERA_CTRL &= ~VERA_ADDRSEL
     // [284] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     // Select DATA0

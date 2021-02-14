@@ -12,7 +12,9 @@
                 "_UNICODE",
                 "byte = unsigned char",
                 "word = unsigned int",
-                "dword = unsigned long"
+                "dword = unsigned long",
+                "__CX16__ = 1",
+                "__interrupt(rom_sys_cx16)="
             ],
             "windowsSdkVersion": "10.0.17763.0",
             "compilerPath": "D:/Users/svenv/OneDrive/Documents/6502/bin/kickc_dev.bat",
