@@ -2,12 +2,12 @@
 
 #pragma link("space.ld")
 
-#pragma zp_reserve(0x80..0xA8)
+#pragma zp_reserve(0x01, 0x02, 0x80..0xA8)
 
 #pragma data_seg(Data)
 
 #include <cx16.h>
-#include <cx16-kernal.h>
+#include <kernal.h>
 #include <6502.h>
 #include <veralib.h>
 #include <conio.h>
