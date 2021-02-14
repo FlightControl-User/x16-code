@@ -13,7 +13,7 @@ Basic-segment:
   $0801-$080c Basic
 
 Code-segment:
-  $080d-$222a Code
+  $080d-$2265 Code
 
 Data-segment:
   $3000-$31e7 Data

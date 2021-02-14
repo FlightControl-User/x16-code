@@ -7,9 +7,9 @@
 #pragma data_seg(Data)
 
 #include <cx16.h>
+#include <cx16-veralib.h>
 #include <kernal.h>
 #include <6502.h>
-#include <veralib.h>
 #include <conio.h>
 #include <printf.h>
 #include <stdio.h>
@@ -234,15 +234,15 @@ void main() {
 
 
     // Copy graphics to the VERA VRAM.
-    bnkcpy_vram_address(VRAM_PLAYER, BANK_PLAYER, (dword)32*32*NUM_PLAYER/2);
-    bnkcpy_vram_address(VRAM_ENEMY2, BANK_ENEMY2, (dword)32*32*NUM_ENEMY2/2);
-    bnkcpy_vram_address(VRAM_TILES_SMALL, BANK_TILES_SMALL, (dword)32*32*(NUM_TILES_SMALL)/2);
-    bnkcpy_vram_address(VRAM_SQUAREMETAL, BANK_SQUAREMETAL, (dword)64*64*(NUM_SQUAREMETAL)/2);
-    bnkcpy_vram_address(VRAM_TILEMETAL, BANK_TILEMETAL, (dword)64*64*(NUM_TILEMETAL)/2);
-    bnkcpy_vram_address(VRAM_SQUARERASTER, BANK_SQUARERASTER, (dword)64*64*(NUM_SQUARERASTER)/2);
+    memcpy_bank_to_vram(VRAM_PLAYER, BANK_PLAYER, (dword)32*32*NUM_PLAYER/2);
+    memcpy_bank_to_vram(VRAM_ENEMY2, BANK_ENEMY2, (dword)32*32*NUM_ENEMY2/2);
+    memcpy_bank_to_vram(VRAM_TILES_SMALL, BANK_TILES_SMALL, (dword)32*32*(NUM_TILES_SMALL)/2);
+    memcpy_bank_to_vram(VRAM_SQUAREMETAL, BANK_SQUAREMETAL, (dword)64*64*(NUM_SQUAREMETAL)/2);
+    memcpy_bank_to_vram(VRAM_TILEMETAL, BANK_TILEMETAL, (dword)64*64*(NUM_TILEMETAL)/2);
+    memcpy_bank_to_vram(VRAM_SQUARERASTER, BANK_SQUARERASTER, (dword)64*64*(NUM_SQUARERASTER)/2);
 
     // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    bnkcpy_vram_address(VERA_PALETTE+32, BANK_PALETTE, (dword)32*6);
+    memcpy_bank_to_vram(VERA_PALETTE+32, BANK_PALETTE, (dword)32*6);
 
     vera_layer_show(0);
 
@@ -260,7 +260,7 @@ void main() {
     *VERA_IEN = VERA_VSYNC; 
     CLI();
 
-    while(!fgetc());
+    while(!kbhit());
 
     VIA1->PORT_B = 4;
 }
