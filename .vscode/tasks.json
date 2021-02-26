@@ -9,6 +9,7 @@
                 "-a",
                 "-Sc",
                 "-Si",
+                //"-v",
                 "-Ocoalesce",
                 "-Xassembler=-symbolfile",
                 "${fileDirname}/${fileBasename}"
@@ -73,6 +74,27 @@
                 "clear": false
             },
             "problemMatcher": []
+        },
+        {
+            "label": "x16-Run-Emu",
+            "command": "x16emu.exe",
+            "args": [
+                "-prg", 
+                "${fileDirname}\\${fileBasenameNoExtension}.prg",
+                "-run",
+                "-debug"
+            ],
+            "type": "shell",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
         }
+
     ]
 }

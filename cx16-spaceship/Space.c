@@ -8,6 +8,7 @@
 
 #include <cx16.h>
 #include <cx16-veralib.h>
+#include <cx16-veramem.h>
 #include <kernal.h>
 #include <6502.h>
 #include <conio.h>
@@ -15,6 +16,7 @@
 #include <stdio.h>
 #include <division.h>
 #include <mos6522.h>
+#include <multiply.h>
 
 const byte NUM_PLAYER = 12;
 const byte NUM_ENEMY2 = 12;
@@ -23,17 +25,38 @@ const byte NUM_SQUAREMETAL = 4;
 const byte NUM_TILEMETAL = 4;
 const byte NUM_SQUARERASTER = 4;
 
-byte SquareMetal[6] = { 16, 64, 16, 4, 4, 4 };
-byte TileMetal[6] = { 16+64, 64, 16, 4, 4, 5 };
-byte SquareRaster[6] = { 16+64+64, 64, 16, 4, 4, 6 };
-byte* TileDB[3] = {SquareMetal, TileMetal, SquareRaster};
+struct Tile {
+    dword *Tiles;
+    word Offset;
+    byte Total;
+    byte Count;
+    byte Rows;
+    byte Columns;
+    byte Palette; 
+};
 
-dword PlayerSprites[NUM_PLAYER];
-dword Enemy2Sprites[NUM_ENEMY2];
+__mem dword PlayerSprites[NUM_PLAYER];
+__mem dword Enemy2Sprites[NUM_ENEMY2];
+
+__mem dword SmallTiles[NUM_TILES_SMALL];
+__mem dword SquareMetalTiles[NUM_SQUAREMETAL];
+__mem dword TileMetalTiles[NUM_TILEMETAL];
+__mem dword SquareRasterTiles[NUM_SQUARERASTER];
+
+__mem struct Tile SquareMetal = { SquareMetalTiles, 0, 64, 16, 4, 4, 4 };
+__mem struct Tile TileMetal = { TileMetalTiles, 64, 64, 16, 4, 4, 5 };
+__mem struct Tile SquareRaster = { SquareRasterTiles, 128, 64, 16, 4, 4, 6 };
+// TODO: BBUG! This is not compiling correctly! __mem struct Tile *TileDB[3] = {&SquareMetal, &TileMetal, &SquareRaster};
+__mem struct Tile *TileDB[3];
+
+byte const HEAP_SPRITES = 0;
+byte const HEAP_FLOOR_MAP = 1;
+byte const HEAP_FLOOR_TILE = 2;
+byte const HEAP_PETSCII = 3;
 
 // Addressed used for graphics in main banked memory.
-const dword BANK_PLAYER = 0x02000;
-const dword BANK_ENEMY2 = 0x04000;
+const dword BRAM_PLAYER = 0x02000;
+const dword BRAM_ENEMY2 = 0x04000;
 const dword BANK_TILES_SMALL = 0x14000;
 const dword BANK_SQUAREMETAL = 0x16000;
 const dword BANK_TILEMETAL = 0x22000;
@@ -41,6 +64,10 @@ const dword BANK_SQUARERASTER = 0x28000;
 const dword BANK_PALETTE = 0x34000;
 
 // Addresses used to store graphics in VERA VRAM.
+const dword VRAM_BASE = 0x00000;
+const dword VRAM_PETSCII_MAP = 0x1B000;
+const dword VRAM_PETSCII_TILE = 0x1F000;
+
 const dword VRAM_PLAYER = 0x00000; 
 const dword VRAM_ENEMY2 = 0x01800; 
 const dword VRAM_TILES_SMALL = 0x03000; 
@@ -48,7 +75,9 @@ const dword VRAM_SQUAREMETAL = 0x03800;
 const dword VRAM_TILEMETAL = 0x05800; 
 const dword VRAM_SQUARERASTER = 0x07800; 
 
-const dword VRAM_TILEMAP = 0x10000;
+dword vram_floor_map = 0x00000;
+dword vram_floor_tile = 0x00000;
+
 
 // Sprite attributes: 4bpp, in front, 32x32, address SPRITE_PIXELS_VRAM
 struct VERA_SPRITE SPRITE_ATTR = { <(VRAM_PLAYER/32)|VERA_SPRITE_4BPP, 320-32, 240-32, 0x0c, VERA_SPRITE_WIDTH_32 | VERA_SPRITE_HEIGHT_32 | 0x1 };
@@ -67,14 +96,16 @@ volatile byte a = 4;
 volatile word vscroll = 0;
 volatile word scroll_action = 2;
 
-void vera_tile_element( byte layer, byte x, byte y, byte resolution, byte* Tile ) {
+void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile* Tile ) {
 
-    byte TileOffset = Tile[0];
-    byte TileTotal = Tile[1];
-    byte TileCount = Tile[2];
-    byte TileRows = Tile[3];
-    byte TileColumns = Tile[4]; 
-    byte PaletteOffset = Tile[5];
+    word TileOffset = Tile->Offset;
+    byte TileTotal = Tile->Total;
+    byte TileCount = Tile->Count;
+    byte TileRows = Tile->Rows;
+    byte TileColumns = Tile->Columns; 
+    byte PaletteOffset = Tile->Palette;
+
+    printf("offset = %x\n",TileOffset);
 
     x = x << resolution;
     y = y << resolution;
@@ -90,8 +121,8 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, byte* Tile 
             vera_vram_address0(mapbase,VERA_INC_1);
             for(byte r=0;r<(TileTotal>>1);r+=TileCount) {
                 for(byte c=0;c<TileColumns;c+=1) {
-                    *VERA_DATA0 = TileOffset+c+r+i+j;
-                    *VERA_DATA0 = PaletteOffset << 4;
+                    *VERA_DATA0 = (<TileOffset)+c+r+i+j;
+                    *VERA_DATA0 = PaletteOffset << 4 | (>TileOffset);
                 }
             }
             mapbase += rowskip;
@@ -131,7 +162,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         scroll_action = 2;
         vscroll++;
         if(vscroll>(64)*2-1) {
-            memcpy_in_vram(1, <VRAM_TILEMAP, VERA_INC_1, 1, (<VRAM_TILEMAP)+64*16, VERA_INC_1, 64*16*4);
+            memcpy_in_vram(<(>vram_floor_map), <vram_floor_map, VERA_INC_1, <(>vram_floor_map), (<vram_floor_map)+64*16, VERA_INC_1, 64*16*4);
             for(byte r=4;r<5;r+=1) {
                 for(byte c=0;c<5;c+=1) {
                     byte rnd = (byte)modr16u(rand(),3,0);
@@ -151,11 +182,9 @@ void create_sprites_player() {
 
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM    
-    dword player_sprite_address = VRAM_PLAYER;
     for(byte s=0;s<NUM_PLAYER;s++) {
         vera_sprite_4bpp(s);
-        PlayerSprites[s] = player_sprite_address;
-        vera_sprite_address(s, player_sprite_address);
+        vera_sprite_address(s, PlayerSprites[s]);
         vera_sprite_xy(s, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
         vera_sprite_height_32(s);
         vera_sprite_width_32(s);
@@ -163,7 +192,6 @@ void create_sprites_player() {
         vera_sprite_VFlip_off(s);
         vera_sprite_HFlip_off(s);
         vera_sprite_palette_offset(s,1);
-        player_sprite_address += 32*32/2;
     }
 }
 
@@ -196,28 +224,31 @@ void tile_background() {
     }
 }
 
+void cpy_graphics(byte segmentid, dword bsrc, dword *array, byte num, word size) {
 
+    // Copy graphics to the VERA VRAM.
+    for(byte s=0;s<num;s++) {
+        dword vaddr = vera_heap_malloc(segmentid, size);
+        printf("%x\n", vaddr);
+        // dword baddr = bsrc+((word)s*size);
+        dword baddr = bsrc+mul16u((word)s,size);
+        vera_cpy_bank_vram(baddr, vaddr, size);
+        array[s] = vaddr;
+    }
+}
 
 
 void main() {
 
-    VIA1->PORT_B = 0;
+    TileDB[0] = &SquareMetal;
+    TileDB[1] = &TileMetal;
+    TileDB[2] = &SquareRaster;
 
-    memcpy_in_vram(1, 0xF000, VERA_INC_1, 0, 0xF800, VERA_INC_1, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, (dword)0x1A000, (dword)0x1F000, 128, 64, 8, 8, 1);
-
-    screenlayer(1);
-    textcolor(WHITE);
-    bgcolor(BLACK);
-    clrscr();
-
-    // Now we activate the tile mode.
-    vera_layer_mode_tile(0, (dword)VRAM_TILEMAP, VRAM_TILES_SMALL, 64, 64, 16, 16, 4);
 
     // Loading the graphics in main banked memory.
-    char status = cx16_load_ram_banked(1, 8, 0, FILE_SPRITES, (dword)BANK_PLAYER);
+    char status = cx16_load_ram_banked(1, 8, 0, FILE_SPRITES, (dword)BRAM_PLAYER);
     if(status!=$ff) printf("error file_sprites: %x\n",status);
-    status = cx16_load_ram_banked(1, 8, 0, FILE_ENEMY2, (dword)BANK_ENEMY2);
+    status = cx16_load_ram_banked(1, 8, 0, FILE_ENEMY2, (dword)BRAM_ENEMY2);
     if(status!=$ff) printf("error file_enemy2 = %x\n",status);
     status = cx16_load_ram_banked(1, 8, 0, FILE_TILES, (dword)BANK_TILES_SMALL);
     if(status!=$ff) printf("error file_tiles = %x\n",status);
@@ -232,17 +263,46 @@ void main() {
     status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, (dword)BANK_PALETTE);
     if(status!=$ff) printf("error file_palettes = %u",status);
 
+    // We are going to use only the kernal on the X16.
+    cx16_rom_bank(0);
 
-    // Copy graphics to the VERA VRAM.
-    memcpy_bank_to_vram(VRAM_PLAYER, BANK_PLAYER, (dword)32*32*NUM_PLAYER/2);
-    memcpy_bank_to_vram(VRAM_ENEMY2, BANK_ENEMY2, (dword)32*32*NUM_ENEMY2/2);
-    memcpy_bank_to_vram(VRAM_TILES_SMALL, BANK_TILES_SMALL, (dword)32*32*(NUM_TILES_SMALL)/2);
-    memcpy_bank_to_vram(VRAM_SQUAREMETAL, BANK_SQUAREMETAL, (dword)64*64*(NUM_SQUAREMETAL)/2);
-    memcpy_bank_to_vram(VRAM_TILEMETAL, BANK_TILEMETAL, (dword)64*64*(NUM_TILEMETAL)/2);
-    memcpy_bank_to_vram(VRAM_SQUARERASTER, BANK_SQUARERASTER, (dword)64*64*(NUM_SQUARERASTER)/2);
+    // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
+    // This frees up the maximum space in VERA VRAM available for graphics.
+    const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
+    vera_heap_segment_init(HEAP_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
+    dword vram_petscii_map = vera_heap_malloc(HEAP_PETSCII, VRAM_PETSCII_MAP_SIZE);
+    dword vram_petscii_tile = vera_heap_malloc(HEAP_PETSCII, VERA_PETSCII_TILE_SIZE);
+    vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
+    vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
+
+    screenlayer(1);
+    textcolor(WHITE);
+    bgcolor(BLACK);
+    clrscr();
+
+    // Set the vera heap parameters.
+    word const VRAM_SPRITES_SIZE = 64*32*32/2;
+    dword vram_address = vera_heap_segment_init(HEAP_SPRITES, VRAM_BASE, VRAM_SPRITES_SIZE);
+
+    const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
+    const word VRAM_FLOOR_TILE_SIZE = 12*64*64/2;
+    vram_address = vera_heap_segment_init(HEAP_FLOOR_MAP, vram_address, VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE);
+    vram_floor_map = vera_heap_malloc(HEAP_FLOOR_MAP, VRAM_FLOOR_MAP_SIZE);
+    vram_address = vera_heap_segment_init(HEAP_FLOOR_TILE, vram_address, VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE);
+
+    // Now we activate the tile mode.
+ 
+    cpy_graphics(HEAP_SPRITES, BRAM_PLAYER, PlayerSprites, NUM_PLAYER, 512);
+    cpy_graphics(HEAP_SPRITES, BRAM_ENEMY2, Enemy2Sprites, NUM_ENEMY2, 512);
+    cpy_graphics(HEAP_FLOOR_TILE, BANK_SQUAREMETAL, SquareMetalTiles, NUM_SQUAREMETAL, 2048);
+    cpy_graphics(HEAP_FLOOR_TILE, BANK_TILEMETAL, TileMetalTiles, NUM_TILEMETAL, 2048);
+    cpy_graphics(HEAP_FLOOR_TILE, BANK_SQUARERASTER, SquareRasterTiles, NUM_SQUARERASTER, 2048);
+
+    vram_floor_tile = SquareMetalTiles[0];
+    vera_layer_mode_tile(0, vram_floor_map, vram_floor_tile, 64, 64, 16, 16, 4);
 
     // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    memcpy_bank_to_vram(VERA_PALETTE+32, BANK_PALETTE, (dword)32*6);
+    vera_cpy_bank_vram(BANK_PALETTE, VERA_PALETTE+32, (dword)32*6);
 
     vera_layer_show(0);
 
@@ -262,7 +322,8 @@ void main() {
 
     while(!kbhit());
 
-    VIA1->PORT_B = 4;
+    // Back to basic.
+    cx16_rom_bank(4);
 }
 
 

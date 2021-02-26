@@ -14,6 +14,7 @@
                 "word = unsigned int",
                 "dword = unsigned long",
                 "__CX16__ = 1",
+                "__mem=",
                 "__interrupt(rom_sys_cx16)="
             ],
             "windowsSdkVersion": "10.0.17763.0",
