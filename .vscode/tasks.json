@@ -9,8 +9,9 @@
                 "-a",
                 "-Sc",
                 "-Si",
-                //"-v",
+                "-v",
                 "-Ocoalesce",
+                "-Onouplift",
                 "-Xassembler=-symbolfile",
                 "${fileDirname}/${fileBasename}"
             ],

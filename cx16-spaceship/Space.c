@@ -18,35 +18,54 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-const byte NUM_PLAYER = 12;
-const byte NUM_ENEMY2 = 12;
-const byte NUM_TILES_SMALL = 4;
-const byte NUM_SQUAREMETAL = 4;
-const byte NUM_TILEMETAL = 4;
-const byte NUM_SQUARERASTER = 4;
+
+struct Sprite {
+    char File[16];
+    byte Offset;
+    byte Count;
+    word TotalSize;
+    word SpriteSize;
+    byte Width;
+    byte Height;
+    byte Hflip;
+    byte Vflip;
+    byte Zdepth;
+    byte BPP;
+    byte Palette;
+    dword BRAM_Address;
+    dword VRAM_Addresses[12];
+};
+
+byte const SPRITE_PLAYER = 0;
+byte const SPRITE_ENEMY2 = 1;
+
+__mem struct Sprite SpritesPlayer = {"PLAYER",     0,  12, 32*32*12/2, 512, 32, 32, 0, 1, 3, 4, 1, 0x0, {0}};
+__mem struct Sprite SpritesEnemy2 = {"ENEMY2",    12,  12, 32*32*12/2, 512, 32, 32, 0, 0, 3, 4, 2, 0x0, {0}};
+__mem struct Sprite *SpriteDB[2];
+
 
 struct Tile {
-    dword *Tiles;
+    char File[16];
     word Offset;
+    word TotalSize;
+    word TileSize;
     byte Total;
     byte Count;
     byte Rows;
     byte Columns;
     byte Palette; 
+    dword BRAM_Address;
+    dword VRAM_Addresses[12];
 };
 
-__mem dword PlayerSprites[NUM_PLAYER];
-__mem dword Enemy2Sprites[NUM_ENEMY2];
+byte const TILE_SQUAREMETAL = 0;
+byte const TILE_TILEMETAL = 1;
+byte const TILE_SQUARERASTER = 2;
 
-__mem dword SmallTiles[NUM_TILES_SMALL];
-__mem dword SquareMetalTiles[NUM_SQUAREMETAL];
-__mem dword TileMetalTiles[NUM_TILEMETAL];
-__mem dword SquareRasterTiles[NUM_SQUARERASTER];
-
-__mem struct Tile SquareMetal = { SquareMetalTiles, 0, 64, 16, 4, 4, 4 };
-__mem struct Tile TileMetal = { TileMetalTiles, 64, 64, 16, 4, 4, 5 };
-__mem struct Tile SquareRaster = { SquareRasterTiles, 128, 64, 16, 4, 4, 6 };
-// TODO: BBUG! This is not compiling correctly! __mem struct Tile *TileDB[3] = {&SquareMetal, &TileMetal, &SquareRaster};
+__mem struct Tile SquareMetal =  { "SQUAREMETAL",     0, 64*64*4/2, 2048, 64, 16, 4, 4, 4, 0x0, {0}};
+__mem struct Tile TileMetal =    { "TILEMETAL",      64, 64*64*4/2, 2048, 64, 16, 4, 4, 5, 0x0, {0}};
+__mem struct Tile SquareRaster = { "SQUARERASTER",  128, 64*64*4/2, 2048, 64, 16, 4, 4, 6, 0x0, {0}};
+// TODO: BUG! This is not compiling correctly! __mem struct Tile *TileDB[3] = {&SquareMetal, &TileMetal, &SquareRaster};
 __mem struct Tile *TileDB[3];
 
 byte const HEAP_SPRITES = 0;
@@ -54,40 +73,17 @@ byte const HEAP_FLOOR_MAP = 1;
 byte const HEAP_FLOOR_TILE = 2;
 byte const HEAP_PETSCII = 3;
 
-// Addressed used for graphics in main banked memory.
-const dword BRAM_PLAYER = 0x02000;
-const dword BRAM_ENEMY2 = 0x04000;
-const dword BANK_TILES_SMALL = 0x14000;
-const dword BANK_SQUAREMETAL = 0x16000;
-const dword BANK_TILEMETAL = 0x22000;
-const dword BANK_SQUARERASTER = 0x28000;
-const dword BANK_PALETTE = 0x34000;
-
-// Addresses used to store graphics in VERA VRAM.
-const dword VRAM_BASE = 0x00000;
 const dword VRAM_PETSCII_MAP = 0x1B000;
 const dword VRAM_PETSCII_TILE = 0x1F000;
 
-const dword VRAM_PLAYER = 0x00000; 
-const dword VRAM_ENEMY2 = 0x01800; 
-const dword VRAM_TILES_SMALL = 0x03000; 
-const dword VRAM_SQUAREMETAL = 0x03800; 
-const dword VRAM_TILEMETAL = 0x05800; 
-const dword VRAM_SQUARERASTER = 0x07800; 
+__mem dword bram_sprites_base;
+__mem dword bram_sprites_ceil;
+__mem dword bram_tiles_base;
+__mem dword bram_tiles_ceil;
+__mem dword bram_palette;
 
-dword vram_floor_map = 0x00000;
-dword vram_floor_tile = 0x00000;
+__mem dword vram_floor_map;
 
-
-// Sprite attributes: 4bpp, in front, 32x32, address SPRITE_PIXELS_VRAM
-struct VERA_SPRITE SPRITE_ATTR = { <(VRAM_PLAYER/32)|VERA_SPRITE_4BPP, 320-32, 240-32, 0x0c, VERA_SPRITE_WIDTH_32 | VERA_SPRITE_HEIGHT_32 | 0x1 };
-
-const char FILE_SPRITES[] = "PLAYER";
-const char FILE_ENEMY2[] = "ENEMY2";
-const char FILE_TILES[] = "TILES";
-const char FILE_TILEMETAL[] = "TILEMETAL";
-const char FILE_SQUARERASTER[] = "SQUARERASTER";
-const char FILE_SQUAREMETAL[] = "SQUAREMETAL";
 const char FILE_PALETTES[] = "PALETTES";
 
 volatile byte i = 0;
@@ -104,8 +100,6 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile
     byte TileRows = Tile->Rows;
     byte TileColumns = Tile->Columns; 
     byte PaletteOffset = Tile->Palette;
-
-    printf("offset = %x\n",TileOffset);
 
     x = x << resolution;
     y = y << resolution;
@@ -130,12 +124,14 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile
     }
 }
 
-void rotate_sprites(byte base, word rotate, word max, dword *spriteaddresses, word basex, word basey) {
+void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) {
+    byte offset = Sprite->Offset;
+    word max = Sprite->Count;
     for(byte s=0;s<max;s++) {
         word i = s+rotate;
         if(i>=max) i-=max;
-        vera_sprite_address(s+base, spriteaddresses[i]);
-        vera_sprite_xy(s+base, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6));
+        vera_sprite_address(s+offset, Sprite->VRAM_Addresses[i]);
+        vera_sprite_xy(s+offset, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6));
     }
 
 }
@@ -148,13 +144,13 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     if(a==0) {
         a=4;
 
-        rotate_sprites(0, i,NUM_PLAYER,PlayerSprites,40,100);
-        rotate_sprites(12, j,NUM_ENEMY2,Enemy2Sprites,340,100);
+        rotate_sprites(i,  SpriteDB[SPRITE_PLAYER], 40, 100);
+        rotate_sprites(j, SpriteDB[SPRITE_ENEMY2], 340, 100);
 
         i++;
-        if(i>=NUM_PLAYER) i=0;
+        if(i>=12) i=0;
         j++;
-        if(j>=NUM_ENEMY2) j=0;
+        if(j>=12) j=0;
 
     }
 
@@ -178,38 +174,22 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     *VERA_ISR = VERA_VSYNC;
 }
 
-void create_sprites_player() {
+void create_sprite(byte sprite) {
 
     // Copy sprite palette to VRAM
-    // Copy 8* sprite attributes to VRAM    
-    for(byte s=0;s<NUM_PLAYER;s++) {
-        vera_sprite_4bpp(s);
-        vera_sprite_address(s, PlayerSprites[s]);
-        vera_sprite_xy(s, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
-        vera_sprite_height_32(s);
-        vera_sprite_width_32(s);
-        vera_sprite_zdepth_in_front(s);
-        vera_sprite_VFlip_off(s);
-        vera_sprite_HFlip_off(s);
-        vera_sprite_palette_offset(s,1);
-    }
-}
-
-void create_sprites_enemy2() {
-    dword enemy2_sprite_address = VRAM_ENEMY2;
-    byte const base = 12;
-    for(byte s=0;s<NUM_ENEMY2;s++) {
-        vera_sprite_4bpp(s+base);
-        Enemy2Sprites[s] = enemy2_sprite_address;
-        vera_sprite_address(s+base, enemy2_sprite_address);
-        vera_sprite_xy(s+base, 40+((word)(s&03)<<6), 340+((word)(s>>2)<<6));
-        vera_sprite_height_32(s+base);
-        vera_sprite_width_32(s+base);
-        vera_sprite_zdepth_in_front(s+base);
-        vera_sprite_VFlip_off(s+base);
-        vera_sprite_HFlip_off(s+base);
-        vera_sprite_palette_offset(s+base,2);
-        enemy2_sprite_address += 32*32/2;
+    // Copy 8* sprite attributes to VRAM
+    struct Sprite *Sprite = SpriteDB[sprite];
+    for(byte s=0;s<Sprite->Count;s++) {
+        byte Offset = Sprite->Offset+s;
+        vera_sprite_bpp(Offset, Sprite->BPP);
+        vera_sprite_address(Offset, Sprite->VRAM_Addresses[s]);
+        vera_sprite_xy(Offset, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
+        vera_sprite_height(Offset, Sprite->Height);
+        vera_sprite_width(Offset, Sprite->Width);
+        vera_sprite_zdepth(Offset, Sprite->Zdepth);
+        vera_sprite_hflip(Offset, Sprite->Hflip);
+        vera_sprite_vflip(Offset, Sprite->Vflip);
+        vera_sprite_palette_offset(Offset, Sprite->Palette);
     }
 }
 
@@ -224,43 +204,72 @@ void tile_background() {
     }
 }
 
-void cpy_graphics(byte segmentid, dword bsrc, dword *array, byte num, word size) {
-
-    // Copy graphics to the VERA VRAM.
-    for(byte s=0;s<num;s++) {
+void sprite_cpy_vram(byte segmentid, struct Sprite *Sprite) {
+    dword bsrc = Sprite->BRAM_Address;
+    byte num = Sprite->Count;
+    word size = Sprite->SpriteSize;
+    for(byte s=0;s<Sprite->Count;s++) {
+        byte Offset = Sprite->Offset + s;
         dword vaddr = vera_heap_malloc(segmentid, size);
-        printf("%x\n", vaddr);
-        // dword baddr = bsrc+((word)s*size);
+        gotoxy(10, 10+s);
+        printf("vram sprite %u = %x", Offset, vaddr);
         dword baddr = bsrc+mul16u((word)s,size);
         vera_cpy_bank_vram(baddr, vaddr, size);
-        array[s] = vaddr;
+        Sprite->VRAM_Addresses[s] = vaddr;
     }
 }
 
+void tile_cpy_vram(byte segmentid, struct Tile *Tile) {
+    dword bsrc = Tile->BRAM_Address;
+    byte num = Tile->Count;
+    word size = Tile->TileSize;
+    for(byte s=0;s<num;s++) {
+        dword vaddr = vera_heap_malloc(segmentid, size);
+        dword baddr = bsrc+mul16u((word)s,size);
+        vera_cpy_bank_vram(baddr, vaddr, size);
+        Tile->VRAM_Addresses[s] = vaddr;
+    }
+}
+
+dword load_sprite( struct Sprite *Sprite, dword bram_address) {
+    char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address);
+    if(status!=$ff) printf("error file %s: %x\n", Sprite->File, status);
+    Sprite->BRAM_Address = bram_address;
+    word size = Sprite->Size;
+    return bram_address + size;
+    // return bram_address + Sprite->Size; // TODO: fragment
+}
+
+dword load_tile( struct Tile *Tile, dword bram_address) {
+    char status = cx16_load_ram_banked(1, 8, 0, Tile->File, bram_address);
+    if(status!=$ff) printf("error file %s: %x\n", Tile->File, status);
+    Tile->BRAM_Address = bram_address;
+    word size = Tile->Size;
+    return bram_address + size;
+    // return bram_address + Tile->Size; // TODO: fragment
+}
 
 void main() {
 
-    TileDB[0] = &SquareMetal;
-    TileDB[1] = &TileMetal;
-    TileDB[2] = &SquareRaster;
+    TileDB[TILE_SQUAREMETAL] = &SquareMetal;
+    TileDB[TILE_TILEMETAL] = &TileMetal;
+    TileDB[TILE_SQUARERASTER] = &SquareRaster;
 
+    SpriteDB[SPRITE_PLAYER] = &SpritesPlayer;
+    SpriteDB[SPRITE_ENEMY2] = &SpritesEnemy2; 
 
     // Loading the graphics in main banked memory.
-    char status = cx16_load_ram_banked(1, 8, 0, FILE_SPRITES, (dword)BRAM_PLAYER);
-    if(status!=$ff) printf("error file_sprites: %x\n",status);
-    status = cx16_load_ram_banked(1, 8, 0, FILE_ENEMY2, (dword)BRAM_ENEMY2);
-    if(status!=$ff) printf("error file_enemy2 = %x\n",status);
-    status = cx16_load_ram_banked(1, 8, 0, FILE_TILES, (dword)BANK_TILES_SMALL);
-    if(status!=$ff) printf("error file_tiles = %x\n",status);
-    status = cx16_load_ram_banked(1, 8, 0, FILE_SQUAREMETAL, (dword)BANK_SQUAREMETAL);
-    if(status!=$ff) printf("error file_squaremetal = %x\n",status);
-    status = cx16_load_ram_banked(1, 8, 0, FILE_TILEMETAL, (dword)BANK_TILEMETAL);
-    if(status!=$ff) printf("error file_tilemetal = %x\n",status);
-    status = cx16_load_ram_banked(1, 8, 0, FILE_SQUARERASTER, (dword)BANK_SQUARERASTER);
-    if(status!=$ff) printf("error file_squareraster = %x\n",status);
-    
-    // Load the palette in main banked memory.
-    status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, (dword)BANK_PALETTE);
+    bram_sprites_ceil = cx16_get_bram_base();
+    bram_sprites_ceil = load_sprite(SpriteDB[SPRITE_PLAYER], bram_sprites_ceil);
+    bram_sprites_ceil = load_sprite(SpriteDB[SPRITE_ENEMY2], bram_sprites_ceil);
+    bram_tiles_ceil = bram_sprites_ceil;
+    bram_tiles_ceil = load_tile(TileDB[TILE_SQUAREMETAL], bram_tiles_ceil);
+    bram_tiles_ceil = load_tile(TileDB[TILE_TILEMETAL], bram_tiles_ceil);
+    bram_tiles_ceil = load_tile(TileDB[TILE_SQUARERASTER], bram_tiles_ceil);
+
+    // Load the palettes in main banked memory.
+    bram_palette = bram_tiles_ceil;
+    byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette);
     if(status!=$ff) printf("error file_palettes = %u",status);
 
     // We are going to use only the kernal on the X16.
@@ -282,43 +291,43 @@ void main() {
 
     // Set the vera heap parameters.
     word const VRAM_SPRITES_SIZE = 64*32*32/2;
-    dword vram_address = vera_heap_segment_init(HEAP_SPRITES, VRAM_BASE, VRAM_SPRITES_SIZE);
+    __mem dword vram_segment_sprites = vera_heap_segment_init(HEAP_SPRITES, 0x00000, VRAM_SPRITES_SIZE);
 
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = 12*64*64/2;
-    vram_address = vera_heap_segment_init(HEAP_FLOOR_MAP, vram_address, VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE);
-    vram_floor_map = vera_heap_malloc(HEAP_FLOOR_MAP, VRAM_FLOOR_MAP_SIZE);
-    vram_address = vera_heap_segment_init(HEAP_FLOOR_TILE, vram_address, VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE);
+    __mem dword vram_segment_floor_map = vera_heap_segment_init(HEAP_FLOOR_MAP, vera_heap_segment_ceiling(HEAP_SPRITES), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE);
+    __mem dword vram_segment_floor_tile = vera_heap_segment_init(HEAP_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_FLOOR_MAP), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE);
+
+    vram_floor_map = vram_segment_floor_map;
 
     // Now we activate the tile mode.
  
-    cpy_graphics(HEAP_SPRITES, BRAM_PLAYER, PlayerSprites, NUM_PLAYER, 512);
-    cpy_graphics(HEAP_SPRITES, BRAM_ENEMY2, Enemy2Sprites, NUM_ENEMY2, 512);
-    cpy_graphics(HEAP_FLOOR_TILE, BANK_SQUAREMETAL, SquareMetalTiles, NUM_SQUAREMETAL, 2048);
-    cpy_graphics(HEAP_FLOOR_TILE, BANK_TILEMETAL, TileMetalTiles, NUM_TILEMETAL, 2048);
-    cpy_graphics(HEAP_FLOOR_TILE, BANK_SQUARERASTER, SquareRasterTiles, NUM_SQUARERASTER, 2048);
+    sprite_cpy_vram(HEAP_SPRITES, SpriteDB[SPRITE_PLAYER]);
+    sprite_cpy_vram(HEAP_SPRITES, SpriteDB[SPRITE_ENEMY2]);
+    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUAREMETAL]);
+    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_TILEMETAL]);
+    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUARERASTER]);
 
-    vram_floor_tile = SquareMetalTiles[0];
-    vera_layer_mode_tile(0, vram_floor_map, vram_floor_tile, 64, 64, 16, 16, 4);
+    vera_layer_mode_tile(0, vram_segment_floor_map, vram_segment_floor_tile, 64, 64, 16, 16, 4);
 
     // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    vera_cpy_bank_vram(BANK_PALETTE, VERA_PALETTE+32, (dword)32*6);
+    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*6);
 
     vera_layer_show(0);
 
     tile_background();
 
-    create_sprites_player();
-    create_sprites_enemy2();
+    create_sprite(SPRITE_PLAYER);
+    create_sprite(SPRITE_ENEMY2);
 
     vera_sprite_on();
 
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
-    SEI();
-    *KERNEL_IRQ = &irq_vsync;
-    *VERA_IEN = VERA_VSYNC; 
-    CLI();
+    // SEI();
+    // *KERNEL_IRQ = &irq_vsync;
+    // *VERA_IEN = VERA_VSYNC; 
+    // CLI();
 
     while(!kbhit());
 
