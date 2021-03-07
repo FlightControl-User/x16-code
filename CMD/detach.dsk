@@ -1,2 +1,2 @@
-select vdisk file="D:\Users\svenv\OneDrive\Documents\GitHub\X16_Code\VHD\X16.vhd"
+select vdisk file="C:\SDCARD\X16.vhd"
 detach vdisk

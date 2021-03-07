@@ -22,7 +22,7 @@
 struct Sprite {
     char File[16];
     byte Offset;
-    byte Count;
+    byte SpriteCount;
     word TotalSize;
     word SpriteSize;
     byte Width;
@@ -47,12 +47,13 @@ __mem struct Sprite *SpriteDB[2];
 struct Tile {
     char File[16];
     word Offset;
+    byte TileCount;
     word TotalSize;
     word TileSize;
-    byte Total;
-    byte Count;
-    byte Rows;
-    byte Columns;
+    byte DrawTotal;
+    byte DrawCount;
+    byte DrawRows;
+    byte DrawColumns;
     byte Palette; 
     dword BRAM_Address;
     dword VRAM_Addresses[12];
@@ -62,9 +63,9 @@ byte const TILE_SQUAREMETAL = 0;
 byte const TILE_TILEMETAL = 1;
 byte const TILE_SQUARERASTER = 2;
 
-__mem struct Tile SquareMetal =  { "SQUAREMETAL",     0, 64*64*4/2, 2048, 64, 16, 4, 4, 4, 0x0, {0}};
-__mem struct Tile TileMetal =    { "TILEMETAL",      64, 64*64*4/2, 2048, 64, 16, 4, 4, 5, 0x0, {0}};
-__mem struct Tile SquareRaster = { "SQUARERASTER",  128, 64*64*4/2, 2048, 64, 16, 4, 4, 6, 0x0, {0}};
+__mem struct Tile SquareMetal =  { "SQUAREMETAL",     0, 4, 64*64*4/2, 2048, 64, 16, 4, 4, 4, 0x0, {0}};
+__mem struct Tile TileMetal =    { "TILEMETAL",      64, 4, 64*64*4/2, 2048, 64, 16, 4, 4, 5, 0x0, {0}};
+__mem struct Tile SquareRaster = { "SQUARERASTER",  128, 4, 64*64*4/2, 2048, 64, 16, 4, 4, 6, 0x0, {0}};
 // TODO: BUG! This is not compiling correctly! __mem struct Tile *TileDB[3] = {&SquareMetal, &TileMetal, &SquareRaster};
 __mem struct Tile *TileDB[3];
 
@@ -82,23 +83,19 @@ __mem dword bram_tiles_base;
 __mem dword bram_tiles_ceil;
 __mem dword bram_palette;
 
-__mem dword vram_floor_map;
+volatile dword vram_floor_map;
 
 const char FILE_PALETTES[] = "PALETTES";
 
-volatile byte i = 0;
-volatile byte j = 0;
-volatile byte a = 4;
-volatile word vscroll = 0;
-volatile word scroll_action = 2;
+
 
 void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile* Tile ) {
 
     word TileOffset = Tile->Offset;
-    byte TileTotal = Tile->Total;
-    byte TileCount = Tile->Count;
-    byte TileRows = Tile->Rows;
-    byte TileColumns = Tile->Columns; 
+    byte TileTotal = Tile->DrawTotal;
+    byte TileCount = Tile->DrawCount;
+    byte TileRows = Tile->DrawRows;
+    byte TileColumns = Tile->DrawColumns; 
     byte PaletteOffset = Tile->Palette;
 
     x = x << resolution;
@@ -126,7 +123,7 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile
 
 void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) {
     byte offset = Sprite->Offset;
-    word max = Sprite->Count;
+    word max = Sprite->SpriteCount;
     for(byte s=0;s<max;s++) {
         word i = s+rotate;
         if(i>=max) i-=max;
@@ -135,6 +132,13 @@ void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) 
     }
 
 }
+
+__mem volatile byte i = 0;
+__mem volatile byte j = 0;
+__mem volatile byte a = 4;
+__mem volatile word row = 5;
+__mem volatile word vscroll = 128*5;
+__mem volatile word scroll_action = 2;
 
 //VSYNC Interrupt Routine
 __interrupt(rom_sys_cx16) void irq_vsync() {
@@ -155,20 +159,31 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     }
 
     if(scroll_action--) {
-        scroll_action = 2;
-        vscroll++;
-        if(vscroll>(64)*2-1) {
-            memcpy_in_vram(<(>vram_floor_map), <vram_floor_map, VERA_INC_1, <(>vram_floor_map), (<vram_floor_map)+64*16, VERA_INC_1, 64*16*4);
-            for(byte r=4;r<5;r+=1) {
-                for(byte c=0;c<5;c+=1) {
-                    byte rnd = (byte)modr16u(rand(),3,0);
-                    vera_tile_element( 0, c, r, 3, TileDB[rnd]);
-                }
+        scroll_action = 10;
+        if((<vscroll & 0x80)==<vscroll) {
+            if(row<=4) {
+                dword dest_row = vram_floor_map+((row+4)*8*64*2);
+                dword src_row = vram_floor_map+(row*8*64*2);
+                vera_cpy_vram_vram(src_row, dest_row, (dword)64*8*2);
+                gotoxy(0, 21);
+                printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map);
             }
-            vscroll=0;
+            if(vscroll==0) {
+                vscroll=128*4;
+                row = 4;
+            }
+            for(byte c=0;c<5;c++) {
+                byte rnd = (byte)modr16u(rand(),3,0);
+                vera_tile_element( 0, c, (byte)row-1, 3, TileDB[rnd]);
+            }
+            row--;
         } 
+        vscroll--;
         vera_layer_set_vertical_scroll(0,vscroll);
     }
+
+    gotoxy(0, 20);
+    printf("vscroll:%u row:%u     ",vscroll, row);
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
@@ -179,7 +194,7 @@ void create_sprite(byte sprite) {
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
     struct Sprite *Sprite = SpriteDB[sprite];
-    for(byte s=0;s<Sprite->Count;s++) {
+    for(byte s=0;s<Sprite->SpriteCount;s++) {
         byte Offset = Sprite->Offset+s;
         vera_sprite_bpp(Offset, Sprite->BPP);
         vera_sprite_address(Offset, Sprite->VRAM_Addresses[s]);
@@ -196,7 +211,7 @@ void create_sprite(byte sprite) {
 
 
 void tile_background() {
-    for(byte r=0;r<6;r+=1) {
+    for(byte r=5;r<10;r+=1) {
         for(byte c=0;c<5;c+=1) {
             byte rnd = (byte)modr16u(rand(),3,0);
             vera_tile_element( 0, c, r, 3, TileDB[rnd]);
@@ -204,15 +219,32 @@ void tile_background() {
     }
 }
 
+void show_memory_map() {
+    for(byte i=0;i<2;i++) {
+        struct Sprite *Sprite = SpriteDB[i];
+        gotoxy(0, 1+i);
+        printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address);
+        for(byte j=0;j<12;j++) {
+            printf("%x ", Sprite->VRAM_Addresses[j]);
+        }
+    }
+    for(byte i=0;i<3;i++) {
+        struct Tile *Tile = TileDB[i];
+        gotoxy(0, 4+i);
+        printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address);
+        for(byte j=0;j<4;j++) {
+            printf("%x ", Tile->VRAM_Addresses[j]);
+        }
+    }
+}
+
 void sprite_cpy_vram(byte segmentid, struct Sprite *Sprite) {
     dword bsrc = Sprite->BRAM_Address;
-    byte num = Sprite->Count;
+    byte num = Sprite->SpriteCount;
     word size = Sprite->SpriteSize;
-    for(byte s=0;s<Sprite->Count;s++) {
+    for(byte s=0;s<Sprite->SpriteCount;s++) {
         byte Offset = Sprite->Offset + s;
         dword vaddr = vera_heap_malloc(segmentid, size);
-        gotoxy(10, 10+s);
-        printf("vram sprite %u = %x", Offset, vaddr);
         dword baddr = bsrc+mul16u((word)s,size);
         vera_cpy_bank_vram(baddr, vaddr, size);
         Sprite->VRAM_Addresses[s] = vaddr;
@@ -221,7 +253,7 @@ void sprite_cpy_vram(byte segmentid, struct Sprite *Sprite) {
 
 void tile_cpy_vram(byte segmentid, struct Tile *Tile) {
     dword bsrc = Tile->BRAM_Address;
-    byte num = Tile->Count;
+    byte num = Tile->TileCount;
     word size = Tile->TileSize;
     for(byte s=0;s<num;s++) {
         dword vaddr = vera_heap_malloc(segmentid, size);
@@ -235,7 +267,7 @@ dword load_sprite( struct Sprite *Sprite, dword bram_address) {
     char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address);
     if(status!=$ff) printf("error file %s: %x\n", Sprite->File, status);
     Sprite->BRAM_Address = bram_address;
-    word size = Sprite->Size;
+    word size = Sprite->TotalSize;
     return bram_address + size;
     // return bram_address + Sprite->Size; // TODO: fragment
 }
@@ -244,7 +276,7 @@ dword load_tile( struct Tile *Tile, dword bram_address) {
     char status = cx16_load_ram_banked(1, 8, 0, Tile->File, bram_address);
     if(status!=$ff) printf("error file %s: %x\n", Tile->File, status);
     Tile->BRAM_Address = bram_address;
-    word size = Tile->Size;
+    word size = Tile->TotalSize;
     return bram_address + size;
     // return bram_address + Tile->Size; // TODO: fragment
 }
@@ -273,7 +305,7 @@ void main() {
     if(status!=$ff) printf("error file_palettes = %u",status);
 
     // We are going to use only the kernal on the X16.
-    cx16_rom_bank(0);
+    cx16_rom_bank(CX16_ROM_KERNAL);
 
     // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
     // This frees up the maximum space in VERA VRAM available for graphics.
@@ -322,17 +354,18 @@ void main() {
 
     vera_sprite_on();
 
+    show_memory_map();
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
-    // SEI();
-    // *KERNEL_IRQ = &irq_vsync;
-    // *VERA_IEN = VERA_VSYNC; 
-    // CLI();
+    SEI();
+    *KERNEL_IRQ = &irq_vsync;
+    *VERA_IEN = VERA_VSYNC; 
+    CLI();
 
     while(!kbhit());
 
     // Back to basic.
-    cx16_rom_bank(4);
+    cx16_rom_bank(CX16_ROM_BASIC);
 }
 
 
