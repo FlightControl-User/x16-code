@@ -83,6 +83,8 @@
   .const VERA_SPRITE_HEIGHT_64 = $c0
   .const VERA_SPRITE_HEIGHT_MASK = $c0
   .const VERA_SPRITE_PALETTE_OFFSET_MASK = $f
+  .const CX16_ROM_KERNAL = 0
+  .const CX16_ROM_BASIC = 4
   // Common CBM Kernal Routines
   .const CBM_SETNAM = $ffbd
   // Set the name of a file.
@@ -110,11 +112,6 @@
   .const OCTAL = 8
   .const DECIMAL = $a
   .const HEXADECIMAL = $10
-  .const NUM_PLAYER = $c
-  .const NUM_ENEMY2 = $c
-  .const NUM_SQUAREMETAL = 4
-  .const NUM_TILEMETAL = 4
-  .const NUM_SQUARERASTER = 4
   .const SPRITE_PLAYER = 0
   .const SPRITE_ENEMY2 = 1
   .const TILE_TILEMETAL = 1
@@ -143,25 +140,28 @@
   .const OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT = $a
   .const OFFSET_STRUCT_CX16_CONIO_CONIO_DISPLAY_CURSOR = $d
   .const OFFSET_STRUCT_TILE_OFFSET = $10
-  .const OFFSET_STRUCT_TILE_TOTAL = $14
-  .const OFFSET_STRUCT_TILE_COUNT = $15
-  .const OFFSET_STRUCT_TILE_COLUMNS = $17
-  .const OFFSET_STRUCT_TILE_PALETTE = $18
+  .const OFFSET_STRUCT_TILE_DRAWTOTAL = $17
+  .const OFFSET_STRUCT_TILE_DRAWCOUNT = $18
+  .const OFFSET_STRUCT_TILE_DRAWCOLUMNS = $1a
+  .const OFFSET_STRUCT_TILE_PALETTE = $1b
   .const OFFSET_STRUCT_SPRITE_OFFSET = $10
-  .const OFFSET_STRUCT_SPRITE_COUNT = $12
-  .const OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES = $1e
-  .const OFFSET_STRUCT_SPRITE_BPP = $18
-  .const OFFSET_STRUCT_SPRITE_HEIGHT = $14
-  .const OFFSET_STRUCT_SPRITE_WIDTH = $13
-  .const OFFSET_STRUCT_SPRITE_ZDEPTH = $17
-  .const OFFSET_STRUCT_SPRITE_HFLIP = $15
-  .const OFFSET_STRUCT_SPRITE_VFLIP = $16
-  .const OFFSET_STRUCT_SPRITE_PALETTE = $19
-  .const OFFSET_STRUCT_SPRITE_BRAM_ADDRESS = $1a
-  .const OFFSET_STRUCT_TILE_BRAM_ADDRESS = $19
-  .const OFFSET_STRUCT_TILE_VRAM_ADDRESSES = $1d
-  .const OFFSET_STRUCT_SPRITE_SIZE = $11
-  .const OFFSET_STRUCT_TILE_SIZE = $12
+  .const OFFSET_STRUCT_SPRITE_SPRITECOUNT = $11
+  .const OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES = $21
+  .const OFFSET_STRUCT_SPRITE_BPP = $1b
+  .const OFFSET_STRUCT_SPRITE_HEIGHT = $17
+  .const OFFSET_STRUCT_SPRITE_WIDTH = $16
+  .const OFFSET_STRUCT_SPRITE_ZDEPTH = $1a
+  .const OFFSET_STRUCT_SPRITE_HFLIP = $18
+  .const OFFSET_STRUCT_SPRITE_VFLIP = $19
+  .const OFFSET_STRUCT_SPRITE_PALETTE = $1c
+  .const OFFSET_STRUCT_SPRITE_BRAM_ADDRESS = $1d
+  .const OFFSET_STRUCT_TILE_BRAM_ADDRESS = $1c
+  .const OFFSET_STRUCT_TILE_VRAM_ADDRESSES = $20
+  .const OFFSET_STRUCT_SPRITE_SPRITESIZE = $14
+  .const OFFSET_STRUCT_TILE_TILECOUNT = $12
+  .const OFFSET_STRUCT_TILE_TILESIZE = $15
+  .const OFFSET_STRUCT_SPRITE_TOTALSIZE = $12
+  .const OFFSET_STRUCT_TILE_TOTALSIZE = $13
   // Implements functions for static and dynamic memory management for VERA VRAM memory.
   .const vera_heap_ram_bank = $3f
   .const SIZEOF_STRUCT_CX16_CONIO = $e
@@ -185,6 +185,13 @@
   // Bit 1: DCSEL
   // Bit 2: ADDRSEL
   .label VERA_CTRL = $9f25
+  // $9F26	IEN		Interrupt Enable
+  // Bit 7: IRQ line (8)
+  // Bit 3: AFLOW
+  // Bit 2: SPRCOL
+  // Bit 1: LINE
+  // Bit 0: VSYNC
+  .label VERA_IEN = $9f26
   // $9F27	ISR     Interrupt Status
   // Interrupts will be generated for the interrupt sources set in the lower 4 bits of IEN. ISR will indicate the interrupts that have occurred.
   // Writing a 1 to one of the lower 3 bits in ISR will clear that interrupt status. AFLOW can only be cleared by filling the audio FIFO for at least 1/4.
@@ -234,285 +241,485 @@
   // Port B Bits 0-2 ROM bank
   // Port B Bits 3-7 [TBD]
   .label VIA1 = $9f60
-  .label i = $2a
-  .label j = $2b
-  .label a = $2c
-  .label vscroll = $2d
-  .label scroll_action = $2f
+  // $0314	(RAM) IRQ vector - The vector used when the KERNAL serves IRQ interrupts
+  .label KERNEL_IRQ = $314
+  .label vram_floor_map = $28
   // The random state variable
-  .label rand_state = $1c
+  .label rand_state = $1d
   // Remainder after unsigned 16-bit division
-  .label rem16u = $1e
+  .label rem16u = $22
 .segment Code
   // __start
 __start: {
     // __start::__init1
-    // i = 0
-    // [1] i = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z i
-    // j = 0
-    // [2] j = 0 -- vbuz1=vbuc1 
-    sta.z j
-    // a = 4
-    // [3] a = 4 -- vbuz1=vbuc1 
-    lda #4
-    sta.z a
-    // vscroll = 0
-    // [4] vscroll = 0 -- vwuz1=vwuc1 
+    // vram_floor_map
+    // [1] vram_floor_map = 0 -- vduz1=vduc1 
     lda #<0
-    sta.z vscroll
-    sta.z vscroll+1
-    // scroll_action = 2
-    // [5] scroll_action = 2 -- vwuz1=vwuc1 
-    lda #<2
-    sta.z scroll_action
-    lda #>2
-    sta.z scroll_action+1
+    sta.z vram_floor_map
+    sta.z vram_floor_map+1
+    lda #<0>>$10
+    sta.z vram_floor_map+2
+    lda #>0>>$10
+    sta.z vram_floor_map+3
     // #pragma constructor_for(conio_x16_init, cputc, clrscr, cscroll)
-    // [6] call conio_x16_init 
+    // [2] call conio_x16_init 
     jsr conio_x16_init
-    // [7] phi from __start::__init1 to __start::@1 [phi:__start::__init1->__start::@1]
+    // [3] phi from __start::__init1 to __start::@1 [phi:__start::__init1->__start::@1]
     // __start::@1
-    // [8] call main 
+    // [4] call main 
     jsr main
     // __start::@return
-    // [9] return 
+    // [5] return 
     rts
 }
   // irq_vsync
 //VSYNC Interrupt Routine
 irq_vsync: {
-    .label __2 = $31
-    .label __12 = $33
-    .label __15 = $35
-    .label __17 = $37
-    .label __23 = $31
-    .label __28 = $39
-    .label vera_layer_set_vertical_scroll1___0 = 3
-    .label vera_layer_set_vertical_scroll1___1 = 3
-    .label vera_layer_set_vertical_scroll1_scroll = $31
-    .label rnd = $39
-    .label c = 4
-    .label r = 3
+    .label __2 = $2c
+    .label __13 = 3
+    .label __19 = $2e
+    .label __20 = $2e
+    .label __21 = $2e
+    .label __22 = $2e
+    .label __24 = $34
+    .label __25 = $34
+    .label __26 = $34
+    .label __35 = $2c
+    .label vera_layer_set_vertical_scroll1_scroll = $3a
+    .label dest_row = $30
+    .label src_row = $36
+    .label c = 3
     // interrupt(isr_rom_sys_cx16_entry) -- isr_rom_sys_cx16_entry 
     // a--;
-    // [11] a = -- a -- vbuz1=_dec_vbuz1 
-    dec.z a
+    // [7] a = -- a -- vbum1=_dec_vbum1 
+    dec a
     // if(a==0)
-    // [12] if(a!=0) goto irq_vsync::@1 -- vbuz1_neq_0_then_la1 
-    lda.z a
-    cmp #0
+    // [8] if(a!=0) goto irq_vsync::@1 -- vbum1_neq_0_then_la1 
+    lda a
     bne __b1
     // irq_vsync::@3
     // a=4
-    // [13] a = 4 -- vbuz1=vbuc1 
+    // [9] a = 4 -- vbum1=vbuc1 
     lda #4
-    sta.z a
+    sta a
     // rotate_sprites(i,  SpriteDB[SPRITE_PLAYER], 40, 100)
-    // [14] rotate_sprites::rotate#0 = i -- vwuz1=vbuz2 
-    lda.z i
+    // [10] rotate_sprites::rotate#0 = i -- vwuz1=vbum2 
+    lda i
     sta.z rotate_sprites.rotate
     lda #0
     sta.z rotate_sprites.rotate+1
-    // [15] rotate_sprites::Sprite#0 = *SpriteDB -- pssz1=_deref_qssc1 
+    // [11] rotate_sprites::Sprite#0 = *SpriteDB -- pssz1=_deref_qssc1 
     lda SpriteDB
     sta.z rotate_sprites.Sprite
     lda SpriteDB+1
     sta.z rotate_sprites.Sprite+1
-    // [16] call rotate_sprites 
-    // [202] phi from irq_vsync::@3 to rotate_sprites [phi:irq_vsync::@3->rotate_sprites]
-    // [202] phi rotate_sprites::basex#8 = $28 [phi:irq_vsync::@3->rotate_sprites#0] -- vwuz1=vbuc1 
+    // [12] call rotate_sprites 
+    // [240] phi from irq_vsync::@3 to rotate_sprites [phi:irq_vsync::@3->rotate_sprites]
+    // [240] phi rotate_sprites::basex#8 = $28 [phi:irq_vsync::@3->rotate_sprites#0] -- vwuz1=vbuc1 
     lda #<$28
     sta.z rotate_sprites.basex
     lda #>$28
     sta.z rotate_sprites.basex+1
-    // [202] phi rotate_sprites::rotate#4 = rotate_sprites::rotate#0 [phi:irq_vsync::@3->rotate_sprites#1] -- register_copy 
-    // [202] phi rotate_sprites::Sprite#2 = rotate_sprites::Sprite#0 [phi:irq_vsync::@3->rotate_sprites#2] -- register_copy 
+    // [240] phi rotate_sprites::rotate#4 = rotate_sprites::rotate#0 [phi:irq_vsync::@3->rotate_sprites#1] -- register_copy 
+    // [240] phi rotate_sprites::Sprite#2 = rotate_sprites::Sprite#0 [phi:irq_vsync::@3->rotate_sprites#2] -- register_copy 
     jsr rotate_sprites
-    // irq_vsync::@15
+    // irq_vsync::@16
     // rotate_sprites(j, SpriteDB[SPRITE_ENEMY2], 340, 100)
-    // [17] rotate_sprites::rotate#1 = j -- vwuz1=vbuz2 
-    lda.z j
+    // [13] rotate_sprites::rotate#1 = j -- vwuz1=vbum2 
+    lda j
     sta.z rotate_sprites.rotate
     lda #0
     sta.z rotate_sprites.rotate+1
-    // [18] rotate_sprites::Sprite#1 = *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // [14] rotate_sprites::Sprite#1 = *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER
     sta.z rotate_sprites.Sprite
     lda SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER+1
     sta.z rotate_sprites.Sprite+1
-    // [19] call rotate_sprites 
-    // [202] phi from irq_vsync::@15 to rotate_sprites [phi:irq_vsync::@15->rotate_sprites]
-    // [202] phi rotate_sprites::basex#8 = $154 [phi:irq_vsync::@15->rotate_sprites#0] -- vwuz1=vwuc1 
+    // [15] call rotate_sprites 
+    // [240] phi from irq_vsync::@16 to rotate_sprites [phi:irq_vsync::@16->rotate_sprites]
+    // [240] phi rotate_sprites::basex#8 = $154 [phi:irq_vsync::@16->rotate_sprites#0] -- vwuz1=vwuc1 
     lda #<$154
     sta.z rotate_sprites.basex
     lda #>$154
     sta.z rotate_sprites.basex+1
-    // [202] phi rotate_sprites::rotate#4 = rotate_sprites::rotate#1 [phi:irq_vsync::@15->rotate_sprites#1] -- register_copy 
-    // [202] phi rotate_sprites::Sprite#2 = rotate_sprites::Sprite#1 [phi:irq_vsync::@15->rotate_sprites#2] -- register_copy 
+    // [240] phi rotate_sprites::rotate#4 = rotate_sprites::rotate#1 [phi:irq_vsync::@16->rotate_sprites#1] -- register_copy 
+    // [240] phi rotate_sprites::Sprite#2 = rotate_sprites::Sprite#1 [phi:irq_vsync::@16->rotate_sprites#2] -- register_copy 
     jsr rotate_sprites
-    // irq_vsync::@16
+    // irq_vsync::@17
     // i++;
-    // [20] i = ++ i -- vbuz1=_inc_vbuz1 
-    inc.z i
-    // if(i>=NUM_PLAYER)
-    // [21] if(i<NUM_PLAYER) goto irq_vsync::@7 -- vbuz1_lt_vbuc1_then_la1 
-    lda.z i
-    cmp #NUM_PLAYER
-    bcc __b7
+    // [16] i = ++ i -- vbum1=_inc_vbum1 
+    inc i
+    // if(i>=12)
+    // [17] if(i<$c) goto irq_vsync::@8 -- vbum1_lt_vbuc1_then_la1 
+    lda i
+    cmp #$c
+    bcc __b8
     // irq_vsync::@4
     // i=0
-    // [22] i = 0 -- vbuz1=vbuc1 
+    // [18] i = 0 -- vbum1=vbuc1 
     lda #0
-    sta.z i
-    // irq_vsync::@7
-  __b7:
-    // j++;
-    // [23] j = ++ j -- vbuz1=_inc_vbuz1 
-    inc.z j
-    // if(j>=NUM_ENEMY2)
-    // [24] if(j<NUM_ENEMY2) goto irq_vsync::@1 -- vbuz1_lt_vbuc1_then_la1 
-    lda.z j
-    cmp #NUM_ENEMY2
-    bcc __b1
+    sta i
     // irq_vsync::@8
+  __b8:
+    // j++;
+    // [19] j = ++ j -- vbum1=_inc_vbum1 
+    inc j
+    // if(j>=12)
+    // [20] if(j<$c) goto irq_vsync::@1 -- vbum1_lt_vbuc1_then_la1 
+    lda j
+    cmp #$c
+    bcc __b1
+    // irq_vsync::@9
     // j=0
-    // [25] j = 0 -- vbuz1=vbuc1 
+    // [21] j = 0 -- vbum1=vbuc1 
     lda #0
-    sta.z j
+    sta j
     // irq_vsync::@1
   __b1:
     // if(scroll_action--)
-    // [26] irq_vsync::$2 = scroll_action -- vwuz1=vwuz2 
-    lda.z scroll_action
+    // [22] irq_vsync::$2 = scroll_action -- vwuz1=vwum2 
+    lda scroll_action
     sta.z __2
-    lda.z scroll_action+1
+    lda scroll_action+1
     sta.z __2+1
-    // [27] scroll_action = -- scroll_action -- vwuz1=_dec_vwuz1 
-    lda.z scroll_action
+    // [23] scroll_action = -- scroll_action -- vwum1=_dec_vwum1 
+    lda scroll_action
     bne !+
-    dec.z scroll_action+1
+    dec scroll_action+1
   !:
-    dec.z scroll_action
-    // [28] if(0==irq_vsync::$2) goto irq_vsync::@2 -- 0_eq_vwuz1_then_la1 
+    dec scroll_action
+    // [24] if(0==irq_vsync::$2) goto irq_vsync::@2 -- 0_eq_vwuz1_then_la1 
     lda.z __2
     ora.z __2+1
     bne !__b2+
     jmp __b2
   !__b2:
     // irq_vsync::@5
-    // scroll_action = 2
-    // [29] scroll_action = 2 -- vwuz1=vbuc1 
-    lda #<2
-    sta.z scroll_action
-    lda #>2
-    sta.z scroll_action+1
-    // vscroll++;
-    // [30] vscroll = ++ vscroll -- vwuz1=_inc_vwuz1 
-    inc.z vscroll
-    bne !+
-    inc.z vscroll+1
-  !:
-    // if(vscroll>(64)*2-1)
-    // [31] if(vscroll<$40*2-1+1) goto irq_vsync::@9 -- vwuz1_lt_vbuc1_then_la1 
-    lda.z vscroll+1
-    bne !+
-    lda.z vscroll
-    cmp #$40*2-1+1
-    bcc __b9
-  !:
+    // scroll_action = 10
+    // [25] scroll_action = $a -- vwum1=vbuc1 
+    lda #<$a
+    sta scroll_action
+    lda #>$a
+    sta scroll_action+1
+    // <vscroll
+    // [26] irq_vsync::$12 = < vscroll -- vbuaa=_lo_vwum1 
+    lda vscroll
+    // <vscroll & 0x80
+    // [27] irq_vsync::$13 = irq_vsync::$12 & $80 -- vbuz1=vbuaa_band_vbuc1 
+    and #$80
+    sta.z __13
+    // <vscroll
+    // [28] irq_vsync::$14 = < vscroll -- vbuaa=_lo_vwum1 
+    lda vscroll
+    // if((<vscroll & 0x80)==<vscroll)
+    // [29] if(irq_vsync::$13!=irq_vsync::$14) goto irq_vsync::@10 -- vbuz1_neq_vbuaa_then_la1 
+    cmp.z __13
+    beq !__b10+
+    jmp __b10
+  !__b10:
     // irq_vsync::@6
-    // >vram_floor_map
-    // [32] irq_vsync::$12 = > vram_floor_map#12 -- vwuz1=_hi_vdum2 
-    lda vram_floor_map+2
-    sta.z __12
-    lda vram_floor_map+3
-    sta.z __12+1
-    // memcpy_in_vram(<(>vram_floor_map), <vram_floor_map, VERA_INC_1, <(>vram_floor_map), (<vram_floor_map)+64*16, VERA_INC_1, 64*16*4)
-    // [33] memcpy_in_vram::dest_bank#1 = < irq_vsync::$12 -- vbuz1=_lo_vwuz2 
-    lda.z __12
-    sta.z memcpy_in_vram.dest_bank
-    // <vram_floor_map
-    // [34] memcpy_in_vram::dest#1 = < vram_floor_map#12 -- vwuz1=_lo_vdum2 
-    lda vram_floor_map
-    sta.z memcpy_in_vram.dest
-    lda vram_floor_map+1
-    sta.z memcpy_in_vram.dest+1
-    // >vram_floor_map
-    // [35] irq_vsync::$15 = > vram_floor_map#12 -- vwuz1=_hi_vdum2 
-    lda vram_floor_map+2
-    sta.z __15
-    lda vram_floor_map+3
-    sta.z __15+1
-    // memcpy_in_vram(<(>vram_floor_map), <vram_floor_map, VERA_INC_1, <(>vram_floor_map), (<vram_floor_map)+64*16, VERA_INC_1, 64*16*4)
-    // [36] memcpy_in_vram::src_bank#1 = < irq_vsync::$15 -- vbuz1=_lo_vwuz2 
-    lda.z __15
-    sta.z memcpy_in_vram.src_bank
-    // <vram_floor_map
-    // [37] irq_vsync::$17 = < vram_floor_map#12 -- vwuz1=_lo_vdum2 
-    lda vram_floor_map
-    sta.z __17
-    lda vram_floor_map+1
-    sta.z __17+1
-    // (<vram_floor_map)+64*16
-    // [38] memcpy_in_vram::src#1 = irq_vsync::$17 + (word)$40*$10 -- vwuz1=vwuz2_plus_vwuc1 
-    clc
-    lda.z __17
-    adc #<$40*$10
-    sta.z memcpy_in_vram.src
-    lda.z __17+1
-    adc #>$40*$10
-    sta.z memcpy_in_vram.src+1
-    // [39] memcpy_in_vram::src#4 = (void*)memcpy_in_vram::src#1
-    // [40] memcpy_in_vram::dest#4 = (void*)memcpy_in_vram::dest#1
-    // memcpy_in_vram(<(>vram_floor_map), <vram_floor_map, VERA_INC_1, <(>vram_floor_map), (<vram_floor_map)+64*16, VERA_INC_1, 64*16*4)
-    // [41] call memcpy_in_vram 
-    // [264] phi from irq_vsync::@6 to memcpy_in_vram [phi:irq_vsync::@6->memcpy_in_vram]
-    // [264] phi memcpy_in_vram::num#3 = (word)$40*$10*4 [phi:irq_vsync::@6->memcpy_in_vram#0] -- vwuz1=vwuc1 
-    lda #<$40*$10*4
-    sta.z memcpy_in_vram.num
-    lda #>$40*$10*4
-    sta.z memcpy_in_vram.num+1
-    // [264] phi memcpy_in_vram::dest_bank#2 = memcpy_in_vram::dest_bank#1 [phi:irq_vsync::@6->memcpy_in_vram#1] -- register_copy 
-    // [264] phi memcpy_in_vram::dest#2 = memcpy_in_vram::dest#4 [phi:irq_vsync::@6->memcpy_in_vram#2] -- register_copy 
-    // [264] phi memcpy_in_vram::src_bank#2 = memcpy_in_vram::src_bank#1 [phi:irq_vsync::@6->memcpy_in_vram#3] -- register_copy 
-    // [264] phi memcpy_in_vram::src#2 = memcpy_in_vram::src#4 [phi:irq_vsync::@6->memcpy_in_vram#4] -- register_copy 
-    jsr memcpy_in_vram
-    // [42] phi from irq_vsync::@6 to irq_vsync::@10 [phi:irq_vsync::@6->irq_vsync::@10]
-    // [42] phi rem16u#51 = rem16u#32 [phi:irq_vsync::@6->irq_vsync::@10#0] -- register_copy 
-    // [42] phi rand_state#43 = rand_state#30 [phi:irq_vsync::@6->irq_vsync::@10#1] -- register_copy 
-    // [42] phi irq_vsync::r#2 = 4 [phi:irq_vsync::@6->irq_vsync::@10#2] -- vbuz1=vbuc1 
+    // if(row<=4)
+    // [30] if(row>=4+1) goto irq_vsync::@11 -- vwum1_ge_vbuc1_then_la1 
+    lda row+1
+    beq !__b11+
+    jmp __b11
+  !__b11:
+    lda row
+    cmp #4+1
+    bcc !__b11+
+    jmp __b11
+  !__b11:
+  !:
+    // irq_vsync::@7
+    // row+4
+    // [31] irq_vsync::$19 = row + 4 -- vwuz1=vwum2_plus_vbuc1 
     lda #4
-    sta.z r
+    clc
+    adc row
+    sta.z __19
+    lda #0
+    adc row+1
+    sta.z __19+1
+    // (row+4)*8
+    // [32] irq_vsync::$20 = irq_vsync::$19 << 3 -- vwuz1=vwuz1_rol_3 
+    asl.z __20
+    rol.z __20+1
+    asl.z __20
+    rol.z __20+1
+    asl.z __20
+    rol.z __20+1
+    // (row+4)*8*64
+    // [33] irq_vsync::$21 = irq_vsync::$20 << 6 -- vwuz1=vwuz1_rol_6 
+    lda.z __21+1
+    lsr
+    sta.z $ff
+    lda.z __21
+    ror
+    sta.z __21+1
+    lda #0
+    ror
+    sta.z __21
+    lsr.z $ff
+    ror.z __21+1
+    ror.z __21
+    // (row+4)*8*64*2
+    // [34] irq_vsync::$22 = irq_vsync::$21 << 1 -- vwuz1=vwuz1_rol_1 
+    asl.z __22
+    rol.z __22+1
+    // dest_row = vram_floor_map+((row+4)*8*64*2)
+    // [35] irq_vsync::dest_row#0 = vram_floor_map + irq_vsync::$22 -- vduz1=vduz2_plus_vwuz3 
+    lda.z vram_floor_map
+    clc
+    adc.z __22
+    sta.z dest_row
+    lda.z vram_floor_map+1
+    adc.z __22+1
+    sta.z dest_row+1
+    lda.z vram_floor_map+2
+    adc #0
+    sta.z dest_row+2
+    lda.z vram_floor_map+3
+    adc #0
+    sta.z dest_row+3
+    // row*8
+    // [36] irq_vsync::$24 = row << 3 -- vwuz1=vwum2_rol_3 
+    lda row
+    asl
+    sta.z __24
+    lda row+1
+    rol
+    sta.z __24+1
+    asl.z __24
+    rol.z __24+1
+    asl.z __24
+    rol.z __24+1
+    // row*8*64
+    // [37] irq_vsync::$25 = irq_vsync::$24 << 6 -- vwuz1=vwuz1_rol_6 
+    lda.z __25+1
+    lsr
+    sta.z $ff
+    lda.z __25
+    ror
+    sta.z __25+1
+    lda #0
+    ror
+    sta.z __25
+    lsr.z $ff
+    ror.z __25+1
+    ror.z __25
+    // row*8*64*2
+    // [38] irq_vsync::$26 = irq_vsync::$25 << 1 -- vwuz1=vwuz1_rol_1 
+    asl.z __26
+    rol.z __26+1
+    // src_row = vram_floor_map+(row*8*64*2)
+    // [39] irq_vsync::src_row#0 = vram_floor_map + irq_vsync::$26 -- vduz1=vduz2_plus_vwuz3 
+    lda.z vram_floor_map
+    clc
+    adc.z __26
+    sta.z src_row
+    lda.z vram_floor_map+1
+    adc.z __26+1
+    sta.z src_row+1
+    lda.z vram_floor_map+2
+    adc #0
+    sta.z src_row+2
+    lda.z vram_floor_map+3
+    adc #0
+    sta.z src_row+3
+    // vera_cpy_vram_vram(src_row, dest_row, (dword)64*8*2)
+    // [40] vera_cpy_vram_vram::vsrc#0 = irq_vsync::src_row#0 -- vduz1=vduz2 
+    lda.z src_row
+    sta.z vera_cpy_vram_vram.vsrc
+    lda.z src_row+1
+    sta.z vera_cpy_vram_vram.vsrc+1
+    lda.z src_row+2
+    sta.z vera_cpy_vram_vram.vsrc+2
+    lda.z src_row+3
+    sta.z vera_cpy_vram_vram.vsrc+3
+    // [41] vera_cpy_vram_vram::vdest#0 = irq_vsync::dest_row#0 -- vduz1=vduz2 
+    lda.z dest_row
+    sta.z vera_cpy_vram_vram.vdest
+    lda.z dest_row+1
+    sta.z vera_cpy_vram_vram.vdest+1
+    lda.z dest_row+2
+    sta.z vera_cpy_vram_vram.vdest+2
+    lda.z dest_row+3
+    sta.z vera_cpy_vram_vram.vdest+3
+    // [42] call vera_cpy_vram_vram 
+    // [302] phi from irq_vsync::@7 to vera_cpy_vram_vram [phi:irq_vsync::@7->vera_cpy_vram_vram]
+    // [302] phi vera_cpy_vram_vram::num#3 = $40*8*2 [phi:irq_vsync::@7->vera_cpy_vram_vram#0] -- vduz1=vduc1 
+    lda #<$40*8*2
+    sta.z vera_cpy_vram_vram.num
+    lda #>$40*8*2
+    sta.z vera_cpy_vram_vram.num+1
+    lda #<$40*8*2>>$10
+    sta.z vera_cpy_vram_vram.num+2
+    lda #>$40*8*2>>$10
+    sta.z vera_cpy_vram_vram.num+3
+    // [302] phi vera_cpy_vram_vram::vdest#2 = vera_cpy_vram_vram::vdest#0 [phi:irq_vsync::@7->vera_cpy_vram_vram#1] -- register_copy 
+    // [302] phi vera_cpy_vram_vram::vsrc#2 = vera_cpy_vram_vram::vsrc#0 [phi:irq_vsync::@7->vera_cpy_vram_vram#2] -- register_copy 
+    jsr vera_cpy_vram_vram
+    // [43] phi from irq_vsync::@7 to irq_vsync::@24 [phi:irq_vsync::@7->irq_vsync::@24]
+    // irq_vsync::@24
+    // gotoxy(0, 21)
+    // [44] call gotoxy 
+    // [330] phi from irq_vsync::@24 to gotoxy [phi:irq_vsync::@24->gotoxy]
+    // [330] phi gotoxy::y#7 = $15 [phi:irq_vsync::@24->gotoxy#0] -- vbuxx=vbuc1 
+    ldx #$15
+    jsr gotoxy
+    // [45] phi from irq_vsync::@24 to irq_vsync::@25 [phi:irq_vsync::@24->irq_vsync::@25]
+    // irq_vsync::@25
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [46] call cputs 
+    // [343] phi from irq_vsync::@25 to cputs [phi:irq_vsync::@25->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s3 [phi:irq_vsync::@25->cputs#0] -- pbuz1=pbuc1 
+    lda #<s3
+    sta.z cputs.s
+    lda #>s3
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@26
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [47] printf_ulong::uvalue#0 = irq_vsync::src_row#0 -- vduz1=vduz2 
+    lda.z src_row
+    sta.z printf_ulong.uvalue
+    lda.z src_row+1
+    sta.z printf_ulong.uvalue+1
+    lda.z src_row+2
+    sta.z printf_ulong.uvalue+2
+    lda.z src_row+3
+    sta.z printf_ulong.uvalue+3
+    // [48] call printf_ulong 
+    // [351] phi from irq_vsync::@26 to printf_ulong [phi:irq_vsync::@26->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#0 [phi:irq_vsync::@26->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [49] phi from irq_vsync::@26 to irq_vsync::@27 [phi:irq_vsync::@26->irq_vsync::@27]
+    // irq_vsync::@27
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [50] call cputs 
+    // [343] phi from irq_vsync::@27 to cputs [phi:irq_vsync::@27->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s4 [phi:irq_vsync::@27->cputs#0] -- pbuz1=pbuc1 
+    lda #<s4
+    sta.z cputs.s
+    lda #>s4
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@28
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [51] printf_ulong::uvalue#1 = irq_vsync::dest_row#0 -- vduz1=vduz2 
+    lda.z dest_row
+    sta.z printf_ulong.uvalue
+    lda.z dest_row+1
+    sta.z printf_ulong.uvalue+1
+    lda.z dest_row+2
+    sta.z printf_ulong.uvalue+2
+    lda.z dest_row+3
+    sta.z printf_ulong.uvalue+3
+    // [52] call printf_ulong 
+    // [351] phi from irq_vsync::@28 to printf_ulong [phi:irq_vsync::@28->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#1 [phi:irq_vsync::@28->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [53] phi from irq_vsync::@28 to irq_vsync::@29 [phi:irq_vsync::@28->irq_vsync::@29]
+    // irq_vsync::@29
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [54] call cputs 
+    // [343] phi from irq_vsync::@29 to cputs [phi:irq_vsync::@29->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s5 [phi:irq_vsync::@29->cputs#0] -- pbuz1=pbuc1 
+    lda #<s5
+    sta.z cputs.s
+    lda #>s5
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@30
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [55] printf_ulong::uvalue#2 = vram_floor_map -- vduz1=vduz2 
+    lda.z vram_floor_map
+    sta.z printf_ulong.uvalue
+    lda.z vram_floor_map+1
+    sta.z printf_ulong.uvalue+1
+    lda.z vram_floor_map+2
+    sta.z printf_ulong.uvalue+2
+    lda.z vram_floor_map+3
+    sta.z printf_ulong.uvalue+3
+    // [56] call printf_ulong 
+    // [351] phi from irq_vsync::@30 to printf_ulong [phi:irq_vsync::@30->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#2 [phi:irq_vsync::@30->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [57] phi from irq_vsync::@30 to irq_vsync::@31 [phi:irq_vsync::@30->irq_vsync::@31]
+    // irq_vsync::@31
+    // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map)
+    // [58] call cputs 
+    // [343] phi from irq_vsync::@31 to cputs [phi:irq_vsync::@31->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s6 [phi:irq_vsync::@31->cputs#0] -- pbuz1=pbuc1 
+    lda #<s6
+    sta.z cputs.s
+    lda #>s6
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@11
+  __b11:
+    // if(vscroll==0)
+    // [59] if(vscroll!=0) goto irq_vsync::@12 -- vwum1_neq_0_then_la1 
+    lda vscroll
+    ora vscroll+1
+    bne __b3
+    // irq_vsync::@15
+    // vscroll=128*4
+    // [60] vscroll = (word)$80*4 -- vwum1=vwuc1 
+    lda #<$80*4
+    sta vscroll
+    lda #>$80*4
+    sta vscroll+1
+    // row = 4
+    // [61] row = 4 -- vwum1=vbuc1 
+    lda #<4
+    sta row
+    lda #>4
+    sta row+1
+    // [62] phi from irq_vsync::@11 irq_vsync::@15 to irq_vsync::@12 [phi:irq_vsync::@11/irq_vsync::@15->irq_vsync::@12]
+  __b3:
+    // [62] phi rand_state#23 = rand_state#39 [phi:irq_vsync::@11/irq_vsync::@15->irq_vsync::@12#0] -- register_copy 
+    // [62] phi irq_vsync::c#2 = 0 [phi:irq_vsync::@11/irq_vsync::@15->irq_vsync::@12#1] -- vbuz1=vbuc1 
+    lda #0
+    sta.z c
+    // irq_vsync::@12
+  __b12:
+    // for(byte c=0;c<5;c++)
+    // [63] if(irq_vsync::c#2<5) goto irq_vsync::@13 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z c
+    cmp #5
+    bcs !__b13+
+    jmp __b13
+  !__b13:
+    // irq_vsync::@14
+    // row--;
+    // [64] row = -- row -- vwum1=_dec_vwum1 
+    lda row
+    bne !+
+    dec row+1
+  !:
+    dec row
     // irq_vsync::@10
   __b10:
-    // for(byte r=4;r<5;r+=1)
-    // [43] if(irq_vsync::r#2<5) goto irq_vsync::@12 -- vbuz1_lt_vbuc1_then_la1 
-    lda.z r
-    cmp #5
-    bcc __b3
-    // irq_vsync::@11
-    // vscroll=0
-    // [44] vscroll = 0 -- vwuz1=vbuc1 
-    lda #<0
-    sta.z vscroll
-    sta.z vscroll+1
-    // irq_vsync::@9
-  __b9:
+    // vscroll--;
+    // [65] vscroll = -- vscroll -- vwum1=_dec_vwum1 
+    lda vscroll
+    bne !+
+    dec vscroll+1
+  !:
+    dec vscroll
     // vera_layer_set_vertical_scroll(0,vscroll)
-    // [45] irq_vsync::vera_layer_set_vertical_scroll1_scroll#0 = vscroll -- vwuz1=vwuz2 
-    lda.z vscroll
+    // [66] irq_vsync::vera_layer_set_vertical_scroll1_scroll#0 = vscroll -- vwuz1=vwum2 
+    lda vscroll
     sta.z vera_layer_set_vertical_scroll1_scroll
-    lda.z vscroll+1
+    lda vscroll+1
     sta.z vera_layer_set_vertical_scroll1_scroll+1
     // irq_vsync::vera_layer_set_vertical_scroll1
     // <scroll
-    // [46] irq_vsync::vera_layer_set_vertical_scroll1_$0 = < irq_vsync::vera_layer_set_vertical_scroll1_scroll#0 -- vbuz1=_lo_vwuz2 
+    // [67] irq_vsync::vera_layer_set_vertical_scroll1_$0 = < irq_vsync::vera_layer_set_vertical_scroll1_scroll#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_layer_set_vertical_scroll1_scroll
-    sta.z vera_layer_set_vertical_scroll1___0
     // *vera_layer_vscroll_l[layer] = <scroll
-    // [47] *(*vera_layer_vscroll_l) = irq_vsync::vera_layer_set_vertical_scroll1_$0 -- _deref_(_deref_qbuc1)=vbuz1 
+    // [68] *(*vera_layer_vscroll_l) = irq_vsync::vera_layer_set_vertical_scroll1_$0 -- _deref_(_deref_qbuc1)=vbuaa 
     ldy vera_layer_vscroll_l
     sty.z $fe
     ldy vera_layer_vscroll_l+1
@@ -520,214 +727,264 @@ irq_vsync: {
     ldy #0
     sta ($fe),y
     // >scroll
-    // [48] irq_vsync::vera_layer_set_vertical_scroll1_$1 = > irq_vsync::vera_layer_set_vertical_scroll1_scroll#0 -- vbuz1=_hi_vwuz2 
+    // [69] irq_vsync::vera_layer_set_vertical_scroll1_$1 = > irq_vsync::vera_layer_set_vertical_scroll1_scroll#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_layer_set_vertical_scroll1_scroll+1
-    sta.z vera_layer_set_vertical_scroll1___1
     // *vera_layer_vscroll_h[layer] = >scroll
-    // [49] *(*vera_layer_vscroll_h) = irq_vsync::vera_layer_set_vertical_scroll1_$1 -- _deref_(_deref_qbuc1)=vbuz1 
+    // [70] *(*vera_layer_vscroll_h) = irq_vsync::vera_layer_set_vertical_scroll1_$1 -- _deref_(_deref_qbuc1)=vbuaa 
     ldy vera_layer_vscroll_h
     sty.z $fe
     ldy vera_layer_vscroll_h+1
     sty.z $ff
     ldy #0
     sta ($fe),y
+    // [71] phi from irq_vsync::@1 irq_vsync::vera_layer_set_vertical_scroll1 to irq_vsync::@2 [phi:irq_vsync::@1/irq_vsync::vera_layer_set_vertical_scroll1->irq_vsync::@2]
     // irq_vsync::@2
   __b2:
+    // gotoxy(0, 20)
+    // [72] call gotoxy 
+    // [330] phi from irq_vsync::@2 to gotoxy [phi:irq_vsync::@2->gotoxy]
+    // [330] phi gotoxy::y#7 = $14 [phi:irq_vsync::@2->gotoxy#0] -- vbuxx=vbuc1 
+    ldx #$14
+    jsr gotoxy
+    // [73] phi from irq_vsync::@2 to irq_vsync::@18 [phi:irq_vsync::@2->irq_vsync::@18]
+    // irq_vsync::@18
+    // printf("vscroll:%u row:%u     ",vscroll, row)
+    // [74] call cputs 
+    // [343] phi from irq_vsync::@18 to cputs [phi:irq_vsync::@18->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s [phi:irq_vsync::@18->cputs#0] -- pbuz1=pbuc1 
+    lda #<s
+    sta.z cputs.s
+    lda #>s
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@19
+    // printf("vscroll:%u row:%u     ",vscroll, row)
+    // [75] printf_uint::uvalue#0 = vscroll -- vwuz1=vwum2 
+    lda vscroll
+    sta.z printf_uint.uvalue
+    lda vscroll+1
+    sta.z printf_uint.uvalue+1
+    // [76] call printf_uint 
+    // [358] phi from irq_vsync::@19 to printf_uint [phi:irq_vsync::@19->printf_uint]
+    // [358] phi printf_uint::uvalue#2 = printf_uint::uvalue#0 [phi:irq_vsync::@19->printf_uint#0] -- register_copy 
+    jsr printf_uint
+    // [77] phi from irq_vsync::@19 to irq_vsync::@20 [phi:irq_vsync::@19->irq_vsync::@20]
+    // irq_vsync::@20
+    // printf("vscroll:%u row:%u     ",vscroll, row)
+    // [78] call cputs 
+    // [343] phi from irq_vsync::@20 to cputs [phi:irq_vsync::@20->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s1 [phi:irq_vsync::@20->cputs#0] -- pbuz1=pbuc1 
+    lda #<s1
+    sta.z cputs.s
+    lda #>s1
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@21
+    // printf("vscroll:%u row:%u     ",vscroll, row)
+    // [79] printf_uint::uvalue#1 = row -- vwuz1=vwum2 
+    lda row
+    sta.z printf_uint.uvalue
+    lda row+1
+    sta.z printf_uint.uvalue+1
+    // [80] call printf_uint 
+    // [358] phi from irq_vsync::@21 to printf_uint [phi:irq_vsync::@21->printf_uint]
+    // [358] phi printf_uint::uvalue#2 = printf_uint::uvalue#1 [phi:irq_vsync::@21->printf_uint#0] -- register_copy 
+    jsr printf_uint
+    // [81] phi from irq_vsync::@21 to irq_vsync::@22 [phi:irq_vsync::@21->irq_vsync::@22]
+    // irq_vsync::@22
+    // printf("vscroll:%u row:%u     ",vscroll, row)
+    // [82] call cputs 
+    // [343] phi from irq_vsync::@22 to cputs [phi:irq_vsync::@22->cputs]
+    // [343] phi cputs::s#26 = irq_vsync::s2 [phi:irq_vsync::@22->cputs#0] -- pbuz1=pbuc1 
+    lda #<s2
+    sta.z cputs.s
+    lda #>s2
+    sta.z cputs.s+1
+    jsr cputs
+    // irq_vsync::@23
     // *VERA_ISR = VERA_VSYNC
-    // [50] *VERA_ISR = VERA_VSYNC -- _deref_pbuc1=vbuc2 
+    // [83] *VERA_ISR = VERA_VSYNC -- _deref_pbuc1=vbuc2 
     // Reset the VSYNC interrupt
     lda #VERA_VSYNC
     sta VERA_ISR
     // irq_vsync::@return
     // }
-    // [51] return 
+    // [84] return 
     // interrupt(isr_rom_sys_cx16_exit) -- isr_rom_sys_cx16_exit 
     jmp $e034
-    // [52] phi from irq_vsync::@10 to irq_vsync::@12 [phi:irq_vsync::@10->irq_vsync::@12]
-  __b3:
-    // [52] phi rem16u#25 = rem16u#51 [phi:irq_vsync::@10->irq_vsync::@12#0] -- register_copy 
-    // [52] phi rand_state#23 = rand_state#43 [phi:irq_vsync::@10->irq_vsync::@12#1] -- register_copy 
-    // [52] phi irq_vsync::c#2 = 0 [phi:irq_vsync::@10->irq_vsync::@12#2] -- vbuz1=vbuc1 
-    lda #0
-    sta.z c
-    // irq_vsync::@12
-  __b12:
-    // for(byte c=0;c<5;c+=1)
-    // [53] if(irq_vsync::c#2<5) goto irq_vsync::@13 -- vbuz1_lt_vbuc1_then_la1 
-    lda.z c
-    cmp #5
-    bcc __b13
-    // irq_vsync::@14
-    // r+=1
-    // [54] irq_vsync::r#1 = irq_vsync::r#2 + 1 -- vbuz1=vbuz1_plus_1 
-    inc.z r
-    // [42] phi from irq_vsync::@14 to irq_vsync::@10 [phi:irq_vsync::@14->irq_vsync::@10]
-    // [42] phi rem16u#51 = rem16u#25 [phi:irq_vsync::@14->irq_vsync::@10#0] -- register_copy 
-    // [42] phi rand_state#43 = rand_state#23 [phi:irq_vsync::@14->irq_vsync::@10#1] -- register_copy 
-    // [42] phi irq_vsync::r#2 = irq_vsync::r#1 [phi:irq_vsync::@14->irq_vsync::@10#2] -- register_copy 
-    jmp __b10
-    // [55] phi from irq_vsync::@12 to irq_vsync::@13 [phi:irq_vsync::@12->irq_vsync::@13]
+    // [85] phi from irq_vsync::@12 to irq_vsync::@13 [phi:irq_vsync::@12->irq_vsync::@13]
     // irq_vsync::@13
   __b13:
     // rand()
-    // [56] call rand 
-    // [284] phi from irq_vsync::@13 to rand [phi:irq_vsync::@13->rand]
-    // [284] phi rand_state#13 = rand_state#23 [phi:irq_vsync::@13->rand#0] -- register_copy 
+    // [86] call rand 
+    // [365] phi from irq_vsync::@13 to rand [phi:irq_vsync::@13->rand]
+    // [365] phi rand_state#13 = rand_state#23 [phi:irq_vsync::@13->rand#0] -- register_copy 
     jsr rand
     // rand()
-    // [57] rand::return#2 = rand::return#0
-    // irq_vsync::@17
+    // [87] rand::return#2 = rand::return#0
+    // irq_vsync::@32
     // modr16u(rand(),3,0)
-    // [58] modr16u::dividend#0 = rand::return#2
-    // [59] call modr16u 
-    // [293] phi from irq_vsync::@17 to modr16u [phi:irq_vsync::@17->modr16u]
-    // [293] phi modr16u::dividend#2 = modr16u::dividend#0 [phi:irq_vsync::@17->modr16u#0] -- register_copy 
+    // [88] modr16u::dividend#0 = rand::return#2
+    // [89] call modr16u 
+    // [374] phi from irq_vsync::@32 to modr16u [phi:irq_vsync::@32->modr16u]
+    // [374] phi modr16u::dividend#2 = modr16u::dividend#0 [phi:irq_vsync::@32->modr16u#0] -- register_copy 
     jsr modr16u
     // modr16u(rand(),3,0)
-    // [60] modr16u::return#2 = modr16u::return#0
-    // irq_vsync::@18
-    // [61] irq_vsync::$23 = modr16u::return#2 -- vwuz1=vwuz2 
+    // [90] modr16u::return#2 = modr16u::return#0
+    // irq_vsync::@33
+    // [91] irq_vsync::$35 = modr16u::return#2 -- vwuz1=vwuz2 
     lda.z modr16u.return
-    sta.z __23
+    sta.z __35
     lda.z modr16u.return+1
-    sta.z __23+1
+    sta.z __35+1
     // rnd = (byte)modr16u(rand(),3,0)
-    // [62] irq_vsync::rnd#0 = (byte)irq_vsync::$23 -- vbuz1=_byte_vwuz2 
-    lda.z __23
-    sta.z rnd
-    // vera_tile_element( 0, c, r, 3, TileDB[rnd])
-    // [63] irq_vsync::$28 = irq_vsync::rnd#0 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __28
-    // [64] vera_tile_element::x#1 = irq_vsync::c#2 -- vbuz1=vbuz2 
+    // [92] irq_vsync::rnd#0 = (byte)irq_vsync::$35 -- vbuxx=_byte_vwuz1 
+    lda.z __35
+    tax
+    // (byte)row-1
+    // [93] irq_vsync::$42 = (byte)row -- vbuaa=_byte_vwum1 
+    lda row
+    // vera_tile_element( 0, c, (byte)row-1, 3, TileDB[rnd])
+    // [94] vera_tile_element::y#1 = irq_vsync::$42 - 1 -- vbuz1=vbuaa_minus_1 
+    sec
+    sbc #1
+    sta.z vera_tile_element.y
+    // [95] irq_vsync::$41 = irq_vsync::rnd#0 << 1 -- vbuxx=vbuxx_rol_1 
+    txa
+    asl
+    tax
+    // [96] vera_tile_element::x#1 = irq_vsync::c#2 -- vbuz1=vbuz2 
     lda.z c
     sta.z vera_tile_element.x
-    // [65] vera_tile_element::y#1 = irq_vsync::r#2 -- vbuz1=vbuz2 
-    lda.z r
-    sta.z vera_tile_element.y
-    // [66] vera_tile_element::Tile#0 = TileDB[irq_vsync::$28] -- pssz1=qssc1_derefidx_vbuz2 
-    ldy.z __28
-    lda TileDB,y
+    // [97] vera_tile_element::Tile#0 = TileDB[irq_vsync::$41] -- pssz1=qssc1_derefidx_vbuxx 
+    lda TileDB,x
     sta.z vera_tile_element.Tile
-    lda TileDB+1,y
+    lda TileDB+1,x
     sta.z vera_tile_element.Tile+1
-    // [67] call vera_tile_element 
-    // [298] phi from irq_vsync::@18 to vera_tile_element [phi:irq_vsync::@18->vera_tile_element]
-    // [298] phi vera_tile_element::y#3 = vera_tile_element::y#1 [phi:irq_vsync::@18->vera_tile_element#0] -- register_copy 
-    // [298] phi vera_tile_element::x#3 = vera_tile_element::x#1 [phi:irq_vsync::@18->vera_tile_element#1] -- register_copy 
-    // [298] phi vera_tile_element::Tile#2 = vera_tile_element::Tile#0 [phi:irq_vsync::@18->vera_tile_element#2] -- register_copy 
+    // [98] call vera_tile_element 
+    // [379] phi from irq_vsync::@33 to vera_tile_element [phi:irq_vsync::@33->vera_tile_element]
+    // [379] phi vera_tile_element::y#3 = vera_tile_element::y#1 [phi:irq_vsync::@33->vera_tile_element#0] -- register_copy 
+    // [379] phi vera_tile_element::x#3 = vera_tile_element::x#1 [phi:irq_vsync::@33->vera_tile_element#1] -- register_copy 
+    // [379] phi vera_tile_element::Tile#2 = vera_tile_element::Tile#0 [phi:irq_vsync::@33->vera_tile_element#2] -- register_copy 
     jsr vera_tile_element
-    // irq_vsync::@19
-    // c+=1
-    // [68] irq_vsync::c#1 = irq_vsync::c#2 + 1 -- vbuz1=vbuz1_plus_1 
+    // irq_vsync::@34
+    // for(byte c=0;c<5;c++)
+    // [99] irq_vsync::c#1 = ++ irq_vsync::c#2 -- vbuz1=_inc_vbuz1 
     inc.z c
-    // [52] phi from irq_vsync::@19 to irq_vsync::@12 [phi:irq_vsync::@19->irq_vsync::@12]
-    // [52] phi rem16u#25 = divr16u::rem#10 [phi:irq_vsync::@19->irq_vsync::@12#0] -- register_copy 
-    // [52] phi rand_state#23 = rand_state#14 [phi:irq_vsync::@19->irq_vsync::@12#1] -- register_copy 
-    // [52] phi irq_vsync::c#2 = irq_vsync::c#1 [phi:irq_vsync::@19->irq_vsync::@12#2] -- register_copy 
+    // [62] phi from irq_vsync::@34 to irq_vsync::@12 [phi:irq_vsync::@34->irq_vsync::@12]
+    // [62] phi rand_state#23 = rand_state#14 [phi:irq_vsync::@34->irq_vsync::@12#0] -- register_copy 
+    // [62] phi irq_vsync::c#2 = irq_vsync::c#1 [phi:irq_vsync::@34->irq_vsync::@12#1] -- register_copy 
     jmp __b12
+  .segment Data
+    s: .text "vscroll:"
+    .byte 0
+    s1: .text " row:"
+    .byte 0
+    s2: .text "     "
+    .byte 0
+    s3: .text "src_row:"
+    .byte 0
+    s4: .text " dest_row:"
+    .byte 0
+    s5: .text " vram_floor_map:"
+    .byte 0
+    s6: .text "   "
+    .byte 0
 }
+.segment Code
   // conio_x16_init
 // Set initial cursor position
 conio_x16_init: {
     // Position cursor at current line
     .label BASIC_CURSOR_LINE = $d6
-    .label line = 5
+    .label line = 4
     // line = *BASIC_CURSOR_LINE
-    // [69] conio_x16_init::line#0 = *conio_x16_init::BASIC_CURSOR_LINE -- vbuz1=_deref_pbuc1 
+    // [100] conio_x16_init::line#0 = *conio_x16_init::BASIC_CURSOR_LINE -- vbuz1=_deref_pbuc1 
     lda BASIC_CURSOR_LINE
     sta.z line
     // vera_layer_mode_text(1,(dword)0x00000,(dword)0x0F800,128,64,8,8,16)
-    // [70] call vera_layer_mode_text 
-    // [351] phi from conio_x16_init to vera_layer_mode_text [phi:conio_x16_init->vera_layer_mode_text]
+    // [101] call vera_layer_mode_text 
+    // [432] phi from conio_x16_init to vera_layer_mode_text [phi:conio_x16_init->vera_layer_mode_text]
     jsr vera_layer_mode_text
-    // [71] phi from conio_x16_init to conio_x16_init::@3 [phi:conio_x16_init->conio_x16_init::@3]
+    // [102] phi from conio_x16_init to conio_x16_init::@3 [phi:conio_x16_init->conio_x16_init::@3]
     // conio_x16_init::@3
     // screensize(&cx16_conio.conio_screen_width, &cx16_conio.conio_screen_height)
-    // [72] call screensize 
+    // [103] call screensize 
     jsr screensize
-    // [73] phi from conio_x16_init::@3 to conio_x16_init::@4 [phi:conio_x16_init::@3->conio_x16_init::@4]
+    // [104] phi from conio_x16_init::@3 to conio_x16_init::@4 [phi:conio_x16_init::@3->conio_x16_init::@4]
     // conio_x16_init::@4
     // screenlayer(1)
-    // [74] call screenlayer 
+    // [105] call screenlayer 
     jsr screenlayer
-    // [75] phi from conio_x16_init::@4 to conio_x16_init::@5 [phi:conio_x16_init::@4->conio_x16_init::@5]
+    // [106] phi from conio_x16_init::@4 to conio_x16_init::@5 [phi:conio_x16_init::@4->conio_x16_init::@5]
     // conio_x16_init::@5
     // vera_layer_set_textcolor(1, WHITE)
-    // [76] call vera_layer_set_textcolor 
-    // [393] phi from conio_x16_init::@5 to vera_layer_set_textcolor [phi:conio_x16_init::@5->vera_layer_set_textcolor]
-    // [393] phi vera_layer_set_textcolor::layer#2 = 1 [phi:conio_x16_init::@5->vera_layer_set_textcolor#0] -- vbuz1=vbuc1 
-    lda #1
-    sta.z vera_layer_set_textcolor.layer
+    // [107] call vera_layer_set_textcolor 
+    // [474] phi from conio_x16_init::@5 to vera_layer_set_textcolor [phi:conio_x16_init::@5->vera_layer_set_textcolor]
+    // [474] phi vera_layer_set_textcolor::layer#2 = 1 [phi:conio_x16_init::@5->vera_layer_set_textcolor#0] -- vbuxx=vbuc1 
+    ldx #1
     jsr vera_layer_set_textcolor
-    // [77] phi from conio_x16_init::@5 to conio_x16_init::@6 [phi:conio_x16_init::@5->conio_x16_init::@6]
+    // [108] phi from conio_x16_init::@5 to conio_x16_init::@6 [phi:conio_x16_init::@5->conio_x16_init::@6]
     // conio_x16_init::@6
     // vera_layer_set_backcolor(1, BLUE)
-    // [78] call vera_layer_set_backcolor 
-    // [396] phi from conio_x16_init::@6 to vera_layer_set_backcolor [phi:conio_x16_init::@6->vera_layer_set_backcolor]
-    // [396] phi vera_layer_set_backcolor::color#2 = BLUE [phi:conio_x16_init::@6->vera_layer_set_backcolor#0] -- vbuz1=vbuc1 
+    // [109] call vera_layer_set_backcolor 
+    // [477] phi from conio_x16_init::@6 to vera_layer_set_backcolor [phi:conio_x16_init::@6->vera_layer_set_backcolor]
+    // [477] phi vera_layer_set_backcolor::color#2 = BLUE [phi:conio_x16_init::@6->vera_layer_set_backcolor#0] -- vbuaa=vbuc1 
     lda #BLUE
-    sta.z vera_layer_set_backcolor.color
-    // [396] phi vera_layer_set_backcolor::layer#2 = 1 [phi:conio_x16_init::@6->vera_layer_set_backcolor#1] -- vbuz1=vbuc1 
-    lda #1
-    sta.z vera_layer_set_backcolor.layer
+    // [477] phi vera_layer_set_backcolor::layer#2 = 1 [phi:conio_x16_init::@6->vera_layer_set_backcolor#1] -- vbuxx=vbuc1 
+    ldx #1
     jsr vera_layer_set_backcolor
-    // [79] phi from conio_x16_init::@6 to conio_x16_init::@7 [phi:conio_x16_init::@6->conio_x16_init::@7]
+    // [110] phi from conio_x16_init::@6 to conio_x16_init::@7 [phi:conio_x16_init::@6->conio_x16_init::@7]
     // conio_x16_init::@7
     // vera_layer_set_mapbase(0,0x20)
-    // [80] call vera_layer_set_mapbase 
-    // [399] phi from conio_x16_init::@7 to vera_layer_set_mapbase [phi:conio_x16_init::@7->vera_layer_set_mapbase]
-    // [399] phi vera_layer_set_mapbase::mapbase#3 = $20 [phi:conio_x16_init::@7->vera_layer_set_mapbase#0] -- vbuz1=vbuc1 
-    lda #$20
-    sta.z vera_layer_set_mapbase.mapbase
-    // [399] phi vera_layer_set_mapbase::layer#3 = 0 [phi:conio_x16_init::@7->vera_layer_set_mapbase#1] -- vbuz1=vbuc1 
+    // [111] call vera_layer_set_mapbase 
+    // [480] phi from conio_x16_init::@7 to vera_layer_set_mapbase [phi:conio_x16_init::@7->vera_layer_set_mapbase]
+    // [480] phi vera_layer_set_mapbase::mapbase#3 = $20 [phi:conio_x16_init::@7->vera_layer_set_mapbase#0] -- vbuxx=vbuc1 
+    ldx #$20
+    // [480] phi vera_layer_set_mapbase::layer#3 = 0 [phi:conio_x16_init::@7->vera_layer_set_mapbase#1] -- vbuaa=vbuc1 
     lda #0
-    sta.z vera_layer_set_mapbase.layer
     jsr vera_layer_set_mapbase
-    // [81] phi from conio_x16_init::@7 to conio_x16_init::@8 [phi:conio_x16_init::@7->conio_x16_init::@8]
+    // [112] phi from conio_x16_init::@7 to conio_x16_init::@8 [phi:conio_x16_init::@7->conio_x16_init::@8]
     // conio_x16_init::@8
     // vera_layer_set_mapbase(1,0x00)
-    // [82] call vera_layer_set_mapbase 
-    // [399] phi from conio_x16_init::@8 to vera_layer_set_mapbase [phi:conio_x16_init::@8->vera_layer_set_mapbase]
-    // [399] phi vera_layer_set_mapbase::mapbase#3 = 0 [phi:conio_x16_init::@8->vera_layer_set_mapbase#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z vera_layer_set_mapbase.mapbase
-    // [399] phi vera_layer_set_mapbase::layer#3 = 1 [phi:conio_x16_init::@8->vera_layer_set_mapbase#1] -- vbuz1=vbuc1 
+    // [113] call vera_layer_set_mapbase 
+    // [480] phi from conio_x16_init::@8 to vera_layer_set_mapbase [phi:conio_x16_init::@8->vera_layer_set_mapbase]
+    // [480] phi vera_layer_set_mapbase::mapbase#3 = 0 [phi:conio_x16_init::@8->vera_layer_set_mapbase#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [480] phi vera_layer_set_mapbase::layer#3 = 1 [phi:conio_x16_init::@8->vera_layer_set_mapbase#1] -- vbuaa=vbuc1 
     lda #1
-    sta.z vera_layer_set_mapbase.layer
     jsr vera_layer_set_mapbase
-    // [83] phi from conio_x16_init::@8 to conio_x16_init::@9 [phi:conio_x16_init::@8->conio_x16_init::@9]
+    // [114] phi from conio_x16_init::@8 to conio_x16_init::@9 [phi:conio_x16_init::@8->conio_x16_init::@9]
     // conio_x16_init::@9
     // cursor(0)
-    // [84] call cursor 
+    // [115] call cursor 
     jsr cursor
     // conio_x16_init::@10
     // if(line>=cx16_conio.conio_screen_height)
-    // [85] if(conio_x16_init::line#0<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto conio_x16_init::@1 -- vbuz1_lt__deref_pbuc1_then_la1 
+    // [116] if(conio_x16_init::line#0<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto conio_x16_init::@1 -- vbuz1_lt__deref_pbuc1_then_la1 
     lda.z line
     cmp cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
     bcc __b1
     // conio_x16_init::@2
     // line=cx16_conio.conio_screen_height-1
-    // [86] conio_x16_init::line#1 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT) - 1 -- vbuz1=_deref_pbuc1_minus_1 
+    // [117] conio_x16_init::line#1 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT) - 1 -- vbuz1=_deref_pbuc1_minus_1 
     ldx cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
     dex
     stx.z line
-    // [87] phi from conio_x16_init::@10 conio_x16_init::@2 to conio_x16_init::@1 [phi:conio_x16_init::@10/conio_x16_init::@2->conio_x16_init::@1]
-    // [87] phi conio_x16_init::line#3 = conio_x16_init::line#0 [phi:conio_x16_init::@10/conio_x16_init::@2->conio_x16_init::@1#0] -- register_copy 
+    // [118] phi from conio_x16_init::@10 conio_x16_init::@2 to conio_x16_init::@1 [phi:conio_x16_init::@10/conio_x16_init::@2->conio_x16_init::@1]
+    // [118] phi conio_x16_init::line#3 = conio_x16_init::line#0 [phi:conio_x16_init::@10/conio_x16_init::@2->conio_x16_init::@1#0] -- register_copy 
     // conio_x16_init::@1
   __b1:
     // gotoxy(0, line)
-    // [88] gotoxy::y#0 = conio_x16_init::line#3
-    // [89] call gotoxy 
-    // [406] phi from conio_x16_init::@1 to gotoxy [phi:conio_x16_init::@1->gotoxy]
-    // [406] phi gotoxy::x#4 = 0 [phi:conio_x16_init::@1->gotoxy#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z gotoxy.x
-    // [406] phi gotoxy::y#4 = gotoxy::y#0 [phi:conio_x16_init::@1->gotoxy#1] -- register_copy 
+    // [119] gotoxy::y#0 = conio_x16_init::line#3 -- vbuxx=vbuz1 
+    ldx.z line
+    // [120] call gotoxy 
+    // [330] phi from conio_x16_init::@1 to gotoxy [phi:conio_x16_init::@1->gotoxy]
+    // [330] phi gotoxy::y#7 = gotoxy::y#0 [phi:conio_x16_init::@1->gotoxy#0] -- register_copy 
     jsr gotoxy
     // conio_x16_init::@return
     // }
-    // [90] return 
+    // [121] return 
     rts
 }
   // main
@@ -740,52 +997,51 @@ main: {
     .const VRAM_FLOOR_MAP_SIZE = $40*$40*2
     .const VRAM_FLOOR_TILE_SIZE = $c*$40*$40/2
     .const cx16_get_bram_base1_return = $2000
-    .label __38 = $40
-    .label status = $f
-    .label vram_petscii_map = $3c
-    .label vram_petscii_tile = $10
+    .label status = $3c
+    .label vram_petscii_map = $3f
+    .label vram_petscii_tile = $e
     // TileDB[TILE_SQUAREMETAL] = &SquareMetal
-    // [91] *TileDB = &SquareMetal -- _deref_qssc1=pssc2 
+    // [122] *TileDB = &SquareMetal -- _deref_qssc1=pssc2 
     lda #<SquareMetal
     sta TileDB
     lda #>SquareMetal
     sta TileDB+1
     // TileDB[TILE_TILEMETAL] = &TileMetal
-    // [92] *(TileDB+TILE_TILEMETAL*SIZEOF_POINTER) = &TileMetal -- _deref_qssc1=pssc2 
+    // [123] *(TileDB+TILE_TILEMETAL*SIZEOF_POINTER) = &TileMetal -- _deref_qssc1=pssc2 
     lda #<TileMetal
     sta TileDB+TILE_TILEMETAL*SIZEOF_POINTER
     lda #>TileMetal
     sta TileDB+TILE_TILEMETAL*SIZEOF_POINTER+1
     // TileDB[TILE_SQUARERASTER] = &SquareRaster
-    // [93] *(TileDB+TILE_SQUARERASTER*SIZEOF_POINTER) = &SquareRaster -- _deref_qssc1=pssc2 
+    // [124] *(TileDB+TILE_SQUARERASTER*SIZEOF_POINTER) = &SquareRaster -- _deref_qssc1=pssc2 
     lda #<SquareRaster
     sta TileDB+TILE_SQUARERASTER*SIZEOF_POINTER
     lda #>SquareRaster
     sta TileDB+TILE_SQUARERASTER*SIZEOF_POINTER+1
     // SpriteDB[SPRITE_PLAYER] = &SpritesPlayer
-    // [94] *SpriteDB = &SpritesPlayer -- _deref_qssc1=pssc2 
+    // [125] *SpriteDB = &SpritesPlayer -- _deref_qssc1=pssc2 
     lda #<SpritesPlayer
     sta SpriteDB
     lda #>SpritesPlayer
     sta SpriteDB+1
     // SpriteDB[SPRITE_ENEMY2] = &SpritesEnemy2
-    // [95] *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) = &SpritesEnemy2 -- _deref_qssc1=pssc2 
+    // [126] *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) = &SpritesEnemy2 -- _deref_qssc1=pssc2 
     lda #<SpritesEnemy2
     sta SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER
     lda #>SpritesEnemy2
     sta SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER+1
-    // [96] phi from main to main::cx16_get_bram_base1 [phi:main->main::cx16_get_bram_base1]
+    // [127] phi from main to main::cx16_get_bram_base1 [phi:main->main::cx16_get_bram_base1]
     // main::cx16_get_bram_base1
     // main::@5
     // load_sprite(SpriteDB[SPRITE_PLAYER], bram_sprites_ceil)
-    // [97] load_sprite::Sprite#0 = *SpriteDB -- pssz1=_deref_qssc1 
+    // [128] load_sprite::Sprite#0 = *SpriteDB -- pssz1=_deref_qssc1 
     lda SpriteDB
     sta.z load_sprite.Sprite
     lda SpriteDB+1
     sta.z load_sprite.Sprite+1
-    // [98] call load_sprite 
-    // [420] phi from main::@5 to load_sprite [phi:main::@5->load_sprite]
-    // [420] phi load_sprite::bram_address#10 = main::cx16_get_bram_base1_return#0 [phi:main::@5->load_sprite#0] -- vduz1=vduc1 
+    // [129] call load_sprite 
+    // [487] phi from main::@5 to load_sprite [phi:main::@5->load_sprite]
+    // [487] phi load_sprite::bram_address#10 = main::cx16_get_bram_base1_return#0 [phi:main::@5->load_sprite#0] -- vduz1=vduc1 
     lda #<cx16_get_bram_base1_return
     sta.z load_sprite.bram_address
     lda #>cx16_get_bram_base1_return
@@ -794,13 +1050,13 @@ main: {
     sta.z load_sprite.bram_address+2
     lda #>cx16_get_bram_base1_return>>$10
     sta.z load_sprite.bram_address+3
-    // [420] phi load_sprite::Sprite#10 = load_sprite::Sprite#0 [phi:main::@5->load_sprite#1] -- register_copy 
+    // [487] phi load_sprite::Sprite#10 = load_sprite::Sprite#0 [phi:main::@5->load_sprite#1] -- register_copy 
     jsr load_sprite
     // load_sprite(SpriteDB[SPRITE_PLAYER], bram_sprites_ceil)
-    // [99] load_sprite::return#2 = load_sprite::return#0
-    // main::@8
+    // [130] load_sprite::return#2 = load_sprite::return#0
+    // main::@10
     // bram_sprites_ceil = load_sprite(SpriteDB[SPRITE_PLAYER], bram_sprites_ceil)
-    // [100] bram_sprites_ceil#1 = load_sprite::return#2 -- vdum1=vduz2 
+    // [131] bram_sprites_ceil#1 = load_sprite::return#2 -- vdum1=vduz2 
     lda.z load_sprite.return
     sta bram_sprites_ceil
     lda.z load_sprite.return+1
@@ -810,12 +1066,12 @@ main: {
     lda.z load_sprite.return+3
     sta bram_sprites_ceil+3
     // load_sprite(SpriteDB[SPRITE_ENEMY2], bram_sprites_ceil)
-    // [101] load_sprite::Sprite#1 = *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // [132] load_sprite::Sprite#1 = *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER
     sta.z load_sprite.Sprite
     lda SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER+1
     sta.z load_sprite.Sprite+1
-    // [102] load_sprite::bram_address#1 = bram_sprites_ceil#1 -- vduz1=vdum2 
+    // [133] load_sprite::bram_address#1 = bram_sprites_ceil#1 -- vduz1=vdum2 
     lda bram_sprites_ceil
     sta.z load_sprite.bram_address
     lda bram_sprites_ceil+1
@@ -824,15 +1080,15 @@ main: {
     sta.z load_sprite.bram_address+2
     lda bram_sprites_ceil+3
     sta.z load_sprite.bram_address+3
-    // [103] call load_sprite 
-    // [420] phi from main::@8 to load_sprite [phi:main::@8->load_sprite]
-    // [420] phi load_sprite::bram_address#10 = load_sprite::bram_address#1 [phi:main::@8->load_sprite#0] -- register_copy 
-    // [420] phi load_sprite::Sprite#10 = load_sprite::Sprite#1 [phi:main::@8->load_sprite#1] -- register_copy 
+    // [134] call load_sprite 
+    // [487] phi from main::@10 to load_sprite [phi:main::@10->load_sprite]
+    // [487] phi load_sprite::bram_address#10 = load_sprite::bram_address#1 [phi:main::@10->load_sprite#0] -- register_copy 
+    // [487] phi load_sprite::Sprite#10 = load_sprite::Sprite#1 [phi:main::@10->load_sprite#1] -- register_copy 
     jsr load_sprite
     // load_sprite(SpriteDB[SPRITE_ENEMY2], bram_sprites_ceil)
-    // [104] load_sprite::return#3 = load_sprite::return#0
-    // main::@9
-    // [105] bram_sprites_ceil#16 = load_sprite::return#3 -- vdum1=vduz2 
+    // [135] load_sprite::return#3 = load_sprite::return#0
+    // main::@11
+    // [136] bram_sprites_ceil#16 = load_sprite::return#3 -- vdum1=vduz2 
     lda.z load_sprite.return
     sta bram_sprites_ceil
     lda.z load_sprite.return+1
@@ -842,12 +1098,12 @@ main: {
     lda.z load_sprite.return+3
     sta bram_sprites_ceil+3
     // load_tile(TileDB[TILE_SQUAREMETAL], bram_tiles_ceil)
-    // [106] load_tile::Tile#0 = *TileDB -- pssz1=_deref_qssc1 
+    // [137] load_tile::Tile#0 = *TileDB -- pssz1=_deref_qssc1 
     lda TileDB
     sta.z load_tile.Tile
     lda TileDB+1
     sta.z load_tile.Tile+1
-    // [107] load_tile::bram_address#0 = bram_sprites_ceil#16 -- vduz1=vdum2 
+    // [138] load_tile::bram_address#0 = bram_sprites_ceil#16 -- vduz1=vdum2 
     lda bram_sprites_ceil
     sta.z load_tile.bram_address
     lda bram_sprites_ceil+1
@@ -856,16 +1112,16 @@ main: {
     sta.z load_tile.bram_address+2
     lda bram_sprites_ceil+3
     sta.z load_tile.bram_address+3
-    // [108] call load_tile 
-    // [441] phi from main::@9 to load_tile [phi:main::@9->load_tile]
-    // [441] phi load_tile::bram_address#10 = load_tile::bram_address#0 [phi:main::@9->load_tile#0] -- register_copy 
-    // [441] phi load_tile::Tile#10 = load_tile::Tile#0 [phi:main::@9->load_tile#1] -- register_copy 
+    // [139] call load_tile 
+    // [508] phi from main::@11 to load_tile [phi:main::@11->load_tile]
+    // [508] phi load_tile::bram_address#10 = load_tile::bram_address#0 [phi:main::@11->load_tile#0] -- register_copy 
+    // [508] phi load_tile::Tile#10 = load_tile::Tile#0 [phi:main::@11->load_tile#1] -- register_copy 
     jsr load_tile
     // load_tile(TileDB[TILE_SQUAREMETAL], bram_tiles_ceil)
-    // [109] load_tile::return#2 = load_tile::return#0
-    // main::@10
+    // [140] load_tile::return#2 = load_tile::return#0
+    // main::@12
     // bram_tiles_ceil = load_tile(TileDB[TILE_SQUAREMETAL], bram_tiles_ceil)
-    // [110] bram_tiles_ceil#1 = load_tile::return#2 -- vdum1=vduz2 
+    // [141] bram_tiles_ceil#1 = load_tile::return#2 -- vdum1=vduz2 
     lda.z load_tile.return
     sta bram_tiles_ceil
     lda.z load_tile.return+1
@@ -875,12 +1131,12 @@ main: {
     lda.z load_tile.return+3
     sta bram_tiles_ceil+3
     // load_tile(TileDB[TILE_TILEMETAL], bram_tiles_ceil)
-    // [111] load_tile::Tile#1 = *(TileDB+TILE_TILEMETAL*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // [142] load_tile::Tile#1 = *(TileDB+TILE_TILEMETAL*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda TileDB+TILE_TILEMETAL*SIZEOF_POINTER
     sta.z load_tile.Tile
     lda TileDB+TILE_TILEMETAL*SIZEOF_POINTER+1
     sta.z load_tile.Tile+1
-    // [112] load_tile::bram_address#1 = bram_tiles_ceil#1 -- vduz1=vdum2 
+    // [143] load_tile::bram_address#1 = bram_tiles_ceil#1 -- vduz1=vdum2 
     lda bram_tiles_ceil
     sta.z load_tile.bram_address
     lda bram_tiles_ceil+1
@@ -889,16 +1145,16 @@ main: {
     sta.z load_tile.bram_address+2
     lda bram_tiles_ceil+3
     sta.z load_tile.bram_address+3
-    // [113] call load_tile 
-    // [441] phi from main::@10 to load_tile [phi:main::@10->load_tile]
-    // [441] phi load_tile::bram_address#10 = load_tile::bram_address#1 [phi:main::@10->load_tile#0] -- register_copy 
-    // [441] phi load_tile::Tile#10 = load_tile::Tile#1 [phi:main::@10->load_tile#1] -- register_copy 
+    // [144] call load_tile 
+    // [508] phi from main::@12 to load_tile [phi:main::@12->load_tile]
+    // [508] phi load_tile::bram_address#10 = load_tile::bram_address#1 [phi:main::@12->load_tile#0] -- register_copy 
+    // [508] phi load_tile::Tile#10 = load_tile::Tile#1 [phi:main::@12->load_tile#1] -- register_copy 
     jsr load_tile
     // load_tile(TileDB[TILE_TILEMETAL], bram_tiles_ceil)
-    // [114] load_tile::return#3 = load_tile::return#0
-    // main::@11
+    // [145] load_tile::return#3 = load_tile::return#0
+    // main::@13
     // bram_tiles_ceil = load_tile(TileDB[TILE_TILEMETAL], bram_tiles_ceil)
-    // [115] bram_tiles_ceil#2 = load_tile::return#3 -- vdum1=vduz2 
+    // [146] bram_tiles_ceil#2 = load_tile::return#3 -- vdum1=vduz2 
     lda.z load_tile.return
     sta bram_tiles_ceil
     lda.z load_tile.return+1
@@ -908,12 +1164,12 @@ main: {
     lda.z load_tile.return+3
     sta bram_tiles_ceil+3
     // load_tile(TileDB[TILE_SQUARERASTER], bram_tiles_ceil)
-    // [116] load_tile::Tile#2 = *(TileDB+TILE_SQUARERASTER*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // [147] load_tile::Tile#2 = *(TileDB+TILE_SQUARERASTER*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda TileDB+TILE_SQUARERASTER*SIZEOF_POINTER
     sta.z load_tile.Tile
     lda TileDB+TILE_SQUARERASTER*SIZEOF_POINTER+1
     sta.z load_tile.Tile+1
-    // [117] load_tile::bram_address#2 = bram_tiles_ceil#2 -- vduz1=vdum2 
+    // [148] load_tile::bram_address#2 = bram_tiles_ceil#2 -- vduz1=vdum2 
     lda bram_tiles_ceil
     sta.z load_tile.bram_address
     lda bram_tiles_ceil+1
@@ -922,15 +1178,15 @@ main: {
     sta.z load_tile.bram_address+2
     lda bram_tiles_ceil+3
     sta.z load_tile.bram_address+3
-    // [118] call load_tile 
-    // [441] phi from main::@11 to load_tile [phi:main::@11->load_tile]
-    // [441] phi load_tile::bram_address#10 = load_tile::bram_address#2 [phi:main::@11->load_tile#0] -- register_copy 
-    // [441] phi load_tile::Tile#10 = load_tile::Tile#2 [phi:main::@11->load_tile#1] -- register_copy 
+    // [149] call load_tile 
+    // [508] phi from main::@13 to load_tile [phi:main::@13->load_tile]
+    // [508] phi load_tile::bram_address#10 = load_tile::bram_address#2 [phi:main::@13->load_tile#0] -- register_copy 
+    // [508] phi load_tile::Tile#10 = load_tile::Tile#2 [phi:main::@13->load_tile#1] -- register_copy 
     jsr load_tile
     // load_tile(TileDB[TILE_SQUARERASTER], bram_tiles_ceil)
-    // [119] load_tile::return#4 = load_tile::return#0
-    // main::@12
-    // [120] bram_palette#0 = load_tile::return#4 -- vdum1=vduz2 
+    // [150] load_tile::return#4 = load_tile::return#0
+    // main::@14
+    // [151] bram_palette#0 = load_tile::return#4 -- vdum1=vduz2 
     lda.z load_tile.return
     sta bram_palette
     lda.z load_tile.return+1
@@ -940,7 +1196,7 @@ main: {
     lda.z load_tile.return+3
     sta bram_palette+3
     // cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette)
-    // [121] cx16_load_ram_banked::address#2 = bram_palette#0 -- vduz1=vdum2 
+    // [152] cx16_load_ram_banked::address#2 = bram_palette#0 -- vduz1=vdum2 
     lda bram_palette
     sta.z cx16_load_ram_banked.address
     lda bram_palette+1
@@ -949,63 +1205,64 @@ main: {
     sta.z cx16_load_ram_banked.address+2
     lda bram_palette+3
     sta.z cx16_load_ram_banked.address+3
-    // [122] call cx16_load_ram_banked 
-    // [462] phi from main::@12 to cx16_load_ram_banked [phi:main::@12->cx16_load_ram_banked]
-    // [462] phi cx16_load_ram_banked::filename#3 = FILE_PALETTES [phi:main::@12->cx16_load_ram_banked#0] -- pbuz1=pbuc1 
+    // [153] call cx16_load_ram_banked 
+    // [529] phi from main::@14 to cx16_load_ram_banked [phi:main::@14->cx16_load_ram_banked]
+    // [529] phi cx16_load_ram_banked::filename#3 = FILE_PALETTES [phi:main::@14->cx16_load_ram_banked#0] -- pbuz1=pbuc1 
     lda #<FILE_PALETTES
     sta.z cx16_load_ram_banked.filename
     lda #>FILE_PALETTES
     sta.z cx16_load_ram_banked.filename+1
-    // [462] phi cx16_load_ram_banked::address#3 = cx16_load_ram_banked::address#2 [phi:main::@12->cx16_load_ram_banked#1] -- register_copy 
+    // [529] phi cx16_load_ram_banked::address#3 = cx16_load_ram_banked::address#2 [phi:main::@14->cx16_load_ram_banked#1] -- register_copy 
     jsr cx16_load_ram_banked
     // cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette)
-    // [123] cx16_load_ram_banked::return#10 = cx16_load_ram_banked::return#1
-    // main::@13
+    // [154] cx16_load_ram_banked::return#10 = cx16_load_ram_banked::return#1 -- vbuaa=vbuz1 
+    lda.z cx16_load_ram_banked.return
+    // main::@15
     // status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette)
-    // [124] main::status#0 = cx16_load_ram_banked::return#10
+    // [155] main::status#0 = cx16_load_ram_banked::return#10 -- vbuz1=vbuaa 
+    sta.z status
     // if(status!=$ff)
-    // [125] if(main::status#0==$ff) goto main::@1 -- vbuz1_eq_vbuc1_then_la1 
+    // [156] if(main::status#0==$ff) goto main::@1 -- vbuz1_eq_vbuc1_then_la1 
     lda #$ff
     cmp.z status
     beq __b1
-    // [126] phi from main::@13 to main::@2 [phi:main::@13->main::@2]
+    // [157] phi from main::@15 to main::@2 [phi:main::@15->main::@2]
     // main::@2
     // printf("error file_palettes = %u",status)
-    // [127] call cputs 
-    // [529] phi from main::@2 to cputs [phi:main::@2->cputs]
-    // [529] phi cputs::s#13 = main::s [phi:main::@2->cputs#0] -- pbuz1=pbuc1 
+    // [158] call cputs 
+    // [343] phi from main::@2 to cputs [phi:main::@2->cputs]
+    // [343] phi cputs::s#26 = main::s [phi:main::@2->cputs#0] -- pbuz1=pbuc1 
     lda #<s
     sta.z cputs.s
     lda #>s
     sta.z cputs.s+1
     jsr cputs
-    // main::@34
+    // main::@36
     // printf("error file_palettes = %u",status)
-    // [128] printf_uchar::uvalue#3 = main::status#0
-    // [129] call printf_uchar 
-    // [537] phi from main::@34 to printf_uchar [phi:main::@34->printf_uchar]
-    // [537] phi printf_uchar::format_radix#4 = DECIMAL [phi:main::@34->printf_uchar#0] -- vbuz1=vbuc1 
-    lda #DECIMAL
-    sta.z printf_uchar.format_radix
-    // [537] phi printf_uchar::uvalue#4 = printf_uchar::uvalue#3 [phi:main::@34->printf_uchar#1] -- register_copy 
+    // [159] printf_uchar::uvalue#4 = main::status#0 -- vbuxx=vbuz1 
+    ldx.z status
+    // [160] call printf_uchar 
+    // [596] phi from main::@36 to printf_uchar [phi:main::@36->printf_uchar]
+    // [596] phi printf_uchar::format_radix#5 = DECIMAL [phi:main::@36->printf_uchar#0] -- vbuyy=vbuc1 
+    ldy #DECIMAL
+    // [596] phi printf_uchar::uvalue#5 = printf_uchar::uvalue#4 [phi:main::@36->printf_uchar#1] -- register_copy 
     jsr printf_uchar
-    // [130] phi from main::@13 main::@34 to main::@1 [phi:main::@13/main::@34->main::@1]
+    // [161] phi from main::@15 main::@36 to main::@1 [phi:main::@15/main::@36->main::@1]
     // main::@1
   __b1:
-    // cx16_rom_bank(0)
-    // [131] call cx16_rom_bank 
+    // cx16_rom_bank(CX16_ROM_KERNAL)
+    // [162] call cx16_rom_bank 
   // We are going to use only the kernal on the X16.
-    // [545] phi from main::@1 to cx16_rom_bank [phi:main::@1->cx16_rom_bank]
-    // [545] phi cx16_rom_bank::bank#2 = 0 [phi:main::@1->cx16_rom_bank#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z cx16_rom_bank.bank
+    // [604] phi from main::@1 to cx16_rom_bank [phi:main::@1->cx16_rom_bank]
+    // [604] phi cx16_rom_bank::bank#2 = CX16_ROM_KERNAL [phi:main::@1->cx16_rom_bank#0] -- vbuaa=vbuc1 
+    lda #CX16_ROM_KERNAL
     jsr cx16_rom_bank
-    // [132] phi from main::@1 to main::@14 [phi:main::@1->main::@14]
-    // main::@14
+    // [163] phi from main::@1 to main::@16 [phi:main::@1->main::@16]
+    // main::@16
     // vera_heap_segment_init(HEAP_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE)
-    // [133] call vera_heap_segment_init 
-    // [548] phi from main::@14 to vera_heap_segment_init [phi:main::@14->vera_heap_segment_init]
-    // [548] phi vera_heap_segment_init::base#4 = $1b000 [phi:main::@14->vera_heap_segment_init#0] -- vduz1=vduc1 
+    // [164] call vera_heap_segment_init 
+    // [607] phi from main::@16 to vera_heap_segment_init [phi:main::@16->vera_heap_segment_init]
+    // [607] phi vera_heap_segment_init::base#4 = $1b000 [phi:main::@16->vera_heap_segment_init#0] -- vduz1=vduc1 
     lda #<$1b000
     sta.z vera_heap_segment_init.base
     lda #>$1b000
@@ -1014,7 +1271,7 @@ main: {
     sta.z vera_heap_segment_init.base+2
     lda #>$1b000>>$10
     sta.z vera_heap_segment_init.base+3
-    // [548] phi vera_heap_segment_init::size#4 = main::VRAM_PETSCII_MAP_SIZE+VERA_PETSCII_TILE_SIZE [phi:main::@14->vera_heap_segment_init#1] -- vduz1=vduc1 
+    // [607] phi vera_heap_segment_init::size#4 = main::VRAM_PETSCII_MAP_SIZE+VERA_PETSCII_TILE_SIZE [phi:main::@16->vera_heap_segment_init#1] -- vduz1=vduc1 
     lda #<VRAM_PETSCII_MAP_SIZE+VERA_PETSCII_TILE_SIZE
     sta.z vera_heap_segment_init.size
     lda #>VRAM_PETSCII_MAP_SIZE+VERA_PETSCII_TILE_SIZE
@@ -1023,28 +1280,26 @@ main: {
     sta.z vera_heap_segment_init.size+2
     lda #>VRAM_PETSCII_MAP_SIZE+VERA_PETSCII_TILE_SIZE>>$10
     sta.z vera_heap_segment_init.size+3
-    // [548] phi vera_heap_segment_init::segmentid#4 = HEAP_PETSCII [phi:main::@14->vera_heap_segment_init#2] -- vbuz1=vbuc1 
-    lda #HEAP_PETSCII
-    sta.z vera_heap_segment_init.segmentid
+    // [607] phi vera_heap_segment_init::segmentid#4 = HEAP_PETSCII [phi:main::@16->vera_heap_segment_init#2] -- vbuxx=vbuc1 
+    ldx #HEAP_PETSCII
     jsr vera_heap_segment_init
-    // main::@15
+    // main::@17
     // vera_heap_malloc(HEAP_PETSCII, VRAM_PETSCII_MAP_SIZE)
-    // [134] vera_heap_malloc::size = main::VRAM_PETSCII_MAP_SIZE -- vwuz1=vwuc1 
+    // [165] vera_heap_malloc::size = main::VRAM_PETSCII_MAP_SIZE -- vwuz1=vwuc1 
     lda #<VRAM_PETSCII_MAP_SIZE
     sta.z vera_heap_malloc.size
     lda #>VRAM_PETSCII_MAP_SIZE
     sta.z vera_heap_malloc.size+1
-    // [135] call vera_heap_malloc 
-    // [564] phi from main::@15 to vera_heap_malloc [phi:main::@15->vera_heap_malloc]
-    // [564] phi vera_heap_malloc::segmentid#4 = HEAP_PETSCII [phi:main::@15->vera_heap_malloc#0] -- vbuz1=vbuc1 
-    lda #HEAP_PETSCII
-    sta.z vera_heap_malloc.segmentid
+    // [166] call vera_heap_malloc 
+    // [623] phi from main::@17 to vera_heap_malloc [phi:main::@17->vera_heap_malloc]
+    // [623] phi vera_heap_malloc::segmentid#4 = HEAP_PETSCII [phi:main::@17->vera_heap_malloc#0] -- vbuxx=vbuc1 
+    ldx #HEAP_PETSCII
     jsr vera_heap_malloc
     // vera_heap_malloc(HEAP_PETSCII, VRAM_PETSCII_MAP_SIZE)
-    // [136] vera_heap_malloc::return#13 = vera_heap_malloc::return#1
-    // main::@16
+    // [167] vera_heap_malloc::return#13 = vera_heap_malloc::return#1
+    // main::@18
     // vram_petscii_map = vera_heap_malloc(HEAP_PETSCII, VRAM_PETSCII_MAP_SIZE)
-    // [137] main::vram_petscii_map#0 = vera_heap_malloc::return#13 -- vduz1=vduz2 
+    // [168] main::vram_petscii_map#0 = vera_heap_malloc::return#13 -- vduz1=vduz2 
     lda.z vera_heap_malloc.return
     sta.z vram_petscii_map
     lda.z vera_heap_malloc.return+1
@@ -1054,28 +1309,55 @@ main: {
     lda.z vera_heap_malloc.return+3
     sta.z vram_petscii_map+3
     // vera_heap_malloc(HEAP_PETSCII, VERA_PETSCII_TILE_SIZE)
-    // [138] vera_heap_malloc::size = VERA_PETSCII_TILE_SIZE -- vwuz1=vwuc1 
+    // [169] vera_heap_malloc::size = VERA_PETSCII_TILE_SIZE -- vwuz1=vwuc1 
     lda #<VERA_PETSCII_TILE_SIZE
     sta.z vera_heap_malloc.size
     lda #>VERA_PETSCII_TILE_SIZE
     sta.z vera_heap_malloc.size+1
-    // [139] call vera_heap_malloc 
-    // [564] phi from main::@16 to vera_heap_malloc [phi:main::@16->vera_heap_malloc]
-    // [564] phi vera_heap_malloc::segmentid#4 = HEAP_PETSCII [phi:main::@16->vera_heap_malloc#0] -- vbuz1=vbuc1 
-    lda #HEAP_PETSCII
-    sta.z vera_heap_malloc.segmentid
+    // [170] call vera_heap_malloc 
+    // [623] phi from main::@18 to vera_heap_malloc [phi:main::@18->vera_heap_malloc]
+    // [623] phi vera_heap_malloc::segmentid#4 = HEAP_PETSCII [phi:main::@18->vera_heap_malloc#0] -- vbuxx=vbuc1 
+    ldx #HEAP_PETSCII
     jsr vera_heap_malloc
     // vera_heap_malloc(HEAP_PETSCII, VERA_PETSCII_TILE_SIZE)
-    // [140] vera_heap_malloc::return#14 = vera_heap_malloc::return#1
-    // main::@17
+    // [171] vera_heap_malloc::return#14 = vera_heap_malloc::return#1
+    // main::@19
     // vram_petscii_tile = vera_heap_malloc(HEAP_PETSCII, VERA_PETSCII_TILE_SIZE)
-    // [141] main::vram_petscii_tile#0 = vera_heap_malloc::return#14
+    // [172] main::vram_petscii_tile#0 = vera_heap_malloc::return#14
     // vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE)
-    // [142] call vera_cpy_vram_vram 
+    // [173] call vera_cpy_vram_vram 
+    // [302] phi from main::@19 to vera_cpy_vram_vram [phi:main::@19->vera_cpy_vram_vram]
+    // [302] phi vera_cpy_vram_vram::num#3 = VERA_PETSCII_TILE_SIZE [phi:main::@19->vera_cpy_vram_vram#0] -- vduz1=vduc1 
+    lda #<VERA_PETSCII_TILE_SIZE
+    sta.z vera_cpy_vram_vram.num
+    lda #>VERA_PETSCII_TILE_SIZE
+    sta.z vera_cpy_vram_vram.num+1
+    lda #<VERA_PETSCII_TILE_SIZE>>$10
+    sta.z vera_cpy_vram_vram.num+2
+    lda #>VERA_PETSCII_TILE_SIZE>>$10
+    sta.z vera_cpy_vram_vram.num+3
+    // [302] phi vera_cpy_vram_vram::vdest#2 = VRAM_PETSCII_TILE [phi:main::@19->vera_cpy_vram_vram#1] -- vduz1=vduc1 
+    lda #<VRAM_PETSCII_TILE
+    sta.z vera_cpy_vram_vram.vdest
+    lda #>VRAM_PETSCII_TILE
+    sta.z vera_cpy_vram_vram.vdest+1
+    lda #<VRAM_PETSCII_TILE>>$10
+    sta.z vera_cpy_vram_vram.vdest+2
+    lda #>VRAM_PETSCII_TILE>>$10
+    sta.z vera_cpy_vram_vram.vdest+3
+    // [302] phi vera_cpy_vram_vram::vsrc#2 = VERA_PETSCII_TILE [phi:main::@19->vera_cpy_vram_vram#2] -- vduz1=vduc1 
+    lda #<VERA_PETSCII_TILE
+    sta.z vera_cpy_vram_vram.vsrc
+    lda #>VERA_PETSCII_TILE
+    sta.z vera_cpy_vram_vram.vsrc+1
+    lda #<VERA_PETSCII_TILE>>$10
+    sta.z vera_cpy_vram_vram.vsrc+2
+    lda #>VERA_PETSCII_TILE>>$10
+    sta.z vera_cpy_vram_vram.vsrc+3
     jsr vera_cpy_vram_vram
-    // main::@18
+    // main::@20
     // vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1)
-    // [143] vera_layer_mode_tile::mapbase_address#2 = main::vram_petscii_map#0 -- vduz1=vduz2 
+    // [174] vera_layer_mode_tile::mapbase_address#2 = main::vram_petscii_map#0 -- vduz1=vduz2 
     lda.z vram_petscii_map
     sta.z vera_layer_mode_tile.mapbase_address
     lda.z vram_petscii_map+1
@@ -1084,7 +1366,7 @@ main: {
     sta.z vera_layer_mode_tile.mapbase_address+2
     lda.z vram_petscii_map+3
     sta.z vera_layer_mode_tile.mapbase_address+3
-    // [144] vera_layer_mode_tile::tilebase_address#2 = main::vram_petscii_tile#0 -- vduz1=vduz2 
+    // [175] vera_layer_mode_tile::tilebase_address#2 = main::vram_petscii_tile#0 -- vduz1=vduz2 
     lda.z vram_petscii_tile
     sta.z vera_layer_mode_tile.tilebase_address
     lda.z vram_petscii_tile+1
@@ -1093,75 +1375,71 @@ main: {
     sta.z vera_layer_mode_tile.tilebase_address+2
     lda.z vram_petscii_tile+3
     sta.z vera_layer_mode_tile.tilebase_address+3
-    // [145] call vera_layer_mode_tile 
-    // [643] phi from main::@18 to vera_layer_mode_tile [phi:main::@18->vera_layer_mode_tile]
-    // [643] phi vera_layer_mode_tile::tileheight#10 = 8 [phi:main::@18->vera_layer_mode_tile#0] -- vbuz1=vbuc1 
+    // [176] call vera_layer_mode_tile 
+    // [689] phi from main::@20 to vera_layer_mode_tile [phi:main::@20->vera_layer_mode_tile]
+    // [689] phi vera_layer_mode_tile::tileheight#10 = 8 [phi:main::@20->vera_layer_mode_tile#0] -- vbuz1=vbuc1 
     lda #8
     sta.z vera_layer_mode_tile.tileheight
-    // [643] phi vera_layer_mode_tile::tilewidth#10 = 8 [phi:main::@18->vera_layer_mode_tile#1] -- vbuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::tilewidth#10 = 8 [phi:main::@20->vera_layer_mode_tile#1] -- vbuz1=vbuc1 
     sta.z vera_layer_mode_tile.tilewidth
-    // [643] phi vera_layer_mode_tile::tilebase_address#10 = vera_layer_mode_tile::tilebase_address#2 [phi:main::@18->vera_layer_mode_tile#2] -- register_copy 
-    // [643] phi vera_layer_mode_tile::mapbase_address#10 = vera_layer_mode_tile::mapbase_address#2 [phi:main::@18->vera_layer_mode_tile#3] -- register_copy 
-    // [643] phi vera_layer_mode_tile::mapheight#10 = $40 [phi:main::@18->vera_layer_mode_tile#4] -- vwuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::tilebase_address#10 = vera_layer_mode_tile::tilebase_address#2 [phi:main::@20->vera_layer_mode_tile#2] -- register_copy 
+    // [689] phi vera_layer_mode_tile::mapbase_address#10 = vera_layer_mode_tile::mapbase_address#2 [phi:main::@20->vera_layer_mode_tile#3] -- register_copy 
+    // [689] phi vera_layer_mode_tile::mapheight#10 = $40 [phi:main::@20->vera_layer_mode_tile#4] -- vwuz1=vbuc1 
     lda #<$40
     sta.z vera_layer_mode_tile.mapheight
     lda #>$40
     sta.z vera_layer_mode_tile.mapheight+1
-    // [643] phi vera_layer_mode_tile::layer#10 = 1 [phi:main::@18->vera_layer_mode_tile#5] -- vbuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::layer#10 = 1 [phi:main::@20->vera_layer_mode_tile#5] -- vbuz1=vbuc1 
     lda #1
     sta.z vera_layer_mode_tile.layer
-    // [643] phi vera_layer_mode_tile::mapwidth#10 = $80 [phi:main::@18->vera_layer_mode_tile#6] -- vwuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::mapwidth#10 = $80 [phi:main::@20->vera_layer_mode_tile#6] -- vwuz1=vbuc1 
     lda #<$80
     sta.z vera_layer_mode_tile.mapwidth
     lda #>$80
     sta.z vera_layer_mode_tile.mapwidth+1
-    // [643] phi vera_layer_mode_tile::color_depth#3 = 1 [phi:main::@18->vera_layer_mode_tile#7] -- vbuz1=vbuc1 
-    lda #1
-    sta.z vera_layer_mode_tile.color_depth
+    // [689] phi vera_layer_mode_tile::color_depth#3 = 1 [phi:main::@20->vera_layer_mode_tile#7] -- vbuxx=vbuc1 
+    ldx #1
     jsr vera_layer_mode_tile
-    // [146] phi from main::@18 to main::@19 [phi:main::@18->main::@19]
-    // main::@19
+    // [177] phi from main::@20 to main::@21 [phi:main::@20->main::@21]
+    // main::@21
     // screenlayer(1)
-    // [147] call screenlayer 
+    // [178] call screenlayer 
     jsr screenlayer
     // main::textcolor1
     // vera_layer_set_textcolor(cx16_conio.conio_screen_layer, color)
-    // [148] vera_layer_set_textcolor::layer#1 = *((byte*)&cx16_conio) -- vbuz1=_deref_pbuc1 
-    lda cx16_conio
-    sta.z vera_layer_set_textcolor.layer
-    // [149] call vera_layer_set_textcolor 
-    // [393] phi from main::textcolor1 to vera_layer_set_textcolor [phi:main::textcolor1->vera_layer_set_textcolor]
-    // [393] phi vera_layer_set_textcolor::layer#2 = vera_layer_set_textcolor::layer#1 [phi:main::textcolor1->vera_layer_set_textcolor#0] -- register_copy 
+    // [179] vera_layer_set_textcolor::layer#1 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
+    ldx cx16_conio
+    // [180] call vera_layer_set_textcolor 
+    // [474] phi from main::textcolor1 to vera_layer_set_textcolor [phi:main::textcolor1->vera_layer_set_textcolor]
+    // [474] phi vera_layer_set_textcolor::layer#2 = vera_layer_set_textcolor::layer#1 [phi:main::textcolor1->vera_layer_set_textcolor#0] -- register_copy 
     jsr vera_layer_set_textcolor
     // main::bgcolor1
     // vera_layer_set_backcolor(cx16_conio.conio_screen_layer, color)
-    // [150] vera_layer_set_backcolor::layer#1 = *((byte*)&cx16_conio) -- vbuz1=_deref_pbuc1 
-    lda cx16_conio
-    sta.z vera_layer_set_backcolor.layer
-    // [151] call vera_layer_set_backcolor 
-    // [396] phi from main::bgcolor1 to vera_layer_set_backcolor [phi:main::bgcolor1->vera_layer_set_backcolor]
-    // [396] phi vera_layer_set_backcolor::color#2 = BLACK [phi:main::bgcolor1->vera_layer_set_backcolor#0] -- vbuz1=vbuc1 
+    // [181] vera_layer_set_backcolor::layer#1 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
+    ldx cx16_conio
+    // [182] call vera_layer_set_backcolor 
+    // [477] phi from main::bgcolor1 to vera_layer_set_backcolor [phi:main::bgcolor1->vera_layer_set_backcolor]
+    // [477] phi vera_layer_set_backcolor::color#2 = BLACK [phi:main::bgcolor1->vera_layer_set_backcolor#0] -- vbuaa=vbuc1 
     lda #BLACK
-    sta.z vera_layer_set_backcolor.color
-    // [396] phi vera_layer_set_backcolor::layer#2 = vera_layer_set_backcolor::layer#1 [phi:main::bgcolor1->vera_layer_set_backcolor#1] -- register_copy 
+    // [477] phi vera_layer_set_backcolor::layer#2 = vera_layer_set_backcolor::layer#1 [phi:main::bgcolor1->vera_layer_set_backcolor#1] -- register_copy 
     jsr vera_layer_set_backcolor
-    // [152] phi from main::bgcolor1 to main::@6 [phi:main::bgcolor1->main::@6]
+    // [183] phi from main::bgcolor1 to main::@6 [phi:main::bgcolor1->main::@6]
     // main::@6
     // clrscr()
-    // [153] call clrscr 
+    // [184] call clrscr 
     jsr clrscr
-    // [154] phi from main::@6 to main::@20 [phi:main::@6->main::@20]
-    // main::@20
+    // [185] phi from main::@6 to main::@22 [phi:main::@6->main::@22]
+    // main::@22
     // vera_heap_segment_init(HEAP_SPRITES, 0x00000, VRAM_SPRITES_SIZE)
-    // [155] call vera_heap_segment_init 
-    // [548] phi from main::@20 to vera_heap_segment_init [phi:main::@20->vera_heap_segment_init]
-    // [548] phi vera_heap_segment_init::base#4 = 0 [phi:main::@20->vera_heap_segment_init#0] -- vduz1=vbuc1 
+    // [186] call vera_heap_segment_init 
+    // [607] phi from main::@22 to vera_heap_segment_init [phi:main::@22->vera_heap_segment_init]
+    // [607] phi vera_heap_segment_init::base#4 = 0 [phi:main::@22->vera_heap_segment_init#0] -- vduz1=vbuc1 
     lda #0
     sta.z vera_heap_segment_init.base
     sta.z vera_heap_segment_init.base+1
     sta.z vera_heap_segment_init.base+2
     sta.z vera_heap_segment_init.base+3
-    // [548] phi vera_heap_segment_init::size#4 = main::VRAM_SPRITES_SIZE [phi:main::@20->vera_heap_segment_init#1] -- vduz1=vduc1 
+    // [607] phi vera_heap_segment_init::size#4 = main::VRAM_SPRITES_SIZE [phi:main::@22->vera_heap_segment_init#1] -- vduz1=vduc1 
     lda #<VRAM_SPRITES_SIZE
     sta.z vera_heap_segment_init.size
     lda #>VRAM_SPRITES_SIZE
@@ -1170,28 +1448,26 @@ main: {
     sta.z vera_heap_segment_init.size+2
     lda #>VRAM_SPRITES_SIZE>>$10
     sta.z vera_heap_segment_init.size+3
-    // [548] phi vera_heap_segment_init::segmentid#4 = HEAP_SPRITES [phi:main::@20->vera_heap_segment_init#2] -- vbuz1=vbuc1 
-    lda #HEAP_SPRITES
-    sta.z vera_heap_segment_init.segmentid
+    // [607] phi vera_heap_segment_init::segmentid#4 = HEAP_SPRITES [phi:main::@22->vera_heap_segment_init#2] -- vbuxx=vbuc1 
+    ldx #HEAP_SPRITES
     jsr vera_heap_segment_init
-    // [156] phi from main::@20 to main::@21 [phi:main::@20->main::@21]
-    // main::@21
+    // [187] phi from main::@22 to main::@23 [phi:main::@22->main::@23]
+    // main::@23
     // vera_heap_segment_ceiling(HEAP_SPRITES)
-    // [157] call vera_heap_segment_ceiling 
-    // [749] phi from main::@21 to vera_heap_segment_ceiling [phi:main::@21->vera_heap_segment_ceiling]
-    // [749] phi vera_heap_segment_ceiling::segmentid#2 = HEAP_SPRITES [phi:main::@21->vera_heap_segment_ceiling#0] -- vbuz1=vbuc1 
-    lda #HEAP_SPRITES
-    sta.z vera_heap_segment_ceiling.segmentid
+    // [188] call vera_heap_segment_ceiling 
+    // [795] phi from main::@23 to vera_heap_segment_ceiling [phi:main::@23->vera_heap_segment_ceiling]
+    // [795] phi vera_heap_segment_ceiling::segmentid#2 = HEAP_SPRITES [phi:main::@23->vera_heap_segment_ceiling#0] -- vbuxx=vbuc1 
+    ldx #HEAP_SPRITES
     jsr vera_heap_segment_ceiling
     // vera_heap_segment_ceiling(HEAP_SPRITES)
-    // [158] vera_heap_segment_ceiling::return#2 = vera_heap_segment_ceiling::return#0
-    // main::@22
+    // [189] vera_heap_segment_ceiling::return#2 = vera_heap_segment_ceiling::return#0
+    // main::@24
     // vera_heap_segment_init(HEAP_FLOOR_MAP, vera_heap_segment_ceiling(HEAP_SPRITES), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE)
-    // [159] vera_heap_segment_init::base#2 = vera_heap_segment_ceiling::return#2
-    // [160] call vera_heap_segment_init 
-    // [548] phi from main::@22 to vera_heap_segment_init [phi:main::@22->vera_heap_segment_init]
-    // [548] phi vera_heap_segment_init::base#4 = vera_heap_segment_init::base#2 [phi:main::@22->vera_heap_segment_init#0] -- register_copy 
-    // [548] phi vera_heap_segment_init::size#4 = main::VRAM_FLOOR_MAP_SIZE+main::VRAM_FLOOR_TILE_SIZE [phi:main::@22->vera_heap_segment_init#1] -- vduz1=vduc1 
+    // [190] vera_heap_segment_init::base#2 = vera_heap_segment_ceiling::return#2
+    // [191] call vera_heap_segment_init 
+    // [607] phi from main::@24 to vera_heap_segment_init [phi:main::@24->vera_heap_segment_init]
+    // [607] phi vera_heap_segment_init::base#4 = vera_heap_segment_init::base#2 [phi:main::@24->vera_heap_segment_init#0] -- register_copy 
+    // [607] phi vera_heap_segment_init::size#4 = main::VRAM_FLOOR_MAP_SIZE+main::VRAM_FLOOR_TILE_SIZE [phi:main::@24->vera_heap_segment_init#1] -- vduz1=vduc1 
     lda #<VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE
     sta.z vera_heap_segment_init.size
     lda #>VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE
@@ -1200,15 +1476,14 @@ main: {
     sta.z vera_heap_segment_init.size+2
     lda #>VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE>>$10
     sta.z vera_heap_segment_init.size+3
-    // [548] phi vera_heap_segment_init::segmentid#4 = HEAP_FLOOR_MAP [phi:main::@22->vera_heap_segment_init#2] -- vbuz1=vbuc1 
-    lda #HEAP_FLOOR_MAP
-    sta.z vera_heap_segment_init.segmentid
+    // [607] phi vera_heap_segment_init::segmentid#4 = HEAP_FLOOR_MAP [phi:main::@24->vera_heap_segment_init#2] -- vbuxx=vbuc1 
+    ldx #HEAP_FLOOR_MAP
     jsr vera_heap_segment_init
     // vera_heap_segment_init(HEAP_FLOOR_MAP, vera_heap_segment_ceiling(HEAP_SPRITES), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE)
-    // [161] vera_heap_segment_init::return#4 = vera_heap_segment_init::return#0
-    // main::@23
+    // [192] vera_heap_segment_init::return#4 = vera_heap_segment_init::return#0
+    // main::@25
     // vram_segment_floor_map = vera_heap_segment_init(HEAP_FLOOR_MAP, vera_heap_segment_ceiling(HEAP_SPRITES), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE)
-    // [162] main::vram_segment_floor_map#0 = vera_heap_segment_init::return#4 -- vdum1=vduz2 
+    // [193] main::vram_segment_floor_map#0 = vera_heap_segment_init::return#4 -- vdum1=vduz2 
     lda.z vera_heap_segment_init.return
     sta vram_segment_floor_map
     lda.z vera_heap_segment_init.return+1
@@ -1218,21 +1493,20 @@ main: {
     lda.z vera_heap_segment_init.return+3
     sta vram_segment_floor_map+3
     // vera_heap_segment_ceiling(HEAP_FLOOR_MAP)
-    // [163] call vera_heap_segment_ceiling 
-    // [749] phi from main::@23 to vera_heap_segment_ceiling [phi:main::@23->vera_heap_segment_ceiling]
-    // [749] phi vera_heap_segment_ceiling::segmentid#2 = HEAP_FLOOR_MAP [phi:main::@23->vera_heap_segment_ceiling#0] -- vbuz1=vbuc1 
-    lda #HEAP_FLOOR_MAP
-    sta.z vera_heap_segment_ceiling.segmentid
+    // [194] call vera_heap_segment_ceiling 
+    // [795] phi from main::@25 to vera_heap_segment_ceiling [phi:main::@25->vera_heap_segment_ceiling]
+    // [795] phi vera_heap_segment_ceiling::segmentid#2 = HEAP_FLOOR_MAP [phi:main::@25->vera_heap_segment_ceiling#0] -- vbuxx=vbuc1 
+    ldx #HEAP_FLOOR_MAP
     jsr vera_heap_segment_ceiling
     // vera_heap_segment_ceiling(HEAP_FLOOR_MAP)
-    // [164] vera_heap_segment_ceiling::return#3 = vera_heap_segment_ceiling::return#0
-    // main::@24
+    // [195] vera_heap_segment_ceiling::return#3 = vera_heap_segment_ceiling::return#0
+    // main::@26
     // vera_heap_segment_init(HEAP_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_FLOOR_MAP), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE)
-    // [165] vera_heap_segment_init::base#3 = vera_heap_segment_ceiling::return#3
-    // [166] call vera_heap_segment_init 
-    // [548] phi from main::@24 to vera_heap_segment_init [phi:main::@24->vera_heap_segment_init]
-    // [548] phi vera_heap_segment_init::base#4 = vera_heap_segment_init::base#3 [phi:main::@24->vera_heap_segment_init#0] -- register_copy 
-    // [548] phi vera_heap_segment_init::size#4 = main::VRAM_FLOOR_MAP_SIZE+main::VRAM_FLOOR_TILE_SIZE [phi:main::@24->vera_heap_segment_init#1] -- vduz1=vduc1 
+    // [196] vera_heap_segment_init::base#3 = vera_heap_segment_ceiling::return#3
+    // [197] call vera_heap_segment_init 
+    // [607] phi from main::@26 to vera_heap_segment_init [phi:main::@26->vera_heap_segment_init]
+    // [607] phi vera_heap_segment_init::base#4 = vera_heap_segment_init::base#3 [phi:main::@26->vera_heap_segment_init#0] -- register_copy 
+    // [607] phi vera_heap_segment_init::size#4 = main::VRAM_FLOOR_MAP_SIZE+main::VRAM_FLOOR_TILE_SIZE [phi:main::@26->vera_heap_segment_init#1] -- vduz1=vduc1 
     lda #<VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE
     sta.z vera_heap_segment_init.size
     lda #>VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE
@@ -1241,15 +1515,14 @@ main: {
     sta.z vera_heap_segment_init.size+2
     lda #>VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE>>$10
     sta.z vera_heap_segment_init.size+3
-    // [548] phi vera_heap_segment_init::segmentid#4 = HEAP_FLOOR_TILE [phi:main::@24->vera_heap_segment_init#2] -- vbuz1=vbuc1 
-    lda #HEAP_FLOOR_TILE
-    sta.z vera_heap_segment_init.segmentid
+    // [607] phi vera_heap_segment_init::segmentid#4 = HEAP_FLOOR_TILE [phi:main::@26->vera_heap_segment_init#2] -- vbuxx=vbuc1 
+    ldx #HEAP_FLOOR_TILE
     jsr vera_heap_segment_init
     // vera_heap_segment_init(HEAP_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_FLOOR_MAP), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE)
-    // [167] vera_heap_segment_init::return#5 = vera_heap_segment_init::return#0
-    // main::@25
+    // [198] vera_heap_segment_init::return#5 = vera_heap_segment_init::return#0
+    // main::@27
     // vram_segment_floor_tile = vera_heap_segment_init(HEAP_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_FLOOR_MAP), VRAM_FLOOR_MAP_SIZE+VRAM_FLOOR_TILE_SIZE)
-    // [168] main::vram_segment_floor_tile#0 = vera_heap_segment_init::return#5 -- vdum1=vduz2 
+    // [199] main::vram_segment_floor_tile#0 = vera_heap_segment_init::return#5 -- vdum1=vduz2 
     lda.z vera_heap_segment_init.return
     sta vram_segment_floor_tile
     lda.z vera_heap_segment_init.return+1
@@ -1258,79 +1531,74 @@ main: {
     sta vram_segment_floor_tile+2
     lda.z vera_heap_segment_init.return+3
     sta vram_segment_floor_tile+3
-    // sprite_cpy_vram(HEAP_SPRITES, SpriteDB[SPRITE_PLAYER], NUM_PLAYER, 512)
-    // [169] sprite_cpy_vram::Sprite#0 = *SpriteDB -- pssz1=_deref_qssc1 
+    // vram_floor_map = vram_segment_floor_map
+    // [200] vram_floor_map = main::vram_segment_floor_map#0 -- vduz1=vdum2 
+    lda vram_segment_floor_map
+    sta.z vram_floor_map
+    lda vram_segment_floor_map+1
+    sta.z vram_floor_map+1
+    lda vram_segment_floor_map+2
+    sta.z vram_floor_map+2
+    lda vram_segment_floor_map+3
+    sta.z vram_floor_map+3
+    // sprite_cpy_vram(HEAP_SPRITES, SpriteDB[SPRITE_PLAYER])
+    // [201] sprite_cpy_vram::Sprite#0 = *SpriteDB -- pssz1=_deref_qssc1 
     lda SpriteDB
     sta.z sprite_cpy_vram.Sprite
     lda SpriteDB+1
     sta.z sprite_cpy_vram.Sprite+1
-    // [170] call sprite_cpy_vram 
+    // [202] call sprite_cpy_vram 
   // Now we activate the tile mode.
-    // [758] phi from main::@25 to sprite_cpy_vram [phi:main::@25->sprite_cpy_vram]
-    // [758] phi sprite_cpy_vram::num#3 = NUM_PLAYER [phi:main::@25->sprite_cpy_vram#0] -- vbuz1=vbuc1 
-    lda #NUM_PLAYER
-    sta.z sprite_cpy_vram.num
-    // [758] phi sprite_cpy_vram::Sprite#2 = sprite_cpy_vram::Sprite#0 [phi:main::@25->sprite_cpy_vram#1] -- register_copy 
+    // [804] phi from main::@27 to sprite_cpy_vram [phi:main::@27->sprite_cpy_vram]
+    // [804] phi sprite_cpy_vram::Sprite#2 = sprite_cpy_vram::Sprite#0 [phi:main::@27->sprite_cpy_vram#0] -- register_copy 
     jsr sprite_cpy_vram
-    // main::@26
-    // sprite_cpy_vram(HEAP_SPRITES, SpriteDB[SPRITE_ENEMY2], NUM_ENEMY2, 512)
-    // [171] sprite_cpy_vram::Sprite#1 = *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // main::@28
+    // sprite_cpy_vram(HEAP_SPRITES, SpriteDB[SPRITE_ENEMY2])
+    // [203] sprite_cpy_vram::Sprite#1 = *(SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER
     sta.z sprite_cpy_vram.Sprite
     lda SpriteDB+SPRITE_ENEMY2*SIZEOF_POINTER+1
     sta.z sprite_cpy_vram.Sprite+1
-    // [172] call sprite_cpy_vram 
-    // [758] phi from main::@26 to sprite_cpy_vram [phi:main::@26->sprite_cpy_vram]
-    // [758] phi sprite_cpy_vram::num#3 = NUM_ENEMY2 [phi:main::@26->sprite_cpy_vram#0] -- vbuz1=vbuc1 
-    lda #NUM_ENEMY2
-    sta.z sprite_cpy_vram.num
-    // [758] phi sprite_cpy_vram::Sprite#2 = sprite_cpy_vram::Sprite#1 [phi:main::@26->sprite_cpy_vram#1] -- register_copy 
+    // [204] call sprite_cpy_vram 
+    // [804] phi from main::@28 to sprite_cpy_vram [phi:main::@28->sprite_cpy_vram]
+    // [804] phi sprite_cpy_vram::Sprite#2 = sprite_cpy_vram::Sprite#1 [phi:main::@28->sprite_cpy_vram#0] -- register_copy 
     jsr sprite_cpy_vram
-    // main::@27
-    // tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUAREMETAL], NUM_SQUAREMETAL, 2048)
-    // [173] tile_cpy_vram::Tile#0 = *TileDB -- pssz1=_deref_qssc1 
+    // main::@29
+    // tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUAREMETAL])
+    // [205] tile_cpy_vram::Tile#0 = *TileDB -- pssz1=_deref_qssc1 
     lda TileDB
     sta.z tile_cpy_vram.Tile
     lda TileDB+1
     sta.z tile_cpy_vram.Tile+1
-    // [174] call tile_cpy_vram 
-    // [789] phi from main::@27 to tile_cpy_vram [phi:main::@27->tile_cpy_vram]
-    // [789] phi tile_cpy_vram::num#4 = NUM_SQUAREMETAL [phi:main::@27->tile_cpy_vram#0] -- vbuz1=vbuc1 
-    lda #NUM_SQUAREMETAL
-    sta.z tile_cpy_vram.num
-    // [789] phi tile_cpy_vram::Tile#3 = tile_cpy_vram::Tile#0 [phi:main::@27->tile_cpy_vram#1] -- register_copy 
+    // [206] call tile_cpy_vram 
+    // [828] phi from main::@29 to tile_cpy_vram [phi:main::@29->tile_cpy_vram]
+    // [828] phi tile_cpy_vram::Tile#3 = tile_cpy_vram::Tile#0 [phi:main::@29->tile_cpy_vram#0] -- register_copy 
     jsr tile_cpy_vram
-    // main::@28
-    // tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_TILEMETAL], NUM_TILEMETAL, 2048)
-    // [175] tile_cpy_vram::Tile#1 = *(TileDB+TILE_TILEMETAL*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // main::@30
+    // tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_TILEMETAL])
+    // [207] tile_cpy_vram::Tile#1 = *(TileDB+TILE_TILEMETAL*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda TileDB+TILE_TILEMETAL*SIZEOF_POINTER
     sta.z tile_cpy_vram.Tile
     lda TileDB+TILE_TILEMETAL*SIZEOF_POINTER+1
     sta.z tile_cpy_vram.Tile+1
-    // [176] call tile_cpy_vram 
-    // [789] phi from main::@28 to tile_cpy_vram [phi:main::@28->tile_cpy_vram]
-    // [789] phi tile_cpy_vram::num#4 = NUM_TILEMETAL [phi:main::@28->tile_cpy_vram#0] -- vbuz1=vbuc1 
-    lda #NUM_TILEMETAL
-    sta.z tile_cpy_vram.num
-    // [789] phi tile_cpy_vram::Tile#3 = tile_cpy_vram::Tile#1 [phi:main::@28->tile_cpy_vram#1] -- register_copy 
+    // [208] call tile_cpy_vram 
+    // [828] phi from main::@30 to tile_cpy_vram [phi:main::@30->tile_cpy_vram]
+    // [828] phi tile_cpy_vram::Tile#3 = tile_cpy_vram::Tile#1 [phi:main::@30->tile_cpy_vram#0] -- register_copy 
     jsr tile_cpy_vram
-    // main::@29
-    // tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUARERASTER], NUM_SQUARERASTER, 2048)
-    // [177] tile_cpy_vram::Tile#2 = *(TileDB+TILE_SQUARERASTER*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
+    // main::@31
+    // tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUARERASTER])
+    // [209] tile_cpy_vram::Tile#2 = *(TileDB+TILE_SQUARERASTER*SIZEOF_POINTER) -- pssz1=_deref_qssc1 
     lda TileDB+TILE_SQUARERASTER*SIZEOF_POINTER
     sta.z tile_cpy_vram.Tile
     lda TileDB+TILE_SQUARERASTER*SIZEOF_POINTER+1
     sta.z tile_cpy_vram.Tile+1
-    // [178] call tile_cpy_vram 
-    // [789] phi from main::@29 to tile_cpy_vram [phi:main::@29->tile_cpy_vram]
-    // [789] phi tile_cpy_vram::num#4 = NUM_SQUARERASTER [phi:main::@29->tile_cpy_vram#0] -- vbuz1=vbuc1 
-    lda #NUM_SQUARERASTER
-    sta.z tile_cpy_vram.num
-    // [789] phi tile_cpy_vram::Tile#3 = tile_cpy_vram::Tile#2 [phi:main::@29->tile_cpy_vram#1] -- register_copy 
+    // [210] call tile_cpy_vram 
+    // [828] phi from main::@31 to tile_cpy_vram [phi:main::@31->tile_cpy_vram]
+    // [828] phi tile_cpy_vram::Tile#3 = tile_cpy_vram::Tile#2 [phi:main::@31->tile_cpy_vram#0] -- register_copy 
     jsr tile_cpy_vram
-    // main::@30
+    // main::@32
     // vera_layer_mode_tile(0, vram_segment_floor_map, vram_segment_floor_tile, 64, 64, 16, 16, 4)
-    // [179] vera_layer_mode_tile::mapbase_address#3 = main::vram_segment_floor_map#0 -- vduz1=vdum2 
+    // [211] vera_layer_mode_tile::mapbase_address#3 = main::vram_segment_floor_map#0 -- vduz1=vdum2 
     lda vram_segment_floor_map
     sta.z vera_layer_mode_tile.mapbase_address
     lda vram_segment_floor_map+1
@@ -1339,7 +1607,7 @@ main: {
     sta.z vera_layer_mode_tile.mapbase_address+2
     lda vram_segment_floor_map+3
     sta.z vera_layer_mode_tile.mapbase_address+3
-    // [180] vera_layer_mode_tile::tilebase_address#3 = main::vram_segment_floor_tile#0 -- vduz1=vdum2 
+    // [212] vera_layer_mode_tile::tilebase_address#3 = main::vram_segment_floor_tile#0 -- vduz1=vdum2 
     lda vram_segment_floor_tile
     sta.z vera_layer_mode_tile.tilebase_address
     lda vram_segment_floor_tile+1
@@ -1348,35 +1616,34 @@ main: {
     sta.z vera_layer_mode_tile.tilebase_address+2
     lda vram_segment_floor_tile+3
     sta.z vera_layer_mode_tile.tilebase_address+3
-    // [181] call vera_layer_mode_tile 
-    // [643] phi from main::@30 to vera_layer_mode_tile [phi:main::@30->vera_layer_mode_tile]
-    // [643] phi vera_layer_mode_tile::tileheight#10 = $10 [phi:main::@30->vera_layer_mode_tile#0] -- vbuz1=vbuc1 
+    // [213] call vera_layer_mode_tile 
+    // [689] phi from main::@32 to vera_layer_mode_tile [phi:main::@32->vera_layer_mode_tile]
+    // [689] phi vera_layer_mode_tile::tileheight#10 = $10 [phi:main::@32->vera_layer_mode_tile#0] -- vbuz1=vbuc1 
     lda #$10
     sta.z vera_layer_mode_tile.tileheight
-    // [643] phi vera_layer_mode_tile::tilewidth#10 = $10 [phi:main::@30->vera_layer_mode_tile#1] -- vbuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::tilewidth#10 = $10 [phi:main::@32->vera_layer_mode_tile#1] -- vbuz1=vbuc1 
     sta.z vera_layer_mode_tile.tilewidth
-    // [643] phi vera_layer_mode_tile::tilebase_address#10 = vera_layer_mode_tile::tilebase_address#3 [phi:main::@30->vera_layer_mode_tile#2] -- register_copy 
-    // [643] phi vera_layer_mode_tile::mapbase_address#10 = vera_layer_mode_tile::mapbase_address#3 [phi:main::@30->vera_layer_mode_tile#3] -- register_copy 
-    // [643] phi vera_layer_mode_tile::mapheight#10 = $40 [phi:main::@30->vera_layer_mode_tile#4] -- vwuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::tilebase_address#10 = vera_layer_mode_tile::tilebase_address#3 [phi:main::@32->vera_layer_mode_tile#2] -- register_copy 
+    // [689] phi vera_layer_mode_tile::mapbase_address#10 = vera_layer_mode_tile::mapbase_address#3 [phi:main::@32->vera_layer_mode_tile#3] -- register_copy 
+    // [689] phi vera_layer_mode_tile::mapheight#10 = $40 [phi:main::@32->vera_layer_mode_tile#4] -- vwuz1=vbuc1 
     lda #<$40
     sta.z vera_layer_mode_tile.mapheight
     lda #>$40
     sta.z vera_layer_mode_tile.mapheight+1
-    // [643] phi vera_layer_mode_tile::layer#10 = 0 [phi:main::@30->vera_layer_mode_tile#5] -- vbuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::layer#10 = 0 [phi:main::@32->vera_layer_mode_tile#5] -- vbuz1=vbuc1 
     lda #0
     sta.z vera_layer_mode_tile.layer
-    // [643] phi vera_layer_mode_tile::mapwidth#10 = $40 [phi:main::@30->vera_layer_mode_tile#6] -- vwuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::mapwidth#10 = $40 [phi:main::@32->vera_layer_mode_tile#6] -- vwuz1=vbuc1 
     lda #<$40
     sta.z vera_layer_mode_tile.mapwidth
     lda #>$40
     sta.z vera_layer_mode_tile.mapwidth+1
-    // [643] phi vera_layer_mode_tile::color_depth#3 = 4 [phi:main::@30->vera_layer_mode_tile#7] -- vbuz1=vbuc1 
-    lda #4
-    sta.z vera_layer_mode_tile.color_depth
+    // [689] phi vera_layer_mode_tile::color_depth#3 = 4 [phi:main::@32->vera_layer_mode_tile#7] -- vbuxx=vbuc1 
+    ldx #4
     jsr vera_layer_mode_tile
-    // main::@31
+    // main::@33
     // vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*6)
-    // [182] vera_cpy_bank_vram::bsrc#2 = bram_palette#0 -- vduz1=vdum2 
+    // [214] vera_cpy_bank_vram::bsrc#2 = bram_palette#0 -- vduz1=vdum2 
     lda bram_palette
     sta.z vera_cpy_bank_vram.bsrc
     lda bram_palette+1
@@ -1385,10 +1652,10 @@ main: {
     sta.z vera_cpy_bank_vram.bsrc+2
     lda bram_palette+3
     sta.z vera_cpy_bank_vram.bsrc+3
-    // [183] call vera_cpy_bank_vram 
+    // [215] call vera_cpy_bank_vram 
   // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    // [810] phi from main::@31 to vera_cpy_bank_vram [phi:main::@31->vera_cpy_bank_vram]
-    // [810] phi vera_cpy_bank_vram::num#5 = $20*6 [phi:main::@31->vera_cpy_bank_vram#0] -- vduz1=vduc1 
+    // [853] phi from main::@33 to vera_cpy_bank_vram [phi:main::@33->vera_cpy_bank_vram]
+    // [853] phi vera_cpy_bank_vram::num#5 = $20*6 [phi:main::@33->vera_cpy_bank_vram#0] -- vduz1=vduc1 
     lda #<$20*6
     sta.z vera_cpy_bank_vram.num
     lda #>$20*6
@@ -1397,8 +1664,8 @@ main: {
     sta.z vera_cpy_bank_vram.num+2
     lda #>$20*6>>$10
     sta.z vera_cpy_bank_vram.num+3
-    // [810] phi vera_cpy_bank_vram::bsrc#3 = vera_cpy_bank_vram::bsrc#2 [phi:main::@31->vera_cpy_bank_vram#1] -- register_copy 
-    // [810] phi vera_cpy_bank_vram::vdest#3 = VERA_PALETTE+$20 [phi:main::@31->vera_cpy_bank_vram#2] -- vduz1=vduc1 
+    // [853] phi vera_cpy_bank_vram::bsrc#3 = vera_cpy_bank_vram::bsrc#2 [phi:main::@33->vera_cpy_bank_vram#1] -- register_copy 
+    // [853] phi vera_cpy_bank_vram::vdest#3 = VERA_PALETTE+$20 [phi:main::@33->vera_cpy_bank_vram#2] -- vduz1=vduc1 
     lda #<VERA_PALETTE+$20
     sta.z vera_cpy_bank_vram.vdest
     lda #>VERA_PALETTE+$20
@@ -1410,82 +1677,98 @@ main: {
     jsr vera_cpy_bank_vram
     // main::vera_layer_show1
     // *VERA_CTRL &= ~VERA_DCSEL
-    // [184] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [216] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_DCSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // *VERA_DC_VIDEO |= vera_layer_enable[layer]
-    // [185] *VERA_DC_VIDEO = *VERA_DC_VIDEO | *vera_layer_enable -- _deref_pbuc1=_deref_pbuc1_bor__deref_pbuc2 
+    // [217] *VERA_DC_VIDEO = *VERA_DC_VIDEO | *vera_layer_enable -- _deref_pbuc1=_deref_pbuc1_bor__deref_pbuc2 
     lda VERA_DC_VIDEO
     ora vera_layer_enable
     sta VERA_DC_VIDEO
-    // [186] phi from main::vera_layer_show1 to main::@7 [phi:main::vera_layer_show1->main::@7]
+    // [218] phi from main::vera_layer_show1 to main::@7 [phi:main::vera_layer_show1->main::@7]
     // main::@7
     // tile_background()
-    // [187] call tile_background 
-    // [852] phi from main::@7 to tile_background [phi:main::@7->tile_background]
+    // [219] call tile_background 
+    // [895] phi from main::@7 to tile_background [phi:main::@7->tile_background]
     jsr tile_background
-    // [188] phi from main::@7 to main::@32 [phi:main::@7->main::@32]
-    // main::@32
+    // [220] phi from main::@7 to main::@34 [phi:main::@7->main::@34]
+    // main::@34
     // create_sprite(SPRITE_PLAYER)
-    // [189] call create_sprite 
-    // [873] phi from main::@32 to create_sprite [phi:main::@32->create_sprite]
-    // [873] phi create_sprite::sprite#2 = SPRITE_PLAYER [phi:main::@32->create_sprite#0] -- vbuz1=vbuc1 
+    // [221] call create_sprite 
+    // [916] phi from main::@34 to create_sprite [phi:main::@34->create_sprite]
+    // [916] phi create_sprite::sprite#2 = SPRITE_PLAYER [phi:main::@34->create_sprite#0] -- vbuaa=vbuc1 
     lda #SPRITE_PLAYER
-    sta.z create_sprite.sprite
     jsr create_sprite
-    // [190] phi from main::@32 to main::@33 [phi:main::@32->main::@33]
-    // main::@33
+    // [222] phi from main::@34 to main::@35 [phi:main::@34->main::@35]
+    // main::@35
     // create_sprite(SPRITE_ENEMY2)
-    // [191] call create_sprite 
-    // [873] phi from main::@33 to create_sprite [phi:main::@33->create_sprite]
-    // [873] phi create_sprite::sprite#2 = SPRITE_ENEMY2 [phi:main::@33->create_sprite#0] -- vbuz1=vbuc1 
+    // [223] call create_sprite 
+    // [916] phi from main::@35 to create_sprite [phi:main::@35->create_sprite]
+    // [916] phi create_sprite::sprite#2 = SPRITE_ENEMY2 [phi:main::@35->create_sprite#0] -- vbuaa=vbuc1 
     lda #SPRITE_ENEMY2
-    sta.z create_sprite.sprite
     jsr create_sprite
     // main::vera_sprite_on1
     // *VERA_CTRL &= ~VERA_DCSEL
-    // [192] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [224] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_DCSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // *VERA_DC_VIDEO |= VERA_SPRITES_ENABLE
-    // [193] *VERA_DC_VIDEO = *VERA_DC_VIDEO | VERA_SPRITES_ENABLE -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [225] *VERA_DC_VIDEO = *VERA_DC_VIDEO | VERA_SPRITES_ENABLE -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     lda #VERA_SPRITES_ENABLE
     ora VERA_DC_VIDEO
     sta VERA_DC_VIDEO
-    // [194] phi from main::@35 main::vera_sprite_on1 to main::@3 [phi:main::@35/main::vera_sprite_on1->main::@3]
-  __b2:
-  // Enable VSYNC IRQ (also set line bit 8 to 0)
-  // SEI();
-  // *KERNEL_IRQ = &irq_vsync;
-  // *VERA_IEN = VERA_VSYNC; 
-  // CLI();
+    // [226] phi from main::vera_sprite_on1 to main::@8 [phi:main::vera_sprite_on1->main::@8]
+    // main::@8
+    // show_memory_map()
+    // [227] call show_memory_map 
+    // [1074] phi from main::@8 to show_memory_map [phi:main::@8->show_memory_map]
+    jsr show_memory_map
+    // main::SEI1
+    // asm
+    // asm { sei  }
+    sei
+    // main::@9
+    // *KERNEL_IRQ = &irq_vsync
+    // [229] *KERNEL_IRQ = &irq_vsync -- _deref_qprc1=pprc2 
+    lda #<irq_vsync
+    sta KERNEL_IRQ
+    lda #>irq_vsync
+    sta KERNEL_IRQ+1
+    // *VERA_IEN = VERA_VSYNC
+    // [230] *VERA_IEN = VERA_VSYNC -- _deref_pbuc1=vbuc2 
+    lda #VERA_VSYNC
+    sta VERA_IEN
+    // main::CLI1
+    // asm
+    // asm { cli  }
+    cli
+    // [232] phi from main::@37 main::CLI1 to main::@3 [phi:main::@37/main::CLI1->main::@3]
     // main::@3
+  __b3:
     // kbhit()
-    // [195] call kbhit 
+    // [233] call kbhit 
     jsr kbhit
-    // [196] kbhit::return#2 = kbhit::return#1
-    // main::@35
-    // [197] main::$38 = kbhit::return#2
+    // [234] kbhit::return#2 = kbhit::return#1
+    // main::@37
+    // [235] main::$41 = kbhit::return#2
     // while(!kbhit())
-    // [198] if(0==main::$38) goto main::@3 -- 0_eq_vbuz1_then_la1 
-    lda.z __38
+    // [236] if(0==main::$41) goto main::@3 -- 0_eq_vbuaa_then_la1 
     cmp #0
-    beq __b2
-    // [199] phi from main::@35 to main::@4 [phi:main::@35->main::@4]
+    beq __b3
+    // [237] phi from main::@37 to main::@4 [phi:main::@37->main::@4]
     // main::@4
-    // cx16_rom_bank(4)
-    // [200] call cx16_rom_bank 
+    // cx16_rom_bank(CX16_ROM_BASIC)
+    // [238] call cx16_rom_bank 
   // Back to basic.
-    // [545] phi from main::@4 to cx16_rom_bank [phi:main::@4->cx16_rom_bank]
-    // [545] phi cx16_rom_bank::bank#2 = 4 [phi:main::@4->cx16_rom_bank#0] -- vbuz1=vbuc1 
-    lda #4
-    sta.z cx16_rom_bank.bank
+    // [604] phi from main::@4 to cx16_rom_bank [phi:main::@4->cx16_rom_bank]
+    // [604] phi cx16_rom_bank::bank#2 = CX16_ROM_BASIC [phi:main::@4->cx16_rom_bank#0] -- vbuaa=vbuc1 
+    lda #CX16_ROM_BASIC
     jsr cx16_rom_bank
     // main::@return
     // }
-    // [201] return 
+    // [239] return 
     rts
   .segment Data
     s: .text "error file_palettes = "
@@ -1495,85 +1778,68 @@ main: {
 }
 .segment Code
   // rotate_sprites
-// rotate_sprites(word zp($33) rotate, struct Sprite* zp($31) Sprite, word zp($35) basex)
+// rotate_sprites(word zp($3a) rotate, struct Sprite* zp($34) Sprite, word zp($2c) basex)
 rotate_sprites: {
-    .label __7 = $49
-    .label __8 = $37
-    .label __10 = $49
-    .label __11 = $43
-    .label __14 = $37
-    .label __17 = $43
-    .label __21 = $37
-    .label __22 = $43
-    .label vera_sprite_address1___0 = $37
-    .label vera_sprite_address1___2 = $49
-    .label vera_sprite_address1___3 = $49
-    .label vera_sprite_address1___4 = $37
-    .label vera_sprite_address1___5 = $37
-    .label vera_sprite_address1___6 = $49
-    .label vera_sprite_address1___7 = $37
-    .label vera_sprite_address1___8 = $49
-    .label vera_sprite_address1___9 = $49
-    .label vera_sprite_address1___10 = $37
-    .label vera_sprite_address1___11 = $4a
-    .label vera_sprite_address1___12 = $4a
-    .label vera_sprite_address1___13 = $49
-    .label vera_sprite_address1___14 = $37
-    .label vera_sprite_xy1___3 = $39
-    .label vera_sprite_xy1___4 = $4b
-    .label vera_sprite_xy1___5 = $39
-    .label vera_sprite_xy1___6 = $39
-    .label vera_sprite_xy1___7 = $39
-    .label vera_sprite_xy1___8 = $39
-    .label vera_sprite_xy1___9 = $39
-    .label vera_sprite_xy1___10 = $4b
-    .label offset = 4
-    .label max = $41
-    .label i = $37
-    .label vera_sprite_address1_address = $45
-    .label vera_sprite_address1_sprite_offset = $37
-    .label vera_sprite_xy1_sprite = $39
-    .label vera_sprite_xy1_x = $37
-    .label vera_sprite_xy1_y = $43
-    .label vera_sprite_xy1_sprite_offset = $4b
-    .label s = 3
-    .label rotate = $33
-    .label Sprite = $31
-    .label basex = $35
-    .label __23 = $43
+    .label __8 = $2e
+    .label __11 = $45
+    .label __14 = $2e
+    .label __17 = $45
+    .label __21 = $2e
+    .label __22 = $45
+    .label vera_sprite_address1___0 = $2e
+    .label vera_sprite_address1___4 = $2e
+    .label vera_sprite_address1___5 = $2e
+    .label vera_sprite_address1___7 = $2e
+    .label vera_sprite_address1___9 = $44
+    .label vera_sprite_address1___10 = $2e
+    .label vera_sprite_address1___14 = $2e
+    .label vera_sprite_xy1___4 = $47
+    .label vera_sprite_xy1___10 = $47
+    .label offset = 3
+    .label max = $ba
+    .label i = $2e
+    .label vera_sprite_address1_address = $30
+    .label vera_sprite_address1_sprite_offset = $2e
+    .label vera_sprite_xy1_sprite = $43
+    .label vera_sprite_xy1_x = $2e
+    .label vera_sprite_xy1_y = $45
+    .label vera_sprite_xy1_sprite_offset = $47
+    .label rotate = $3a
+    .label Sprite = $34
+    .label basex = $2c
+    .label __23 = $45
     // offset = Sprite->Offset
-    // [203] rotate_sprites::offset#0 = ((byte*)rotate_sprites::Sprite#2)[OFFSET_STRUCT_SPRITE_OFFSET] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [241] rotate_sprites::offset#0 = ((byte*)rotate_sprites::Sprite#2)[OFFSET_STRUCT_SPRITE_OFFSET] -- vbuz1=pbuz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_OFFSET
     lda (Sprite),y
     sta.z offset
-    // max = Sprite->Count
-    // [204] rotate_sprites::max#0 = (word)((byte*)rotate_sprites::Sprite#2)[OFFSET_STRUCT_SPRITE_COUNT] -- vwuz1=_word_pbuz2_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_SPRITE_COUNT
+    // max = Sprite->SpriteCount
+    // [242] rotate_sprites::max#0 = (word)((byte*)rotate_sprites::Sprite#2)[OFFSET_STRUCT_SPRITE_SPRITECOUNT] -- vwuz1=_word_pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_SPRITE_SPRITECOUNT
     lda (Sprite),y
     sta.z max
     lda #0
     sta.z max+1
-    // [205] phi from rotate_sprites to rotate_sprites::@1 [phi:rotate_sprites->rotate_sprites::@1]
-    // [205] phi rotate_sprites::s#2 = 0 [phi:rotate_sprites->rotate_sprites::@1#0] -- vbuz1=vbuc1 
-    sta.z s
+    // [243] phi from rotate_sprites to rotate_sprites::@1 [phi:rotate_sprites->rotate_sprites::@1]
+    // [243] phi rotate_sprites::s#2 = 0 [phi:rotate_sprites->rotate_sprites::@1#0] -- vbuxx=vbuc1 
+    tax
     // rotate_sprites::@1
   __b1:
     // for(byte s=0;s<max;s++)
-    // [206] if(rotate_sprites::s#2<rotate_sprites::max#0) goto rotate_sprites::@2 -- vbuz1_lt_vwuz2_then_la1 
+    // [244] if(rotate_sprites::s#2<rotate_sprites::max#0) goto rotate_sprites::@2 -- vbuxx_lt_vwuz1_then_la1 
     lda.z max+1
     bne __b2
-    lda.z s
-    cmp.z max
+    cpx.z max
     bcc __b2
     // rotate_sprites::@return
     // }
-    // [207] return 
+    // [245] return 
     rts
     // rotate_sprites::@2
   __b2:
     // i = s+rotate
-    // [208] rotate_sprites::i#0 = rotate_sprites::s#2 + rotate_sprites::rotate#4 -- vwuz1=vbuz2_plus_vwuz3 
-    lda.z s
+    // [246] rotate_sprites::i#0 = rotate_sprites::s#2 + rotate_sprites::rotate#4 -- vwuz1=vbuxx_plus_vwuz2 
+    txa
     clc
     adc.z rotate
     sta.z i
@@ -1581,7 +1847,7 @@ rotate_sprites: {
     adc.z rotate+1
     sta.z i+1
     // if(i>=max)
-    // [209] if(rotate_sprites::i#0<rotate_sprites::max#0) goto rotate_sprites::@3 -- vwuz1_lt_vwuz2_then_la1 
+    // [247] if(rotate_sprites::i#0<rotate_sprites::max#0) goto rotate_sprites::@3 -- vwuz1_lt_vwuz2_then_la1 
     cmp.z max+1
     bcc __b3
     bne !+
@@ -1591,7 +1857,7 @@ rotate_sprites: {
   !:
     // rotate_sprites::@4
     // i-=max
-    // [210] rotate_sprites::i#1 = rotate_sprites::i#0 - rotate_sprites::max#0 -- vwuz1=vwuz1_minus_vwuz2 
+    // [248] rotate_sprites::i#1 = rotate_sprites::i#0 - rotate_sprites::max#0 -- vwuz1=vwuz1_minus_vwuz2 
     lda.z i
     sec
     sbc.z max
@@ -1599,22 +1865,22 @@ rotate_sprites: {
     lda.z i+1
     sbc.z max+1
     sta.z i+1
-    // [211] phi from rotate_sprites::@2 rotate_sprites::@4 to rotate_sprites::@3 [phi:rotate_sprites::@2/rotate_sprites::@4->rotate_sprites::@3]
-    // [211] phi rotate_sprites::i#2 = rotate_sprites::i#0 [phi:rotate_sprites::@2/rotate_sprites::@4->rotate_sprites::@3#0] -- register_copy 
+    // [249] phi from rotate_sprites::@2 rotate_sprites::@4 to rotate_sprites::@3 [phi:rotate_sprites::@2/rotate_sprites::@4->rotate_sprites::@3]
+    // [249] phi rotate_sprites::i#2 = rotate_sprites::i#0 [phi:rotate_sprites::@2/rotate_sprites::@4->rotate_sprites::@3#0] -- register_copy 
     // rotate_sprites::@3
   __b3:
     // vera_sprite_address(s+offset, Sprite->VRAM_Addresses[i])
-    // [212] rotate_sprites::vera_sprite_xy1_sprite#0 = rotate_sprites::s#2 + rotate_sprites::offset#0 -- vbuz1=vbuz2_plus_vbuz3 
-    lda.z s
+    // [250] rotate_sprites::vera_sprite_xy1_sprite#0 = rotate_sprites::s#2 + rotate_sprites::offset#0 -- vbuz1=vbuxx_plus_vbuz2 
+    txa
     clc
     adc.z offset
     sta.z vera_sprite_xy1_sprite
-    // [213] rotate_sprites::$14 = rotate_sprites::i#2 << 2 -- vwuz1=vwuz1_rol_2 
+    // [251] rotate_sprites::$14 = rotate_sprites::i#2 << 2 -- vwuz1=vwuz1_rol_2 
     asl.z __14
     rol.z __14+1
     asl.z __14
     rol.z __14+1
-    // [214] rotate_sprites::$17 = (dword*)rotate_sprites::Sprite#2 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
+    // [252] rotate_sprites::$17 = (dword*)rotate_sprites::Sprite#2 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
     lda #OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES
     clc
     adc.z Sprite
@@ -1622,7 +1888,7 @@ rotate_sprites: {
     lda #0
     adc.z Sprite+1
     sta.z __17+1
-    // [215] rotate_sprites::$23 = rotate_sprites::$17 + rotate_sprites::$14 -- pduz1=pduz1_plus_vwuz2 
+    // [253] rotate_sprites::$23 = rotate_sprites::$17 + rotate_sprites::$14 -- pduz1=pduz1_plus_vwuz2 
     lda.z __23
     clc
     adc.z __14
@@ -1630,7 +1896,7 @@ rotate_sprites: {
     lda.z __23+1
     adc.z __14+1
     sta.z __23+1
-    // [216] rotate_sprites::vera_sprite_address1_address#0 = *rotate_sprites::$23 -- vduz1=_deref_pduz2 
+    // [254] rotate_sprites::vera_sprite_address1_address#0 = *rotate_sprites::$23 -- vduz1=_deref_pduz2 
     ldy #0
     lda (__23),y
     sta.z vera_sprite_address1_address
@@ -1645,12 +1911,12 @@ rotate_sprites: {
     sta.z vera_sprite_address1_address+3
     // rotate_sprites::vera_sprite_address1
     // (word)sprite << 3
-    // [217] rotate_sprites::vera_sprite_address1_$14 = (word)rotate_sprites::vera_sprite_xy1_sprite#0 -- vwuz1=_word_vbuz2 
+    // [255] rotate_sprites::vera_sprite_address1_$14 = (word)rotate_sprites::vera_sprite_xy1_sprite#0 -- vwuz1=_word_vbuz2 
     lda.z vera_sprite_xy1_sprite
     sta.z vera_sprite_address1___14
     lda #0
     sta.z vera_sprite_address1___14+1
-    // [218] rotate_sprites::vera_sprite_address1_$0 = rotate_sprites::vera_sprite_address1_$14 << 3 -- vwuz1=vwuz1_rol_3 
+    // [256] rotate_sprites::vera_sprite_address1_$0 = rotate_sprites::vera_sprite_address1_$14 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_address1___0
     rol.z vera_sprite_address1___0+1
     asl.z vera_sprite_address1___0
@@ -1658,7 +1924,7 @@ rotate_sprites: {
     asl.z vera_sprite_address1___0
     rol.z vera_sprite_address1___0+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [219] rotate_sprites::vera_sprite_address1_sprite_offset#0 = <VERA_SPRITE_ATTR + rotate_sprites::vera_sprite_address1_$0 -- vwuz1=vwuc1_plus_vwuz1 
+    // [257] rotate_sprites::vera_sprite_address1_sprite_offset#0 = <VERA_SPRITE_ATTR + rotate_sprites::vera_sprite_address1_$0 -- vwuz1=vwuc1_plus_vwuz1 
     clc
     lda.z vera_sprite_address1_sprite_offset
     adc #<VERA_SPRITE_ATTR&$ffff
@@ -1667,36 +1933,34 @@ rotate_sprites: {
     adc #>VERA_SPRITE_ATTR&$ffff
     sta.z vera_sprite_address1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [220] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [258] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // <sprite_offset
-    // [221] rotate_sprites::vera_sprite_address1_$2 = < rotate_sprites::vera_sprite_address1_sprite_offset#0 -- vbuz1=_lo_vwuz2 
+    // [259] rotate_sprites::vera_sprite_address1_$2 = < rotate_sprites::vera_sprite_address1_sprite_offset#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_address1_sprite_offset
-    sta.z vera_sprite_address1___2
     // *VERA_ADDRX_L = <sprite_offset
-    // [222] *VERA_ADDRX_L = rotate_sprites::vera_sprite_address1_$2 -- _deref_pbuc1=vbuz1 
+    // [260] *VERA_ADDRX_L = rotate_sprites::vera_sprite_address1_$2 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset
-    // [223] rotate_sprites::vera_sprite_address1_$3 = > rotate_sprites::vera_sprite_address1_sprite_offset#0 -- vbuz1=_hi_vwuz2 
+    // [261] rotate_sprites::vera_sprite_address1_$3 = > rotate_sprites::vera_sprite_address1_sprite_offset#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_address1_sprite_offset+1
-    sta.z vera_sprite_address1___3
     // *VERA_ADDRX_M = >sprite_offset
-    // [224] *VERA_ADDRX_M = rotate_sprites::vera_sprite_address1_$3 -- _deref_pbuc1=vbuz1 
+    // [262] *VERA_ADDRX_M = rotate_sprites::vera_sprite_address1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_1 | <(>VERA_SPRITE_ATTR)
-    // [225] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [263] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #VERA_INC_1|(<(VERA_SPRITE_ATTR>>$10))
     sta VERA_ADDRX_H
     // <address
-    // [226] rotate_sprites::vera_sprite_address1_$4 = < rotate_sprites::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
+    // [264] rotate_sprites::vera_sprite_address1_$4 = < rotate_sprites::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
     lda.z vera_sprite_address1_address
     sta.z vera_sprite_address1___4
     lda.z vera_sprite_address1_address+1
     sta.z vera_sprite_address1___4+1
     // (<address)>>5
-    // [227] rotate_sprites::vera_sprite_address1_$5 = rotate_sprites::vera_sprite_address1_$4 >> 5 -- vwuz1=vwuz1_ror_5 
+    // [265] rotate_sprites::vera_sprite_address1_$5 = rotate_sprites::vera_sprite_address1_$4 >> 5 -- vwuz1=vwuz1_ror_5 
     lsr.z vera_sprite_address1___5+1
     ror.z vera_sprite_address1___5
     lsr.z vera_sprite_address1___5+1
@@ -1708,24 +1972,21 @@ rotate_sprites: {
     lsr.z vera_sprite_address1___5+1
     ror.z vera_sprite_address1___5
     // <((<address)>>5)
-    // [228] rotate_sprites::vera_sprite_address1_$6 = < rotate_sprites::vera_sprite_address1_$5 -- vbuz1=_lo_vwuz2 
+    // [266] rotate_sprites::vera_sprite_address1_$6 = < rotate_sprites::vera_sprite_address1_$5 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_address1___5
-    sta.z vera_sprite_address1___6
     // *VERA_DATA0 = <((<address)>>5)
-    // [229] *VERA_DATA0 = rotate_sprites::vera_sprite_address1_$6 -- _deref_pbuc1=vbuz1 
+    // [267] *VERA_DATA0 = rotate_sprites::vera_sprite_address1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // <address
-    // [230] rotate_sprites::vera_sprite_address1_$7 = < rotate_sprites::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
+    // [268] rotate_sprites::vera_sprite_address1_$7 = < rotate_sprites::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
     lda.z vera_sprite_address1_address
     sta.z vera_sprite_address1___7
     lda.z vera_sprite_address1_address+1
     sta.z vera_sprite_address1___7+1
     // >(<address)
-    // [231] rotate_sprites::vera_sprite_address1_$8 = > rotate_sprites::vera_sprite_address1_$7 -- vbuz1=_hi_vwuz2 
-    sta.z vera_sprite_address1___8
+    // [269] rotate_sprites::vera_sprite_address1_$8 = > rotate_sprites::vera_sprite_address1_$7 -- vbuaa=_hi_vwuz1 
     // (>(<address))>>5
-    // [232] rotate_sprites::vera_sprite_address1_$9 = rotate_sprites::vera_sprite_address1_$8 >> 5 -- vbuz1=vbuz1_ror_5 
-    lda.z vera_sprite_address1___9
+    // [270] rotate_sprites::vera_sprite_address1_$9 = rotate_sprites::vera_sprite_address1_$8 >> 5 -- vbuz1=vbuaa_ror_5 
     lsr
     lsr
     lsr
@@ -1733,42 +1994,36 @@ rotate_sprites: {
     lsr
     sta.z vera_sprite_address1___9
     // >address
-    // [233] rotate_sprites::vera_sprite_address1_$10 = > rotate_sprites::vera_sprite_address1_address#0 -- vwuz1=_hi_vduz2 
+    // [271] rotate_sprites::vera_sprite_address1_$10 = > rotate_sprites::vera_sprite_address1_address#0 -- vwuz1=_hi_vduz2 
     lda.z vera_sprite_address1_address+2
     sta.z vera_sprite_address1___10
     lda.z vera_sprite_address1_address+3
     sta.z vera_sprite_address1___10+1
     // <(>address)
-    // [234] rotate_sprites::vera_sprite_address1_$11 = < rotate_sprites::vera_sprite_address1_$10 -- vbuz1=_lo_vwuz2 
+    // [272] rotate_sprites::vera_sprite_address1_$11 = < rotate_sprites::vera_sprite_address1_$10 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_address1___10
-    sta.z vera_sprite_address1___11
     // (<(>address))<<3
-    // [235] rotate_sprites::vera_sprite_address1_$12 = rotate_sprites::vera_sprite_address1_$11 << 3 -- vbuz1=vbuz1_rol_3 
-    lda.z vera_sprite_address1___12
+    // [273] rotate_sprites::vera_sprite_address1_$12 = rotate_sprites::vera_sprite_address1_$11 << 3 -- vbuaa=vbuaa_rol_3 
     asl
     asl
     asl
-    sta.z vera_sprite_address1___12
     // ((>(<address))>>5)|((<(>address))<<3)
-    // [236] rotate_sprites::vera_sprite_address1_$13 = rotate_sprites::vera_sprite_address1_$9 | rotate_sprites::vera_sprite_address1_$12 -- vbuz1=vbuz1_bor_vbuz2 
-    lda.z vera_sprite_address1___13
-    ora.z vera_sprite_address1___12
-    sta.z vera_sprite_address1___13
+    // [274] rotate_sprites::vera_sprite_address1_$13 = rotate_sprites::vera_sprite_address1_$9 | rotate_sprites::vera_sprite_address1_$12 -- vbuaa=vbuz1_bor_vbuaa 
+    ora.z vera_sprite_address1___9
     // *VERA_DATA0 = ((>(<address))>>5)|((<(>address))<<3)
-    // [237] *VERA_DATA0 = rotate_sprites::vera_sprite_address1_$13 -- _deref_pbuc1=vbuz1 
+    // [275] *VERA_DATA0 = rotate_sprites::vera_sprite_address1_$13 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // rotate_sprites::@5
     // s&03
-    // [238] rotate_sprites::$7 = rotate_sprites::s#2 & 3 -- vbuz1=vbuz2_band_vbuc1 
-    lda #3
-    and.z s
-    sta.z __7
+    // [276] rotate_sprites::$7 = rotate_sprites::s#2 & 3 -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #3
     // (word)(s&03)<<6
-    // [239] rotate_sprites::$21 = (word)rotate_sprites::$7 -- vwuz1=_word_vbuz2 
+    // [277] rotate_sprites::$21 = (word)rotate_sprites::$7 -- vwuz1=_word_vbuaa 
     sta.z __21
     lda #0
     sta.z __21+1
-    // [240] rotate_sprites::$8 = rotate_sprites::$21 << 6 -- vwuz1=vwuz1_rol_6 
+    // [278] rotate_sprites::$8 = rotate_sprites::$21 << 6 -- vwuz1=vwuz1_rol_6 
     lda.z __8+1
     lsr
     sta.z $ff
@@ -1782,7 +2037,7 @@ rotate_sprites: {
     ror.z __8+1
     ror.z __8
     // vera_sprite_xy(s+offset, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6))
-    // [241] rotate_sprites::vera_sprite_xy1_x#0 = rotate_sprites::basex#8 + rotate_sprites::$8 -- vwuz1=vwuz2_plus_vwuz1 
+    // [279] rotate_sprites::vera_sprite_xy1_x#0 = rotate_sprites::basex#8 + rotate_sprites::$8 -- vwuz1=vwuz2_plus_vwuz1 
     lda.z vera_sprite_xy1_x
     clc
     adc.z basex
@@ -1791,17 +2046,16 @@ rotate_sprites: {
     adc.z basex+1
     sta.z vera_sprite_xy1_x+1
     // s>>2
-    // [242] rotate_sprites::$10 = rotate_sprites::s#2 >> 2 -- vbuz1=vbuz2_ror_2 
-    lda.z s
+    // [280] rotate_sprites::$10 = rotate_sprites::s#2 >> 2 -- vbuaa=vbuxx_ror_2 
+    txa
     lsr
     lsr
-    sta.z __10
     // (word)(s>>2)<<6
-    // [243] rotate_sprites::$22 = (word)rotate_sprites::$10 -- vwuz1=_word_vbuz2 
+    // [281] rotate_sprites::$22 = (word)rotate_sprites::$10 -- vwuz1=_word_vbuaa 
     sta.z __22
     lda #0
     sta.z __22+1
-    // [244] rotate_sprites::$11 = rotate_sprites::$22 << 6 -- vwuz1=vwuz1_rol_6 
+    // [282] rotate_sprites::$11 = rotate_sprites::$22 << 6 -- vwuz1=vwuz1_rol_6 
     lda.z __11+1
     lsr
     sta.z $ff
@@ -1815,7 +2069,7 @@ rotate_sprites: {
     ror.z __11+1
     ror.z __11
     // vera_sprite_xy(s+offset, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6))
-    // [245] rotate_sprites::vera_sprite_xy1_y#0 = $64 + rotate_sprites::$11 -- vwuz1=vbuc1_plus_vwuz1 
+    // [283] rotate_sprites::vera_sprite_xy1_y#0 = $64 + rotate_sprites::$11 -- vwuz1=vbuc1_plus_vwuz1 
     lda #$64
     clc
     adc.z vera_sprite_xy1_y
@@ -1825,13 +2079,13 @@ rotate_sprites: {
   !:
     // rotate_sprites::vera_sprite_xy1
     // (word)sprite << 3
-    // [246] rotate_sprites::vera_sprite_xy1_$10 = (word)rotate_sprites::vera_sprite_xy1_sprite#0 -- vwuz1=_word_vbuz2 
+    // [284] rotate_sprites::vera_sprite_xy1_$10 = (word)rotate_sprites::vera_sprite_xy1_sprite#0 -- vwuz1=_word_vbuz2 
     lda.z vera_sprite_xy1_sprite
     sta.z vera_sprite_xy1___10
     lda #0
     sta.z vera_sprite_xy1___10+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [247] rotate_sprites::vera_sprite_xy1_sprite_offset#0 = rotate_sprites::vera_sprite_xy1_$10 << 3 -- vwuz1=vwuz1_rol_3 
+    // [285] rotate_sprites::vera_sprite_xy1_sprite_offset#0 = rotate_sprites::vera_sprite_xy1_$10 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_xy1_sprite_offset
     rol.z vera_sprite_xy1_sprite_offset+1
     asl.z vera_sprite_xy1_sprite_offset
@@ -1839,12 +2093,12 @@ rotate_sprites: {
     asl.z vera_sprite_xy1_sprite_offset
     rol.z vera_sprite_xy1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [248] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [286] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+2
-    // [249] rotate_sprites::vera_sprite_xy1_$4 = rotate_sprites::vera_sprite_xy1_sprite_offset#0 + <VERA_SPRITE_ATTR+2 -- vwuz1=vwuz1_plus_vwuc1 
+    // [287] rotate_sprites::vera_sprite_xy1_$4 = rotate_sprites::vera_sprite_xy1_sprite_offset#0 + <VERA_SPRITE_ATTR+2 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_xy1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+2
@@ -1853,152 +2107,188 @@ rotate_sprites: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+2
     sta.z vera_sprite_xy1___4+1
     // <sprite_offset+2
-    // [250] rotate_sprites::vera_sprite_xy1_$3 = < rotate_sprites::vera_sprite_xy1_$4 -- vbuz1=_lo_vwuz2 
+    // [288] rotate_sprites::vera_sprite_xy1_$3 = < rotate_sprites::vera_sprite_xy1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_xy1___4
-    sta.z vera_sprite_xy1___3
     // *VERA_ADDRX_L = <sprite_offset+2
-    // [251] *VERA_ADDRX_L = rotate_sprites::vera_sprite_xy1_$3 -- _deref_pbuc1=vbuz1 
+    // [289] *VERA_ADDRX_L = rotate_sprites::vera_sprite_xy1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+2
-    // [252] rotate_sprites::vera_sprite_xy1_$5 = > rotate_sprites::vera_sprite_xy1_$4 -- vbuz1=_hi_vwuz2 
+    // [290] rotate_sprites::vera_sprite_xy1_$5 = > rotate_sprites::vera_sprite_xy1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_xy1___4+1
-    sta.z vera_sprite_xy1___5
     // *VERA_ADDRX_M = >sprite_offset+2
-    // [253] *VERA_ADDRX_M = rotate_sprites::vera_sprite_xy1_$5 -- _deref_pbuc1=vbuz1 
+    // [291] *VERA_ADDRX_M = rotate_sprites::vera_sprite_xy1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_1 | <(>VERA_SPRITE_ATTR)
-    // [254] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [292] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #VERA_INC_1|(<(VERA_SPRITE_ATTR>>$10))
     sta VERA_ADDRX_H
     // <x
-    // [255] rotate_sprites::vera_sprite_xy1_$6 = < rotate_sprites::vera_sprite_xy1_x#0 -- vbuz1=_lo_vwuz2 
+    // [293] rotate_sprites::vera_sprite_xy1_$6 = < rotate_sprites::vera_sprite_xy1_x#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_xy1_x
-    sta.z vera_sprite_xy1___6
     // *VERA_DATA0 = <x
-    // [256] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$6 -- _deref_pbuc1=vbuz1 
+    // [294] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // >x
-    // [257] rotate_sprites::vera_sprite_xy1_$7 = > rotate_sprites::vera_sprite_xy1_x#0 -- vbuz1=_hi_vwuz2 
+    // [295] rotate_sprites::vera_sprite_xy1_$7 = > rotate_sprites::vera_sprite_xy1_x#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_xy1_x+1
-    sta.z vera_sprite_xy1___7
     // *VERA_DATA0 = >x
-    // [258] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$7 -- _deref_pbuc1=vbuz1 
+    // [296] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // <y
-    // [259] rotate_sprites::vera_sprite_xy1_$8 = < rotate_sprites::vera_sprite_xy1_y#0 -- vbuz1=_lo_vwuz2 
+    // [297] rotate_sprites::vera_sprite_xy1_$8 = < rotate_sprites::vera_sprite_xy1_y#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_xy1_y
-    sta.z vera_sprite_xy1___8
     // *VERA_DATA0 = <y
-    // [260] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$8 -- _deref_pbuc1=vbuz1 
+    // [298] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$8 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // >y
-    // [261] rotate_sprites::vera_sprite_xy1_$9 = > rotate_sprites::vera_sprite_xy1_y#0 -- vbuz1=_hi_vwuz2 
+    // [299] rotate_sprites::vera_sprite_xy1_$9 = > rotate_sprites::vera_sprite_xy1_y#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_xy1_y+1
-    sta.z vera_sprite_xy1___9
     // *VERA_DATA0 = >y
-    // [262] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$9 -- _deref_pbuc1=vbuz1 
+    // [300] *VERA_DATA0 = rotate_sprites::vera_sprite_xy1_$9 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // rotate_sprites::@6
     // for(byte s=0;s<max;s++)
-    // [263] rotate_sprites::s#1 = ++ rotate_sprites::s#2 -- vbuz1=_inc_vbuz1 
-    inc.z s
-    // [205] phi from rotate_sprites::@6 to rotate_sprites::@1 [phi:rotate_sprites::@6->rotate_sprites::@1]
-    // [205] phi rotate_sprites::s#2 = rotate_sprites::s#1 [phi:rotate_sprites::@6->rotate_sprites::@1#0] -- register_copy 
+    // [301] rotate_sprites::s#1 = ++ rotate_sprites::s#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [243] phi from rotate_sprites::@6 to rotate_sprites::@1 [phi:rotate_sprites::@6->rotate_sprites::@1]
+    // [243] phi rotate_sprites::s#2 = rotate_sprites::s#1 [phi:rotate_sprites::@6->rotate_sprites::@1#0] -- register_copy 
     jmp __b1
 }
-  // memcpy_in_vram
+  // vera_cpy_vram_vram
 // Copy block of memory (from VRAM to VRAM)
 // Copies the values from the location pointed by src to the location pointed by dest.
 // The method uses the VERA access ports 0 and 1 to copy data from and to in VRAM.
-// - src_bank:  64K VRAM bank number to copy from (0/1).
-// - src: pointer to the location to copy from. Note that the address is a 16 bit value!
-// - src_increment: the increment indicator, VERA needs this because addressing increment is automated by VERA at each access.
-// - dest_bank:  64K VRAM bank number to copy to (0/1).
-// - dest: pointer to the location to copy to. Note that the address is a 16 bit value!
-// - dest_increment: the increment indicator, VERA needs this because addressing increment is automated by VERA at each access.
+// - vdest: pointer to the location to copy to. Note that the address is a dword value!
+// - vsrc: pointer to the location to copy from. Note that the address is a dword value!
 // - num: The number of bytes to copy
-// memcpy_in_vram(byte zp(9) dest_bank, void* zp(6) dest, byte zp(8) src_bank, byte* zp($55) src, word zp($50) num)
-memcpy_in_vram: {
-    .label __0 = $4d
-    .label __1 = $4e
-    .label __2 = 8
-    .label __3 = $4f
-    .label __4 = $52
-    .label __5 = 9
-    .label i = 6
-    .label dest = 6
-    .label src = $55
-    .label num = $50
-    .label dest_bank = 9
-    .label src_bank = 8
+// vera_cpy_vram_vram(dword zp(5) vsrc, dword zp(9) vdest, dword zp($b6) num)
+vera_cpy_vram_vram: {
+    .label __0 = $b2
+    .label __2 = $b4
+    .label __4 = $b2
+    .label __6 = $d2
+    .label __8 = $ce
+    .label __10 = $b2
+    .label i = 5
+    .label vsrc = 5
+    .label vdest = 9
+    .label num = $b6
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [265] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [303] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     // Select DATA0
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
-    // <src
-    // [266] memcpy_in_vram::$0 = < memcpy_in_vram::src#2 -- vbuz1=_lo_pvoz2 
-    lda.z src
+    // <vsrc
+    // [304] vera_cpy_vram_vram::$0 = < vera_cpy_vram_vram::vsrc#2 -- vwuz1=_lo_vduz2 
+    lda.z vsrc
     sta.z __0
-    // *VERA_ADDRX_L = <src
-    // [267] *VERA_ADDRX_L = memcpy_in_vram::$0 -- _deref_pbuc1=vbuz1 
+    lda.z vsrc+1
+    sta.z __0+1
+    // <(<vsrc)
+    // [305] vera_cpy_vram_vram::$1 = < vera_cpy_vram_vram::$0 -- vbuaa=_lo_vwuz1 
+    lda.z __0
+    // *VERA_ADDRX_L = <(<vsrc)
+    // [306] *VERA_ADDRX_L = vera_cpy_vram_vram::$1 -- _deref_pbuc1=vbuaa 
     // Set address
     sta VERA_ADDRX_L
-    // >src
-    // [268] memcpy_in_vram::$1 = > memcpy_in_vram::src#2 -- vbuz1=_hi_pvoz2 
-    lda.z src+1
-    sta.z __1
-    // *VERA_ADDRX_M = >src
-    // [269] *VERA_ADDRX_M = memcpy_in_vram::$1 -- _deref_pbuc1=vbuz1 
-    sta VERA_ADDRX_M
-    // src_increment | src_bank
-    // [270] memcpy_in_vram::$2 = VERA_INC_1 | memcpy_in_vram::src_bank#2 -- vbuz1=vbuc1_bor_vbuz1 
-    lda #VERA_INC_1
-    ora.z __2
+    // <vsrc
+    // [307] vera_cpy_vram_vram::$2 = < vera_cpy_vram_vram::vsrc#2 -- vwuz1=_lo_vduz2 
+    lda.z vsrc
     sta.z __2
-    // *VERA_ADDRX_H = src_increment | src_bank
-    // [271] *VERA_ADDRX_H = memcpy_in_vram::$2 -- _deref_pbuc1=vbuz1 
+    lda.z vsrc+1
+    sta.z __2+1
+    // >(<vsrc)
+    // [308] vera_cpy_vram_vram::$3 = > vera_cpy_vram_vram::$2 -- vbuaa=_hi_vwuz1 
+    // *VERA_ADDRX_M = >(<vsrc)
+    // [309] *VERA_ADDRX_M = vera_cpy_vram_vram::$3 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // >vsrc
+    // [310] vera_cpy_vram_vram::$4 = > vera_cpy_vram_vram::vsrc#2 -- vwuz1=_hi_vduz2 
+    lda.z vsrc+2
+    sta.z __4
+    lda.z vsrc+3
+    sta.z __4+1
+    // <(>vsrc)
+    // [311] vera_cpy_vram_vram::$5 = < vera_cpy_vram_vram::$4 -- vbuaa=_lo_vwuz1 
+    lda.z __4
+    // *VERA_ADDRX_H = <(>vsrc)
+    // [312] *VERA_ADDRX_H = vera_cpy_vram_vram::$5 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // *VERA_ADDRX_H |= VERA_INC_1
+    // [313] *VERA_ADDRX_H = *VERA_ADDRX_H | VERA_INC_1 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_INC_1
+    ora VERA_ADDRX_H
     sta VERA_ADDRX_H
     // *VERA_CTRL |= VERA_ADDRSEL
-    // [272] *VERA_CTRL = *VERA_CTRL | VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [314] *VERA_CTRL = *VERA_CTRL | VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     // Select DATA1
     lda #VERA_ADDRSEL
     ora VERA_CTRL
     sta VERA_CTRL
-    // <dest
-    // [273] memcpy_in_vram::$3 = < memcpy_in_vram::dest#2 -- vbuz1=_lo_pvoz2 
-    lda.z dest
-    sta.z __3
-    // *VERA_ADDRX_L = <dest
-    // [274] *VERA_ADDRX_L = memcpy_in_vram::$3 -- _deref_pbuc1=vbuz1 
+    // <vdest
+    // [315] vera_cpy_vram_vram::$6 = < vera_cpy_vram_vram::vdest#2 -- vwuz1=_lo_vduz2 
+    lda.z vdest
+    sta.z __6
+    lda.z vdest+1
+    sta.z __6+1
+    // <(<vdest)
+    // [316] vera_cpy_vram_vram::$7 = < vera_cpy_vram_vram::$6 -- vbuaa=_lo_vwuz1 
+    lda.z __6
+    // *VERA_ADDRX_L = <(<vdest)
+    // [317] *VERA_ADDRX_L = vera_cpy_vram_vram::$7 -- _deref_pbuc1=vbuaa 
     // Set address
     sta VERA_ADDRX_L
-    // >dest
-    // [275] memcpy_in_vram::$4 = > memcpy_in_vram::dest#2 -- vbuz1=_hi_pvoz2 
-    lda.z dest+1
-    sta.z __4
-    // *VERA_ADDRX_M = >dest
-    // [276] *VERA_ADDRX_M = memcpy_in_vram::$4 -- _deref_pbuc1=vbuz1 
+    // <vdest
+    // [318] vera_cpy_vram_vram::$8 = < vera_cpy_vram_vram::vdest#2 -- vwuz1=_lo_vduz2 
+    lda.z vdest
+    sta.z __8
+    lda.z vdest+1
+    sta.z __8+1
+    // >(<vdest)
+    // [319] vera_cpy_vram_vram::$9 = > vera_cpy_vram_vram::$8 -- vbuaa=_hi_vwuz1 
+    // *VERA_ADDRX_M = >(<vdest)
+    // [320] *VERA_ADDRX_M = vera_cpy_vram_vram::$9 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
-    // dest_increment | dest_bank
-    // [277] memcpy_in_vram::$5 = VERA_INC_1 | memcpy_in_vram::dest_bank#2 -- vbuz1=vbuc1_bor_vbuz1 
-    lda #VERA_INC_1
-    ora.z __5
-    sta.z __5
-    // *VERA_ADDRX_H = dest_increment | dest_bank
-    // [278] *VERA_ADDRX_H = memcpy_in_vram::$5 -- _deref_pbuc1=vbuz1 
+    // >vdest
+    // [321] vera_cpy_vram_vram::$10 = > vera_cpy_vram_vram::vdest#2 -- vwuz1=_hi_vduz2 
+    lda.z vdest+2
+    sta.z __10
+    lda.z vdest+3
+    sta.z __10+1
+    // <(>vdest)
+    // [322] vera_cpy_vram_vram::$11 = < vera_cpy_vram_vram::$10 -- vbuaa=_lo_vwuz1 
+    lda.z __10
+    // *VERA_ADDRX_H = <(>vdest)
+    // [323] *VERA_ADDRX_H = vera_cpy_vram_vram::$11 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_H
-    // [279] phi from memcpy_in_vram to memcpy_in_vram::@1 [phi:memcpy_in_vram->memcpy_in_vram::@1]
-    // [279] phi memcpy_in_vram::i#2 = 0 [phi:memcpy_in_vram->memcpy_in_vram::@1#0] -- vwuz1=vwuc1 
+    // *VERA_ADDRX_H |= VERA_INC_1
+    // [324] *VERA_ADDRX_H = *VERA_ADDRX_H | VERA_INC_1 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_INC_1
+    ora VERA_ADDRX_H
+    sta VERA_ADDRX_H
+    // [325] phi from vera_cpy_vram_vram to vera_cpy_vram_vram::@1 [phi:vera_cpy_vram_vram->vera_cpy_vram_vram::@1]
+    // [325] phi vera_cpy_vram_vram::i#2 = 0 [phi:vera_cpy_vram_vram->vera_cpy_vram_vram::@1#0] -- vduz1=vduc1 
     lda #<0
     sta.z i
     sta.z i+1
+    lda #<0>>$10
+    sta.z i+2
+    lda #>0>>$10
+    sta.z i+3
   // Transfer the data
-    // memcpy_in_vram::@1
+    // vera_cpy_vram_vram::@1
   __b1:
-    // for(unsigned int i=0; i<num; i++)
-    // [280] if(memcpy_in_vram::i#2<memcpy_in_vram::num#3) goto memcpy_in_vram::@2 -- vwuz1_lt_vwuz2_then_la1 
+    // for(dword i=0; i<num; i++)
+    // [326] if(vera_cpy_vram_vram::i#2<vera_cpy_vram_vram::num#3) goto vera_cpy_vram_vram::@2 -- vduz1_lt_vduz2_then_la1 
+    lda.z i+3
+    cmp.z num+3
+    bcc __b2
+    bne !+
+    lda.z i+2
+    cmp.z num+2
+    bcc __b2
+    bne !+
     lda.z i+1
     cmp.z num+1
     bcc __b2
@@ -2007,25 +2297,196 @@ memcpy_in_vram: {
     cmp.z num
     bcc __b2
   !:
-    // memcpy_in_vram::@return
+    // vera_cpy_vram_vram::@return
     // }
-    // [281] return 
+    // [327] return 
     rts
-    // memcpy_in_vram::@2
+    // vera_cpy_vram_vram::@2
   __b2:
     // *VERA_DATA1 = *VERA_DATA0
-    // [282] *VERA_DATA1 = *VERA_DATA0 -- _deref_pbuc1=_deref_pbuc2 
+    // [328] *VERA_DATA1 = *VERA_DATA0 -- _deref_pbuc1=_deref_pbuc2 
     lda VERA_DATA0
     sta VERA_DATA1
-    // for(unsigned int i=0; i<num; i++)
-    // [283] memcpy_in_vram::i#1 = ++ memcpy_in_vram::i#2 -- vwuz1=_inc_vwuz1 
+    // for(dword i=0; i<num; i++)
+    // [329] vera_cpy_vram_vram::i#1 = ++ vera_cpy_vram_vram::i#2 -- vduz1=_inc_vduz1 
     inc.z i
     bne !+
     inc.z i+1
+    bne !+
+    inc.z i+2
+    bne !+
+    inc.z i+3
   !:
-    // [279] phi from memcpy_in_vram::@2 to memcpy_in_vram::@1 [phi:memcpy_in_vram::@2->memcpy_in_vram::@1]
-    // [279] phi memcpy_in_vram::i#2 = memcpy_in_vram::i#1 [phi:memcpy_in_vram::@2->memcpy_in_vram::@1#0] -- register_copy 
+    // [325] phi from vera_cpy_vram_vram::@2 to vera_cpy_vram_vram::@1 [phi:vera_cpy_vram_vram::@2->vera_cpy_vram_vram::@1]
+    // [325] phi vera_cpy_vram_vram::i#2 = vera_cpy_vram_vram::i#1 [phi:vera_cpy_vram_vram::@2->vera_cpy_vram_vram::@1#0] -- register_copy 
     jmp __b1
+}
+  // gotoxy
+// Set the cursor to the specified position
+// gotoxy(byte register(X) y)
+gotoxy: {
+    .label __6 = $49
+    .label line_offset = $49
+    // if(y>cx16_conio.conio_screen_height)
+    // [331] if(gotoxy::y#7<=*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto gotoxy::@4 -- vbuxx_le__deref_pbuc1_then_la1 
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
+    stx.z $ff
+    cmp.z $ff
+    bcs __b1
+    // [333] phi from gotoxy to gotoxy::@1 [phi:gotoxy->gotoxy::@1]
+    // [333] phi gotoxy::y#10 = 0 [phi:gotoxy->gotoxy::@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [332] phi from gotoxy to gotoxy::@4 [phi:gotoxy->gotoxy::@4]
+    // gotoxy::@4
+    // [333] phi from gotoxy::@4 to gotoxy::@1 [phi:gotoxy::@4->gotoxy::@1]
+    // [333] phi gotoxy::y#10 = gotoxy::y#7 [phi:gotoxy::@4->gotoxy::@1#0] -- register_copy 
+    // gotoxy::@1
+  __b1:
+    // if(x>=cx16_conio.conio_screen_width)
+    // [334] if(0<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH)) goto gotoxy::@2 -- 0_lt__deref_pbuc1_then_la1 
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
+    cmp #0
+    // [335] phi from gotoxy::@1 to gotoxy::@3 [phi:gotoxy::@1->gotoxy::@3]
+    // gotoxy::@3
+    // gotoxy::@2
+    // conio_cursor_x[cx16_conio.conio_screen_layer] = x
+    // [336] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
+    lda #0
+    ldy cx16_conio
+    sta conio_cursor_x,y
+    // conio_cursor_y[cx16_conio.conio_screen_layer] = y
+    // [337] conio_cursor_y[*((byte*)&cx16_conio)] = gotoxy::y#10 -- pbuc1_derefidx_(_deref_pbuc2)=vbuxx 
+    txa
+    sta conio_cursor_y,y
+    // (unsigned int)y << cx16_conio.conio_rowshift
+    // [338] gotoxy::$6 = (word)gotoxy::y#10 -- vwuz1=_word_vbuxx 
+    txa
+    sta.z __6
+    lda #0
+    sta.z __6+1
+    // line_offset = (unsigned int)y << cx16_conio.conio_rowshift
+    // [339] gotoxy::line_offset#0 = gotoxy::$6 << *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT) -- vwuz1=vwuz1_rol__deref_pbuc1 
+    ldy cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT
+    cpy #0
+    beq !e+
+  !:
+    asl.z line_offset
+    rol.z line_offset+1
+    dey
+    bne !-
+  !e:
+    // conio_line_text[cx16_conio.conio_screen_layer] = line_offset
+    // [340] gotoxy::$5 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
+    lda cx16_conio
+    asl
+    // [341] conio_line_text[gotoxy::$5] = gotoxy::line_offset#0 -- pwuc1_derefidx_vbuaa=vwuz1 
+    tay
+    lda.z line_offset
+    sta conio_line_text,y
+    lda.z line_offset+1
+    sta conio_line_text+1,y
+    // gotoxy::@return
+    // }
+    // [342] return 
+    rts
+}
+  // cputs
+// Output a NUL-terminated string at the current cursor position
+// cputs(byte* zp($20) s)
+cputs: {
+    .label s = $20
+    // [344] phi from cputs cputs::@2 to cputs::@1 [phi:cputs/cputs::@2->cputs::@1]
+    // [344] phi cputs::s#25 = cputs::s#26 [phi:cputs/cputs::@2->cputs::@1#0] -- register_copy 
+    // cputs::@1
+  __b1:
+    // while(c=*s++)
+    // [345] cputs::c#1 = *cputs::s#25 -- vbuaa=_deref_pbuz1 
+    ldy #0
+    lda (s),y
+    // [346] cputs::s#0 = ++ cputs::s#25 -- pbuz1=_inc_pbuz1 
+    inc.z s
+    bne !+
+    inc.z s+1
+  !:
+    // [347] if(0!=cputs::c#1) goto cputs::@2 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b2
+    // cputs::@return
+    // }
+    // [348] return 
+    rts
+    // cputs::@2
+  __b2:
+    // cputc(c)
+    // [349] cputc::c#0 = cputs::c#1 -- vbuz1=vbuaa 
+    sta.z cputc.c
+    // [350] call cputc 
+    // [1133] phi from cputs::@2 to cputc [phi:cputs::@2->cputc]
+    // [1133] phi cputc::c#3 = cputc::c#0 [phi:cputs::@2->cputc#0] -- register_copy 
+    jsr cputc
+    jmp __b1
+}
+  // printf_ulong
+// Print an unsigned int using a specific format
+// printf_ulong(dword zp(5) uvalue)
+printf_ulong: {
+    .label uvalue = 5
+    // printf_ulong::@1
+    // printf_buffer.sign = format.sign_always?'+':0
+    // [352] *((byte*)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // Handle any sign
+    lda #0
+    sta printf_buffer
+    // ultoa(uvalue, printf_buffer.digits, format.radix)
+    // [353] ultoa::value#1 = printf_ulong::uvalue#10
+    // [354] call ultoa 
+  // Format number into buffer
+    // [1167] phi from printf_ulong::@1 to ultoa [phi:printf_ulong::@1->ultoa]
+    jsr ultoa
+    // printf_ulong::@2
+    // printf_number_buffer(printf_buffer, format)
+    // [355] printf_number_buffer::buffer_sign#0 = *((byte*)&printf_buffer) -- vbuaa=_deref_pbuc1 
+    lda printf_buffer
+    // [356] call printf_number_buffer 
+  // Print using format
+    // [1188] phi from printf_ulong::@2 to printf_number_buffer [phi:printf_ulong::@2->printf_number_buffer]
+    // [1188] phi printf_number_buffer::buffer_sign#10 = printf_number_buffer::buffer_sign#0 [phi:printf_ulong::@2->printf_number_buffer#0] -- register_copy 
+    jsr printf_number_buffer
+    // printf_ulong::@return
+    // }
+    // [357] return 
+    rts
+}
+  // printf_uint
+// Print an unsigned int using a specific format
+// printf_uint(word zp($34) uvalue)
+printf_uint: {
+    .label uvalue = $34
+    // printf_uint::@1
+    // printf_buffer.sign = format.sign_always?'+':0
+    // [359] *((byte*)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // Handle any sign
+    lda #0
+    sta printf_buffer
+    // utoa(uvalue, printf_buffer.digits, format.radix)
+    // [360] utoa::value#1 = printf_uint::uvalue#2
+    // [361] call utoa 
+  // Format number into buffer
+    // [1195] phi from printf_uint::@1 to utoa [phi:printf_uint::@1->utoa]
+    jsr utoa
+    // printf_uint::@2
+    // printf_number_buffer(printf_buffer, format)
+    // [362] printf_number_buffer::buffer_sign#1 = *((byte*)&printf_buffer) -- vbuaa=_deref_pbuc1 
+    lda printf_buffer
+    // [363] call printf_number_buffer 
+  // Print using format
+    // [1188] phi from printf_uint::@2 to printf_number_buffer [phi:printf_uint::@2->printf_number_buffer]
+    // [1188] phi printf_number_buffer::buffer_sign#10 = printf_number_buffer::buffer_sign#1 [phi:printf_uint::@2->printf_number_buffer#0] -- register_copy 
+    jsr printf_number_buffer
+    // printf_uint::@return
+    // }
+    // [364] return 
+    rts
 }
   // rand
 // Returns a pseudo-random number in the range of 0 to RAND_MAX (65535)
@@ -2033,12 +2494,12 @@ memcpy_in_vram: {
 // Information https://en.wikipedia.org/wiki/Xorshift
 // Source http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html
 rand: {
-    .label __0 = $50
-    .label __1 = 6
-    .label __2 = $55
-    .label return = $55
+    .label __0 = $b2
+    .label __1 = $b4
+    .label __2 = $b2
+    .label return = $20
     // rand_state << 7
-    // [285] rand::$0 = rand_state#13 << 7 -- vwuz1=vwuz2_rol_7 
+    // [366] rand::$0 = rand_state#13 << 7 -- vwuz1=vwuz2_rol_7 
     lda.z rand_state+1
     lsr
     lda.z rand_state
@@ -2048,7 +2509,7 @@ rand: {
     ror
     sta.z __0
     // rand_state ^= rand_state << 7
-    // [286] rand_state#0 = rand_state#13 ^ rand::$0 -- vwuz1=vwuz1_bxor_vwuz2 
+    // [367] rand_state#0 = rand_state#13 ^ rand::$0 -- vwuz1=vwuz1_bxor_vwuz2 
     lda.z rand_state
     eor.z __0
     sta.z rand_state
@@ -2056,13 +2517,13 @@ rand: {
     eor.z __0+1
     sta.z rand_state+1
     // rand_state >> 9
-    // [287] rand::$1 = rand_state#0 >> 9 -- vwuz1=vwuz2_ror_9 
+    // [368] rand::$1 = rand_state#0 >> 9 -- vwuz1=vwuz2_ror_9 
     lsr
     sta.z __1
     lda #0
     sta.z __1+1
     // rand_state ^= rand_state >> 9
-    // [288] rand_state#1 = rand_state#0 ^ rand::$1 -- vwuz1=vwuz1_bxor_vwuz2 
+    // [369] rand_state#1 = rand_state#0 ^ rand::$1 -- vwuz1=vwuz1_bxor_vwuz2 
     lda.z rand_state
     eor.z __1
     sta.z rand_state
@@ -2070,13 +2531,13 @@ rand: {
     eor.z __1+1
     sta.z rand_state+1
     // rand_state << 8
-    // [289] rand::$2 = rand_state#1 << 8 -- vwuz1=vwuz2_rol_8 
+    // [370] rand::$2 = rand_state#1 << 8 -- vwuz1=vwuz2_rol_8 
     lda.z rand_state
     sta.z __2+1
     lda #0
     sta.z __2
     // rand_state ^= rand_state << 8
-    // [290] rand_state#14 = rand_state#1 ^ rand::$2 -- vwuz1=vwuz1_bxor_vwuz2 
+    // [371] rand_state#14 = rand_state#1 ^ rand::$2 -- vwuz1=vwuz1_bxor_vwuz2 
     lda.z rand_state
     eor.z __2
     sta.z rand_state
@@ -2084,123 +2545,108 @@ rand: {
     eor.z __2+1
     sta.z rand_state+1
     // return rand_state;
-    // [291] rand::return#0 = rand_state#14 -- vwuz1=vwuz2 
+    // [372] rand::return#0 = rand_state#14 -- vwuz1=vwuz2 
     lda.z rand_state
     sta.z return
     lda.z rand_state+1
     sta.z return+1
     // rand::@return
     // }
-    // [292] return 
+    // [373] return 
     rts
 }
   // modr16u
 // Performs modulo on two 16 bit unsigned ints and an initial remainder
 // Returns the remainder.
 // Implemented using simple binary division
-// modr16u(word zp($55) dividend)
+// modr16u(word zp($20) dividend)
 modr16u: {
-    .label return = 6
-    .label dividend = $55
+    .label return = $b2
+    .label dividend = $20
     // divr16u(dividend, divisor, rem)
-    // [294] divr16u::dividend#1 = modr16u::dividend#2
-    // [295] call divr16u 
-    // [1036] phi from modr16u to divr16u [phi:modr16u->divr16u]
+    // [375] divr16u::dividend#1 = modr16u::dividend#2
+    // [376] call divr16u 
+    // [1216] phi from modr16u to divr16u [phi:modr16u->divr16u]
     jsr divr16u
     // modr16u::@1
     // return rem16u;
-    // [296] modr16u::return#0 = divr16u::rem#10 -- vwuz1=vwuz2 
+    // [377] modr16u::return#0 = divr16u::rem#10 -- vwuz1=vwuz2 
     lda.z divr16u.rem
     sta.z return
     lda.z divr16u.rem+1
     sta.z return+1
     // modr16u::@return
     // }
-    // [297] return 
+    // [378] return 
     rts
 }
   // vera_tile_element
-// vera_tile_element(byte zp(8) x, byte zp(9) y, struct Tile* zp(6) Tile)
+// vera_tile_element(byte register(X) x, byte zp($1f) y, struct Tile* zp($20) Tile)
 vera_tile_element: {
-    .label __3 = $55
-    .label __4 = 8
-    .label __8 = 9
-    .label __11 = 9
-    .label __12 = 9
-    .label __13 = 9
-    .label __14 = 9
-    .label __15 = 9
-    .label __16 = 9
-    .label __17 = $57
-    .label __18 = 9
-    .label __19 = 9
-    .label __33 = $55
-    .label vera_vram_address01___0 = $55
-    .label vera_vram_address01___1 = 9
-    .label vera_vram_address01___2 = $55
-    .label vera_vram_address01___3 = 9
-    .label vera_vram_address01___4 = $55
-    .label vera_vram_address01___5 = 9
-    .label vera_vram_address01___6 = 9
-    .label TileOffset = $50
-    .label TileTotal = $52
-    .label TileCount = $bc
-    .label TileColumns = $53
-    .label PaletteOffset = $54
-    .label x = 8
-    .label y = 9
-    .label mapbase = $a
-    .label shift = $4d
-    .label rowskip = 6
-    .label j = 8
-    .label i = $4d
-    .label c = $4f
-    .label r = $4e
-    .label Tile = 6
+    .label __3 = $b2
+    .label __16 = $1f
+    .label __33 = $b2
+    .label vera_vram_address01___0 = $b2
+    .label vera_vram_address01___2 = $b4
+    .label vera_vram_address01___4 = $b2
+    .label TileOffset = $d2
+    .label TileTotal = $4b
+    .label TileCount = $4c
+    .label TileColumns = $4d
+    .label PaletteOffset = $4e
+    .label y = $1f
+    .label mapbase = 9
+    .label shift = $d
+    .label rowskip = $ce
+    .label j = $d0
+    .label i = $d1
+    .label r = $d
+    .label x = $d
+    .label Tile = $20
     // TileOffset = Tile->Offset
-    // [299] vera_tile_element::TileOffset#0 = ((word*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_OFFSET] -- vwuz1=pwuz2_derefidx_vbuc1 
+    // [380] vera_tile_element::TileOffset#0 = ((word*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_OFFSET] -- vwuz1=pwuz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_TILE_OFFSET
     lda (Tile),y
     sta.z TileOffset
     iny
     lda (Tile),y
     sta.z TileOffset+1
-    // TileTotal = Tile->Total
-    // [300] vera_tile_element::TileTotal#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_TOTAL] -- vbuz1=pbuz2_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_TILE_TOTAL
+    // TileTotal = Tile->DrawTotal
+    // [381] vera_tile_element::TileTotal#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_DRAWTOTAL] -- vbuz1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_DRAWTOTAL
     lda (Tile),y
     sta.z TileTotal
-    // TileCount = Tile->Count
-    // [301] vera_tile_element::TileCount#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_COUNT] -- vbuz1=pbuz2_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_TILE_COUNT
+    // TileCount = Tile->DrawCount
+    // [382] vera_tile_element::TileCount#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_DRAWCOUNT] -- vbuz1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_DRAWCOUNT
     lda (Tile),y
     sta.z TileCount
-    // TileColumns = Tile->Columns
-    // [302] vera_tile_element::TileColumns#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_COLUMNS] -- vbuz1=pbuz2_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_TILE_COLUMNS
+    // TileColumns = Tile->DrawColumns
+    // [383] vera_tile_element::TileColumns#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_DRAWCOLUMNS] -- vbuz1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_DRAWCOLUMNS
     lda (Tile),y
     sta.z TileColumns
     // PaletteOffset = Tile->Palette
-    // [303] vera_tile_element::PaletteOffset#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_PALETTE] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [384] vera_tile_element::PaletteOffset#0 = ((byte*)vera_tile_element::Tile#2)[OFFSET_STRUCT_TILE_PALETTE] -- vbuz1=pbuz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_TILE_PALETTE
     lda (Tile),y
     sta.z PaletteOffset
     // x = x << resolution
-    // [304] vera_tile_element::x#0 = vera_tile_element::x#3 << 3 -- vbuz1=vbuz1_rol_3 
+    // [385] vera_tile_element::x#0 = vera_tile_element::x#3 << 3 -- vbuxx=vbuz1_rol_3 
     lda.z x
     asl
     asl
     asl
-    sta.z x
+    tax
     // y = y << resolution
-    // [305] vera_tile_element::y#0 = vera_tile_element::y#3 << 3 -- vbuz1=vbuz1_rol_3 
+    // [386] vera_tile_element::y#0 = vera_tile_element::y#3 << 3 -- vbuz1=vbuz1_rol_3 
     lda.z y
     asl
     asl
     asl
     sta.z y
     // mapbase = vera_mapbase_address[layer]
-    // [306] vera_tile_element::mapbase#0 = *vera_mapbase_address -- vduz1=_deref_pduc1 
+    // [387] vera_tile_element::mapbase#0 = *vera_mapbase_address -- vduz1=_deref_pduc1 
     lda vera_mapbase_address
     sta.z mapbase
     lda vera_mapbase_address+1
@@ -2210,11 +2656,11 @@ vera_tile_element: {
     lda vera_mapbase_address+3
     sta.z mapbase+3
     // shift = vera_layer_rowshift[layer]
-    // [307] vera_tile_element::shift#0 = *vera_layer_rowshift -- vbuz1=_deref_pbuc1 
+    // [388] vera_tile_element::shift#0 = *vera_layer_rowshift -- vbuz1=_deref_pbuc1 
     lda vera_layer_rowshift
     sta.z shift
     // rowskip = (word)1 << shift
-    // [308] vera_tile_element::rowskip#0 = 1 << vera_tile_element::shift#0 -- vwuz1=vwuc1_rol_vbuz2 
+    // [389] vera_tile_element::rowskip#0 = 1 << vera_tile_element::shift#0 -- vwuz1=vwuc1_rol_vbuz2 
     tay
     lda #<1
     sta.z rowskip
@@ -2229,12 +2675,12 @@ vera_tile_element: {
     bne !-
   !e:
     // (word)y << shift
-    // [309] vera_tile_element::$33 = (word)vera_tile_element::y#0 -- vwuz1=_word_vbuz2 
+    // [390] vera_tile_element::$33 = (word)vera_tile_element::y#0 -- vwuz1=_word_vbuz2 
     lda.z y
     sta.z __33
     lda #0
     sta.z __33+1
-    // [310] vera_tile_element::$3 = vera_tile_element::$33 << vera_tile_element::shift#0 -- vwuz1=vwuz1_rol_vbuz2 
+    // [391] vera_tile_element::$3 = vera_tile_element::$33 << vera_tile_element::shift#0 -- vwuz1=vwuz1_rol_vbuz2 
     ldy.z shift
     beq !e+
   !:
@@ -2244,7 +2690,7 @@ vera_tile_element: {
     bne !-
   !e:
     // mapbase += ((word)y << shift)
-    // [311] vera_tile_element::mapbase#1 = vera_tile_element::mapbase#0 + vera_tile_element::$3 -- vduz1=vduz1_plus_vwuz2 
+    // [392] vera_tile_element::mapbase#1 = vera_tile_element::mapbase#0 + vera_tile_element::$3 -- vduz1=vduz1_plus_vwuz2 
     lda.z mapbase
     clc
     adc.z __3
@@ -2259,11 +2705,11 @@ vera_tile_element: {
     adc #0
     sta.z mapbase+3
     // x << 1
-    // [312] vera_tile_element::$4 = vera_tile_element::x#0 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __4
+    // [393] vera_tile_element::$4 = vera_tile_element::x#0 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
     // mapbase += (x << 1)
-    // [313] vera_tile_element::mapbase#2 = vera_tile_element::mapbase#1 + vera_tile_element::$4 -- vduz1=vduz1_plus_vbuz2 
-    lda.z __4
+    // [394] vera_tile_element::mapbase#2 = vera_tile_element::mapbase#1 + vera_tile_element::$4 -- vduz1=vduz1_plus_vbuaa 
     clc
     adc.z mapbase
     sta.z mapbase
@@ -2276,120 +2722,113 @@ vera_tile_element: {
     lda.z mapbase+3
     adc #0
     sta.z mapbase+3
-    // [314] phi from vera_tile_element to vera_tile_element::@1 [phi:vera_tile_element->vera_tile_element::@1]
-    // [314] phi vera_tile_element::mapbase#11 = vera_tile_element::mapbase#2 [phi:vera_tile_element->vera_tile_element::@1#0] -- register_copy 
-    // [314] phi vera_tile_element::j#2 = 0 [phi:vera_tile_element->vera_tile_element::@1#1] -- vbuz1=vbuc1 
+    // [395] phi from vera_tile_element to vera_tile_element::@1 [phi:vera_tile_element->vera_tile_element::@1]
+    // [395] phi vera_tile_element::mapbase#11 = vera_tile_element::mapbase#2 [phi:vera_tile_element->vera_tile_element::@1#0] -- register_copy 
+    // [395] phi vera_tile_element::j#2 = 0 [phi:vera_tile_element->vera_tile_element::@1#1] -- vbuz1=vbuc1 
     lda #0
     sta.z j
     // vera_tile_element::@1
   __b1:
     // for(byte j=0;j<TileTotal;j+=(TileTotal>>1))
-    // [315] if(vera_tile_element::j#2<vera_tile_element::TileTotal#0) goto vera_tile_element::@2 -- vbuz1_lt_vbuz2_then_la1 
+    // [396] if(vera_tile_element::j#2<vera_tile_element::TileTotal#0) goto vera_tile_element::@2 -- vbuz1_lt_vbuz2_then_la1 
     lda.z j
     cmp.z TileTotal
     bcc __b3
     // vera_tile_element::@return
     // }
-    // [316] return 
+    // [397] return 
     rts
-    // [317] phi from vera_tile_element::@1 to vera_tile_element::@2 [phi:vera_tile_element::@1->vera_tile_element::@2]
+    // [398] phi from vera_tile_element::@1 to vera_tile_element::@2 [phi:vera_tile_element::@1->vera_tile_element::@2]
   __b3:
-    // [317] phi vera_tile_element::mapbase#10 = vera_tile_element::mapbase#11 [phi:vera_tile_element::@1->vera_tile_element::@2#0] -- register_copy 
-    // [317] phi vera_tile_element::i#10 = 0 [phi:vera_tile_element::@1->vera_tile_element::@2#1] -- vbuz1=vbuc1 
+    // [398] phi vera_tile_element::mapbase#10 = vera_tile_element::mapbase#11 [phi:vera_tile_element::@1->vera_tile_element::@2#0] -- register_copy 
+    // [398] phi vera_tile_element::i#10 = 0 [phi:vera_tile_element::@1->vera_tile_element::@2#1] -- vbuz1=vbuc1 
     lda #0
     sta.z i
     // vera_tile_element::@2
   __b2:
     // for(byte i=0;i<TileCount;i+=(TileColumns))
-    // [318] if(vera_tile_element::i#10<vera_tile_element::TileCount#0) goto vera_tile_element::vera_vram_address01 -- vbuz1_lt_vbuz2_then_la1 
+    // [399] if(vera_tile_element::i#10<vera_tile_element::TileCount#0) goto vera_tile_element::vera_vram_address01 -- vbuz1_lt_vbuz2_then_la1 
     lda.z i
     cmp.z TileCount
     bcc vera_vram_address01
     // vera_tile_element::@3
     // TileTotal>>1
-    // [319] vera_tile_element::$19 = vera_tile_element::TileTotal#0 >> 1 -- vbuz1=vbuz2_ror_1 
+    // [400] vera_tile_element::$19 = vera_tile_element::TileTotal#0 >> 1 -- vbuaa=vbuz1_ror_1 
     lda.z TileTotal
     lsr
-    sta.z __19
     // j+=(TileTotal>>1)
-    // [320] vera_tile_element::j#1 = vera_tile_element::j#2 + vera_tile_element::$19 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z j
+    // [401] vera_tile_element::j#1 = vera_tile_element::j#2 + vera_tile_element::$19 -- vbuz1=vbuz1_plus_vbuaa 
     clc
-    adc.z __19
+    adc.z j
     sta.z j
-    // [314] phi from vera_tile_element::@3 to vera_tile_element::@1 [phi:vera_tile_element::@3->vera_tile_element::@1]
-    // [314] phi vera_tile_element::mapbase#11 = vera_tile_element::mapbase#10 [phi:vera_tile_element::@3->vera_tile_element::@1#0] -- register_copy 
-    // [314] phi vera_tile_element::j#2 = vera_tile_element::j#1 [phi:vera_tile_element::@3->vera_tile_element::@1#1] -- register_copy 
+    // [395] phi from vera_tile_element::@3 to vera_tile_element::@1 [phi:vera_tile_element::@3->vera_tile_element::@1]
+    // [395] phi vera_tile_element::mapbase#11 = vera_tile_element::mapbase#10 [phi:vera_tile_element::@3->vera_tile_element::@1#0] -- register_copy 
+    // [395] phi vera_tile_element::j#2 = vera_tile_element::j#1 [phi:vera_tile_element::@3->vera_tile_element::@1#1] -- register_copy 
     jmp __b1
     // vera_tile_element::vera_vram_address01
   vera_vram_address01:
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [321] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [402] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // <bankaddr
-    // [322] vera_tile_element::vera_vram_address01_$0 = < vera_tile_element::mapbase#10 -- vwuz1=_lo_vduz2 
+    // [403] vera_tile_element::vera_vram_address01_$0 = < vera_tile_element::mapbase#10 -- vwuz1=_lo_vduz2 
     lda.z mapbase
     sta.z vera_vram_address01___0
     lda.z mapbase+1
     sta.z vera_vram_address01___0+1
     // <(<bankaddr)
-    // [323] vera_tile_element::vera_vram_address01_$1 = < vera_tile_element::vera_vram_address01_$0 -- vbuz1=_lo_vwuz2 
+    // [404] vera_tile_element::vera_vram_address01_$1 = < vera_tile_element::vera_vram_address01_$0 -- vbuaa=_lo_vwuz1 
     lda.z vera_vram_address01___0
-    sta.z vera_vram_address01___1
     // *VERA_ADDRX_L = <(<bankaddr)
-    // [324] *VERA_ADDRX_L = vera_tile_element::vera_vram_address01_$1 -- _deref_pbuc1=vbuz1 
+    // [405] *VERA_ADDRX_L = vera_tile_element::vera_vram_address01_$1 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // <bankaddr
-    // [325] vera_tile_element::vera_vram_address01_$2 = < vera_tile_element::mapbase#10 -- vwuz1=_lo_vduz2 
+    // [406] vera_tile_element::vera_vram_address01_$2 = < vera_tile_element::mapbase#10 -- vwuz1=_lo_vduz2 
     lda.z mapbase
     sta.z vera_vram_address01___2
     lda.z mapbase+1
     sta.z vera_vram_address01___2+1
     // >(<bankaddr)
-    // [326] vera_tile_element::vera_vram_address01_$3 = > vera_tile_element::vera_vram_address01_$2 -- vbuz1=_hi_vwuz2 
-    sta.z vera_vram_address01___3
+    // [407] vera_tile_element::vera_vram_address01_$3 = > vera_tile_element::vera_vram_address01_$2 -- vbuaa=_hi_vwuz1 
     // *VERA_ADDRX_M = >(<bankaddr)
-    // [327] *VERA_ADDRX_M = vera_tile_element::vera_vram_address01_$3 -- _deref_pbuc1=vbuz1 
+    // [408] *VERA_ADDRX_M = vera_tile_element::vera_vram_address01_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // >bankaddr
-    // [328] vera_tile_element::vera_vram_address01_$4 = > vera_tile_element::mapbase#10 -- vwuz1=_hi_vduz2 
+    // [409] vera_tile_element::vera_vram_address01_$4 = > vera_tile_element::mapbase#10 -- vwuz1=_hi_vduz2 
     lda.z mapbase+2
     sta.z vera_vram_address01___4
     lda.z mapbase+3
     sta.z vera_vram_address01___4+1
     // <(>bankaddr)
-    // [329] vera_tile_element::vera_vram_address01_$5 = < vera_tile_element::vera_vram_address01_$4 -- vbuz1=_lo_vwuz2 
+    // [410] vera_tile_element::vera_vram_address01_$5 = < vera_tile_element::vera_vram_address01_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_vram_address01___4
-    sta.z vera_vram_address01___5
     // <(>bankaddr) | incr
-    // [330] vera_tile_element::vera_vram_address01_$6 = vera_tile_element::vera_vram_address01_$5 | VERA_INC_1 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_INC_1
-    ora.z vera_vram_address01___6
-    sta.z vera_vram_address01___6
+    // [411] vera_tile_element::vera_vram_address01_$6 = vera_tile_element::vera_vram_address01_$5 | VERA_INC_1 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_INC_1
     // *VERA_ADDRX_H = <(>bankaddr) | incr
-    // [331] *VERA_ADDRX_H = vera_tile_element::vera_vram_address01_$6 -- _deref_pbuc1=vbuz1 
+    // [412] *VERA_ADDRX_H = vera_tile_element::vera_vram_address01_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_H
-    // [332] phi from vera_tile_element::vera_vram_address01 to vera_tile_element::@4 [phi:vera_tile_element::vera_vram_address01->vera_tile_element::@4]
-    // [332] phi vera_tile_element::r#2 = 0 [phi:vera_tile_element::vera_vram_address01->vera_tile_element::@4#0] -- vbuz1=vbuc1 
+    // [413] phi from vera_tile_element::vera_vram_address01 to vera_tile_element::@4 [phi:vera_tile_element::vera_vram_address01->vera_tile_element::@4]
+    // [413] phi vera_tile_element::r#2 = 0 [phi:vera_tile_element::vera_vram_address01->vera_tile_element::@4#0] -- vbuz1=vbuc1 
     lda #0
     sta.z r
     // vera_tile_element::@4
   __b4:
     // TileTotal>>1
-    // [333] vera_tile_element::$8 = vera_tile_element::TileTotal#0 >> 1 -- vbuz1=vbuz2_ror_1 
+    // [414] vera_tile_element::$8 = vera_tile_element::TileTotal#0 >> 1 -- vbuaa=vbuz1_ror_1 
     lda.z TileTotal
     lsr
-    sta.z __8
     // for(byte r=0;r<(TileTotal>>1);r+=TileCount)
-    // [334] if(vera_tile_element::r#2<vera_tile_element::$8) goto vera_tile_element::@6 -- vbuz1_lt_vbuz2_then_la1 
-    lda.z r
-    cmp.z __8
-    bcc __b5
+    // [415] if(vera_tile_element::r#2<vera_tile_element::$8) goto vera_tile_element::@6 -- vbuz1_lt_vbuaa_then_la1 
+    cmp.z r
+    beq !+
+    bcs __b5
+  !:
     // vera_tile_element::@5
     // mapbase += rowskip
-    // [335] vera_tile_element::mapbase#3 = vera_tile_element::mapbase#10 + vera_tile_element::rowskip#0 -- vduz1=vduz1_plus_vwuz2 
+    // [416] vera_tile_element::mapbase#3 = vera_tile_element::mapbase#10 + vera_tile_element::rowskip#0 -- vduz1=vduz1_plus_vwuz2 
     lda.z mapbase
     clc
     adc.z rowskip
@@ -2404,72 +2843,62 @@ vera_tile_element: {
     adc #0
     sta.z mapbase+3
     // i+=(TileColumns)
-    // [336] vera_tile_element::i#1 = vera_tile_element::i#10 + vera_tile_element::TileColumns#0 -- vbuz1=vbuz1_plus_vbuz2 
+    // [417] vera_tile_element::i#1 = vera_tile_element::i#10 + vera_tile_element::TileColumns#0 -- vbuz1=vbuz1_plus_vbuz2 
     lda.z i
     clc
     adc.z TileColumns
     sta.z i
-    // [317] phi from vera_tile_element::@5 to vera_tile_element::@2 [phi:vera_tile_element::@5->vera_tile_element::@2]
-    // [317] phi vera_tile_element::mapbase#10 = vera_tile_element::mapbase#3 [phi:vera_tile_element::@5->vera_tile_element::@2#0] -- register_copy 
-    // [317] phi vera_tile_element::i#10 = vera_tile_element::i#1 [phi:vera_tile_element::@5->vera_tile_element::@2#1] -- register_copy 
+    // [398] phi from vera_tile_element::@5 to vera_tile_element::@2 [phi:vera_tile_element::@5->vera_tile_element::@2]
+    // [398] phi vera_tile_element::mapbase#10 = vera_tile_element::mapbase#3 [phi:vera_tile_element::@5->vera_tile_element::@2#0] -- register_copy 
+    // [398] phi vera_tile_element::i#10 = vera_tile_element::i#1 [phi:vera_tile_element::@5->vera_tile_element::@2#1] -- register_copy 
     jmp __b2
-    // [337] phi from vera_tile_element::@4 to vera_tile_element::@6 [phi:vera_tile_element::@4->vera_tile_element::@6]
+    // [418] phi from vera_tile_element::@4 to vera_tile_element::@6 [phi:vera_tile_element::@4->vera_tile_element::@6]
   __b5:
-    // [337] phi vera_tile_element::c#2 = 0 [phi:vera_tile_element::@4->vera_tile_element::@6#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z c
+    // [418] phi vera_tile_element::c#2 = 0 [phi:vera_tile_element::@4->vera_tile_element::@6#0] -- vbuxx=vbuc1 
+    ldx #0
     // vera_tile_element::@6
   __b6:
     // for(byte c=0;c<TileColumns;c+=1)
-    // [338] if(vera_tile_element::c#2<vera_tile_element::TileColumns#0) goto vera_tile_element::@7 -- vbuz1_lt_vbuz2_then_la1 
-    lda.z c
-    cmp.z TileColumns
+    // [419] if(vera_tile_element::c#2<vera_tile_element::TileColumns#0) goto vera_tile_element::@7 -- vbuxx_lt_vbuz1_then_la1 
+    cpx.z TileColumns
     bcc __b7
     // vera_tile_element::@8
     // r+=TileCount
-    // [339] vera_tile_element::r#1 = vera_tile_element::r#2 + vera_tile_element::TileCount#0 -- vbuz1=vbuz1_plus_vbuz2 
+    // [420] vera_tile_element::r#1 = vera_tile_element::r#2 + vera_tile_element::TileCount#0 -- vbuz1=vbuz1_plus_vbuz2 
     lda.z r
     clc
     adc.z TileCount
     sta.z r
-    // [332] phi from vera_tile_element::@8 to vera_tile_element::@4 [phi:vera_tile_element::@8->vera_tile_element::@4]
-    // [332] phi vera_tile_element::r#2 = vera_tile_element::r#1 [phi:vera_tile_element::@8->vera_tile_element::@4#0] -- register_copy 
+    // [413] phi from vera_tile_element::@8 to vera_tile_element::@4 [phi:vera_tile_element::@8->vera_tile_element::@4]
+    // [413] phi vera_tile_element::r#2 = vera_tile_element::r#1 [phi:vera_tile_element::@8->vera_tile_element::@4#0] -- register_copy 
     jmp __b4
     // vera_tile_element::@7
   __b7:
     // <TileOffset
-    // [340] vera_tile_element::$11 = < vera_tile_element::TileOffset#0 -- vbuz1=_lo_vwuz2 
+    // [421] vera_tile_element::$11 = < vera_tile_element::TileOffset#0 -- vbuaa=_lo_vwuz1 
     lda.z TileOffset
-    sta.z __11
     // (<TileOffset)+c
-    // [341] vera_tile_element::$12 = vera_tile_element::$11 + vera_tile_element::c#2 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __12
+    // [422] vera_tile_element::$12 = vera_tile_element::$11 + vera_tile_element::c#2 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z c
-    sta.z __12
+    adc.z $ff
     // (<TileOffset)+c+r
-    // [342] vera_tile_element::$13 = vera_tile_element::$12 + vera_tile_element::r#2 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __13
+    // [423] vera_tile_element::$13 = vera_tile_element::$12 + vera_tile_element::r#2 -- vbuaa=vbuaa_plus_vbuz1 
     clc
     adc.z r
-    sta.z __13
     // (<TileOffset)+c+r+i
-    // [343] vera_tile_element::$14 = vera_tile_element::$13 + vera_tile_element::i#10 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __14
+    // [424] vera_tile_element::$14 = vera_tile_element::$13 + vera_tile_element::i#10 -- vbuaa=vbuaa_plus_vbuz1 
     clc
     adc.z i
-    sta.z __14
     // (<TileOffset)+c+r+i+j
-    // [344] vera_tile_element::$15 = vera_tile_element::$14 + vera_tile_element::j#2 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __15
+    // [425] vera_tile_element::$15 = vera_tile_element::$14 + vera_tile_element::j#2 -- vbuaa=vbuaa_plus_vbuz1 
     clc
     adc.z j
-    sta.z __15
     // *VERA_DATA0 = (<TileOffset)+c+r+i+j
-    // [345] *VERA_DATA0 = vera_tile_element::$15 -- _deref_pbuc1=vbuz1 
+    // [426] *VERA_DATA0 = vera_tile_element::$15 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // PaletteOffset << 4
-    // [346] vera_tile_element::$16 = vera_tile_element::PaletteOffset#0 << 4 -- vbuz1=vbuz2_rol_4 
+    // [427] vera_tile_element::$16 = vera_tile_element::PaletteOffset#0 << 4 -- vbuz1=vbuz2_rol_4 
     lda.z PaletteOffset
     asl
     asl
@@ -2477,22 +2906,19 @@ vera_tile_element: {
     asl
     sta.z __16
     // >TileOffset
-    // [347] vera_tile_element::$17 = > vera_tile_element::TileOffset#0 -- vbuz1=_hi_vwuz2 
+    // [428] vera_tile_element::$17 = > vera_tile_element::TileOffset#0 -- vbuaa=_hi_vwuz1 
     lda.z TileOffset+1
-    sta.z __17
     // PaletteOffset << 4 | (>TileOffset)
-    // [348] vera_tile_element::$18 = vera_tile_element::$16 | vera_tile_element::$17 -- vbuz1=vbuz1_bor_vbuz2 
-    lda.z __18
-    ora.z __17
-    sta.z __18
+    // [429] vera_tile_element::$18 = vera_tile_element::$16 | vera_tile_element::$17 -- vbuaa=vbuz1_bor_vbuaa 
+    ora.z __16
     // *VERA_DATA0 = PaletteOffset << 4 | (>TileOffset)
-    // [349] *VERA_DATA0 = vera_tile_element::$18 -- _deref_pbuc1=vbuz1 
+    // [430] *VERA_DATA0 = vera_tile_element::$18 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // c+=1
-    // [350] vera_tile_element::c#1 = vera_tile_element::c#2 + 1 -- vbuz1=vbuz1_plus_1 
-    inc.z c
-    // [337] phi from vera_tile_element::@7 to vera_tile_element::@6 [phi:vera_tile_element::@7->vera_tile_element::@6]
-    // [337] phi vera_tile_element::c#2 = vera_tile_element::c#1 [phi:vera_tile_element::@7->vera_tile_element::@6#0] -- register_copy 
+    // [431] vera_tile_element::c#1 = vera_tile_element::c#2 + 1 -- vbuxx=vbuxx_plus_1 
+    inx
+    // [418] phi from vera_tile_element::@7 to vera_tile_element::@6 [phi:vera_tile_element::@7->vera_tile_element::@6]
+    // [418] phi vera_tile_element::c#2 = vera_tile_element::c#1 [phi:vera_tile_element::@7->vera_tile_element::@6#0] -- register_copy 
     jmp __b6
 }
   // vera_layer_mode_text
@@ -2522,15 +2948,15 @@ vera_layer_mode_text: {
     .const tileheight = 8
     .label layer = 1
     // vera_layer_mode_tile( layer, mapbase_address, tilebase_address, mapwidth, mapheight, tilewidth, tileheight, 1 )
-    // [352] call vera_layer_mode_tile 
-    // [643] phi from vera_layer_mode_text to vera_layer_mode_tile [phi:vera_layer_mode_text->vera_layer_mode_tile]
-    // [643] phi vera_layer_mode_tile::tileheight#10 = vera_layer_mode_text::tileheight#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#0] -- vbuz1=vbuc1 
+    // [433] call vera_layer_mode_tile 
+    // [689] phi from vera_layer_mode_text to vera_layer_mode_tile [phi:vera_layer_mode_text->vera_layer_mode_tile]
+    // [689] phi vera_layer_mode_tile::tileheight#10 = vera_layer_mode_text::tileheight#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#0] -- vbuz1=vbuc1 
     lda #tileheight
     sta.z vera_layer_mode_tile.tileheight
-    // [643] phi vera_layer_mode_tile::tilewidth#10 = vera_layer_mode_text::tilewidth#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#1] -- vbuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::tilewidth#10 = vera_layer_mode_text::tilewidth#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#1] -- vbuz1=vbuc1 
     lda #tilewidth
     sta.z vera_layer_mode_tile.tilewidth
-    // [643] phi vera_layer_mode_tile::tilebase_address#10 = vera_layer_mode_text::tilebase_address#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#2] -- vduz1=vduc1 
+    // [689] phi vera_layer_mode_tile::tilebase_address#10 = vera_layer_mode_text::tilebase_address#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#2] -- vduz1=vduc1 
     lda #<tilebase_address
     sta.z vera_layer_mode_tile.tilebase_address
     lda #>tilebase_address
@@ -2539,7 +2965,7 @@ vera_layer_mode_text: {
     sta.z vera_layer_mode_tile.tilebase_address+2
     lda #>tilebase_address>>$10
     sta.z vera_layer_mode_tile.tilebase_address+3
-    // [643] phi vera_layer_mode_tile::mapbase_address#10 = vera_layer_mode_text::mapbase_address#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#3] -- vduz1=vduc1 
+    // [689] phi vera_layer_mode_tile::mapbase_address#10 = vera_layer_mode_text::mapbase_address#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#3] -- vduz1=vduc1 
     lda #<mapbase_address
     sta.z vera_layer_mode_tile.mapbase_address
     lda #>mapbase_address
@@ -2548,31 +2974,30 @@ vera_layer_mode_text: {
     sta.z vera_layer_mode_tile.mapbase_address+2
     lda #>mapbase_address>>$10
     sta.z vera_layer_mode_tile.mapbase_address+3
-    // [643] phi vera_layer_mode_tile::mapheight#10 = vera_layer_mode_text::mapheight#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#4] -- vwuz1=vwuc1 
+    // [689] phi vera_layer_mode_tile::mapheight#10 = vera_layer_mode_text::mapheight#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#4] -- vwuz1=vwuc1 
     lda #<mapheight
     sta.z vera_layer_mode_tile.mapheight
     lda #>mapheight
     sta.z vera_layer_mode_tile.mapheight+1
-    // [643] phi vera_layer_mode_tile::layer#10 = vera_layer_mode_text::layer#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#5] -- vbuz1=vbuc1 
+    // [689] phi vera_layer_mode_tile::layer#10 = vera_layer_mode_text::layer#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#5] -- vbuz1=vbuc1 
     lda #layer
     sta.z vera_layer_mode_tile.layer
-    // [643] phi vera_layer_mode_tile::mapwidth#10 = vera_layer_mode_text::mapwidth#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#6] -- vwuz1=vwuc1 
+    // [689] phi vera_layer_mode_tile::mapwidth#10 = vera_layer_mode_text::mapwidth#0 [phi:vera_layer_mode_text->vera_layer_mode_tile#6] -- vwuz1=vwuc1 
     lda #<mapwidth
     sta.z vera_layer_mode_tile.mapwidth
     lda #>mapwidth
     sta.z vera_layer_mode_tile.mapwidth+1
-    // [643] phi vera_layer_mode_tile::color_depth#3 = 1 [phi:vera_layer_mode_text->vera_layer_mode_tile#7] -- vbuz1=vbuc1 
-    lda #1
-    sta.z vera_layer_mode_tile.color_depth
+    // [689] phi vera_layer_mode_tile::color_depth#3 = 1 [phi:vera_layer_mode_text->vera_layer_mode_tile#7] -- vbuxx=vbuc1 
+    ldx #1
     jsr vera_layer_mode_tile
-    // [353] phi from vera_layer_mode_text to vera_layer_mode_text::@1 [phi:vera_layer_mode_text->vera_layer_mode_text::@1]
+    // [434] phi from vera_layer_mode_text to vera_layer_mode_text::@1 [phi:vera_layer_mode_text->vera_layer_mode_text::@1]
     // vera_layer_mode_text::@1
     // vera_layer_set_text_color_mode( layer, VERA_LAYER_CONFIG_16C )
-    // [354] call vera_layer_set_text_color_mode 
+    // [435] call vera_layer_set_text_color_mode 
     jsr vera_layer_set_text_color_mode
     // vera_layer_mode_text::@return
     // }
-    // [355] return 
+    // [436] return 
     rts
 }
   // screensize
@@ -2580,21 +3005,16 @@ vera_layer_mode_text: {
 screensize: {
     .label x = cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
     .label y = cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
-    .label __1 = $58
-    .label __3 = $59
-    .label hscale = $58
-    .label vscale = $59
     // hscale = (*VERA_DC_HSCALE) >> 7
-    // [356] screensize::hscale#0 = *VERA_DC_HSCALE >> 7 -- vbuz1=_deref_pbuc1_ror_7 
+    // [437] screensize::hscale#0 = *VERA_DC_HSCALE >> 7 -- vbuaa=_deref_pbuc1_ror_7 
     lda VERA_DC_HSCALE
     rol
     rol
     and #1
-    sta.z hscale
     // 40 << hscale
-    // [357] screensize::$1 = $28 << screensize::hscale#0 -- vbuz1=vbuc1_rol_vbuz1 
+    // [438] screensize::$1 = $28 << screensize::hscale#0 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
     lda #$28
-    ldy.z __1
     cpy #0
     beq !e+
   !:
@@ -2602,21 +3022,19 @@ screensize: {
     dey
     bne !-
   !e:
-    sta.z __1
     // *x = 40 << hscale
-    // [358] *screensize::x#0 = screensize::$1 -- _deref_pbuc1=vbuz1 
+    // [439] *screensize::x#0 = screensize::$1 -- _deref_pbuc1=vbuaa 
     sta x
     // vscale = (*VERA_DC_VSCALE) >> 7
-    // [359] screensize::vscale#0 = *VERA_DC_VSCALE >> 7 -- vbuz1=_deref_pbuc1_ror_7 
+    // [440] screensize::vscale#0 = *VERA_DC_VSCALE >> 7 -- vbuaa=_deref_pbuc1_ror_7 
     lda VERA_DC_VSCALE
     rol
     rol
     and #1
-    sta.z vscale
     // 30 << vscale
-    // [360] screensize::$3 = $1e << screensize::vscale#0 -- vbuz1=vbuc1_rol_vbuz1 
+    // [441] screensize::$3 = $1e << screensize::vscale#0 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
     lda #$1e
-    ldy.z __3
     cpy #0
     beq !e+
   !:
@@ -2624,158 +3042,141 @@ screensize: {
     dey
     bne !-
   !e:
-    sta.z __3
     // *y = 30 << vscale
-    // [361] *screensize::y#0 = screensize::$3 -- _deref_pbuc1=vbuz1 
+    // [442] *screensize::y#0 = screensize::$3 -- _deref_pbuc1=vbuaa 
     sta y
     // screensize::@return
     // }
-    // [362] return 
+    // [443] return 
     rts
 }
   // screenlayer
 // Set the layer with which the conio will interact.
 // - layer: value of 0 or 1.
 screenlayer: {
-    .label __0 = $5a
-    .label __1 = $5b
-    .label __4 = $e
-    .label __5 = $5b
-    .label vera_layer_get_width1___0 = $5f
-    .label vera_layer_get_width1___1 = $5f
-    .label vera_layer_get_width1___3 = $5f
-    .label vera_layer_get_height1___0 = $e
-    .label vera_layer_get_height1___1 = $e
-    .label vera_layer_get_height1___3 = $e
-    .label vera_layer_get_width1_config = $5d
-    .label vera_layer_get_width1_return = $5b
-    .label vera_layer_get_height1_config = $5b
-    .label vera_layer_get_height1_return = $5b
+    .label __1 = $4f
+    .label __5 = $4f
+    .label vera_layer_get_width1_config = $51
+    .label vera_layer_get_width1_return = $4f
+    .label vera_layer_get_height1_config = $4f
+    .label vera_layer_get_height1_return = $4f
     // cx16_conio.conio_screen_layer = layer
-    // [363] *((byte*)&cx16_conio) = 1 -- _deref_pbuc1=vbuc2 
+    // [444] *((byte*)&cx16_conio) = 1 -- _deref_pbuc1=vbuc2 
     lda #1
     sta cx16_conio
     // vera_layer_get_mapbase_bank(layer)
-    // [364] call vera_layer_get_mapbase_bank 
+    // [445] call vera_layer_get_mapbase_bank 
     jsr vera_layer_get_mapbase_bank
-    // [365] vera_layer_get_mapbase_bank::return#2 = vera_layer_get_mapbase_bank::return#0
+    // [446] vera_layer_get_mapbase_bank::return#2 = vera_layer_get_mapbase_bank::return#0
     // screenlayer::@3
-    // [366] screenlayer::$0 = vera_layer_get_mapbase_bank::return#2
+    // [447] screenlayer::$0 = vera_layer_get_mapbase_bank::return#2
     // cx16_conio.conio_screen_bank = vera_layer_get_mapbase_bank(layer)
-    // [367] *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK) = screenlayer::$0 -- _deref_pbuc1=vbuz1 
-    lda.z __0
+    // [448] *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK) = screenlayer::$0 -- _deref_pbuc1=vbuaa 
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK
     // vera_layer_get_mapbase_offset(layer)
-    // [368] call vera_layer_get_mapbase_offset 
+    // [449] call vera_layer_get_mapbase_offset 
     jsr vera_layer_get_mapbase_offset
-    // [369] vera_layer_get_mapbase_offset::return#2 = vera_layer_get_mapbase_offset::return#0
+    // [450] vera_layer_get_mapbase_offset::return#2 = vera_layer_get_mapbase_offset::return#0
     // screenlayer::@4
-    // [370] screenlayer::$1 = vera_layer_get_mapbase_offset::return#2
+    // [451] screenlayer::$1 = vera_layer_get_mapbase_offset::return#2
     // cx16_conio.conio_screen_text = vera_layer_get_mapbase_offset(layer)
-    // [371] *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) = (byte*)screenlayer::$1 -- _deref_qbuc1=pbuz1 
+    // [452] *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) = (byte*)screenlayer::$1 -- _deref_qbuc1=pbuz1 
     lda.z __1
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
     lda.z __1+1
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT+1
     // screenlayer::vera_layer_get_width1
     // config = vera_layer_config[layer]
-    // [372] screenlayer::vera_layer_get_width1_config#0 = *(vera_layer_config+1<<1) -- pbuz1=_deref_qbuc1 
+    // [453] screenlayer::vera_layer_get_width1_config#0 = *(vera_layer_config+1<<1) -- pbuz1=_deref_qbuc1 
     lda vera_layer_config+(1<<1)
     sta.z vera_layer_get_width1_config
     lda vera_layer_config+(1<<1)+1
     sta.z vera_layer_get_width1_config+1
     // *config & VERA_LAYER_WIDTH_MASK
-    // [373] screenlayer::vera_layer_get_width1_$0 = *screenlayer::vera_layer_get_width1_config#0 & VERA_LAYER_WIDTH_MASK -- vbuz1=_deref_pbuz2_band_vbuc1 
+    // [454] screenlayer::vera_layer_get_width1_$0 = *screenlayer::vera_layer_get_width1_config#0 & VERA_LAYER_WIDTH_MASK -- vbuaa=_deref_pbuz1_band_vbuc1 
     lda #VERA_LAYER_WIDTH_MASK
     ldy #0
     and (vera_layer_get_width1_config),y
-    sta.z vera_layer_get_width1___0
     // (*config & VERA_LAYER_WIDTH_MASK) >> 4
-    // [374] screenlayer::vera_layer_get_width1_$1 = screenlayer::vera_layer_get_width1_$0 >> 4 -- vbuz1=vbuz1_ror_4 
-    lda.z vera_layer_get_width1___1
+    // [455] screenlayer::vera_layer_get_width1_$1 = screenlayer::vera_layer_get_width1_$0 >> 4 -- vbuaa=vbuaa_ror_4 
     lsr
     lsr
     lsr
     lsr
-    sta.z vera_layer_get_width1___1
     // return VERA_LAYER_WIDTH[ (*config & VERA_LAYER_WIDTH_MASK) >> 4];
-    // [375] screenlayer::vera_layer_get_width1_$3 = screenlayer::vera_layer_get_width1_$1 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z vera_layer_get_width1___3
-    // [376] screenlayer::vera_layer_get_width1_return#0 = VERA_LAYER_WIDTH[screenlayer::vera_layer_get_width1_$3] -- vwuz1=pwuc1_derefidx_vbuz2 
-    ldy.z vera_layer_get_width1___3
+    // [456] screenlayer::vera_layer_get_width1_$3 = screenlayer::vera_layer_get_width1_$1 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [457] screenlayer::vera_layer_get_width1_return#0 = VERA_LAYER_WIDTH[screenlayer::vera_layer_get_width1_$3] -- vwuz1=pwuc1_derefidx_vbuaa 
+    tay
     lda VERA_LAYER_WIDTH,y
     sta.z vera_layer_get_width1_return
     lda VERA_LAYER_WIDTH+1,y
     sta.z vera_layer_get_width1_return+1
     // screenlayer::@1
     // cx16_conio.conio_map_width = vera_layer_get_width(layer)
-    // [377] *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH) = screenlayer::vera_layer_get_width1_return#0 -- _deref_pwuc1=vwuz1 
+    // [458] *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH) = screenlayer::vera_layer_get_width1_return#0 -- _deref_pwuc1=vwuz1 
     lda.z vera_layer_get_width1_return
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH
     lda.z vera_layer_get_width1_return+1
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH+1
     // screenlayer::vera_layer_get_height1
     // config = vera_layer_config[layer]
-    // [378] screenlayer::vera_layer_get_height1_config#0 = *(vera_layer_config+1<<1) -- pbuz1=_deref_qbuc1 
+    // [459] screenlayer::vera_layer_get_height1_config#0 = *(vera_layer_config+1<<1) -- pbuz1=_deref_qbuc1 
     lda vera_layer_config+(1<<1)
     sta.z vera_layer_get_height1_config
     lda vera_layer_config+(1<<1)+1
     sta.z vera_layer_get_height1_config+1
     // *config & VERA_LAYER_HEIGHT_MASK
-    // [379] screenlayer::vera_layer_get_height1_$0 = *screenlayer::vera_layer_get_height1_config#0 & VERA_LAYER_HEIGHT_MASK -- vbuz1=_deref_pbuz2_band_vbuc1 
+    // [460] screenlayer::vera_layer_get_height1_$0 = *screenlayer::vera_layer_get_height1_config#0 & VERA_LAYER_HEIGHT_MASK -- vbuaa=_deref_pbuz1_band_vbuc1 
     lda #VERA_LAYER_HEIGHT_MASK
     ldy #0
     and (vera_layer_get_height1_config),y
-    sta.z vera_layer_get_height1___0
     // (*config & VERA_LAYER_HEIGHT_MASK) >> 6
-    // [380] screenlayer::vera_layer_get_height1_$1 = screenlayer::vera_layer_get_height1_$0 >> 6 -- vbuz1=vbuz1_ror_6 
-    lda.z vera_layer_get_height1___1
+    // [461] screenlayer::vera_layer_get_height1_$1 = screenlayer::vera_layer_get_height1_$0 >> 6 -- vbuaa=vbuaa_ror_6 
     rol
     rol
     rol
     and #3
-    sta.z vera_layer_get_height1___1
     // return VERA_LAYER_HEIGHT[ (*config & VERA_LAYER_HEIGHT_MASK) >> 6];
-    // [381] screenlayer::vera_layer_get_height1_$3 = screenlayer::vera_layer_get_height1_$1 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z vera_layer_get_height1___3
-    // [382] screenlayer::vera_layer_get_height1_return#0 = VERA_LAYER_HEIGHT[screenlayer::vera_layer_get_height1_$3] -- vwuz1=pwuc1_derefidx_vbuz2 
-    ldy.z vera_layer_get_height1___3
+    // [462] screenlayer::vera_layer_get_height1_$3 = screenlayer::vera_layer_get_height1_$1 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [463] screenlayer::vera_layer_get_height1_return#0 = VERA_LAYER_HEIGHT[screenlayer::vera_layer_get_height1_$3] -- vwuz1=pwuc1_derefidx_vbuaa 
+    tay
     lda VERA_LAYER_HEIGHT,y
     sta.z vera_layer_get_height1_return
     lda VERA_LAYER_HEIGHT+1,y
     sta.z vera_layer_get_height1_return+1
     // screenlayer::@2
     // cx16_conio.conio_map_height = vera_layer_get_height(layer)
-    // [383] *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT) = screenlayer::vera_layer_get_height1_return#0 -- _deref_pwuc1=vwuz1 
+    // [464] *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT) = screenlayer::vera_layer_get_height1_return#0 -- _deref_pwuc1=vwuz1 
     lda.z vera_layer_get_height1_return
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT
     lda.z vera_layer_get_height1_return+1
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT+1
     // vera_layer_get_rowshift(layer)
-    // [384] call vera_layer_get_rowshift 
+    // [465] call vera_layer_get_rowshift 
     jsr vera_layer_get_rowshift
-    // [385] vera_layer_get_rowshift::return#2 = vera_layer_get_rowshift::return#0
+    // [466] vera_layer_get_rowshift::return#2 = vera_layer_get_rowshift::return#0
     // screenlayer::@5
-    // [386] screenlayer::$4 = vera_layer_get_rowshift::return#2
+    // [467] screenlayer::$4 = vera_layer_get_rowshift::return#2
     // cx16_conio.conio_rowshift = vera_layer_get_rowshift(layer)
-    // [387] *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT) = screenlayer::$4 -- _deref_pbuc1=vbuz1 
-    lda.z __4
+    // [468] *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT) = screenlayer::$4 -- _deref_pbuc1=vbuaa 
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT
     // vera_layer_get_rowskip(layer)
-    // [388] call vera_layer_get_rowskip 
+    // [469] call vera_layer_get_rowskip 
     jsr vera_layer_get_rowskip
-    // [389] vera_layer_get_rowskip::return#2 = vera_layer_get_rowskip::return#0
+    // [470] vera_layer_get_rowskip::return#2 = vera_layer_get_rowskip::return#0
     // screenlayer::@6
-    // [390] screenlayer::$5 = vera_layer_get_rowskip::return#2
+    // [471] screenlayer::$5 = vera_layer_get_rowskip::return#2
     // cx16_conio.conio_rowskip = vera_layer_get_rowskip(layer)
-    // [391] *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) = screenlayer::$5 -- _deref_pwuc1=vwuz1 
+    // [472] *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) = screenlayer::$5 -- _deref_pwuc1=vwuz1 
     lda.z __5
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP
     lda.z __5+1
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP+1
     // screenlayer::@return
     // }
-    // [392] return 
+    // [473] return 
     rts
 }
   // vera_layer_set_textcolor
@@ -2784,17 +3185,15 @@ screenlayer: {
 // - color: a 4 bit value ( decimal between 0 and 15) when the VERA works in 16x16 color text mode.
 //   An 8 bit value (decimal between 0 and 255) when the VERA works in 256 text mode.
 //   Note that on the VERA, the transparent color has value 0.
-// vera_layer_set_textcolor(byte zp($e) layer)
+// vera_layer_set_textcolor(byte register(X) layer)
 vera_layer_set_textcolor: {
-    .label layer = $e
     // vera_layer_textcolor[layer] = color
-    // [394] vera_layer_textcolor[vera_layer_set_textcolor::layer#2] = WHITE -- pbuc1_derefidx_vbuz1=vbuc2 
+    // [475] vera_layer_textcolor[vera_layer_set_textcolor::layer#2] = WHITE -- pbuc1_derefidx_vbuxx=vbuc2 
     lda #WHITE
-    ldy.z layer
-    sta vera_layer_textcolor,y
+    sta vera_layer_textcolor,x
     // vera_layer_set_textcolor::@return
     // }
-    // [395] return 
+    // [476] return 
     rts
 }
   // vera_layer_set_backcolor
@@ -2803,18 +3202,14 @@ vera_layer_set_textcolor: {
 // - color: a 4 bit value ( decimal between 0 and 15).
 //   This will only work when the VERA is in 16 color mode!
 //   Note that on the VERA, the transparent color has value 0.
-// vera_layer_set_backcolor(byte zp($e) layer, byte zp($58) color)
+// vera_layer_set_backcolor(byte register(X) layer, byte register(A) color)
 vera_layer_set_backcolor: {
-    .label layer = $e
-    .label color = $58
     // vera_layer_backcolor[layer] = color
-    // [397] vera_layer_backcolor[vera_layer_set_backcolor::layer#2] = vera_layer_set_backcolor::color#2 -- pbuc1_derefidx_vbuz1=vbuz2 
-    lda.z color
-    ldy.z layer
-    sta vera_layer_backcolor,y
+    // [478] vera_layer_backcolor[vera_layer_set_backcolor::layer#2] = vera_layer_set_backcolor::color#2 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta vera_layer_backcolor,x
     // vera_layer_set_backcolor::@return
     // }
-    // [398] return 
+    // [479] return 
     rts
 }
   // vera_layer_set_mapbase
@@ -2823,29 +3218,26 @@ vera_layer_set_backcolor: {
 // - mapbase: Specifies the base address of the tile map.
 //   Note that the register only specifies bits 16:9 of the address,
 //   so the resulting address in the VERA VRAM is always aligned to a multiple of 512 bytes.
-// vera_layer_set_mapbase(byte zp($58) layer, byte zp($e) mapbase)
+// vera_layer_set_mapbase(byte register(A) layer, byte register(X) mapbase)
 vera_layer_set_mapbase: {
-    .label __0 = $58
-    .label addr = $5b
-    .label layer = $58
-    .label mapbase = $e
+    .label addr = $4f
     // addr = vera_layer_mapbase[layer]
-    // [400] vera_layer_set_mapbase::$0 = vera_layer_set_mapbase::layer#3 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __0
-    // [401] vera_layer_set_mapbase::addr#0 = vera_layer_mapbase[vera_layer_set_mapbase::$0] -- pbuz1=qbuc1_derefidx_vbuz2 
-    ldy.z __0
+    // [481] vera_layer_set_mapbase::$0 = vera_layer_set_mapbase::layer#3 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [482] vera_layer_set_mapbase::addr#0 = vera_layer_mapbase[vera_layer_set_mapbase::$0] -- pbuz1=qbuc1_derefidx_vbuaa 
+    tay
     lda vera_layer_mapbase,y
     sta.z addr
     lda vera_layer_mapbase+1,y
     sta.z addr+1
     // *addr = mapbase
-    // [402] *vera_layer_set_mapbase::addr#0 = vera_layer_set_mapbase::mapbase#3 -- _deref_pbuz1=vbuz2 
-    lda.z mapbase
+    // [483] *vera_layer_set_mapbase::addr#0 = vera_layer_set_mapbase::mapbase#3 -- _deref_pbuz1=vbuxx 
+    txa
     ldy #0
     sta (addr),y
     // vera_layer_set_mapbase::@return
     // }
-    // [403] return 
+    // [484] return 
     rts
 }
   // cursor
@@ -2855,109 +3247,29 @@ vera_layer_set_mapbase: {
 cursor: {
     .const onoff = 0
     // cx16_conio.conio_display_cursor = onoff
-    // [404] *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_DISPLAY_CURSOR) = cursor::onoff#0 -- _deref_pbuc1=vbuc2 
+    // [485] *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_DISPLAY_CURSOR) = cursor::onoff#0 -- _deref_pbuc1=vbuc2 
     lda #onoff
     sta cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_DISPLAY_CURSOR
     // cursor::@return
     // }
-    // [405] return 
-    rts
-}
-  // gotoxy
-// Set the cursor to the specified position
-// gotoxy(byte zp($e) x, byte zp(5) y)
-gotoxy: {
-    .label __5 = $58
-    .label __6 = $5b
-    .label y = 5
-    .label line_offset = $5b
-    .label x = $e
-    // if(y>cx16_conio.conio_screen_height)
-    // [407] if(gotoxy::y#4<=*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto gotoxy::@3 -- vbuz1_le__deref_pbuc1_then_la1 
-    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
-    cmp.z y
-    bcs __b1
-    // [409] phi from gotoxy to gotoxy::@1 [phi:gotoxy->gotoxy::@1]
-    // [409] phi gotoxy::y#5 = 0 [phi:gotoxy->gotoxy::@1#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z y
-    // [408] phi from gotoxy to gotoxy::@3 [phi:gotoxy->gotoxy::@3]
-    // gotoxy::@3
-    // [409] phi from gotoxy::@3 to gotoxy::@1 [phi:gotoxy::@3->gotoxy::@1]
-    // [409] phi gotoxy::y#5 = gotoxy::y#4 [phi:gotoxy::@3->gotoxy::@1#0] -- register_copy 
-    // gotoxy::@1
-  __b1:
-    // if(x>=cx16_conio.conio_screen_width)
-    // [410] if(gotoxy::x#4<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH)) goto gotoxy::@4 -- vbuz1_lt__deref_pbuc1_then_la1 
-    lda.z x
-    cmp cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
-    bcc __b2
-    // [412] phi from gotoxy::@1 to gotoxy::@2 [phi:gotoxy::@1->gotoxy::@2]
-    // [412] phi gotoxy::x#5 = 0 [phi:gotoxy::@1->gotoxy::@2#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z x
-    // [411] phi from gotoxy::@1 to gotoxy::@4 [phi:gotoxy::@1->gotoxy::@4]
-    // gotoxy::@4
-    // [412] phi from gotoxy::@4 to gotoxy::@2 [phi:gotoxy::@4->gotoxy::@2]
-    // [412] phi gotoxy::x#5 = gotoxy::x#4 [phi:gotoxy::@4->gotoxy::@2#0] -- register_copy 
-    // gotoxy::@2
-  __b2:
-    // conio_cursor_x[cx16_conio.conio_screen_layer] = x
-    // [413] conio_cursor_x[*((byte*)&cx16_conio)] = gotoxy::x#5 -- pbuc1_derefidx_(_deref_pbuc2)=vbuz1 
-    lda.z x
-    ldy cx16_conio
-    sta conio_cursor_x,y
-    // conio_cursor_y[cx16_conio.conio_screen_layer] = y
-    // [414] conio_cursor_y[*((byte*)&cx16_conio)] = gotoxy::y#5 -- pbuc1_derefidx_(_deref_pbuc2)=vbuz1 
-    lda.z y
-    sta conio_cursor_y,y
-    // (unsigned int)y << cx16_conio.conio_rowshift
-    // [415] gotoxy::$6 = (word)gotoxy::y#5 -- vwuz1=_word_vbuz2 
-    sta.z __6
-    lda #0
-    sta.z __6+1
-    // line_offset = (unsigned int)y << cx16_conio.conio_rowshift
-    // [416] gotoxy::line_offset#0 = gotoxy::$6 << *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT) -- vwuz1=vwuz1_rol__deref_pbuc1 
-    ldy cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT
-    cpy #0
-    beq !e+
-  !:
-    asl.z line_offset
-    rol.z line_offset+1
-    dey
-    bne !-
-  !e:
-    // conio_line_text[cx16_conio.conio_screen_layer] = line_offset
-    // [417] gotoxy::$5 = *((byte*)&cx16_conio) << 1 -- vbuz1=_deref_pbuc1_rol_1 
-    lda cx16_conio
-    asl
-    sta.z __5
-    // [418] conio_line_text[gotoxy::$5] = gotoxy::line_offset#0 -- pwuc1_derefidx_vbuz1=vwuz2 
-    tay
-    lda.z line_offset
-    sta conio_line_text,y
-    lda.z line_offset+1
-    sta conio_line_text+1,y
-    // gotoxy::@return
-    // }
-    // [419] return 
+    // [486] return 
     rts
 }
   // load_sprite
-// load_sprite(struct Sprite* zp($73) Sprite, dword zp($ca) bram_address)
+// load_sprite(struct Sprite* zp($67) Sprite, dword zp($24) bram_address)
 load_sprite: {
-    .label status = $7f
-    .label size = $73
-    .label return = $ca
-    .label Sprite = $73
-    .label bram_address = $ca
+    .label status = $53
+    .label size = $67
+    .label return = $24
+    .label Sprite = $67
+    .label bram_address = $24
     // cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address)
-    // [421] cx16_load_ram_banked::filename#0 = (byte*)load_sprite::Sprite#10 -- pbuz1=pbuz2 
+    // [488] cx16_load_ram_banked::filename#0 = (byte*)load_sprite::Sprite#10 -- pbuz1=pbuz2 
     lda.z Sprite
     sta.z cx16_load_ram_banked.filename
     lda.z Sprite+1
     sta.z cx16_load_ram_banked.filename+1
-    // [422] cx16_load_ram_banked::address#0 = load_sprite::bram_address#10 -- vduz1=vduz2 
+    // [489] cx16_load_ram_banked::address#0 = load_sprite::bram_address#10 -- vduz1=vduz2 
     lda.z bram_address
     sta.z cx16_load_ram_banked.address
     lda.z bram_address+1
@@ -2966,29 +3278,29 @@ load_sprite: {
     sta.z cx16_load_ram_banked.address+2
     lda.z bram_address+3
     sta.z cx16_load_ram_banked.address+3
-    // [423] call cx16_load_ram_banked 
-    // [462] phi from load_sprite to cx16_load_ram_banked [phi:load_sprite->cx16_load_ram_banked]
-    // [462] phi cx16_load_ram_banked::filename#3 = cx16_load_ram_banked::filename#0 [phi:load_sprite->cx16_load_ram_banked#0] -- register_copy 
-    // [462] phi cx16_load_ram_banked::address#3 = cx16_load_ram_banked::address#0 [phi:load_sprite->cx16_load_ram_banked#1] -- register_copy 
+    // [490] call cx16_load_ram_banked 
+    // [529] phi from load_sprite to cx16_load_ram_banked [phi:load_sprite->cx16_load_ram_banked]
+    // [529] phi cx16_load_ram_banked::filename#3 = cx16_load_ram_banked::filename#0 [phi:load_sprite->cx16_load_ram_banked#0] -- register_copy 
+    // [529] phi cx16_load_ram_banked::address#3 = cx16_load_ram_banked::address#0 [phi:load_sprite->cx16_load_ram_banked#1] -- register_copy 
     jsr cx16_load_ram_banked
     // cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address)
-    // [424] cx16_load_ram_banked::return#4 = cx16_load_ram_banked::return#1
+    // [491] cx16_load_ram_banked::return#4 = cx16_load_ram_banked::return#1 -- vbuaa=vbuz1 
+    lda.z cx16_load_ram_banked.return
     // load_sprite::@3
     // status = cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address)
-    // [425] load_sprite::status#0 = cx16_load_ram_banked::return#4 -- vbuz1=vbuz2 
-    lda.z cx16_load_ram_banked.return
+    // [492] load_sprite::status#0 = cx16_load_ram_banked::return#4 -- vbuz1=vbuaa 
     sta.z status
     // if(status!=$ff)
-    // [426] if(load_sprite::status#0==$ff) goto load_sprite::@1 -- vbuz1_eq_vbuc1_then_la1 
+    // [493] if(load_sprite::status#0==$ff) goto load_sprite::@1 -- vbuz1_eq_vbuc1_then_la1 
     lda #$ff
     cmp.z status
     beq __b1
-    // [427] phi from load_sprite::@3 to load_sprite::@2 [phi:load_sprite::@3->load_sprite::@2]
+    // [494] phi from load_sprite::@3 to load_sprite::@2 [phi:load_sprite::@3->load_sprite::@2]
     // load_sprite::@2
     // printf("error file %s: %x\n", Sprite->File, status)
-    // [428] call cputs 
-    // [529] phi from load_sprite::@2 to cputs [phi:load_sprite::@2->cputs]
-    // [529] phi cputs::s#13 = s [phi:load_sprite::@2->cputs#0] -- pbuz1=pbuc1 
+    // [495] call cputs 
+    // [343] phi from load_sprite::@2 to cputs [phi:load_sprite::@2->cputs]
+    // [343] phi cputs::s#26 = s [phi:load_sprite::@2->cputs#0] -- pbuz1=pbuc1 
     lda #<s
     sta.z cputs.s
     lda #>s
@@ -2996,21 +3308,21 @@ load_sprite: {
     jsr cputs
     // load_sprite::@4
     // printf("error file %s: %x\n", Sprite->File, status)
-    // [429] printf_string::str#0 = (byte*)load_sprite::Sprite#10 -- pbuz1=pbuz2 
+    // [496] printf_string::str#0 = (byte*)load_sprite::Sprite#10 -- pbuz1=pbuz2 
     lda.z Sprite
     sta.z printf_string.str
     lda.z Sprite+1
     sta.z printf_string.str+1
-    // [430] call printf_string 
-    // [1065] phi from load_sprite::@4 to printf_string [phi:load_sprite::@4->printf_string]
-    // [1065] phi printf_string::str#2 = printf_string::str#0 [phi:load_sprite::@4->printf_string#0] -- register_copy 
+    // [497] call printf_string 
+    // [1245] phi from load_sprite::@4 to printf_string [phi:load_sprite::@4->printf_string]
+    // [1245] phi printf_string::str#2 = printf_string::str#0 [phi:load_sprite::@4->printf_string#0] -- register_copy 
     jsr printf_string
-    // [431] phi from load_sprite::@4 to load_sprite::@5 [phi:load_sprite::@4->load_sprite::@5]
+    // [498] phi from load_sprite::@4 to load_sprite::@5 [phi:load_sprite::@4->load_sprite::@5]
     // load_sprite::@5
     // printf("error file %s: %x\n", Sprite->File, status)
-    // [432] call cputs 
-    // [529] phi from load_sprite::@5 to cputs [phi:load_sprite::@5->cputs]
-    // [529] phi cputs::s#13 = s1 [phi:load_sprite::@5->cputs#0] -- pbuz1=pbuc1 
+    // [499] call cputs 
+    // [343] phi from load_sprite::@5 to cputs [phi:load_sprite::@5->cputs]
+    // [343] phi cputs::s#26 = s1 [phi:load_sprite::@5->cputs#0] -- pbuz1=pbuc1 
     lda #<s1
     sta.z cputs.s
     lda #>s1
@@ -3018,22 +3330,20 @@ load_sprite: {
     jsr cputs
     // load_sprite::@6
     // printf("error file %s: %x\n", Sprite->File, status)
-    // [433] printf_uchar::uvalue#1 = load_sprite::status#0 -- vbuz1=vbuz2 
-    lda.z status
-    sta.z printf_uchar.uvalue
-    // [434] call printf_uchar 
-    // [537] phi from load_sprite::@6 to printf_uchar [phi:load_sprite::@6->printf_uchar]
-    // [537] phi printf_uchar::format_radix#4 = HEXADECIMAL [phi:load_sprite::@6->printf_uchar#0] -- vbuz1=vbuc1 
-    lda #HEXADECIMAL
-    sta.z printf_uchar.format_radix
-    // [537] phi printf_uchar::uvalue#4 = printf_uchar::uvalue#1 [phi:load_sprite::@6->printf_uchar#1] -- register_copy 
+    // [500] printf_uchar::uvalue#2 = load_sprite::status#0 -- vbuxx=vbuz1 
+    ldx.z status
+    // [501] call printf_uchar 
+    // [596] phi from load_sprite::@6 to printf_uchar [phi:load_sprite::@6->printf_uchar]
+    // [596] phi printf_uchar::format_radix#5 = HEXADECIMAL [phi:load_sprite::@6->printf_uchar#0] -- vbuyy=vbuc1 
+    ldy #HEXADECIMAL
+    // [596] phi printf_uchar::uvalue#5 = printf_uchar::uvalue#2 [phi:load_sprite::@6->printf_uchar#1] -- register_copy 
     jsr printf_uchar
-    // [435] phi from load_sprite::@6 to load_sprite::@7 [phi:load_sprite::@6->load_sprite::@7]
+    // [502] phi from load_sprite::@6 to load_sprite::@7 [phi:load_sprite::@6->load_sprite::@7]
     // load_sprite::@7
     // printf("error file %s: %x\n", Sprite->File, status)
-    // [436] call cputs 
-    // [529] phi from load_sprite::@7 to cputs [phi:load_sprite::@7->cputs]
-    // [529] phi cputs::s#13 = s2 [phi:load_sprite::@7->cputs#0] -- pbuz1=pbuc1 
+    // [503] call cputs 
+    // [343] phi from load_sprite::@7 to cputs [phi:load_sprite::@7->cputs]
+    // [343] phi cputs::s#26 = s2 [phi:load_sprite::@7->cputs#0] -- pbuz1=pbuc1 
     lda #<s2
     sta.z cputs.s
     lda #>s2
@@ -3042,7 +3352,7 @@ load_sprite: {
     // load_sprite::@1
   __b1:
     // Sprite->BRAM_Address = bram_address
-    // [437] ((dword*)load_sprite::Sprite#10)[OFFSET_STRUCT_SPRITE_BRAM_ADDRESS] = load_sprite::bram_address#10 -- pduz1_derefidx_vbuc1=vduz2 
+    // [504] ((dword*)load_sprite::Sprite#10)[OFFSET_STRUCT_SPRITE_BRAM_ADDRESS] = load_sprite::bram_address#10 -- pduz1_derefidx_vbuc1=vduz2 
     ldy #OFFSET_STRUCT_SPRITE_BRAM_ADDRESS
     lda.z bram_address
     sta (Sprite),y
@@ -3055,15 +3365,18 @@ load_sprite: {
     iny
     lda.z bram_address+3
     sta (Sprite),y
-    // size = Sprite->Size
-    // [438] load_sprite::size#0 = (word)((byte*)load_sprite::Sprite#10)[OFFSET_STRUCT_SPRITE_SIZE] -- vwuz1=_word_pbuz1_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_SPRITE_SIZE
+    // size = Sprite->TotalSize
+    // [505] load_sprite::size#0 = ((word*)load_sprite::Sprite#10)[OFFSET_STRUCT_SPRITE_TOTALSIZE] -- vwuz1=pwuz1_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_SPRITE_TOTALSIZE
     lda (size),y
-    sta.z size
-    lda #0
+    pha
+    iny
+    lda (size),y
     sta.z size+1
+    pla
+    sta.z size
     // bram_address + size
-    // [439] load_sprite::return#0 = load_sprite::bram_address#10 + load_sprite::size#0 -- vduz1=vduz1_plus_vwuz2 
+    // [506] load_sprite::return#0 = load_sprite::bram_address#10 + load_sprite::size#0 -- vduz1=vduz1_plus_vwuz2 
     lda.z return
     clc
     adc.z size
@@ -3079,24 +3392,24 @@ load_sprite: {
     sta.z return+3
     // load_sprite::@return
     // }
-    // [440] return 
+    // [507] return 
     rts
 }
   // load_tile
-// load_tile(struct Tile* zp($6f) Tile, dword zp($26) bram_address)
+// load_tile(struct Tile* zp($7b) Tile, dword zp($c4) bram_address)
 load_tile: {
-    .label status = $a9
-    .label size = $6f
-    .label return = $26
-    .label Tile = $6f
-    .label bram_address = $26
+    .label status = $6d
+    .label size = $7b
+    .label return = $c4
+    .label Tile = $7b
+    .label bram_address = $c4
     // cx16_load_ram_banked(1, 8, 0, Tile->File, bram_address)
-    // [442] cx16_load_ram_banked::filename#1 = (byte*)load_tile::Tile#10 -- pbuz1=pbuz2 
+    // [509] cx16_load_ram_banked::filename#1 = (byte*)load_tile::Tile#10 -- pbuz1=pbuz2 
     lda.z Tile
     sta.z cx16_load_ram_banked.filename
     lda.z Tile+1
     sta.z cx16_load_ram_banked.filename+1
-    // [443] cx16_load_ram_banked::address#1 = load_tile::bram_address#10 -- vduz1=vduz2 
+    // [510] cx16_load_ram_banked::address#1 = load_tile::bram_address#10 -- vduz1=vduz2 
     lda.z bram_address
     sta.z cx16_load_ram_banked.address
     lda.z bram_address+1
@@ -3105,29 +3418,29 @@ load_tile: {
     sta.z cx16_load_ram_banked.address+2
     lda.z bram_address+3
     sta.z cx16_load_ram_banked.address+3
-    // [444] call cx16_load_ram_banked 
-    // [462] phi from load_tile to cx16_load_ram_banked [phi:load_tile->cx16_load_ram_banked]
-    // [462] phi cx16_load_ram_banked::filename#3 = cx16_load_ram_banked::filename#1 [phi:load_tile->cx16_load_ram_banked#0] -- register_copy 
-    // [462] phi cx16_load_ram_banked::address#3 = cx16_load_ram_banked::address#1 [phi:load_tile->cx16_load_ram_banked#1] -- register_copy 
+    // [511] call cx16_load_ram_banked 
+    // [529] phi from load_tile to cx16_load_ram_banked [phi:load_tile->cx16_load_ram_banked]
+    // [529] phi cx16_load_ram_banked::filename#3 = cx16_load_ram_banked::filename#1 [phi:load_tile->cx16_load_ram_banked#0] -- register_copy 
+    // [529] phi cx16_load_ram_banked::address#3 = cx16_load_ram_banked::address#1 [phi:load_tile->cx16_load_ram_banked#1] -- register_copy 
     jsr cx16_load_ram_banked
     // cx16_load_ram_banked(1, 8, 0, Tile->File, bram_address)
-    // [445] cx16_load_ram_banked::return#5 = cx16_load_ram_banked::return#1
+    // [512] cx16_load_ram_banked::return#5 = cx16_load_ram_banked::return#1 -- vbuaa=vbuz1 
+    lda.z cx16_load_ram_banked.return
     // load_tile::@3
     // status = cx16_load_ram_banked(1, 8, 0, Tile->File, bram_address)
-    // [446] load_tile::status#0 = cx16_load_ram_banked::return#5 -- vbuz1=vbuz2 
-    lda.z cx16_load_ram_banked.return
+    // [513] load_tile::status#0 = cx16_load_ram_banked::return#5 -- vbuz1=vbuaa 
     sta.z status
     // if(status!=$ff)
-    // [447] if(load_tile::status#0==$ff) goto load_tile::@1 -- vbuz1_eq_vbuc1_then_la1 
+    // [514] if(load_tile::status#0==$ff) goto load_tile::@1 -- vbuz1_eq_vbuc1_then_la1 
     lda #$ff
     cmp.z status
     beq __b1
-    // [448] phi from load_tile::@3 to load_tile::@2 [phi:load_tile::@3->load_tile::@2]
+    // [515] phi from load_tile::@3 to load_tile::@2 [phi:load_tile::@3->load_tile::@2]
     // load_tile::@2
     // printf("error file %s: %x\n", Tile->File, status)
-    // [449] call cputs 
-    // [529] phi from load_tile::@2 to cputs [phi:load_tile::@2->cputs]
-    // [529] phi cputs::s#13 = s [phi:load_tile::@2->cputs#0] -- pbuz1=pbuc1 
+    // [516] call cputs 
+    // [343] phi from load_tile::@2 to cputs [phi:load_tile::@2->cputs]
+    // [343] phi cputs::s#26 = s [phi:load_tile::@2->cputs#0] -- pbuz1=pbuc1 
     lda #<s
     sta.z cputs.s
     lda #>s
@@ -3135,21 +3448,21 @@ load_tile: {
     jsr cputs
     // load_tile::@4
     // printf("error file %s: %x\n", Tile->File, status)
-    // [450] printf_string::str#1 = (byte*)load_tile::Tile#10 -- pbuz1=pbuz2 
+    // [517] printf_string::str#1 = (byte*)load_tile::Tile#10 -- pbuz1=pbuz2 
     lda.z Tile
     sta.z printf_string.str
     lda.z Tile+1
     sta.z printf_string.str+1
-    // [451] call printf_string 
-    // [1065] phi from load_tile::@4 to printf_string [phi:load_tile::@4->printf_string]
-    // [1065] phi printf_string::str#2 = printf_string::str#1 [phi:load_tile::@4->printf_string#0] -- register_copy 
+    // [518] call printf_string 
+    // [1245] phi from load_tile::@4 to printf_string [phi:load_tile::@4->printf_string]
+    // [1245] phi printf_string::str#2 = printf_string::str#1 [phi:load_tile::@4->printf_string#0] -- register_copy 
     jsr printf_string
-    // [452] phi from load_tile::@4 to load_tile::@5 [phi:load_tile::@4->load_tile::@5]
+    // [519] phi from load_tile::@4 to load_tile::@5 [phi:load_tile::@4->load_tile::@5]
     // load_tile::@5
     // printf("error file %s: %x\n", Tile->File, status)
-    // [453] call cputs 
-    // [529] phi from load_tile::@5 to cputs [phi:load_tile::@5->cputs]
-    // [529] phi cputs::s#13 = s1 [phi:load_tile::@5->cputs#0] -- pbuz1=pbuc1 
+    // [520] call cputs 
+    // [343] phi from load_tile::@5 to cputs [phi:load_tile::@5->cputs]
+    // [343] phi cputs::s#26 = s1 [phi:load_tile::@5->cputs#0] -- pbuz1=pbuc1 
     lda #<s1
     sta.z cputs.s
     lda #>s1
@@ -3157,22 +3470,20 @@ load_tile: {
     jsr cputs
     // load_tile::@6
     // printf("error file %s: %x\n", Tile->File, status)
-    // [454] printf_uchar::uvalue#2 = load_tile::status#0 -- vbuz1=vbuz2 
-    lda.z status
-    sta.z printf_uchar.uvalue
-    // [455] call printf_uchar 
-    // [537] phi from load_tile::@6 to printf_uchar [phi:load_tile::@6->printf_uchar]
-    // [537] phi printf_uchar::format_radix#4 = HEXADECIMAL [phi:load_tile::@6->printf_uchar#0] -- vbuz1=vbuc1 
-    lda #HEXADECIMAL
-    sta.z printf_uchar.format_radix
-    // [537] phi printf_uchar::uvalue#4 = printf_uchar::uvalue#2 [phi:load_tile::@6->printf_uchar#1] -- register_copy 
+    // [521] printf_uchar::uvalue#3 = load_tile::status#0 -- vbuxx=vbuz1 
+    ldx.z status
+    // [522] call printf_uchar 
+    // [596] phi from load_tile::@6 to printf_uchar [phi:load_tile::@6->printf_uchar]
+    // [596] phi printf_uchar::format_radix#5 = HEXADECIMAL [phi:load_tile::@6->printf_uchar#0] -- vbuyy=vbuc1 
+    ldy #HEXADECIMAL
+    // [596] phi printf_uchar::uvalue#5 = printf_uchar::uvalue#3 [phi:load_tile::@6->printf_uchar#1] -- register_copy 
     jsr printf_uchar
-    // [456] phi from load_tile::@6 to load_tile::@7 [phi:load_tile::@6->load_tile::@7]
+    // [523] phi from load_tile::@6 to load_tile::@7 [phi:load_tile::@6->load_tile::@7]
     // load_tile::@7
     // printf("error file %s: %x\n", Tile->File, status)
-    // [457] call cputs 
-    // [529] phi from load_tile::@7 to cputs [phi:load_tile::@7->cputs]
-    // [529] phi cputs::s#13 = s2 [phi:load_tile::@7->cputs#0] -- pbuz1=pbuc1 
+    // [524] call cputs 
+    // [343] phi from load_tile::@7 to cputs [phi:load_tile::@7->cputs]
+    // [343] phi cputs::s#26 = s2 [phi:load_tile::@7->cputs#0] -- pbuz1=pbuc1 
     lda #<s2
     sta.z cputs.s
     lda #>s2
@@ -3181,7 +3492,7 @@ load_tile: {
     // load_tile::@1
   __b1:
     // Tile->BRAM_Address = bram_address
-    // [458] ((dword*)load_tile::Tile#10)[OFFSET_STRUCT_TILE_BRAM_ADDRESS] = load_tile::bram_address#10 -- pduz1_derefidx_vbuc1=vduz2 
+    // [525] ((dword*)load_tile::Tile#10)[OFFSET_STRUCT_TILE_BRAM_ADDRESS] = load_tile::bram_address#10 -- pduz1_derefidx_vbuc1=vduz2 
     ldy #OFFSET_STRUCT_TILE_BRAM_ADDRESS
     lda.z bram_address
     sta (Tile),y
@@ -3194,9 +3505,9 @@ load_tile: {
     iny
     lda.z bram_address+3
     sta (Tile),y
-    // size = Tile->Size
-    // [459] load_tile::size#0 = ((word*)load_tile::Tile#10)[OFFSET_STRUCT_TILE_SIZE] -- vwuz1=pwuz1_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_TILE_SIZE
+    // size = Tile->TotalSize
+    // [526] load_tile::size#0 = ((word*)load_tile::Tile#10)[OFFSET_STRUCT_TILE_TOTALSIZE] -- vwuz1=pwuz1_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_TOTALSIZE
     lda (size),y
     pha
     iny
@@ -3205,7 +3516,7 @@ load_tile: {
     pla
     sta.z size
     // bram_address + size
-    // [460] load_tile::return#0 = load_tile::bram_address#10 + load_tile::size#0 -- vduz1=vduz1_plus_vwuz2 
+    // [527] load_tile::return#0 = load_tile::bram_address#10 + load_tile::size#0 -- vduz1=vduz1_plus_vwuz2 
     lda.z return
     clc
     adc.z size
@@ -3221,7 +3532,7 @@ load_tile: {
     sta.z return+3
     // load_tile::@return
     // }
-    // [461] return 
+    // [528] return 
     rts
 }
   // cx16_load_ram_banked
@@ -3229,67 +3540,62 @@ load_tile: {
 // Returns a status:
 // - 0xff: Success
 // - other: Kernal Error Code (https://commodore.ca/manuals/pdfs/commodore_error_messages.pdf)
-// cx16_load_ram_banked(byte* zp($af) filename, dword zp($10) address)
+// cx16_load_ram_banked(byte* zp($c2) filename, dword zp($e) address)
 cx16_load_ram_banked: {
-    .label __0 = $7b
-    .label __1 = $7b
-    .label __2 = $b7
-    .label __3 = $c5
-    .label __4 = $b8
-    .label __5 = $b1
-    .label __6 = $b1
-    .label __7 = $75
-    .label __8 = $75
-    .label __9 = $b9
-    .label __10 = $b1
-    .label __11 = $7d
-    .label __33 = $b1
-    .label __34 = $c8
-    .label bank = $b9
+    .label __0 = $65
+    .label __1 = $65
+    .label __3 = $cc
+    .label __5 = $74
+    .label __6 = $74
+    .label __7 = $72
+    .label __8 = $72
+    .label __10 = $74
+    .label __11 = $65
+    .label __33 = $74
+    .label __34 = $72
+    .label bank = $7a
     // select the bank
-    .label addr = $7d
-    .label status = $f
-    .label return = $f
-    .label ch = $40
-    .label status_1 = $7f
-    .label filename = $af
-    .label address = $10
+    .label addr = $65
+    .label status = $3c
+    .label return = $3c
+    .label ch = $53
+    .label filename = $c2
+    .label address = $e
     // >address
-    // [463] cx16_load_ram_banked::$0 = > cx16_load_ram_banked::address#3 -- vwuz1=_hi_vduz2 
+    // [530] cx16_load_ram_banked::$0 = > cx16_load_ram_banked::address#3 -- vwuz1=_hi_vduz2 
     lda.z address+2
     sta.z __0
     lda.z address+3
     sta.z __0+1
     // (>address)<<8
-    // [464] cx16_load_ram_banked::$1 = cx16_load_ram_banked::$0 << 8 -- vwuz1=vwuz1_rol_8 
+    // [531] cx16_load_ram_banked::$1 = cx16_load_ram_banked::$0 << 8 -- vwuz1=vwuz1_rol_8 
     lda.z __1
     sta.z __1+1
     lda #0
     sta.z __1
     // <(>address)<<8
-    // [465] cx16_load_ram_banked::$2 = < cx16_load_ram_banked::$1 -- vbuz1=_lo_vwuz2 
-    sta.z __2
+    // [532] cx16_load_ram_banked::$2 = < cx16_load_ram_banked::$1 -- vbuxx=_lo_vwuz1 
+    tax
     // <address
-    // [466] cx16_load_ram_banked::$3 = < cx16_load_ram_banked::address#3 -- vwuz1=_lo_vduz2 
+    // [533] cx16_load_ram_banked::$3 = < cx16_load_ram_banked::address#3 -- vwuz1=_lo_vduz2 
     lda.z address
     sta.z __3
     lda.z address+1
     sta.z __3+1
     // >(<address)
-    // [467] cx16_load_ram_banked::$4 = > cx16_load_ram_banked::$3 -- vbuz1=_hi_vwuz2 
-    sta.z __4
+    // [534] cx16_load_ram_banked::$4 = > cx16_load_ram_banked::$3 -- vbuyy=_hi_vwuz1 
+    tay
     // ((word)<(>address)<<8)|>(<address)
-    // [468] cx16_load_ram_banked::$33 = (word)cx16_load_ram_banked::$2 -- vwuz1=_word_vbuz2 
-    lda.z __2
+    // [535] cx16_load_ram_banked::$33 = (word)cx16_load_ram_banked::$2 -- vwuz1=_word_vbuxx 
+    txa
     sta.z __33
-    lda #0
     sta.z __33+1
-    // [469] cx16_load_ram_banked::$5 = cx16_load_ram_banked::$33 | cx16_load_ram_banked::$4 -- vwuz1=vwuz1_bor_vbuz2 
-    lda.z __4
+    // [536] cx16_load_ram_banked::$5 = cx16_load_ram_banked::$33 | cx16_load_ram_banked::$4 -- vwuz1=vwuz1_bor_vbuyy 
+    tya
     ora.z __5
     sta.z __5
     // (((word)<(>address)<<8)|>(<address))>>5
-    // [470] cx16_load_ram_banked::$6 = cx16_load_ram_banked::$5 >> 5 -- vwuz1=vwuz1_ror_5 
+    // [537] cx16_load_ram_banked::$6 = cx16_load_ram_banked::$5 >> 5 -- vwuz1=vwuz1_ror_5 
     lsr.z __6+1
     ror.z __6
     lsr.z __6+1
@@ -3301,13 +3607,13 @@ cx16_load_ram_banked: {
     lsr.z __6+1
     ror.z __6
     // >address
-    // [471] cx16_load_ram_banked::$7 = > cx16_load_ram_banked::address#3 -- vwuz1=_hi_vduz2 
+    // [538] cx16_load_ram_banked::$7 = > cx16_load_ram_banked::address#3 -- vwuz1=_hi_vduz2 
     lda.z address+2
     sta.z __7
     lda.z address+3
     sta.z __7+1
     // (>address)<<3
-    // [472] cx16_load_ram_banked::$8 = cx16_load_ram_banked::$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [539] cx16_load_ram_banked::$8 = cx16_load_ram_banked::$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z __8
     rol.z __8+1
     asl.z __8
@@ -3315,15 +3621,14 @@ cx16_load_ram_banked: {
     asl.z __8
     rol.z __8+1
     // <(>address)<<3
-    // [473] cx16_load_ram_banked::$9 = < cx16_load_ram_banked::$8 -- vbuz1=_lo_vwuz2 
+    // [540] cx16_load_ram_banked::$9 = < cx16_load_ram_banked::$8 -- vbuaa=_lo_vwuz1 
     lda.z __8
-    sta.z __9
     // ((((word)<(>address)<<8)|>(<address))>>5)+((word)<(>address)<<3)
-    // [474] cx16_load_ram_banked::$34 = (word)cx16_load_ram_banked::$9 -- vwuz1=_word_vbuz2 
+    // [541] cx16_load_ram_banked::$34 = (word)cx16_load_ram_banked::$9 -- vwuz1=_word_vbuaa 
     sta.z __34
-    lda #0
+    txa
     sta.z __34+1
-    // [475] cx16_load_ram_banked::$10 = cx16_load_ram_banked::$6 + cx16_load_ram_banked::$34 -- vwuz1=vwuz1_plus_vwuz2 
+    // [542] cx16_load_ram_banked::$10 = cx16_load_ram_banked::$6 + cx16_load_ram_banked::$34 -- vwuz1=vwuz1_plus_vwuz2 
     lda.z __10
     clc
     adc.z __34
@@ -3332,17 +3637,17 @@ cx16_load_ram_banked: {
     adc.z __34+1
     sta.z __10+1
     // bank = (byte)(((((word)<(>address)<<8)|>(<address))>>5)+((word)<(>address)<<3))
-    // [476] cx16_load_ram_banked::bank#0 = (byte)cx16_load_ram_banked::$10 -- vbuz1=_byte_vwuz2 
+    // [543] cx16_load_ram_banked::bank#0 = (byte)cx16_load_ram_banked::$10 -- vbuz1=_byte_vwuz2 
     lda.z __10
     sta.z bank
     // <address
-    // [477] cx16_load_ram_banked::$11 = < cx16_load_ram_banked::address#3 -- vwuz1=_lo_vduz2 
+    // [544] cx16_load_ram_banked::$11 = < cx16_load_ram_banked::address#3 -- vwuz1=_lo_vduz2 
     lda.z address
     sta.z __11
     lda.z address+1
     sta.z __11+1
     // (<address)&0x1FFF
-    // [478] cx16_load_ram_banked::addr#0 = cx16_load_ram_banked::$11 & $1fff -- vwuz1=vwuz1_band_vwuc1 
+    // [545] cx16_load_ram_banked::addr#0 = cx16_load_ram_banked::$11 & $1fff -- vwuz1=vwuz1_band_vwuc1 
     lda.z addr
     and #<$1fff
     sta.z addr
@@ -3350,7 +3655,7 @@ cx16_load_ram_banked: {
     and #>$1fff
     sta.z addr+1
     // addr += 0xA000
-    // [479] cx16_load_ram_banked::addr#1 = (byte*)cx16_load_ram_banked::addr#0 + $a000 -- pbuz1=pbuz1_plus_vwuc1 
+    // [546] cx16_load_ram_banked::addr#1 = (byte*)cx16_load_ram_banked::addr#0 + $a000 -- pbuz1=pbuz1_plus_vwuc1 
     // stip off the top 3 bits, which are representing the bank of the word!
     clc
     lda.z addr
@@ -3360,127 +3665,128 @@ cx16_load_ram_banked: {
     adc #>$a000
     sta.z addr+1
     // cx16_ram_bank(bank)
-    // [480] cx16_ram_bank::bank#0 = cx16_load_ram_banked::bank#0 -- vbuz1=vbuz2 
-    lda.z bank
-    sta.z cx16_ram_bank.bank
-    // [481] call cx16_ram_bank 
-    // [1069] phi from cx16_load_ram_banked to cx16_ram_bank [phi:cx16_load_ram_banked->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#0 [phi:cx16_load_ram_banked->cx16_ram_bank#0] -- register_copy 
+    // [547] cx16_ram_bank::bank#0 = cx16_load_ram_banked::bank#0 -- vbuxx=vbuz1 
+    ldx.z bank
+    // [548] call cx16_ram_bank 
+    // [1249] phi from cx16_load_ram_banked to cx16_ram_bank [phi:cx16_load_ram_banked->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#0 [phi:cx16_load_ram_banked->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
     // cx16_load_ram_banked::@8
     // cbm_k_setnam(filename)
-    // [482] cbm_k_setnam::filename = cx16_load_ram_banked::filename#3 -- pbuz1=pbuz2 
+    // [549] cbm_k_setnam::filename = cx16_load_ram_banked::filename#3 -- pbuz1=pbuz2 
     lda.z filename
     sta.z cbm_k_setnam.filename
     lda.z filename+1
     sta.z cbm_k_setnam.filename+1
-    // [483] call cbm_k_setnam 
+    // [550] call cbm_k_setnam 
     jsr cbm_k_setnam
     // cx16_load_ram_banked::@9
     // cbm_k_setlfs(channel, device, secondary)
-    // [484] cbm_k_setlfs::channel = 1 -- vbuz1=vbuc1 
+    // [551] cbm_k_setlfs::channel = 1 -- vbuz1=vbuc1 
     lda #1
     sta.z cbm_k_setlfs.channel
-    // [485] cbm_k_setlfs::device = 8 -- vbuz1=vbuc1 
+    // [552] cbm_k_setlfs::device = 8 -- vbuz1=vbuc1 
     lda #8
     sta.z cbm_k_setlfs.device
-    // [486] cbm_k_setlfs::secondary = 0 -- vbuz1=vbuc1 
+    // [553] cbm_k_setlfs::secondary = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z cbm_k_setlfs.secondary
-    // [487] call cbm_k_setlfs 
+    // [554] call cbm_k_setlfs 
     jsr cbm_k_setlfs
-    // [488] phi from cx16_load_ram_banked::@9 to cx16_load_ram_banked::@10 [phi:cx16_load_ram_banked::@9->cx16_load_ram_banked::@10]
+    // [555] phi from cx16_load_ram_banked::@9 to cx16_load_ram_banked::@10 [phi:cx16_load_ram_banked::@9->cx16_load_ram_banked::@10]
     // cx16_load_ram_banked::@10
     // cbm_k_open()
-    // [489] call cbm_k_open 
+    // [556] call cbm_k_open 
     jsr cbm_k_open
-    // [490] cbm_k_open::return#2 = cbm_k_open::return#1
+    // [557] cbm_k_open::return#2 = cbm_k_open::return#1
     // cx16_load_ram_banked::@11
-    // [491] cx16_load_ram_banked::status#1 = cbm_k_open::return#2
+    // [558] cx16_load_ram_banked::status#1 = cbm_k_open::return#2 -- vbuz1=vbuaa 
+    sta.z status
     // if(status!=$FF)
-    // [492] if(cx16_load_ram_banked::status#1==$ff) goto cx16_load_ram_banked::@1 -- vbuz1_eq_vbuc1_then_la1 
+    // [559] if(cx16_load_ram_banked::status#1==$ff) goto cx16_load_ram_banked::@1 -- vbuz1_eq_vbuc1_then_la1 
     lda #$ff
     cmp.z status
     beq __b1
-    // [493] phi from cx16_load_ram_banked::@11 cx16_load_ram_banked::@12 cx16_load_ram_banked::@16 to cx16_load_ram_banked::@return [phi:cx16_load_ram_banked::@11/cx16_load_ram_banked::@12/cx16_load_ram_banked::@16->cx16_load_ram_banked::@return]
-    // [493] phi cx16_load_ram_banked::return#1 = cx16_load_ram_banked::status#1 [phi:cx16_load_ram_banked::@11/cx16_load_ram_banked::@12/cx16_load_ram_banked::@16->cx16_load_ram_banked::@return#0] -- register_copy 
+    // [560] phi from cx16_load_ram_banked::@11 cx16_load_ram_banked::@12 cx16_load_ram_banked::@16 to cx16_load_ram_banked::@return [phi:cx16_load_ram_banked::@11/cx16_load_ram_banked::@12/cx16_load_ram_banked::@16->cx16_load_ram_banked::@return]
+    // [560] phi cx16_load_ram_banked::return#1 = cx16_load_ram_banked::status#1 [phi:cx16_load_ram_banked::@11/cx16_load_ram_banked::@12/cx16_load_ram_banked::@16->cx16_load_ram_banked::@return#0] -- register_copy 
     // cx16_load_ram_banked::@return
     // }
-    // [494] return 
+    // [561] return 
     rts
     // cx16_load_ram_banked::@1
   __b1:
     // cbm_k_chkin(channel)
-    // [495] cbm_k_chkin::channel = 1 -- vbuz1=vbuc1 
+    // [562] cbm_k_chkin::channel = 1 -- vbuz1=vbuc1 
     lda #1
     sta.z cbm_k_chkin.channel
-    // [496] call cbm_k_chkin 
+    // [563] call cbm_k_chkin 
     jsr cbm_k_chkin
-    // [497] cbm_k_chkin::return#2 = cbm_k_chkin::return#1
+    // [564] cbm_k_chkin::return#2 = cbm_k_chkin::return#1
     // cx16_load_ram_banked::@12
-    // [498] cx16_load_ram_banked::status#2 = cbm_k_chkin::return#2
+    // [565] cx16_load_ram_banked::status#2 = cbm_k_chkin::return#2 -- vbuz1=vbuaa 
+    sta.z status
     // if(status!=$FF)
-    // [499] if(cx16_load_ram_banked::status#2==$ff) goto cx16_load_ram_banked::@2 -- vbuz1_eq_vbuc1_then_la1 
+    // [566] if(cx16_load_ram_banked::status#2==$ff) goto cx16_load_ram_banked::@2 -- vbuz1_eq_vbuc1_then_la1 
     lda #$ff
     cmp.z status
     beq __b2
     rts
-    // [500] phi from cx16_load_ram_banked::@12 to cx16_load_ram_banked::@2 [phi:cx16_load_ram_banked::@12->cx16_load_ram_banked::@2]
+    // [567] phi from cx16_load_ram_banked::@12 to cx16_load_ram_banked::@2 [phi:cx16_load_ram_banked::@12->cx16_load_ram_banked::@2]
     // cx16_load_ram_banked::@2
   __b2:
     // cbm_k_chrin()
-    // [501] call cbm_k_chrin 
+    // [568] call cbm_k_chrin 
     jsr cbm_k_chrin
-    // [502] cbm_k_chrin::return#2 = cbm_k_chrin::return#1
+    // [569] cbm_k_chrin::return#2 = cbm_k_chrin::return#1
     // cx16_load_ram_banked::@13
     // ch = cbm_k_chrin()
-    // [503] cx16_load_ram_banked::ch#1 = cbm_k_chrin::return#2
+    // [570] cx16_load_ram_banked::ch#1 = cbm_k_chrin::return#2 -- vbuz1=vbuaa 
+    sta.z ch
     // cbm_k_readst()
-    // [504] call cbm_k_readst 
+    // [571] call cbm_k_readst 
     jsr cbm_k_readst
-    // [505] cbm_k_readst::return#2 = cbm_k_readst::return#1
+    // [572] cbm_k_readst::return#2 = cbm_k_readst::return#1
     // cx16_load_ram_banked::@14
     // status = cbm_k_readst()
-    // [506] cx16_load_ram_banked::status#3 = cbm_k_readst::return#2
-    // [507] phi from cx16_load_ram_banked::@14 cx16_load_ram_banked::@18 to cx16_load_ram_banked::@3 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3]
-    // [507] phi cx16_load_ram_banked::bank#2 = cx16_load_ram_banked::bank#0 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#0] -- register_copy 
-    // [507] phi cx16_load_ram_banked::ch#3 = cx16_load_ram_banked::ch#1 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#1] -- register_copy 
-    // [507] phi cx16_load_ram_banked::addr#4 = cx16_load_ram_banked::addr#1 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#2] -- register_copy 
-    // [507] phi cx16_load_ram_banked::status#8 = cx16_load_ram_banked::status#3 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#3] -- register_copy 
+    // [573] cx16_load_ram_banked::status#3 = cbm_k_readst::return#2
+    // [574] phi from cx16_load_ram_banked::@14 cx16_load_ram_banked::@18 to cx16_load_ram_banked::@3 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3]
+    // [574] phi cx16_load_ram_banked::bank#2 = cx16_load_ram_banked::bank#0 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#0] -- register_copy 
+    // [574] phi cx16_load_ram_banked::ch#3 = cx16_load_ram_banked::ch#1 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#1] -- register_copy 
+    // [574] phi cx16_load_ram_banked::addr#4 = cx16_load_ram_banked::addr#1 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#2] -- register_copy 
+    // [574] phi cx16_load_ram_banked::status#8 = cx16_load_ram_banked::status#3 [phi:cx16_load_ram_banked::@14/cx16_load_ram_banked::@18->cx16_load_ram_banked::@3#3] -- register_copy 
     // cx16_load_ram_banked::@3
   __b3:
     // while (!status)
-    // [508] if(0==cx16_load_ram_banked::status#8) goto cx16_load_ram_banked::@4 -- 0_eq_vbuz1_then_la1 
-    lda.z status_1
+    // [575] if(0==cx16_load_ram_banked::status#8) goto cx16_load_ram_banked::@4 -- 0_eq_vbuaa_then_la1 
     cmp #0
     beq __b4
     // cx16_load_ram_banked::@5
     // cbm_k_close(channel)
-    // [509] cbm_k_close::channel = 1 -- vbuz1=vbuc1 
+    // [576] cbm_k_close::channel = 1 -- vbuz1=vbuc1 
     lda #1
     sta.z cbm_k_close.channel
-    // [510] call cbm_k_close 
+    // [577] call cbm_k_close 
     jsr cbm_k_close
-    // [511] cbm_k_close::return#2 = cbm_k_close::return#1
+    // [578] cbm_k_close::return#2 = cbm_k_close::return#1
     // cx16_load_ram_banked::@15
-    // [512] cx16_load_ram_banked::status#10 = cbm_k_close::return#2
+    // [579] cx16_load_ram_banked::status#10 = cbm_k_close::return#2 -- vbuz1=vbuaa 
+    sta.z status
     // cbm_k_clrchn()
-    // [513] call cbm_k_clrchn 
+    // [580] call cbm_k_clrchn 
     jsr cbm_k_clrchn
-    // [514] phi from cx16_load_ram_banked::@15 to cx16_load_ram_banked::@16 [phi:cx16_load_ram_banked::@15->cx16_load_ram_banked::@16]
+    // [581] phi from cx16_load_ram_banked::@15 to cx16_load_ram_banked::@16 [phi:cx16_load_ram_banked::@15->cx16_load_ram_banked::@16]
     // cx16_load_ram_banked::@16
     // cx16_ram_bank(1)
-    // [515] call cx16_ram_bank 
-    // [1069] phi from cx16_load_ram_banked::@16 to cx16_ram_bank [phi:cx16_load_ram_banked::@16->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = 1 [phi:cx16_load_ram_banked::@16->cx16_ram_bank#0] -- vbuz1=vbuc1 
-    lda #1
-    sta.z cx16_ram_bank.bank
+    // [582] call cx16_ram_bank 
+    // [1249] phi from cx16_load_ram_banked::@16 to cx16_ram_bank [phi:cx16_load_ram_banked::@16->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = 1 [phi:cx16_load_ram_banked::@16->cx16_ram_bank#0] -- vbuxx=vbuc1 
+    ldx #1
     jsr cx16_ram_bank
     rts
     // cx16_load_ram_banked::@4
   __b4:
     // if(addr == 0xC000)
-    // [516] if(cx16_load_ram_banked::addr#4!=$c000) goto cx16_load_ram_banked::@6 -- pbuz1_neq_vwuc1_then_la1 
+    // [583] if(cx16_load_ram_banked::addr#4!=$c000) goto cx16_load_ram_banked::@6 -- pbuz1_neq_vwuc1_then_la1 
     lda.z addr+1
     cmp #>$c000
     bne __b6
@@ -3489,188 +3795,126 @@ cx16_load_ram_banked: {
     bne __b6
     // cx16_load_ram_banked::@7
     // bank++;
-    // [517] cx16_load_ram_banked::bank#1 = ++ cx16_load_ram_banked::bank#2 -- vbuz1=_inc_vbuz1 
+    // [584] cx16_load_ram_banked::bank#1 = ++ cx16_load_ram_banked::bank#2 -- vbuz1=_inc_vbuz1 
     inc.z bank
     // cx16_ram_bank(bank)
-    // [518] cx16_ram_bank::bank#2 = cx16_load_ram_banked::bank#1 -- vbuz1=vbuz2 
-    lda.z bank
-    sta.z cx16_ram_bank.bank
-    // [519] call cx16_ram_bank 
+    // [585] cx16_ram_bank::bank#2 = cx16_load_ram_banked::bank#1 -- vbuxx=vbuz1 
+    ldx.z bank
+    // [586] call cx16_ram_bank 
   //printf(", %u", (word)bank);
-    // [1069] phi from cx16_load_ram_banked::@7 to cx16_ram_bank [phi:cx16_load_ram_banked::@7->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#2 [phi:cx16_load_ram_banked::@7->cx16_ram_bank#0] -- register_copy 
+    // [1249] phi from cx16_load_ram_banked::@7 to cx16_ram_bank [phi:cx16_load_ram_banked::@7->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#2 [phi:cx16_load_ram_banked::@7->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
-    // [520] phi from cx16_load_ram_banked::@7 to cx16_load_ram_banked::@6 [phi:cx16_load_ram_banked::@7->cx16_load_ram_banked::@6]
-    // [520] phi cx16_load_ram_banked::bank#10 = cx16_load_ram_banked::bank#1 [phi:cx16_load_ram_banked::@7->cx16_load_ram_banked::@6#0] -- register_copy 
-    // [520] phi cx16_load_ram_banked::addr#5 = (byte*) 40960 [phi:cx16_load_ram_banked::@7->cx16_load_ram_banked::@6#1] -- pbuz1=pbuc1 
+    // [587] phi from cx16_load_ram_banked::@7 to cx16_load_ram_banked::@6 [phi:cx16_load_ram_banked::@7->cx16_load_ram_banked::@6]
+    // [587] phi cx16_load_ram_banked::bank#10 = cx16_load_ram_banked::bank#1 [phi:cx16_load_ram_banked::@7->cx16_load_ram_banked::@6#0] -- register_copy 
+    // [587] phi cx16_load_ram_banked::addr#5 = (byte*) 40960 [phi:cx16_load_ram_banked::@7->cx16_load_ram_banked::@6#1] -- pbuz1=pbuc1 
     lda #<$a000
     sta.z addr
     lda #>$a000
     sta.z addr+1
-    // [520] phi from cx16_load_ram_banked::@4 to cx16_load_ram_banked::@6 [phi:cx16_load_ram_banked::@4->cx16_load_ram_banked::@6]
-    // [520] phi cx16_load_ram_banked::bank#10 = cx16_load_ram_banked::bank#2 [phi:cx16_load_ram_banked::@4->cx16_load_ram_banked::@6#0] -- register_copy 
-    // [520] phi cx16_load_ram_banked::addr#5 = cx16_load_ram_banked::addr#4 [phi:cx16_load_ram_banked::@4->cx16_load_ram_banked::@6#1] -- register_copy 
+    // [587] phi from cx16_load_ram_banked::@4 to cx16_load_ram_banked::@6 [phi:cx16_load_ram_banked::@4->cx16_load_ram_banked::@6]
+    // [587] phi cx16_load_ram_banked::bank#10 = cx16_load_ram_banked::bank#2 [phi:cx16_load_ram_banked::@4->cx16_load_ram_banked::@6#0] -- register_copy 
+    // [587] phi cx16_load_ram_banked::addr#5 = cx16_load_ram_banked::addr#4 [phi:cx16_load_ram_banked::@4->cx16_load_ram_banked::@6#1] -- register_copy 
     // cx16_load_ram_banked::@6
   __b6:
     // *addr = ch
-    // [521] *cx16_load_ram_banked::addr#5 = cx16_load_ram_banked::ch#3 -- _deref_pbuz1=vbuz2 
+    // [588] *cx16_load_ram_banked::addr#5 = cx16_load_ram_banked::ch#3 -- _deref_pbuz1=vbuz2 
     lda.z ch
     ldy #0
     sta (addr),y
     // addr++;
-    // [522] cx16_load_ram_banked::addr#10 = ++ cx16_load_ram_banked::addr#5 -- pbuz1=_inc_pbuz1 
+    // [589] cx16_load_ram_banked::addr#10 = ++ cx16_load_ram_banked::addr#5 -- pbuz1=_inc_pbuz1 
     inc.z addr
     bne !+
     inc.z addr+1
   !:
     // cbm_k_chrin()
-    // [523] call cbm_k_chrin 
+    // [590] call cbm_k_chrin 
     jsr cbm_k_chrin
-    // [524] cbm_k_chrin::return#3 = cbm_k_chrin::return#1
+    // [591] cbm_k_chrin::return#3 = cbm_k_chrin::return#1
     // cx16_load_ram_banked::@17
     // ch = cbm_k_chrin()
-    // [525] cx16_load_ram_banked::ch#2 = cbm_k_chrin::return#3
+    // [592] cx16_load_ram_banked::ch#2 = cbm_k_chrin::return#3 -- vbuz1=vbuaa 
+    sta.z ch
     // cbm_k_readst()
-    // [526] call cbm_k_readst 
+    // [593] call cbm_k_readst 
     jsr cbm_k_readst
-    // [527] cbm_k_readst::return#3 = cbm_k_readst::return#1
+    // [594] cbm_k_readst::return#3 = cbm_k_readst::return#1
     // cx16_load_ram_banked::@18
     // status = cbm_k_readst()
-    // [528] cx16_load_ram_banked::status#5 = cbm_k_readst::return#3
+    // [595] cx16_load_ram_banked::status#5 = cbm_k_readst::return#3
     jmp __b3
-}
-  // cputs
-// Output a NUL-terminated string at the current cursor position
-// cputs(byte* zp($af) s)
-cputs: {
-    .label c = $ba
-    .label s = $af
-    // [530] phi from cputs cputs::@2 to cputs::@1 [phi:cputs/cputs::@2->cputs::@1]
-    // [530] phi cputs::s#12 = cputs::s#13 [phi:cputs/cputs::@2->cputs::@1#0] -- register_copy 
-    // cputs::@1
-  __b1:
-    // while(c=*s++)
-    // [531] cputs::c#1 = *cputs::s#12 -- vbuz1=_deref_pbuz2 
-    ldy #0
-    lda (s),y
-    sta.z c
-    // [532] cputs::s#0 = ++ cputs::s#12 -- pbuz1=_inc_pbuz1 
-    inc.z s
-    bne !+
-    inc.z s+1
-  !:
-    // [533] if(0!=cputs::c#1) goto cputs::@2 -- 0_neq_vbuz1_then_la1 
-    lda.z c
-    cmp #0
-    bne __b2
-    // cputs::@return
-    // }
-    // [534] return 
-    rts
-    // cputs::@2
-  __b2:
-    // cputc(c)
-    // [535] cputc::c#0 = cputs::c#1
-    // [536] call cputc 
-    // [1109] phi from cputs::@2 to cputc [phi:cputs::@2->cputc]
-    // [1109] phi cputc::c#3 = cputc::c#0 [phi:cputs::@2->cputc#0] -- register_copy 
-    jsr cputc
-    jmp __b1
 }
   // printf_uchar
 // Print an unsigned char using a specific format
-// printf_uchar(byte zp($f) uvalue, byte zp($7f) format_radix)
+// printf_uchar(byte register(X) uvalue, byte register(Y) format_radix)
 printf_uchar: {
-    .label uvalue = $f
-    .label format_radix = $7f
     // printf_uchar::@1
     // printf_buffer.sign = format.sign_always?'+':0
-    // [538] *((byte*)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // [597] *((byte*)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
     // Handle any sign
     lda #0
     sta printf_buffer
     // uctoa(uvalue, printf_buffer.digits, format.radix)
-    // [539] uctoa::value#1 = printf_uchar::uvalue#4
-    // [540] uctoa::radix#0 = printf_uchar::format_radix#4
-    // [541] call uctoa 
+    // [598] uctoa::value#1 = printf_uchar::uvalue#5
+    // [599] uctoa::radix#0 = printf_uchar::format_radix#5
+    // [600] call uctoa 
     // Format number into buffer
     jsr uctoa
     // printf_uchar::@2
     // printf_number_buffer(printf_buffer, format)
-    // [542] printf_number_buffer::buffer_sign#1 = *((byte*)&printf_buffer) -- vbuz1=_deref_pbuc1 
+    // [601] printf_number_buffer::buffer_sign#2 = *((byte*)&printf_buffer) -- vbuaa=_deref_pbuc1 
     lda printf_buffer
-    sta.z printf_number_buffer.buffer_sign
-    // [543] call printf_number_buffer 
+    // [602] call printf_number_buffer 
   // Print using format
-    // [1171] phi from printf_uchar::@2 to printf_number_buffer [phi:printf_uchar::@2->printf_number_buffer]
-    // [1171] phi printf_number_buffer::format_upper_case#10 = 0 [phi:printf_uchar::@2->printf_number_buffer#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z printf_number_buffer.format_upper_case
-    // [1171] phi printf_number_buffer::buffer_sign#10 = printf_number_buffer::buffer_sign#1 [phi:printf_uchar::@2->printf_number_buffer#1] -- register_copy 
-    // [1171] phi printf_number_buffer::format_zero_padding#10 = 0 [phi:printf_uchar::@2->printf_number_buffer#2] -- vbuz1=vbuc1 
-    sta.z printf_number_buffer.format_zero_padding
-    // [1171] phi printf_number_buffer::format_justify_left#10 = 0 [phi:printf_uchar::@2->printf_number_buffer#3] -- vbuz1=vbuc1 
-    sta.z printf_number_buffer.format_justify_left
-    // [1171] phi printf_number_buffer::format_min_length#2 = 0 [phi:printf_uchar::@2->printf_number_buffer#4] -- vbuz1=vbuc1 
-    sta.z printf_number_buffer.format_min_length
+    // [1188] phi from printf_uchar::@2 to printf_number_buffer [phi:printf_uchar::@2->printf_number_buffer]
+    // [1188] phi printf_number_buffer::buffer_sign#10 = printf_number_buffer::buffer_sign#2 [phi:printf_uchar::@2->printf_number_buffer#0] -- register_copy 
     jsr printf_number_buffer
     // printf_uchar::@return
     // }
-    // [544] return 
+    // [603] return 
     rts
 }
   // cx16_rom_bank
 // Configure the bank of a banked rom on the X16.
-// cx16_rom_bank(byte zp($40) bank)
+// cx16_rom_bank(byte register(A) bank)
 cx16_rom_bank: {
-    .label bank = $40
     // VIA1->PORT_B = bank
-    // [546] *((byte*)VIA1) = cx16_rom_bank::bank#2 -- _deref_pbuc1=vbuz1 
-    lda.z bank
+    // [605] *((byte*)VIA1) = cx16_rom_bank::bank#2 -- _deref_pbuc1=vbuaa 
     sta VIA1
     // cx16_rom_bank::@return
     // }
-    // [547] return 
+    // [606] return 
     rts
 }
   // vera_heap_segment_init
 // vera heap
-// vera_heap_segment_init(byte zp($b9) segmentid, dword zp($26) base, dword zp($ca) size)
+// vera_heap_segment_init(byte register(X) segmentid, dword zp($c4) base, dword zp($24) size)
 vera_heap_segment_init: {
-    .label __1 = $ca
-    .label __2 = $b9
-    .label segment = $b1
-    .label return = $6b
-    .label base = $26
-    .label segmentid = $b9
-    .label size = $ca
-    .label __17 = $7f
-    .label __18 = $7f
-    .label __19 = $7f
-    .label __20 = $b9
+    .label __1 = $24
+    .label segment = $cc
+    .label return = $5f
+    .label base = $c4
+    .label size = $24
     // &vera_heap_segments[segmentid]
-    // [549] vera_heap_segment_init::$17 = vera_heap_segment_init::segmentid#4 << 2 -- vbuz1=vbuz2_rol_2 
-    lda.z segmentid
+    // [608] vera_heap_segment_init::$17 = vera_heap_segment_init::segmentid#4 << 2 -- vbuaa=vbuxx_rol_2 
+    txa
     asl
     asl
-    sta.z __17
-    // [550] vera_heap_segment_init::$18 = vera_heap_segment_init::$17 + vera_heap_segment_init::segmentid#4 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __18
+    // [609] vera_heap_segment_init::$18 = vera_heap_segment_init::$17 + vera_heap_segment_init::segmentid#4 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z segmentid
-    sta.z __18
-    // [551] vera_heap_segment_init::$19 = vera_heap_segment_init::$18 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __19
-    // [552] vera_heap_segment_init::$20 = vera_heap_segment_init::$19 + vera_heap_segment_init::segmentid#4 -- vbuz1=vbuz2_plus_vbuz1 
-    lda.z __20
+    adc.z $ff
+    // [610] vera_heap_segment_init::$19 = vera_heap_segment_init::$18 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [611] vera_heap_segment_init::$20 = vera_heap_segment_init::$19 + vera_heap_segment_init::segmentid#4 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z __19
-    sta.z __20
-    // [553] vera_heap_segment_init::$2 = vera_heap_segment_init::$20 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __2
+    adc.z $ff
+    // [612] vera_heap_segment_init::$2 = vera_heap_segment_init::$20 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
     // segment = &vera_heap_segments[segmentid]
-    // [554] vera_heap_segment_init::segment#0 = vera_heap_segments + vera_heap_segment_init::$2 -- pssz1=pssc1_plus_vbuz2 
-    lda.z __2
+    // [613] vera_heap_segment_init::segment#0 = vera_heap_segments + vera_heap_segment_init::$2 -- pssz1=pssc1_plus_vbuaa 
     clc
     adc #<vera_heap_segments
     sta.z segment
@@ -3678,7 +3922,7 @@ vera_heap_segment_init: {
     adc #0
     sta.z segment+1
     // segment->size = size
-    // [555] *((dword*)vera_heap_segment_init::segment#0) = vera_heap_segment_init::size#4 -- _deref_pduz1=vduz2 
+    // [614] *((dword*)vera_heap_segment_init::segment#0) = vera_heap_segment_init::size#4 -- _deref_pduz1=vduz2 
     ldy #0
     lda.z size
     sta (segment),y
@@ -3692,7 +3936,7 @@ vera_heap_segment_init: {
     lda.z size+3
     sta (segment),y
     // segment->base_address = base
-    // [556] ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_BASE_ADDRESS] = vera_heap_segment_init::base#4 -- pduz1_derefidx_vbuc1=vduz2 
+    // [615] ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_BASE_ADDRESS] = vera_heap_segment_init::base#4 -- pduz1_derefidx_vbuc1=vduz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_BASE_ADDRESS
     lda.z base
     sta (segment),y
@@ -3706,7 +3950,7 @@ vera_heap_segment_init: {
     lda.z base+3
     sta (segment),y
     // base+size
-    // [557] vera_heap_segment_init::$1 = vera_heap_segment_init::base#4 + vera_heap_segment_init::size#4 -- vduz1=vduz2_plus_vduz1 
+    // [616] vera_heap_segment_init::$1 = vera_heap_segment_init::base#4 + vera_heap_segment_init::size#4 -- vduz1=vduz2_plus_vduz1 
     lda.z __1
     clc
     adc.z base
@@ -3721,7 +3965,7 @@ vera_heap_segment_init: {
     adc.z base+3
     sta.z __1+3
     // segment->ceil_address = base+size
-    // [558] ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS] = vera_heap_segment_init::$1 -- pduz1_derefidx_vbuc1=vduz2 
+    // [617] ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS] = vera_heap_segment_init::$1 -- pduz1_derefidx_vbuc1=vduz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS
     lda.z __1
     sta (segment),y
@@ -3735,7 +3979,7 @@ vera_heap_segment_init: {
     lda.z __1+3
     sta (segment),y
     // segment->next_address = base
-    // [559] ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS] = vera_heap_segment_init::base#4 -- pduz1_derefidx_vbuc1=vduz2 
+    // [618] ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS] = vera_heap_segment_init::base#4 -- pduz1_derefidx_vbuc1=vduz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS
     lda.z base
     sta (segment),y
@@ -3749,20 +3993,20 @@ vera_heap_segment_init: {
     lda.z base+3
     sta (segment),y
     // segment->head_block = 0x0000
-    // [560] ((struct vera_heap**)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK] = (struct vera_heap*) 0 -- qssz1_derefidx_vbuc1=pssc2 
+    // [619] ((struct vera_heap**)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK] = (struct vera_heap*) 0 -- qssz1_derefidx_vbuc1=pssc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK
     lda #<0
     sta (segment),y
     iny
     sta (segment),y
     // segment->tail_block = 0x0000
-    // [561] ((struct vera_heap**)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] = (struct vera_heap*) 0 -- qssz1_derefidx_vbuc1=pssc2 
+    // [620] ((struct vera_heap**)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] = (struct vera_heap*) 0 -- qssz1_derefidx_vbuc1=pssc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK
     sta (segment),y
     iny
     sta (segment),y
     // return segment->base_address;
-    // [562] vera_heap_segment_init::return#0 = ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_BASE_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
+    // [621] vera_heap_segment_init::return#0 = ((dword*)vera_heap_segment_init::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_BASE_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_BASE_ADDRESS
     lda (segment),y
     sta.z return
@@ -3777,30 +4021,23 @@ vera_heap_segment_init: {
     sta.z return+3
     // vera_heap_segment_init::@return
     // }
-    // [563] return 
+    // [622] return 
     rts
 }
   // vera_heap_malloc
-// vera_heap_malloc(byte zp($7f) segmentid, word zp($3a) size)
+// vera_heap_malloc(byte register(X) segmentid, word zp($3d) size)
 vera_heap_malloc: {
-    .label size = $3a
-    .label address = $67
-    .label __8 = $22
-    .label __24 = $7f
-    .label segment = $75
-    .label cx16_ram_bank_current = $aa
-    .label size_test = $c8
-    .label return = $10
-    .label block = $b1
-    .label block_1 = $73
-    .label tail_block = $6f
-    .label segmentid = $7f
-    .label __49 = $a9
-    .label __50 = $a9
-    .label __51 = $a9
-    .label __52 = $7f
+    .label size = $3d
+    .label address = $5b
+    .label __8 = $24
+    .label segment = $74
+    .label size_test = $72
+    .label return = $e
+    .label block = $72
+    .label block_1 = $67
+    .label tail_block = $65
     // address
-    // [565] vera_heap_malloc::address = 0 -- vduz1=vduc1 
+    // [624] vera_heap_malloc::address = 0 -- vduz1=vduc1 
     lda #<0
     sta.z address
     sta.z address+1
@@ -3809,28 +4046,24 @@ vera_heap_malloc: {
     lda #>0>>$10
     sta.z address+3
     // &(vera_heap_segments[segmentid])
-    // [566] vera_heap_malloc::$49 = vera_heap_malloc::segmentid#4 << 2 -- vbuz1=vbuz2_rol_2 
-    lda.z segmentid
+    // [625] vera_heap_malloc::$49 = vera_heap_malloc::segmentid#4 << 2 -- vbuaa=vbuxx_rol_2 
+    txa
     asl
     asl
-    sta.z __49
-    // [567] vera_heap_malloc::$50 = vera_heap_malloc::$49 + vera_heap_malloc::segmentid#4 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __50
+    // [626] vera_heap_malloc::$50 = vera_heap_malloc::$49 + vera_heap_malloc::segmentid#4 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z segmentid
-    sta.z __50
-    // [568] vera_heap_malloc::$51 = vera_heap_malloc::$50 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __51
-    // [569] vera_heap_malloc::$52 = vera_heap_malloc::$51 + vera_heap_malloc::segmentid#4 -- vbuz1=vbuz2_plus_vbuz1 
-    lda.z __52
+    adc.z $ff
+    // [627] vera_heap_malloc::$51 = vera_heap_malloc::$50 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [628] vera_heap_malloc::$52 = vera_heap_malloc::$51 + vera_heap_malloc::segmentid#4 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z __51
-    sta.z __52
-    // [570] vera_heap_malloc::$24 = vera_heap_malloc::$52 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __24
+    adc.z $ff
+    // [629] vera_heap_malloc::$24 = vera_heap_malloc::$52 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
     // segment = &(vera_heap_segments[segmentid])
-    // [571] vera_heap_malloc::segment#0 = vera_heap_segments + vera_heap_malloc::$24 -- pssz1=pssc1_plus_vbuz2 
-    lda.z __24
+    // [630] vera_heap_malloc::segment#0 = vera_heap_segments + vera_heap_malloc::$24 -- pssz1=pssc1_plus_vbuaa 
     clc
     adc #<vera_heap_segments
     sta.z segment
@@ -3838,34 +4071,32 @@ vera_heap_malloc: {
     adc #0
     sta.z segment+1
     // cx16_ram_bank(vera_heap_ram_bank)
-    // [572] call cx16_ram_bank 
-    // [1069] phi from vera_heap_malloc to cx16_ram_bank [phi:vera_heap_malloc->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = vera_heap_ram_bank#0 [phi:vera_heap_malloc->cx16_ram_bank#0] -- vbuz1=vbuc1 
-    lda #vera_heap_ram_bank
-    sta.z cx16_ram_bank.bank
+    // [631] call cx16_ram_bank 
+    // [1249] phi from vera_heap_malloc to cx16_ram_bank [phi:vera_heap_malloc->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = vera_heap_ram_bank#0 [phi:vera_heap_malloc->cx16_ram_bank#0] -- vbuxx=vbuc1 
+    ldx #vera_heap_ram_bank
     jsr cx16_ram_bank
     // cx16_ram_bank(vera_heap_ram_bank)
-    // [573] cx16_ram_bank::return#14 = cx16_ram_bank::return#0
+    // [632] cx16_ram_bank::return#14 = cx16_ram_bank::return#0
     // vera_heap_malloc::@12
     // cx16_ram_bank_current = cx16_ram_bank(vera_heap_ram_bank)
-    // [574] vera_heap_malloc::cx16_ram_bank_current#0 = cx16_ram_bank::return#14 -- vbuz1=vbuz2 
-    lda.z cx16_ram_bank.return
-    sta.z cx16_ram_bank_current
+    // [633] vera_heap_malloc::cx16_ram_bank_current#0 = cx16_ram_bank::return#14 -- vbuxx=vbuaa 
+    tax
     // if (!size)
-    // [575] if(0!=vera_heap_malloc::size) goto vera_heap_malloc::@1 -- 0_neq_vwuz1_then_la1 
+    // [634] if(0!=vera_heap_malloc::size) goto vera_heap_malloc::@1 -- 0_neq_vwuz1_then_la1 
     lda.z size
     ora.z size+1
     bne __b1
     // vera_heap_malloc::@7
     // cx16_ram_bank(cx16_ram_bank_current)
-    // [576] cx16_ram_bank::bank#6 = vera_heap_malloc::cx16_ram_bank_current#0
-    // [577] call cx16_ram_bank 
-    // [1069] phi from vera_heap_malloc::@7 to cx16_ram_bank [phi:vera_heap_malloc::@7->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#6 [phi:vera_heap_malloc::@7->cx16_ram_bank#0] -- register_copy 
+    // [635] cx16_ram_bank::bank#6 = vera_heap_malloc::cx16_ram_bank_current#0
+    // [636] call cx16_ram_bank 
+    // [1249] phi from vera_heap_malloc::@7 to cx16_ram_bank [phi:vera_heap_malloc::@7->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#6 [phi:vera_heap_malloc::@7->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
-    // [578] phi from vera_heap_malloc::@10 vera_heap_malloc::@7 vera_heap_malloc::@8 to vera_heap_malloc::@return [phi:vera_heap_malloc::@10/vera_heap_malloc::@7/vera_heap_malloc::@8->vera_heap_malloc::@return]
+    // [637] phi from vera_heap_malloc::@10 vera_heap_malloc::@7 vera_heap_malloc::@8 to vera_heap_malloc::@return [phi:vera_heap_malloc::@10/vera_heap_malloc::@7/vera_heap_malloc::@8->vera_heap_malloc::@return]
   __b7:
-    // [578] phi vera_heap_malloc::return#1 = 0 [phi:vera_heap_malloc::@10/vera_heap_malloc::@7/vera_heap_malloc::@8->vera_heap_malloc::@return#0] -- vduz1=vbuc1 
+    // [637] phi vera_heap_malloc::return#1 = 0 [phi:vera_heap_malloc::@10/vera_heap_malloc::@7/vera_heap_malloc::@8->vera_heap_malloc::@return#0] -- vduz1=vbuc1 
     lda #0
     sta.z return
     sta.z return+1
@@ -3873,19 +4104,19 @@ vera_heap_malloc: {
     sta.z return+3
     // vera_heap_malloc::@return
     // }
-    // [579] return 
+    // [638] return 
     rts
     // vera_heap_malloc::@1
   __b1:
     // size_test = size
-    // [580] vera_heap_malloc::size_test#0 = vera_heap_malloc::size -- vwuz1=vwuz2 
+    // [639] vera_heap_malloc::size_test#0 = vera_heap_malloc::size -- vwuz1=vwuz2 
     // Validate if size is a multiple of 32!
     lda.z size
     sta.z size_test
     lda.z size+1
     sta.z size_test+1
     // size_test >>=5
-    // [581] vera_heap_malloc::size_test#1 = vera_heap_malloc::size_test#0 >> 5 -- vwuz1=vwuz1_ror_5 
+    // [640] vera_heap_malloc::size_test#1 = vera_heap_malloc::size_test#0 >> 5 -- vwuz1=vwuz1_ror_5 
     lsr.z size_test+1
     ror.z size_test
     lsr.z size_test+1
@@ -3897,7 +4128,7 @@ vera_heap_malloc: {
     lsr.z size_test+1
     ror.z size_test
     // size_test <<=5
-    // [582] vera_heap_malloc::size_test#2 = vera_heap_malloc::size_test#1 << 5 -- vwuz1=vwuz1_rol_5 
+    // [641] vera_heap_malloc::size_test#2 = vera_heap_malloc::size_test#1 << 5 -- vwuz1=vwuz1_rol_5 
     asl.z size_test
     rol.z size_test+1
     asl.z size_test
@@ -3909,7 +4140,7 @@ vera_heap_malloc: {
     asl.z size_test
     rol.z size_test+1
     // if (size!=size_test)
-    // [583] if(vera_heap_malloc::size==vera_heap_malloc::size_test#2) goto vera_heap_malloc::@2 -- vwuz1_eq_vwuz2_then_la1 
+    // [642] if(vera_heap_malloc::size==vera_heap_malloc::size_test#2) goto vera_heap_malloc::@2 -- vwuz1_eq_vwuz2_then_la1 
     lda.z size
     cmp.z size_test
     bne !+
@@ -3919,21 +4150,21 @@ vera_heap_malloc: {
   !:
     // vera_heap_malloc::@8
     // cx16_ram_bank(cx16_ram_bank_current)
-    // [584] cx16_ram_bank::bank#7 = vera_heap_malloc::cx16_ram_bank_current#0
-    // [585] call cx16_ram_bank 
-    // [1069] phi from vera_heap_malloc::@8 to cx16_ram_bank [phi:vera_heap_malloc::@8->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#7 [phi:vera_heap_malloc::@8->cx16_ram_bank#0] -- register_copy 
+    // [643] cx16_ram_bank::bank#7 = vera_heap_malloc::cx16_ram_bank_current#0
+    // [644] call cx16_ram_bank 
+    // [1249] phi from vera_heap_malloc::@8 to cx16_ram_bank [phi:vera_heap_malloc::@8->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#7 [phi:vera_heap_malloc::@8->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
     jmp __b7
     // vera_heap_malloc::@2
   __b2:
     // vera_heap_block_free_find(segment, size)
-    // [586] vera_heap_block_free_find::segment#0 = vera_heap_malloc::segment#0 -- pssz1=pssz2 
+    // [645] vera_heap_block_free_find::segment#0 = vera_heap_malloc::segment#0 -- pssz1=pssz2 
     lda.z segment
     sta.z vera_heap_block_free_find.segment
     lda.z segment+1
     sta.z vera_heap_block_free_find.segment+1
-    // [587] vera_heap_block_free_find::size#0 = vera_heap_malloc::size -- vduz1=vwuz2 
+    // [646] vera_heap_block_free_find::size#0 = vera_heap_malloc::size -- vduz1=vwuz2 
     lda.z size
     sta.z vera_heap_block_free_find.size
     lda.z size+1
@@ -3941,14 +4172,14 @@ vera_heap_malloc: {
     lda #0
     sta.z vera_heap_block_free_find.size+2
     sta.z vera_heap_block_free_find.size+3
-    // [588] call vera_heap_block_free_find 
+    // [647] call vera_heap_block_free_find 
     jsr vera_heap_block_free_find
-    // [589] vera_heap_block_free_find::return#3 = vera_heap_block_free_find::return#2
+    // [648] vera_heap_block_free_find::return#3 = vera_heap_block_free_find::return#2
     // vera_heap_malloc::@13
     // block = vera_heap_block_free_find(segment, size)
-    // [590] vera_heap_malloc::block#1 = vera_heap_block_free_find::return#3
+    // [649] vera_heap_malloc::block#1 = vera_heap_block_free_find::return#3
     // if (block)
-    // [591] if((struct vera_heap*)0==vera_heap_malloc::block#1) goto vera_heap_malloc::@3 -- pssc1_eq_pssz1_then_la1 
+    // [650] if((struct vera_heap*)0==vera_heap_malloc::block#1) goto vera_heap_malloc::@3 -- pssc1_eq_pssz1_then_la1 
     lda.z block
     cmp #<0
     bne !+
@@ -3958,43 +4189,43 @@ vera_heap_malloc: {
   !:
     // vera_heap_malloc::@9
     // vera_heap_block_empty_set(block, 0)
-    // [592] vera_heap_block_empty_set::block#0 = vera_heap_malloc::block#1 -- pssz1=pssz2 
+    // [651] vera_heap_block_empty_set::block#0 = vera_heap_malloc::block#1 -- pssz1=pssz2 
     lda.z block
     sta.z vera_heap_block_empty_set.block
     lda.z block+1
     sta.z vera_heap_block_empty_set.block+1
-    // [593] call vera_heap_block_empty_set 
-    // [1224] phi from vera_heap_malloc::@9 to vera_heap_block_empty_set [phi:vera_heap_malloc::@9->vera_heap_block_empty_set]
-    // [1224] phi vera_heap_block_empty_set::block#2 = vera_heap_block_empty_set::block#0 [phi:vera_heap_malloc::@9->vera_heap_block_empty_set#0] -- register_copy 
+    // [652] call vera_heap_block_empty_set 
+    // [1333] phi from vera_heap_malloc::@9 to vera_heap_block_empty_set [phi:vera_heap_malloc::@9->vera_heap_block_empty_set]
+    // [1333] phi vera_heap_block_empty_set::block#2 = vera_heap_block_empty_set::block#0 [phi:vera_heap_malloc::@9->vera_heap_block_empty_set#0] -- register_copy 
     jsr vera_heap_block_empty_set
     // vera_heap_malloc::@15
     // cx16_ram_bank(cx16_ram_bank_current)
-    // [594] cx16_ram_bank::bank#8 = vera_heap_malloc::cx16_ram_bank_current#0
-    // [595] call cx16_ram_bank 
-    // [1069] phi from vera_heap_malloc::@15 to cx16_ram_bank [phi:vera_heap_malloc::@15->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#8 [phi:vera_heap_malloc::@15->cx16_ram_bank#0] -- register_copy 
+    // [653] cx16_ram_bank::bank#8 = vera_heap_malloc::cx16_ram_bank_current#0
+    // [654] call cx16_ram_bank 
+    // [1249] phi from vera_heap_malloc::@15 to cx16_ram_bank [phi:vera_heap_malloc::@15->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#8 [phi:vera_heap_malloc::@15->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
     // vera_heap_malloc::@16
     // vera_heap_block_address_get(block)
-    // [596] vera_heap_block_address_get::block#0 = vera_heap_malloc::block#1
-    // [597] call vera_heap_block_address_get 
+    // [655] vera_heap_block_address_get::block#0 = vera_heap_malloc::block#1
+    // [656] call vera_heap_block_address_get 
     jsr vera_heap_block_address_get
-    // [598] vera_heap_block_address_get::return#2 = vera_heap_block_address_get::return#0
+    // [657] vera_heap_block_address_get::return#2 = vera_heap_block_address_get::return#0
     // vera_heap_malloc::@17
     // return (vera_heap_block_address_get(block));
-    // [599] vera_heap_malloc::return#3 = vera_heap_block_address_get::return#2
-    // [578] phi from vera_heap_malloc::@17 vera_heap_malloc::@21 to vera_heap_malloc::@return [phi:vera_heap_malloc::@17/vera_heap_malloc::@21->vera_heap_malloc::@return]
-    // [578] phi vera_heap_malloc::return#1 = vera_heap_malloc::return#3 [phi:vera_heap_malloc::@17/vera_heap_malloc::@21->vera_heap_malloc::@return#0] -- register_copy 
+    // [658] vera_heap_malloc::return#3 = vera_heap_block_address_get::return#2
+    // [637] phi from vera_heap_malloc::@17 vera_heap_malloc::@21 to vera_heap_malloc::@return [phi:vera_heap_malloc::@17/vera_heap_malloc::@21->vera_heap_malloc::@return]
+    // [637] phi vera_heap_malloc::return#1 = vera_heap_malloc::return#3 [phi:vera_heap_malloc::@17/vera_heap_malloc::@21->vera_heap_malloc::@return#0] -- register_copy 
     rts
     // vera_heap_malloc::@3
   __b3:
     // vera_heap_address(segment, size)
-    // [600] vera_heap_address::segment#0 = vera_heap_malloc::segment#0 -- pssz1=pssz2 
+    // [659] vera_heap_address::segment#0 = vera_heap_malloc::segment#0 -- pssz1=pssz2 
     lda.z segment
     sta.z vera_heap_address.segment
     lda.z segment+1
     sta.z vera_heap_address.segment+1
-    // [601] vera_heap_address::size#0 = vera_heap_malloc::size -- vduz1=vwuz2 
+    // [660] vera_heap_address::size#0 = vera_heap_malloc::size -- vduz1=vwuz2 
     lda.z size
     sta.z vera_heap_address.size
     lda.z size+1
@@ -4002,13 +4233,13 @@ vera_heap_malloc: {
     lda #0
     sta.z vera_heap_address.size+2
     sta.z vera_heap_address.size+3
-    // [602] call vera_heap_address 
+    // [661] call vera_heap_address 
     jsr vera_heap_address
-    // [603] vera_heap_address::return#3 = vera_heap_address::return#2
+    // [662] vera_heap_address::return#3 = vera_heap_address::return#2
     // vera_heap_malloc::@14
-    // [604] vera_heap_malloc::$8 = vera_heap_address::return#3
+    // [663] vera_heap_malloc::$8 = vera_heap_address::return#3
     // address = vera_heap_address(segment, size)
-    // [605] vera_heap_malloc::address = vera_heap_malloc::$8 -- vduz1=vduz2 
+    // [664] vera_heap_malloc::address = vera_heap_malloc::$8 -- vduz1=vduz2 
     // There is no free block, so we need to allocate a new memory block in vera.
     lda.z __8
     sta.z address
@@ -4019,7 +4250,7 @@ vera_heap_malloc: {
     lda.z __8+3
     sta.z address+3
     // if (address == 0)
-    // [606] if(vera_heap_malloc::address!=0) goto vera_heap_malloc::@4 -- vduz1_neq_0_then_la1 
+    // [665] if(vera_heap_malloc::address!=0) goto vera_heap_malloc::@4 -- vduz1_neq_0_then_la1 
     lda.z address
     ora.z address+1
     bne __b4
@@ -4029,16 +4260,16 @@ vera_heap_malloc: {
     bne __b4
     // vera_heap_malloc::@10
     // cx16_ram_bank(cx16_ram_bank_current)
-    // [607] cx16_ram_bank::bank#9 = vera_heap_malloc::cx16_ram_bank_current#0
-    // [608] call cx16_ram_bank 
-    // [1069] phi from vera_heap_malloc::@10 to cx16_ram_bank [phi:vera_heap_malloc::@10->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#9 [phi:vera_heap_malloc::@10->cx16_ram_bank#0] -- register_copy 
+    // [666] cx16_ram_bank::bank#9 = vera_heap_malloc::cx16_ram_bank_current#0
+    // [667] call cx16_ram_bank 
+    // [1249] phi from vera_heap_malloc::@10 to cx16_ram_bank [phi:vera_heap_malloc::@10->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#9 [phi:vera_heap_malloc::@10->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
     jmp __b7
     // vera_heap_malloc::@4
   __b4:
     // if (segment->head_block==0x0000)
-    // [609] if(((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK]==0) goto vera_heap_malloc::@5 -- qssz1_derefidx_vbuc1_eq_0_then_la1 
+    // [668] if(((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK]==0) goto vera_heap_malloc::@5 -- qssz1_derefidx_vbuc1_eq_0_then_la1 
     //struct vera_heap *head_block = segment->head_block;
     // If the first block ever, en setup the head and start from A000.
     ldy #<OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK
@@ -4050,7 +4281,7 @@ vera_heap_malloc: {
   !:
     // vera_heap_malloc::@11
     // block = segment->tail_block + sizeof(struct vera_heap)
-    // [610] vera_heap_malloc::block#3 = ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] + SIZEOF_STRUCT_VERA_HEAP*SIZEOF_STRUCT_VERA_HEAP -- pssz1=qssz2_derefidx_vbuc1_plus_vbuc2 
+    // [669] vera_heap_malloc::block#3 = ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] + SIZEOF_STRUCT_VERA_HEAP*SIZEOF_STRUCT_VERA_HEAP -- pssz1=qssz2_derefidx_vbuc1_plus_vbuc2 
     lda #OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK
     tay
     clc
@@ -4062,7 +4293,7 @@ vera_heap_malloc: {
     adc #>SIZEOF_STRUCT_VERA_HEAP*SIZEOF_STRUCT_VERA_HEAP
     sta.z block_1+1
     // tail_block = segment->tail_block
-    // [611] vera_heap_malloc::tail_block#0 = ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] -- pssz1=qssz2_derefidx_vbuc1 
+    // [670] vera_heap_malloc::tail_block#0 = ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] -- pssz1=qssz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK
     lda (segment),y
     sta.z tail_block
@@ -4070,7 +4301,7 @@ vera_heap_malloc: {
     lda (segment),y
     sta.z tail_block+1
     // block->prev = tail_block
-    // [612] ((struct vera_heap**)vera_heap_malloc::block#3)[OFFSET_STRUCT_VERA_HEAP_PREV] = vera_heap_malloc::tail_block#0 -- qssz1_derefidx_vbuc1=pssz2 
+    // [671] ((struct vera_heap**)vera_heap_malloc::block#3)[OFFSET_STRUCT_VERA_HEAP_PREV] = vera_heap_malloc::tail_block#0 -- qssz1_derefidx_vbuc1=pssz2 
     //TODO: error or fragment
     ldy #OFFSET_STRUCT_VERA_HEAP_PREV
     lda.z tail_block
@@ -4079,7 +4310,7 @@ vera_heap_malloc: {
     lda.z tail_block+1
     sta (block_1),y
     // tail_block->next = block
-    // [613] ((struct vera_heap**)vera_heap_malloc::tail_block#0)[OFFSET_STRUCT_VERA_HEAP_NEXT] = vera_heap_malloc::block#3 -- qssz1_derefidx_vbuc1=pssz2 
+    // [672] ((struct vera_heap**)vera_heap_malloc::tail_block#0)[OFFSET_STRUCT_VERA_HEAP_NEXT] = vera_heap_malloc::block#3 -- qssz1_derefidx_vbuc1=pssz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_NEXT
     lda.z block_1
     sta (tail_block),y
@@ -4087,7 +4318,7 @@ vera_heap_malloc: {
     lda.z block_1+1
     sta (tail_block),y
     // segment->tail_block = block
-    // [614] ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] = vera_heap_malloc::block#3 -- qssz1_derefidx_vbuc1=pssz2 
+    // [673] ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] = vera_heap_malloc::block#3 -- qssz1_derefidx_vbuc1=pssz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK
     lda.z block_1
     sta (segment),y
@@ -4095,50 +4326,50 @@ vera_heap_malloc: {
     lda.z block_1+1
     sta (segment),y
     // block->next = 0x0000
-    // [615] ((struct vera_heap**)vera_heap_malloc::block#3)[OFFSET_STRUCT_VERA_HEAP_NEXT] = (struct vera_heap*) 0 -- qssz1_derefidx_vbuc1=pssc2 
+    // [674] ((struct vera_heap**)vera_heap_malloc::block#3)[OFFSET_STRUCT_VERA_HEAP_NEXT] = (struct vera_heap*) 0 -- qssz1_derefidx_vbuc1=pssc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_NEXT
     lda #<0
     sta (block_1),y
     iny
     sta (block_1),y
-    // [616] phi from vera_heap_malloc::@11 to vera_heap_malloc::@6 [phi:vera_heap_malloc::@11->vera_heap_malloc::@6]
-    // [616] phi vera_heap_malloc::block#6 = vera_heap_malloc::block#3 [phi:vera_heap_malloc::@11->vera_heap_malloc::@6#0] -- register_copy 
+    // [675] phi from vera_heap_malloc::@11 to vera_heap_malloc::@6 [phi:vera_heap_malloc::@11->vera_heap_malloc::@6]
+    // [675] phi vera_heap_malloc::block#6 = vera_heap_malloc::block#3 [phi:vera_heap_malloc::@11->vera_heap_malloc::@6#0] -- register_copy 
     // vera_heap_malloc::@6
   __b6:
     // vera_heap_block_address_set(block, &address)
-    // [617] vera_heap_block_address_set::block#0 = vera_heap_malloc::block#6 -- pssz1=pssz2 
+    // [676] vera_heap_block_address_set::block#0 = vera_heap_malloc::block#6 -- pssz1=pssz2 
     lda.z block_1
     sta.z vera_heap_block_address_set.block
     lda.z block_1+1
     sta.z vera_heap_block_address_set.block+1
-    // [618] call vera_heap_block_address_set 
+    // [677] call vera_heap_block_address_set 
     jsr vera_heap_block_address_set
     // vera_heap_malloc::@18
     // vera_heap_block_size_set(block, &size)
-    // [619] vera_heap_block_size_set::block#0 = vera_heap_malloc::block#6 -- pssz1=pssz2 
+    // [678] vera_heap_block_size_set::block#0 = vera_heap_malloc::block#6 -- pssz1=pssz2 
     lda.z block_1
     sta.z vera_heap_block_size_set.block
     lda.z block_1+1
     sta.z vera_heap_block_size_set.block+1
-    // [620] call vera_heap_block_size_set 
+    // [679] call vera_heap_block_size_set 
     jsr vera_heap_block_size_set
     // vera_heap_malloc::@19
     // vera_heap_block_empty_set(block, 0)
-    // [621] vera_heap_block_empty_set::block#1 = vera_heap_malloc::block#6
-    // [622] call vera_heap_block_empty_set 
-    // [1224] phi from vera_heap_malloc::@19 to vera_heap_block_empty_set [phi:vera_heap_malloc::@19->vera_heap_block_empty_set]
-    // [1224] phi vera_heap_block_empty_set::block#2 = vera_heap_block_empty_set::block#1 [phi:vera_heap_malloc::@19->vera_heap_block_empty_set#0] -- register_copy 
+    // [680] vera_heap_block_empty_set::block#1 = vera_heap_malloc::block#6
+    // [681] call vera_heap_block_empty_set 
+    // [1333] phi from vera_heap_malloc::@19 to vera_heap_block_empty_set [phi:vera_heap_malloc::@19->vera_heap_block_empty_set]
+    // [1333] phi vera_heap_block_empty_set::block#2 = vera_heap_block_empty_set::block#1 [phi:vera_heap_malloc::@19->vera_heap_block_empty_set#0] -- register_copy 
     jsr vera_heap_block_empty_set
     // vera_heap_malloc::@20
     // cx16_ram_bank(cx16_ram_bank_current)
-    // [623] cx16_ram_bank::bank#10 = vera_heap_malloc::cx16_ram_bank_current#0
-    // [624] call cx16_ram_bank 
-    // [1069] phi from vera_heap_malloc::@20 to cx16_ram_bank [phi:vera_heap_malloc::@20->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#10 [phi:vera_heap_malloc::@20->cx16_ram_bank#0] -- register_copy 
+    // [682] cx16_ram_bank::bank#10 = vera_heap_malloc::cx16_ram_bank_current#0
+    // [683] call cx16_ram_bank 
+    // [1249] phi from vera_heap_malloc::@20 to cx16_ram_bank [phi:vera_heap_malloc::@20->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#10 [phi:vera_heap_malloc::@20->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
     // vera_heap_malloc::@21
     // return address;
-    // [625] vera_heap_malloc::return#5 = vera_heap_malloc::address -- vduz1=vduz2 
+    // [684] vera_heap_malloc::return#5 = vera_heap_malloc::address -- vduz1=vduz2 
     lda.z address
     sta.z return
     lda.z address+1
@@ -4151,7 +4382,7 @@ vera_heap_malloc: {
     // vera_heap_malloc::@5
   __b5:
     // segment->head_block = 0xA000
-    // [626] ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK] = (struct vera_heap*) 40960 -- qssz1_derefidx_vbuc1=pssc2 
+    // [685] ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK] = (struct vera_heap*) 40960 -- qssz1_derefidx_vbuc1=pssc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK
     lda #<$a000
     sta (segment),y
@@ -4159,7 +4390,7 @@ vera_heap_malloc: {
     lda #>$a000
     sta (segment),y
     // segment->tail_block = 0xA000
-    // [627] ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] = (struct vera_heap*) 40960 -- qssz1_derefidx_vbuc1=pssc2 
+    // [686] ((struct vera_heap**)vera_heap_malloc::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK] = (struct vera_heap*) 40960 -- qssz1_derefidx_vbuc1=pssc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_TAIL_BLOCK
     lda #<$a000
     sta (segment),y
@@ -4167,122 +4398,21 @@ vera_heap_malloc: {
     lda #>$a000
     sta (segment),y
     // block->next = 0x0000
-    // [628] *((struct vera_heap**)(struct vera_heap*) 40960+OFFSET_STRUCT_VERA_HEAP_NEXT) = (struct vera_heap*) 0 -- _deref_qssc1=pssc2 
+    // [687] *((struct vera_heap**)(struct vera_heap*) 40960+OFFSET_STRUCT_VERA_HEAP_NEXT) = (struct vera_heap*) 0 -- _deref_qssc1=pssc2 
     lda #<0
     sta $a000+OFFSET_STRUCT_VERA_HEAP_NEXT
     sta $a000+OFFSET_STRUCT_VERA_HEAP_NEXT+1
     // block->prev = 0x0000
-    // [629] *((struct vera_heap**)(struct vera_heap*) 40960+OFFSET_STRUCT_VERA_HEAP_PREV) = (struct vera_heap*) 0 -- _deref_qssc1=pssc2 
+    // [688] *((struct vera_heap**)(struct vera_heap*) 40960+OFFSET_STRUCT_VERA_HEAP_PREV) = (struct vera_heap*) 0 -- _deref_qssc1=pssc2 
     sta $a000+OFFSET_STRUCT_VERA_HEAP_PREV
     sta $a000+OFFSET_STRUCT_VERA_HEAP_PREV+1
-    // [616] phi from vera_heap_malloc::@5 to vera_heap_malloc::@6 [phi:vera_heap_malloc::@5->vera_heap_malloc::@6]
-    // [616] phi vera_heap_malloc::block#6 = (struct vera_heap*) 40960 [phi:vera_heap_malloc::@5->vera_heap_malloc::@6#0] -- pssz1=pssc1 
+    // [675] phi from vera_heap_malloc::@5 to vera_heap_malloc::@6 [phi:vera_heap_malloc::@5->vera_heap_malloc::@6]
+    // [675] phi vera_heap_malloc::block#6 = (struct vera_heap*) 40960 [phi:vera_heap_malloc::@5->vera_heap_malloc::@6#0] -- pssz1=pssc1 
     lda #<$a000
     sta.z block_1
     lda #>$a000
     sta.z block_1+1
     jmp __b6
-}
-  // vera_cpy_vram_vram
-// Copy block of memory (from VRAM to VRAM)
-// Copies the values from the location pointed by src to the location pointed by dest.
-// The method uses the VERA access ports 0 and 1 to copy data from and to in VRAM.
-// - vdest: pointer to the location to copy to. Note that the address is a dword value!
-// - vsrc: pointer to the location to copy from. Note that the address is a dword value!
-// - num: The number of bytes to copy
-vera_cpy_vram_vram: {
-    .label i = $ca
-    // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [630] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
-    // Select DATA0
-    lda #VERA_ADDRSEL^$ff
-    and VERA_CTRL
-    sta VERA_CTRL
-    // *VERA_ADDRX_L = <(<vsrc)
-    // [631] *VERA_ADDRX_L = 0 -- _deref_pbuc1=vbuc2 
-    // Set address
-    lda #0
-    sta VERA_ADDRX_L
-    // *VERA_ADDRX_M = >(<vsrc)
-    // [632] *VERA_ADDRX_M = ><VERA_PETSCII_TILE -- _deref_pbuc1=vbuc2 
-    lda #>VERA_PETSCII_TILE&$ffff
-    sta VERA_ADDRX_M
-    // *VERA_ADDRX_H = VERA_INC_1 | <(>vsrc)
-    // [633] *VERA_ADDRX_H = VERA_INC_1 -- _deref_pbuc1=vbuc2 
-    lda #VERA_INC_1
-    sta VERA_ADDRX_H
-    // *VERA_CTRL |= VERA_ADDRSEL
-    // [634] *VERA_CTRL = *VERA_CTRL | VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
-    // Select DATA1
-    lda #VERA_ADDRSEL
-    ora VERA_CTRL
-    sta VERA_CTRL
-    // *VERA_ADDRX_L = <(<vdest)
-    // [635] *VERA_ADDRX_L = 0 -- _deref_pbuc1=vbuc2 
-    // Set address
-    lda #0
-    sta VERA_ADDRX_L
-    // *VERA_ADDRX_M = >(<vdest)
-    // [636] *VERA_ADDRX_M = ><VRAM_PETSCII_TILE -- _deref_pbuc1=vbuc2 
-    lda #>VRAM_PETSCII_TILE&$ffff
-    sta VERA_ADDRX_M
-    // *VERA_ADDRX_H = VERA_INC_1 | <(>vdest)
-    // [637] *VERA_ADDRX_H = VERA_INC_1|<>VRAM_PETSCII_TILE -- _deref_pbuc1=vbuc2 
-    lda #VERA_INC_1|(<(VRAM_PETSCII_TILE>>$10))
-    sta VERA_ADDRX_H
-    // [638] phi from vera_cpy_vram_vram to vera_cpy_vram_vram::@1 [phi:vera_cpy_vram_vram->vera_cpy_vram_vram::@1]
-    // [638] phi vera_cpy_vram_vram::i#2 = 0 [phi:vera_cpy_vram_vram->vera_cpy_vram_vram::@1#0] -- vduz1=vduc1 
-    lda #<0
-    sta.z i
-    sta.z i+1
-    lda #<0>>$10
-    sta.z i+2
-    lda #>0>>$10
-    sta.z i+3
-  // Transfer the data
-    // vera_cpy_vram_vram::@1
-  __b1:
-    // for(dword i=0; i<num; i++)
-    // [639] if(vera_cpy_vram_vram::i#2<VERA_PETSCII_TILE_SIZE) goto vera_cpy_vram_vram::@2 -- vduz1_lt_vduc1_then_la1 
-    lda.z i+3
-    cmp #>VERA_PETSCII_TILE_SIZE>>$10
-    bcc __b2
-    bne !+
-    lda.z i+2
-    cmp #<VERA_PETSCII_TILE_SIZE>>$10
-    bcc __b2
-    bne !+
-    lda.z i+1
-    cmp #>VERA_PETSCII_TILE_SIZE
-    bcc __b2
-    bne !+
-    lda.z i
-    cmp #<VERA_PETSCII_TILE_SIZE
-    bcc __b2
-  !:
-    // vera_cpy_vram_vram::@return
-    // }
-    // [640] return 
-    rts
-    // vera_cpy_vram_vram::@2
-  __b2:
-    // *VERA_DATA1 = *VERA_DATA0
-    // [641] *VERA_DATA1 = *VERA_DATA0 -- _deref_pbuc1=_deref_pbuc2 
-    lda VERA_DATA0
-    sta VERA_DATA1
-    // for(dword i=0; i<num; i++)
-    // [642] vera_cpy_vram_vram::i#1 = ++ vera_cpy_vram_vram::i#2 -- vduz1=_inc_vduz1 
-    inc.z i
-    bne !+
-    inc.z i+1
-    bne !+
-    inc.z i+2
-    bne !+
-    inc.z i+3
-  !:
-    // [638] phi from vera_cpy_vram_vram::@2 to vera_cpy_vram_vram::@1 [phi:vera_cpy_vram_vram::@2->vera_cpy_vram_vram::@1]
-    // [638] phi vera_cpy_vram_vram::i#2 = vera_cpy_vram_vram::i#1 [phi:vera_cpy_vram_vram::@2->vera_cpy_vram_vram::@1#0] -- register_copy 
-    jmp __b1
 }
   // vera_layer_mode_tile
 // Set a vera layer in tile mode and configure the:
@@ -4302,93 +4432,75 @@ vera_cpy_vram_vram: {
 // - tilewidth: The width of a tile, which can be 8 or 16 pixels.
 // - tileheight: The height of a tile, which can be 8 or 16 pixels.
 // - color_depth: The color depth in bits per pixel (BPP), which can be 1, 2, 4 or 8.
-// vera_layer_mode_tile(byte zp($59) layer, dword zp($14) mapbase_address, dword zp($18) tilebase_address, word zp($5b) mapwidth, word zp($5d) mapheight, byte zp($5a) tilewidth, byte zp($5f) tileheight, byte zp($58) color_depth)
+// vera_layer_mode_tile(byte zp($12) layer, dword zp($13) mapbase_address, dword zp($17) tilebase_address, word zp($4f) mapwidth, word zp($51) mapheight, byte zp($1b) tilewidth, byte zp($1c) tileheight, byte register(X) color_depth)
 vera_layer_mode_tile: {
-    .label __1 = $5b
-    .label __2 = $5b
-    .label __4 = $5b
-    .label __7 = $5b
-    .label __8 = $5b
-    .label __10 = $5b
-    .label __13 = $58
-    .label __14 = $58
-    .label __15 = $58
-    .label __16 = $58
-    .label __19 = $71
-    .label __20 = $72
-    // config
-    .label config = $e
-    .label mapbase_address = $14
-    .label mapbase = $e
-    .label tilebase_address = $18
-    .label tilebase = $e
-    .label color_depth = $58
-    .label layer = $59
-    .label mapwidth = $5b
-    .label mapheight = $5d
-    .label tilewidth = $5a
-    .label tileheight = $5f
+    .label __1 = $4f
+    .label __2 = $4f
+    .label __4 = $4f
+    .label __7 = $4f
+    .label __8 = $4f
+    .label __10 = $4f
+    .label __19 = $63
+    .label __20 = $64
+    .label mapbase_address = $13
+    .label tilebase_address = $17
+    .label layer = $12
+    .label mapwidth = $4f
+    .label mapheight = $51
+    .label tilewidth = $1b
+    .label tileheight = $1c
     // case 1:
     //             config |= VERA_LAYER_COLOR_DEPTH_1BPP;
     //             break;
-    // [644] if(vera_layer_mode_tile::color_depth#3==1) goto vera_layer_mode_tile::@5 -- vbuz1_eq_vbuc1_then_la1 
-    lda #1
-    cmp.z color_depth
+    // [690] if(vera_layer_mode_tile::color_depth#3==1) goto vera_layer_mode_tile::@5 -- vbuxx_eq_vbuc1_then_la1 
+    cpx #1
     beq __b1
     // vera_layer_mode_tile::@1
     // case 2:
     //             config |= VERA_LAYER_COLOR_DEPTH_2BPP;
     //             break;
-    // [645] if(vera_layer_mode_tile::color_depth#3==2) goto vera_layer_mode_tile::@5 -- vbuz1_eq_vbuc1_then_la1 
-    lda #2
-    cmp.z color_depth
+    // [691] if(vera_layer_mode_tile::color_depth#3==2) goto vera_layer_mode_tile::@5 -- vbuxx_eq_vbuc1_then_la1 
+    cpx #2
     beq __b2
     // vera_layer_mode_tile::@2
     // case 4:
     //             config |= VERA_LAYER_COLOR_DEPTH_4BPP;
     //             break;
-    // [646] if(vera_layer_mode_tile::color_depth#3==4) goto vera_layer_mode_tile::@5 -- vbuz1_eq_vbuc1_then_la1 
-    lda #4
-    cmp.z color_depth
+    // [692] if(vera_layer_mode_tile::color_depth#3==4) goto vera_layer_mode_tile::@5 -- vbuxx_eq_vbuc1_then_la1 
+    cpx #4
     beq __b3
     // vera_layer_mode_tile::@3
     // case 8:
     //             config |= VERA_LAYER_COLOR_DEPTH_8BPP;
     //             break;
-    // [647] if(vera_layer_mode_tile::color_depth#3!=8) goto vera_layer_mode_tile::@5 -- vbuz1_neq_vbuc1_then_la1 
-    lda #8
-    cmp.z color_depth
+    // [693] if(vera_layer_mode_tile::color_depth#3!=8) goto vera_layer_mode_tile::@5 -- vbuxx_neq_vbuc1_then_la1 
+    cpx #8
     bne __b4
-    // [648] phi from vera_layer_mode_tile::@3 to vera_layer_mode_tile::@4 [phi:vera_layer_mode_tile::@3->vera_layer_mode_tile::@4]
+    // [694] phi from vera_layer_mode_tile::@3 to vera_layer_mode_tile::@4 [phi:vera_layer_mode_tile::@3->vera_layer_mode_tile::@4]
     // vera_layer_mode_tile::@4
-    // [649] phi from vera_layer_mode_tile::@4 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@4->vera_layer_mode_tile::@5]
-    // [649] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_8BPP [phi:vera_layer_mode_tile::@4->vera_layer_mode_tile::@5#0] -- vbuz1=vbuc1 
-    lda #VERA_LAYER_COLOR_DEPTH_8BPP
-    sta.z config
+    // [695] phi from vera_layer_mode_tile::@4 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@4->vera_layer_mode_tile::@5]
+    // [695] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_8BPP [phi:vera_layer_mode_tile::@4->vera_layer_mode_tile::@5#0] -- vbuxx=vbuc1 
+    ldx #VERA_LAYER_COLOR_DEPTH_8BPP
     jmp __b5
-    // [649] phi from vera_layer_mode_tile to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile->vera_layer_mode_tile::@5]
+    // [695] phi from vera_layer_mode_tile to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile->vera_layer_mode_tile::@5]
   __b1:
-    // [649] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_layer_mode_tile->vera_layer_mode_tile::@5#0] -- vbuz1=vbuc1 
-    lda #VERA_LAYER_COLOR_DEPTH_1BPP
-    sta.z config
+    // [695] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_layer_mode_tile->vera_layer_mode_tile::@5#0] -- vbuxx=vbuc1 
+    ldx #VERA_LAYER_COLOR_DEPTH_1BPP
     jmp __b5
-    // [649] phi from vera_layer_mode_tile::@1 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@1->vera_layer_mode_tile::@5]
+    // [695] phi from vera_layer_mode_tile::@1 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@1->vera_layer_mode_tile::@5]
   __b2:
-    // [649] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_2BPP [phi:vera_layer_mode_tile::@1->vera_layer_mode_tile::@5#0] -- vbuz1=vbuc1 
-    lda #VERA_LAYER_COLOR_DEPTH_2BPP
-    sta.z config
+    // [695] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_2BPP [phi:vera_layer_mode_tile::@1->vera_layer_mode_tile::@5#0] -- vbuxx=vbuc1 
+    ldx #VERA_LAYER_COLOR_DEPTH_2BPP
     jmp __b5
-    // [649] phi from vera_layer_mode_tile::@2 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@2->vera_layer_mode_tile::@5]
+    // [695] phi from vera_layer_mode_tile::@2 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@2->vera_layer_mode_tile::@5]
   __b3:
-    // [649] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_4BPP [phi:vera_layer_mode_tile::@2->vera_layer_mode_tile::@5#0] -- vbuz1=vbuc1 
-    lda #VERA_LAYER_COLOR_DEPTH_4BPP
-    sta.z config
+    // [695] phi vera_layer_mode_tile::config#17 = VERA_LAYER_COLOR_DEPTH_4BPP [phi:vera_layer_mode_tile::@2->vera_layer_mode_tile::@5#0] -- vbuxx=vbuc1 
+    ldx #VERA_LAYER_COLOR_DEPTH_4BPP
     jmp __b5
-    // [649] phi from vera_layer_mode_tile::@3 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@3->vera_layer_mode_tile::@5]
+    // [695] phi from vera_layer_mode_tile::@3 to vera_layer_mode_tile::@5 [phi:vera_layer_mode_tile::@3->vera_layer_mode_tile::@5]
   __b4:
-    // [649] phi vera_layer_mode_tile::config#17 = 0 [phi:vera_layer_mode_tile::@3->vera_layer_mode_tile::@5#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z config
+    // [695] phi vera_layer_mode_tile::config#17 = 0 [phi:vera_layer_mode_tile::@3->vera_layer_mode_tile::@5#0] -- vbuxx=vbuc1 
+    ldx #0
     // vera_layer_mode_tile::@5
   __b5:
     // case 32:
@@ -4396,7 +4508,7 @@ vera_layer_mode_tile: {
     //             vera_layer_rowshift[layer] = 6;
     //             vera_layer_rowskip[layer] = 64;
     //             break;
-    // [650] if(vera_layer_mode_tile::mapwidth#10==$20) goto vera_layer_mode_tile::@9 -- vwuz1_eq_vbuc1_then_la1 
+    // [696] if(vera_layer_mode_tile::mapwidth#10==$20) goto vera_layer_mode_tile::@9 -- vwuz1_eq_vbuc1_then_la1 
     lda #$20
     cmp.z mapwidth
     bne !+
@@ -4410,7 +4522,7 @@ vera_layer_mode_tile: {
     //             vera_layer_rowshift[layer] = 7;
     //             vera_layer_rowskip[layer] = 128;
     //             break;
-    // [651] if(vera_layer_mode_tile::mapwidth#10==$40) goto vera_layer_mode_tile::@10 -- vwuz1_eq_vbuc1_then_la1 
+    // [697] if(vera_layer_mode_tile::mapwidth#10==$40) goto vera_layer_mode_tile::@10 -- vwuz1_eq_vbuc1_then_la1 
     lda #$40
     cmp.z mapwidth
     bne !+
@@ -4424,7 +4536,7 @@ vera_layer_mode_tile: {
     //             vera_layer_rowshift[layer] = 8;
     //             vera_layer_rowskip[layer] = 256;
     //             break;
-    // [652] if(vera_layer_mode_tile::mapwidth#10==$80) goto vera_layer_mode_tile::@11 -- vwuz1_eq_vbuc1_then_la1 
+    // [698] if(vera_layer_mode_tile::mapwidth#10==$80) goto vera_layer_mode_tile::@11 -- vwuz1_eq_vbuc1_then_la1 
     lda #$80
     cmp.z mapwidth
     bne !+
@@ -4438,7 +4550,7 @@ vera_layer_mode_tile: {
     //             vera_layer_rowshift[layer] = 9;
     //             vera_layer_rowskip[layer] = 512;
     //             break;
-    // [653] if(vera_layer_mode_tile::mapwidth#10!=$100) goto vera_layer_mode_tile::@13 -- vwuz1_neq_vwuc1_then_la1 
+    // [699] if(vera_layer_mode_tile::mapwidth#10!=$100) goto vera_layer_mode_tile::@13 -- vwuz1_neq_vwuc1_then_la1 
     lda.z mapwidth+1
     cmp #>$100
     bne __b13
@@ -4447,34 +4559,33 @@ vera_layer_mode_tile: {
     bne __b13
     // vera_layer_mode_tile::@12
     // config |= VERA_LAYER_WIDTH_256
-    // [654] vera_layer_mode_tile::config#8 = vera_layer_mode_tile::config#17 | VERA_LAYER_WIDTH_256 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_LAYER_WIDTH_256
-    ora.z config
-    sta.z config
+    // [700] vera_layer_mode_tile::config#8 = vera_layer_mode_tile::config#17 | VERA_LAYER_WIDTH_256 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_LAYER_WIDTH_256
+    tax
     // vera_layer_rowshift[layer] = 9
-    // [655] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 9 -- pbuc1_derefidx_vbuz1=vbuc2 
+    // [701] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 9 -- pbuc1_derefidx_vbuz1=vbuc2 
     lda #9
     ldy.z layer
     sta vera_layer_rowshift,y
     // vera_layer_rowskip[layer] = 512
-    // [656] vera_layer_mode_tile::$16 = vera_layer_mode_tile::layer#10 << 1 -- vbuz1=vbuz2_rol_1 
+    // [702] vera_layer_mode_tile::$16 = vera_layer_mode_tile::layer#10 << 1 -- vbuaa=vbuz1_rol_1 
     tya
     asl
-    sta.z __16
-    // [657] vera_layer_rowskip[vera_layer_mode_tile::$16] = $200 -- pwuc1_derefidx_vbuz1=vwuc2 
+    // [703] vera_layer_rowskip[vera_layer_mode_tile::$16] = $200 -- pwuc1_derefidx_vbuaa=vwuc2 
     tay
     lda #<$200
     sta vera_layer_rowskip,y
     lda #>$200
     sta vera_layer_rowskip+1,y
-    // [658] phi from vera_layer_mode_tile::@10 vera_layer_mode_tile::@11 vera_layer_mode_tile::@12 vera_layer_mode_tile::@8 vera_layer_mode_tile::@9 to vera_layer_mode_tile::@13 [phi:vera_layer_mode_tile::@10/vera_layer_mode_tile::@11/vera_layer_mode_tile::@12/vera_layer_mode_tile::@8/vera_layer_mode_tile::@9->vera_layer_mode_tile::@13]
-    // [658] phi vera_layer_mode_tile::config#21 = vera_layer_mode_tile::config#6 [phi:vera_layer_mode_tile::@10/vera_layer_mode_tile::@11/vera_layer_mode_tile::@12/vera_layer_mode_tile::@8/vera_layer_mode_tile::@9->vera_layer_mode_tile::@13#0] -- register_copy 
+    // [704] phi from vera_layer_mode_tile::@10 vera_layer_mode_tile::@11 vera_layer_mode_tile::@12 vera_layer_mode_tile::@8 vera_layer_mode_tile::@9 to vera_layer_mode_tile::@13 [phi:vera_layer_mode_tile::@10/vera_layer_mode_tile::@11/vera_layer_mode_tile::@12/vera_layer_mode_tile::@8/vera_layer_mode_tile::@9->vera_layer_mode_tile::@13]
+    // [704] phi vera_layer_mode_tile::config#21 = vera_layer_mode_tile::config#6 [phi:vera_layer_mode_tile::@10/vera_layer_mode_tile::@11/vera_layer_mode_tile::@12/vera_layer_mode_tile::@8/vera_layer_mode_tile::@9->vera_layer_mode_tile::@13#0] -- register_copy 
     // vera_layer_mode_tile::@13
   __b13:
     // case 32:
     //             config |= VERA_LAYER_HEIGHT_32;
     //             break;
-    // [659] if(vera_layer_mode_tile::mapheight#10==$20) goto vera_layer_mode_tile::@20 -- vwuz1_eq_vbuc1_then_la1 
+    // [705] if(vera_layer_mode_tile::mapheight#10==$20) goto vera_layer_mode_tile::@20 -- vwuz1_eq_vbuc1_then_la1 
     lda #$20
     cmp.z mapheight
     bne !+
@@ -4486,7 +4597,7 @@ vera_layer_mode_tile: {
     // case 64:
     //             config |= VERA_LAYER_HEIGHT_64;
     //             break;
-    // [660] if(vera_layer_mode_tile::mapheight#10==$40) goto vera_layer_mode_tile::@17 -- vwuz1_eq_vbuc1_then_la1 
+    // [706] if(vera_layer_mode_tile::mapheight#10==$40) goto vera_layer_mode_tile::@17 -- vwuz1_eq_vbuc1_then_la1 
     lda #$40
     cmp.z mapheight
     bne !+
@@ -4498,7 +4609,7 @@ vera_layer_mode_tile: {
     // case 128:
     //             config |= VERA_LAYER_HEIGHT_128;
     //             break;
-    // [661] if(vera_layer_mode_tile::mapheight#10==$80) goto vera_layer_mode_tile::@18 -- vwuz1_eq_vbuc1_then_la1 
+    // [707] if(vera_layer_mode_tile::mapheight#10==$80) goto vera_layer_mode_tile::@18 -- vwuz1_eq_vbuc1_then_la1 
     lda #$80
     cmp.z mapheight
     bne !+
@@ -4510,7 +4621,7 @@ vera_layer_mode_tile: {
     // case 256:
     //             config |= VERA_LAYER_HEIGHT_256;
     //             break;
-    // [662] if(vera_layer_mode_tile::mapheight#10!=$100) goto vera_layer_mode_tile::@20 -- vwuz1_neq_vwuc1_then_la1 
+    // [708] if(vera_layer_mode_tile::mapheight#10!=$100) goto vera_layer_mode_tile::@20 -- vwuz1_neq_vwuc1_then_la1 
     lda.z mapheight+1
     cmp #>$100
     bne __b20
@@ -4519,32 +4630,33 @@ vera_layer_mode_tile: {
     bne __b20
     // vera_layer_mode_tile::@19
     // config |= VERA_LAYER_HEIGHT_256
-    // [663] vera_layer_mode_tile::config#12 = vera_layer_mode_tile::config#21 | VERA_LAYER_HEIGHT_256 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_LAYER_HEIGHT_256
-    ora.z config
-    sta.z config
-    // [664] phi from vera_layer_mode_tile::@13 vera_layer_mode_tile::@16 vera_layer_mode_tile::@17 vera_layer_mode_tile::@18 vera_layer_mode_tile::@19 to vera_layer_mode_tile::@20 [phi:vera_layer_mode_tile::@13/vera_layer_mode_tile::@16/vera_layer_mode_tile::@17/vera_layer_mode_tile::@18/vera_layer_mode_tile::@19->vera_layer_mode_tile::@20]
-    // [664] phi vera_layer_mode_tile::config#25 = vera_layer_mode_tile::config#21 [phi:vera_layer_mode_tile::@13/vera_layer_mode_tile::@16/vera_layer_mode_tile::@17/vera_layer_mode_tile::@18/vera_layer_mode_tile::@19->vera_layer_mode_tile::@20#0] -- register_copy 
+    // [709] vera_layer_mode_tile::config#12 = vera_layer_mode_tile::config#21 | VERA_LAYER_HEIGHT_256 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_LAYER_HEIGHT_256
+    tax
+    // [710] phi from vera_layer_mode_tile::@13 vera_layer_mode_tile::@16 vera_layer_mode_tile::@17 vera_layer_mode_tile::@18 vera_layer_mode_tile::@19 to vera_layer_mode_tile::@20 [phi:vera_layer_mode_tile::@13/vera_layer_mode_tile::@16/vera_layer_mode_tile::@17/vera_layer_mode_tile::@18/vera_layer_mode_tile::@19->vera_layer_mode_tile::@20]
+    // [710] phi vera_layer_mode_tile::config#25 = vera_layer_mode_tile::config#21 [phi:vera_layer_mode_tile::@13/vera_layer_mode_tile::@16/vera_layer_mode_tile::@17/vera_layer_mode_tile::@18/vera_layer_mode_tile::@19->vera_layer_mode_tile::@20#0] -- register_copy 
     // vera_layer_mode_tile::@20
   __b20:
     // vera_layer_set_config(layer, config)
-    // [665] vera_layer_set_config::layer#0 = vera_layer_mode_tile::layer#10
-    // [666] vera_layer_set_config::config#0 = vera_layer_mode_tile::config#25
-    // [667] call vera_layer_set_config 
+    // [711] vera_layer_set_config::layer#0 = vera_layer_mode_tile::layer#10 -- vbuaa=vbuz1 
+    lda.z layer
+    // [712] vera_layer_set_config::config#0 = vera_layer_mode_tile::config#25
+    // [713] call vera_layer_set_config 
     jsr vera_layer_set_config
     // vera_layer_mode_tile::@27
     // <mapbase_address
-    // [668] vera_layer_mode_tile::$1 = < vera_layer_mode_tile::mapbase_address#10 -- vwuz1=_lo_vduz2 
+    // [714] vera_layer_mode_tile::$1 = < vera_layer_mode_tile::mapbase_address#10 -- vwuz1=_lo_vduz2 
     lda.z mapbase_address
     sta.z __1
     lda.z mapbase_address+1
     sta.z __1+1
     // vera_mapbase_offset[layer] = <mapbase_address
-    // [669] vera_layer_mode_tile::$19 = vera_layer_mode_tile::layer#10 << 1 -- vbuz1=vbuz2_rol_1 
+    // [715] vera_layer_mode_tile::$19 = vera_layer_mode_tile::layer#10 << 1 -- vbuz1=vbuz2_rol_1 
     lda.z layer
     asl
     sta.z __19
-    // [670] vera_mapbase_offset[vera_layer_mode_tile::$19] = vera_layer_mode_tile::$1 -- pwuc1_derefidx_vbuz1=vwuz2 
+    // [716] vera_mapbase_offset[vera_layer_mode_tile::$19] = vera_layer_mode_tile::$1 -- pwuc1_derefidx_vbuz1=vwuz2 
     // mapbase
     tay
     lda.z __1
@@ -4552,23 +4664,23 @@ vera_layer_mode_tile: {
     lda.z __1+1
     sta vera_mapbase_offset+1,y
     // >mapbase_address
-    // [671] vera_layer_mode_tile::$2 = > vera_layer_mode_tile::mapbase_address#10 -- vwuz1=_hi_vduz2 
+    // [717] vera_layer_mode_tile::$2 = > vera_layer_mode_tile::mapbase_address#10 -- vwuz1=_hi_vduz2 
     lda.z mapbase_address+2
     sta.z __2
     lda.z mapbase_address+3
     sta.z __2+1
     // vera_mapbase_bank[layer] = (byte)(>mapbase_address)
-    // [672] vera_mapbase_bank[vera_layer_mode_tile::layer#10] = (byte)vera_layer_mode_tile::$2 -- pbuc1_derefidx_vbuz1=_byte_vwuz2 
+    // [718] vera_mapbase_bank[vera_layer_mode_tile::layer#10] = (byte)vera_layer_mode_tile::$2 -- pbuc1_derefidx_vbuz1=_byte_vwuz2 
     ldy.z layer
     lda.z __2
     sta vera_mapbase_bank,y
     // vera_mapbase_address[layer] = mapbase_address
-    // [673] vera_layer_mode_tile::$20 = vera_layer_mode_tile::layer#10 << 2 -- vbuz1=vbuz2_rol_2 
+    // [719] vera_layer_mode_tile::$20 = vera_layer_mode_tile::layer#10 << 2 -- vbuz1=vbuz2_rol_2 
     tya
     asl
     asl
     sta.z __20
-    // [674] vera_mapbase_address[vera_layer_mode_tile::$20] = vera_layer_mode_tile::mapbase_address#10 -- pduc1_derefidx_vbuz1=vduz2 
+    // [720] vera_mapbase_address[vera_layer_mode_tile::$20] = vera_layer_mode_tile::mapbase_address#10 -- pduc1_derefidx_vbuz1=vduz2 
     tay
     lda.z mapbase_address
     sta vera_mapbase_address,y
@@ -4579,39 +4691,38 @@ vera_layer_mode_tile: {
     lda.z mapbase_address+3
     sta vera_mapbase_address+3,y
     // mapbase_address = mapbase_address >> 1
-    // [675] vera_layer_mode_tile::mapbase_address#0 = vera_layer_mode_tile::mapbase_address#10 >> 1 -- vduz1=vduz1_ror_1 
+    // [721] vera_layer_mode_tile::mapbase_address#0 = vera_layer_mode_tile::mapbase_address#10 >> 1 -- vduz1=vduz1_ror_1 
     lsr.z mapbase_address+3
     ror.z mapbase_address+2
     ror.z mapbase_address+1
     ror.z mapbase_address
     // <mapbase_address
-    // [676] vera_layer_mode_tile::$4 = < vera_layer_mode_tile::mapbase_address#0 -- vwuz1=_lo_vduz2 
+    // [722] vera_layer_mode_tile::$4 = < vera_layer_mode_tile::mapbase_address#0 -- vwuz1=_lo_vduz2 
     lda.z mapbase_address
     sta.z __4
     lda.z mapbase_address+1
     sta.z __4+1
     // mapbase = >(<mapbase_address)
-    // [677] vera_layer_mode_tile::mapbase#0 = > vera_layer_mode_tile::$4 -- vbuz1=_hi_vwuz2 
-    sta.z mapbase
+    // [723] vera_layer_mode_tile::mapbase#0 = > vera_layer_mode_tile::$4 -- vbuxx=_hi_vwuz1 
+    tax
     // vera_layer_set_mapbase(layer,mapbase)
-    // [678] vera_layer_set_mapbase::layer#0 = vera_layer_mode_tile::layer#10 -- vbuz1=vbuz2 
+    // [724] vera_layer_set_mapbase::layer#0 = vera_layer_mode_tile::layer#10 -- vbuaa=vbuz1 
     lda.z layer
-    sta.z vera_layer_set_mapbase.layer
-    // [679] vera_layer_set_mapbase::mapbase#0 = vera_layer_mode_tile::mapbase#0
-    // [680] call vera_layer_set_mapbase 
-    // [399] phi from vera_layer_mode_tile::@27 to vera_layer_set_mapbase [phi:vera_layer_mode_tile::@27->vera_layer_set_mapbase]
-    // [399] phi vera_layer_set_mapbase::mapbase#3 = vera_layer_set_mapbase::mapbase#0 [phi:vera_layer_mode_tile::@27->vera_layer_set_mapbase#0] -- register_copy 
-    // [399] phi vera_layer_set_mapbase::layer#3 = vera_layer_set_mapbase::layer#0 [phi:vera_layer_mode_tile::@27->vera_layer_set_mapbase#1] -- register_copy 
+    // [725] vera_layer_set_mapbase::mapbase#0 = vera_layer_mode_tile::mapbase#0
+    // [726] call vera_layer_set_mapbase 
+    // [480] phi from vera_layer_mode_tile::@27 to vera_layer_set_mapbase [phi:vera_layer_mode_tile::@27->vera_layer_set_mapbase]
+    // [480] phi vera_layer_set_mapbase::mapbase#3 = vera_layer_set_mapbase::mapbase#0 [phi:vera_layer_mode_tile::@27->vera_layer_set_mapbase#0] -- register_copy 
+    // [480] phi vera_layer_set_mapbase::layer#3 = vera_layer_set_mapbase::layer#0 [phi:vera_layer_mode_tile::@27->vera_layer_set_mapbase#1] -- register_copy 
     jsr vera_layer_set_mapbase
     // vera_layer_mode_tile::@28
     // <tilebase_address
-    // [681] vera_layer_mode_tile::$7 = < vera_layer_mode_tile::tilebase_address#10 -- vwuz1=_lo_vduz2 
+    // [727] vera_layer_mode_tile::$7 = < vera_layer_mode_tile::tilebase_address#10 -- vwuz1=_lo_vduz2 
     lda.z tilebase_address
     sta.z __7
     lda.z tilebase_address+1
     sta.z __7+1
     // vera_tilebase_offset[layer] = <tilebase_address
-    // [682] vera_tilebase_offset[vera_layer_mode_tile::$19] = vera_layer_mode_tile::$7 -- pwuc1_derefidx_vbuz1=vwuz2 
+    // [728] vera_tilebase_offset[vera_layer_mode_tile::$19] = vera_layer_mode_tile::$7 -- pwuc1_derefidx_vbuz1=vwuz2 
     // tilebase
     ldy.z __19
     lda.z __7
@@ -4619,18 +4730,18 @@ vera_layer_mode_tile: {
     lda.z __7+1
     sta vera_tilebase_offset+1,y
     // >tilebase_address
-    // [683] vera_layer_mode_tile::$8 = > vera_layer_mode_tile::tilebase_address#10 -- vwuz1=_hi_vduz2 
+    // [729] vera_layer_mode_tile::$8 = > vera_layer_mode_tile::tilebase_address#10 -- vwuz1=_hi_vduz2 
     lda.z tilebase_address+2
     sta.z __8
     lda.z tilebase_address+3
     sta.z __8+1
     // vera_tilebase_bank[layer] = (byte)>tilebase_address
-    // [684] vera_tilebase_bank[vera_layer_mode_tile::layer#10] = (byte)vera_layer_mode_tile::$8 -- pbuc1_derefidx_vbuz1=_byte_vwuz2 
+    // [730] vera_tilebase_bank[vera_layer_mode_tile::layer#10] = (byte)vera_layer_mode_tile::$8 -- pbuc1_derefidx_vbuz1=_byte_vwuz2 
     ldy.z layer
     lda.z __8
     sta vera_tilebase_bank,y
     // vera_tilebase_address[layer] = tilebase_address
-    // [685] vera_tilebase_address[vera_layer_mode_tile::$20] = vera_layer_mode_tile::tilebase_address#10 -- pduc1_derefidx_vbuz1=vduz2 
+    // [731] vera_tilebase_address[vera_layer_mode_tile::$20] = vera_layer_mode_tile::tilebase_address#10 -- pduc1_derefidx_vbuz1=vduz2 
     ldy.z __20
     lda.z tilebase_address
     sta vera_tilebase_address,y
@@ -4641,29 +4752,27 @@ vera_layer_mode_tile: {
     lda.z tilebase_address+3
     sta vera_tilebase_address+3,y
     // tilebase_address = tilebase_address >> 1
-    // [686] vera_layer_mode_tile::tilebase_address#0 = vera_layer_mode_tile::tilebase_address#10 >> 1 -- vduz1=vduz1_ror_1 
+    // [732] vera_layer_mode_tile::tilebase_address#0 = vera_layer_mode_tile::tilebase_address#10 >> 1 -- vduz1=vduz1_ror_1 
     lsr.z tilebase_address+3
     ror.z tilebase_address+2
     ror.z tilebase_address+1
     ror.z tilebase_address
     // <tilebase_address
-    // [687] vera_layer_mode_tile::$10 = < vera_layer_mode_tile::tilebase_address#0 -- vwuz1=_lo_vduz2 
+    // [733] vera_layer_mode_tile::$10 = < vera_layer_mode_tile::tilebase_address#0 -- vwuz1=_lo_vduz2 
     lda.z tilebase_address
     sta.z __10
     lda.z tilebase_address+1
     sta.z __10+1
     // tilebase = >(<tilebase_address)
-    // [688] vera_layer_mode_tile::tilebase#0 = > vera_layer_mode_tile::$10 -- vbuz1=_hi_vwuz2 
-    sta.z tilebase
+    // [734] vera_layer_mode_tile::tilebase#0 = > vera_layer_mode_tile::$10 -- vbuaa=_hi_vwuz1 
     // tilebase &= VERA_LAYER_TILEBASE_MASK
-    // [689] vera_layer_mode_tile::tilebase#1 = vera_layer_mode_tile::tilebase#0 & VERA_LAYER_TILEBASE_MASK -- vbuz1=vbuz1_band_vbuc1 
-    lda #VERA_LAYER_TILEBASE_MASK
-    and.z tilebase
-    sta.z tilebase
+    // [735] vera_layer_mode_tile::tilebase#1 = vera_layer_mode_tile::tilebase#0 & VERA_LAYER_TILEBASE_MASK -- vbuxx=vbuaa_band_vbuc1 
+    and #VERA_LAYER_TILEBASE_MASK
+    tax
     // case 8:
     //             tilebase |= VERA_TILEBASE_WIDTH_8;
     //             break;
-    // [690] if(vera_layer_mode_tile::tilewidth#10==8) goto vera_layer_mode_tile::@23 -- vbuz1_eq_vbuc1_then_la1 
+    // [736] if(vera_layer_mode_tile::tilewidth#10==8) goto vera_layer_mode_tile::@23 -- vbuz1_eq_vbuc1_then_la1 
     lda #8
     cmp.z tilewidth
     beq __b23
@@ -4671,24 +4780,24 @@ vera_layer_mode_tile: {
     // case 16:
     //             tilebase |= VERA_TILEBASE_WIDTH_16;
     //             break;
-    // [691] if(vera_layer_mode_tile::tilewidth#10!=$10) goto vera_layer_mode_tile::@23 -- vbuz1_neq_vbuc1_then_la1 
+    // [737] if(vera_layer_mode_tile::tilewidth#10!=$10) goto vera_layer_mode_tile::@23 -- vbuz1_neq_vbuc1_then_la1 
     lda #$10
     cmp.z tilewidth
     bne __b23
     // vera_layer_mode_tile::@22
     // tilebase |= VERA_TILEBASE_WIDTH_16
-    // [692] vera_layer_mode_tile::tilebase#3 = vera_layer_mode_tile::tilebase#1 | VERA_TILEBASE_WIDTH_16 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_TILEBASE_WIDTH_16
-    ora.z tilebase
-    sta.z tilebase
-    // [693] phi from vera_layer_mode_tile::@21 vera_layer_mode_tile::@22 vera_layer_mode_tile::@28 to vera_layer_mode_tile::@23 [phi:vera_layer_mode_tile::@21/vera_layer_mode_tile::@22/vera_layer_mode_tile::@28->vera_layer_mode_tile::@23]
-    // [693] phi vera_layer_mode_tile::tilebase#12 = vera_layer_mode_tile::tilebase#1 [phi:vera_layer_mode_tile::@21/vera_layer_mode_tile::@22/vera_layer_mode_tile::@28->vera_layer_mode_tile::@23#0] -- register_copy 
+    // [738] vera_layer_mode_tile::tilebase#3 = vera_layer_mode_tile::tilebase#1 | VERA_TILEBASE_WIDTH_16 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_TILEBASE_WIDTH_16
+    tax
+    // [739] phi from vera_layer_mode_tile::@21 vera_layer_mode_tile::@22 vera_layer_mode_tile::@28 to vera_layer_mode_tile::@23 [phi:vera_layer_mode_tile::@21/vera_layer_mode_tile::@22/vera_layer_mode_tile::@28->vera_layer_mode_tile::@23]
+    // [739] phi vera_layer_mode_tile::tilebase#12 = vera_layer_mode_tile::tilebase#1 [phi:vera_layer_mode_tile::@21/vera_layer_mode_tile::@22/vera_layer_mode_tile::@28->vera_layer_mode_tile::@23#0] -- register_copy 
     // vera_layer_mode_tile::@23
   __b23:
     // case 8:
     //             tilebase |= VERA_TILEBASE_HEIGHT_8;
     //             break;
-    // [694] if(vera_layer_mode_tile::tileheight#10==8) goto vera_layer_mode_tile::@26 -- vbuz1_eq_vbuc1_then_la1 
+    // [740] if(vera_layer_mode_tile::tileheight#10==8) goto vera_layer_mode_tile::@26 -- vbuz1_eq_vbuc1_then_la1 
     lda #8
     cmp.z tileheight
     beq __b26
@@ -4696,63 +4805,63 @@ vera_layer_mode_tile: {
     // case 16:
     //             tilebase |= VERA_TILEBASE_HEIGHT_16;
     //             break;
-    // [695] if(vera_layer_mode_tile::tileheight#10!=$10) goto vera_layer_mode_tile::@26 -- vbuz1_neq_vbuc1_then_la1 
+    // [741] if(vera_layer_mode_tile::tileheight#10!=$10) goto vera_layer_mode_tile::@26 -- vbuz1_neq_vbuc1_then_la1 
     lda #$10
     cmp.z tileheight
     bne __b26
     // vera_layer_mode_tile::@25
     // tilebase |= VERA_TILEBASE_HEIGHT_16
-    // [696] vera_layer_mode_tile::tilebase#5 = vera_layer_mode_tile::tilebase#12 | VERA_TILEBASE_HEIGHT_16 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_TILEBASE_HEIGHT_16
-    ora.z tilebase
-    sta.z tilebase
-    // [697] phi from vera_layer_mode_tile::@23 vera_layer_mode_tile::@24 vera_layer_mode_tile::@25 to vera_layer_mode_tile::@26 [phi:vera_layer_mode_tile::@23/vera_layer_mode_tile::@24/vera_layer_mode_tile::@25->vera_layer_mode_tile::@26]
-    // [697] phi vera_layer_mode_tile::tilebase#10 = vera_layer_mode_tile::tilebase#12 [phi:vera_layer_mode_tile::@23/vera_layer_mode_tile::@24/vera_layer_mode_tile::@25->vera_layer_mode_tile::@26#0] -- register_copy 
+    // [742] vera_layer_mode_tile::tilebase#5 = vera_layer_mode_tile::tilebase#12 | VERA_TILEBASE_HEIGHT_16 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_TILEBASE_HEIGHT_16
+    tax
+    // [743] phi from vera_layer_mode_tile::@23 vera_layer_mode_tile::@24 vera_layer_mode_tile::@25 to vera_layer_mode_tile::@26 [phi:vera_layer_mode_tile::@23/vera_layer_mode_tile::@24/vera_layer_mode_tile::@25->vera_layer_mode_tile::@26]
+    // [743] phi vera_layer_mode_tile::tilebase#10 = vera_layer_mode_tile::tilebase#12 [phi:vera_layer_mode_tile::@23/vera_layer_mode_tile::@24/vera_layer_mode_tile::@25->vera_layer_mode_tile::@26#0] -- register_copy 
     // vera_layer_mode_tile::@26
   __b26:
     // vera_layer_set_tilebase(layer,tilebase)
-    // [698] vera_layer_set_tilebase::layer#0 = vera_layer_mode_tile::layer#10
-    // [699] vera_layer_set_tilebase::tilebase#0 = vera_layer_mode_tile::tilebase#10
-    // [700] call vera_layer_set_tilebase 
+    // [744] vera_layer_set_tilebase::layer#0 = vera_layer_mode_tile::layer#10 -- vbuaa=vbuz1 
+    lda.z layer
+    // [745] vera_layer_set_tilebase::tilebase#0 = vera_layer_mode_tile::tilebase#10
+    // [746] call vera_layer_set_tilebase 
     jsr vera_layer_set_tilebase
     // vera_layer_mode_tile::@return
     // }
-    // [701] return 
+    // [747] return 
     rts
     // vera_layer_mode_tile::@18
   __b18:
     // config |= VERA_LAYER_HEIGHT_128
-    // [702] vera_layer_mode_tile::config#11 = vera_layer_mode_tile::config#21 | VERA_LAYER_HEIGHT_128 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_LAYER_HEIGHT_128
-    ora.z config
-    sta.z config
+    // [748] vera_layer_mode_tile::config#11 = vera_layer_mode_tile::config#21 | VERA_LAYER_HEIGHT_128 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_LAYER_HEIGHT_128
+    tax
     jmp __b20
     // vera_layer_mode_tile::@17
   __b17:
     // config |= VERA_LAYER_HEIGHT_64
-    // [703] vera_layer_mode_tile::config#10 = vera_layer_mode_tile::config#21 | VERA_LAYER_HEIGHT_64 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_LAYER_HEIGHT_64
-    ora.z config
-    sta.z config
+    // [749] vera_layer_mode_tile::config#10 = vera_layer_mode_tile::config#21 | VERA_LAYER_HEIGHT_64 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_LAYER_HEIGHT_64
+    tax
     jmp __b20
     // vera_layer_mode_tile::@11
   __b11:
     // config |= VERA_LAYER_WIDTH_128
-    // [704] vera_layer_mode_tile::config#7 = vera_layer_mode_tile::config#17 | VERA_LAYER_WIDTH_128 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_LAYER_WIDTH_128
-    ora.z config
-    sta.z config
+    // [750] vera_layer_mode_tile::config#7 = vera_layer_mode_tile::config#17 | VERA_LAYER_WIDTH_128 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_LAYER_WIDTH_128
+    tax
     // vera_layer_rowshift[layer] = 8
-    // [705] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 8 -- pbuc1_derefidx_vbuz1=vbuc2 
+    // [751] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 8 -- pbuc1_derefidx_vbuz1=vbuc2 
     lda #8
     ldy.z layer
     sta vera_layer_rowshift,y
     // vera_layer_rowskip[layer] = 256
-    // [706] vera_layer_mode_tile::$15 = vera_layer_mode_tile::layer#10 << 1 -- vbuz1=vbuz2_rol_1 
+    // [752] vera_layer_mode_tile::$15 = vera_layer_mode_tile::layer#10 << 1 -- vbuaa=vbuz1_rol_1 
     tya
     asl
-    sta.z __15
-    // [707] vera_layer_rowskip[vera_layer_mode_tile::$15] = $100 -- pwuc1_derefidx_vbuz1=vwuc2 
+    // [753] vera_layer_rowskip[vera_layer_mode_tile::$15] = $100 -- pwuc1_derefidx_vbuaa=vwuc2 
     tay
     lda #<$100
     sta vera_layer_rowskip,y
@@ -4762,23 +4871,22 @@ vera_layer_mode_tile: {
     // vera_layer_mode_tile::@10
   __b10:
     // config |= VERA_LAYER_WIDTH_64
-    // [708] vera_layer_mode_tile::config#6 = vera_layer_mode_tile::config#17 | VERA_LAYER_WIDTH_64 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_LAYER_WIDTH_64
-    ora.z config
-    sta.z config
+    // [754] vera_layer_mode_tile::config#6 = vera_layer_mode_tile::config#17 | VERA_LAYER_WIDTH_64 -- vbuxx=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_LAYER_WIDTH_64
+    tax
     // vera_layer_rowshift[layer] = 7
-    // [709] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 7 -- pbuc1_derefidx_vbuz1=vbuc2 
+    // [755] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 7 -- pbuc1_derefidx_vbuz1=vbuc2 
     lda #7
     ldy.z layer
     sta vera_layer_rowshift,y
     // vera_layer_rowskip[layer] = 128
-    // [710] vera_layer_mode_tile::$14 = vera_layer_mode_tile::layer#10 << 1 -- vbuz1=vbuz2_rol_1 
+    // [756] vera_layer_mode_tile::$14 = vera_layer_mode_tile::layer#10 << 1 -- vbuaa=vbuz1_rol_1 
     tya
     asl
-    sta.z __14
-    // [711] vera_layer_rowskip[vera_layer_mode_tile::$14] = $80 -- pwuc1_derefidx_vbuz1=vbuc2 
+    // [757] vera_layer_rowskip[vera_layer_mode_tile::$14] = $80 -- pwuc1_derefidx_vbuaa=vbuc2 
+    tay
     lda #$80
-    ldy.z __14
     sta vera_layer_rowskip,y
     lda #0
     sta vera_layer_rowskip+1,y
@@ -4786,18 +4894,17 @@ vera_layer_mode_tile: {
     // vera_layer_mode_tile::@9
   __b9:
     // vera_layer_rowshift[layer] = 6
-    // [712] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 6 -- pbuc1_derefidx_vbuz1=vbuc2 
+    // [758] vera_layer_rowshift[vera_layer_mode_tile::layer#10] = 6 -- pbuc1_derefidx_vbuz1=vbuc2 
     lda #6
     ldy.z layer
     sta vera_layer_rowshift,y
     // vera_layer_rowskip[layer] = 64
-    // [713] vera_layer_mode_tile::$13 = vera_layer_mode_tile::layer#10 << 1 -- vbuz1=vbuz2_rol_1 
+    // [759] vera_layer_mode_tile::$13 = vera_layer_mode_tile::layer#10 << 1 -- vbuaa=vbuz1_rol_1 
     tya
     asl
-    sta.z __13
-    // [714] vera_layer_rowskip[vera_layer_mode_tile::$13] = $40 -- pwuc1_derefidx_vbuz1=vbuc2 
+    // [760] vera_layer_rowskip[vera_layer_mode_tile::$13] = $40 -- pwuc1_derefidx_vbuaa=vbuc2 
+    tay
     lda #$40
-    ldy.z __13
     sta vera_layer_rowskip,y
     lda #0
     sta vera_layer_rowskip+1,y
@@ -4806,152 +4913,132 @@ vera_layer_mode_tile: {
   // clrscr
 // clears the screen and moves the cursor to the upper left-hand corner of the screen.
 clrscr: {
-    .label __0 = $b3
-    .label __1 = $b3
-    .label __2 = $b4
-    .label __5 = $b6
-    .label __6 = $b7
-    .label __7 = $b8
-    .label __9 = $b5
-    .label line_text = $6f
-    .label color = $b3
-    .label conio_map_height = $73
-    .label conio_map_width = $75
-    .label c = $40
-    .label l = $7f
+    .label __1 = $6d
+    .label line_text = $7b
+    .label color = $6d
+    .label conio_map_height = $65
+    .label conio_map_width = $67
     // line_text = cx16_conio.conio_screen_text
-    // [715] clrscr::line_text#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) -- pbuz1=_deref_qbuc1 
+    // [761] clrscr::line_text#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) -- pbuz1=_deref_qbuc1 
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
     sta.z line_text
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT+1
     sta.z line_text+1
     // vera_layer_get_backcolor(cx16_conio.conio_screen_layer)
-    // [716] vera_layer_get_backcolor::layer#0 = *((byte*)&cx16_conio) -- vbuz1=_deref_pbuc1 
-    lda cx16_conio
-    sta.z vera_layer_get_backcolor.layer
-    // [717] call vera_layer_get_backcolor 
+    // [762] vera_layer_get_backcolor::layer#0 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
+    ldx cx16_conio
+    // [763] call vera_layer_get_backcolor 
     jsr vera_layer_get_backcolor
-    // [718] vera_layer_get_backcolor::return#2 = vera_layer_get_backcolor::return#0
+    // [764] vera_layer_get_backcolor::return#2 = vera_layer_get_backcolor::return#0
     // clrscr::@7
-    // [719] clrscr::$0 = vera_layer_get_backcolor::return#2
+    // [765] clrscr::$0 = vera_layer_get_backcolor::return#2
     // vera_layer_get_backcolor(cx16_conio.conio_screen_layer) << 4
-    // [720] clrscr::$1 = clrscr::$0 << 4 -- vbuz1=vbuz1_rol_4 
-    lda.z __1
+    // [766] clrscr::$1 = clrscr::$0 << 4 -- vbuz1=vbuaa_rol_4 
     asl
     asl
     asl
     asl
     sta.z __1
     // vera_layer_get_textcolor(cx16_conio.conio_screen_layer)
-    // [721] vera_layer_get_textcolor::layer#0 = *((byte*)&cx16_conio) -- vbuz1=_deref_pbuc1 
-    lda cx16_conio
-    sta.z vera_layer_get_textcolor.layer
-    // [722] call vera_layer_get_textcolor 
+    // [767] vera_layer_get_textcolor::layer#0 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
+    ldx cx16_conio
+    // [768] call vera_layer_get_textcolor 
     jsr vera_layer_get_textcolor
-    // [723] vera_layer_get_textcolor::return#2 = vera_layer_get_textcolor::return#0
+    // [769] vera_layer_get_textcolor::return#2 = vera_layer_get_textcolor::return#0
     // clrscr::@8
-    // [724] clrscr::$2 = vera_layer_get_textcolor::return#2
+    // [770] clrscr::$2 = vera_layer_get_textcolor::return#2
     // color = ( vera_layer_get_backcolor(cx16_conio.conio_screen_layer) << 4 ) | vera_layer_get_textcolor(cx16_conio.conio_screen_layer)
-    // [725] clrscr::color#0 = clrscr::$1 | clrscr::$2 -- vbuz1=vbuz1_bor_vbuz2 
-    lda.z color
-    ora.z __2
+    // [771] clrscr::color#0 = clrscr::$1 | clrscr::$2 -- vbuz1=vbuz1_bor_vbuaa 
+    ora.z color
     sta.z color
     // conio_map_height = cx16_conio.conio_map_height
-    // [726] clrscr::conio_map_height#0 = *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT) -- vwuz1=_deref_pwuc1 
+    // [772] clrscr::conio_map_height#0 = *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT) -- vwuz1=_deref_pwuc1 
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT
     sta.z conio_map_height
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_HEIGHT+1
     sta.z conio_map_height+1
     // conio_map_width = cx16_conio.conio_map_width
-    // [727] clrscr::conio_map_width#0 = *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH) -- vwuz1=_deref_pwuc1 
+    // [773] clrscr::conio_map_width#0 = *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH) -- vwuz1=_deref_pwuc1 
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH
     sta.z conio_map_width
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH+1
     sta.z conio_map_width+1
-    // [728] phi from clrscr::@8 to clrscr::@1 [phi:clrscr::@8->clrscr::@1]
-    // [728] phi clrscr::line_text#2 = clrscr::line_text#0 [phi:clrscr::@8->clrscr::@1#0] -- register_copy 
-    // [728] phi clrscr::l#2 = 0 [phi:clrscr::@8->clrscr::@1#1] -- vbuz1=vbuc1 
-    lda #0
-    sta.z l
+    // [774] phi from clrscr::@8 to clrscr::@1 [phi:clrscr::@8->clrscr::@1]
+    // [774] phi clrscr::line_text#2 = clrscr::line_text#0 [phi:clrscr::@8->clrscr::@1#0] -- register_copy 
+    // [774] phi clrscr::l#2 = 0 [phi:clrscr::@8->clrscr::@1#1] -- vbuxx=vbuc1 
+    ldx #0
     // clrscr::@1
   __b1:
     // for( char l=0;l<conio_map_height; l++ )
-    // [729] if(clrscr::l#2<clrscr::conio_map_height#0) goto clrscr::@2 -- vbuz1_lt_vwuz2_then_la1 
+    // [775] if(clrscr::l#2<clrscr::conio_map_height#0) goto clrscr::@2 -- vbuxx_lt_vwuz1_then_la1 
     lda.z conio_map_height+1
     bne __b2
-    lda.z l
-    cmp.z conio_map_height
+    cpx.z conio_map_height
     bcc __b2
     // clrscr::@3
     // conio_cursor_x[cx16_conio.conio_screen_layer] = 0
-    // [730] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
+    // [776] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
     lda #0
     ldy cx16_conio
     sta conio_cursor_x,y
     // conio_cursor_y[cx16_conio.conio_screen_layer] = 0
-    // [731] conio_cursor_y[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
+    // [777] conio_cursor_y[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
     sta conio_cursor_y,y
     // conio_line_text[cx16_conio.conio_screen_layer] = 0
-    // [732] clrscr::$9 = *((byte*)&cx16_conio) << 1 -- vbuz1=_deref_pbuc1_rol_1 
+    // [778] clrscr::$9 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
     tya
     asl
-    sta.z __9
-    // [733] conio_line_text[clrscr::$9] = 0 -- pwuc1_derefidx_vbuz1=vbuc2 
+    // [779] conio_line_text[clrscr::$9] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
+    tay
     lda #0
-    ldy.z __9
     sta conio_line_text,y
     sta conio_line_text+1,y
     // clrscr::@return
     // }
-    // [734] return 
+    // [780] return 
     rts
     // clrscr::@2
   __b2:
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [735] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [781] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     // Select DATA0
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // <ch
-    // [736] clrscr::$5 = < clrscr::line_text#2 -- vbuz1=_lo_pbuz2 
+    // [782] clrscr::$5 = < clrscr::line_text#2 -- vbuaa=_lo_pbuz1 
     lda.z line_text
-    sta.z __5
     // *VERA_ADDRX_L = <ch
-    // [737] *VERA_ADDRX_L = clrscr::$5 -- _deref_pbuc1=vbuz1 
+    // [783] *VERA_ADDRX_L = clrscr::$5 -- _deref_pbuc1=vbuaa 
     // Set address
     sta VERA_ADDRX_L
     // >ch
-    // [738] clrscr::$6 = > clrscr::line_text#2 -- vbuz1=_hi_pbuz2 
+    // [784] clrscr::$6 = > clrscr::line_text#2 -- vbuaa=_hi_pbuz1 
     lda.z line_text+1
-    sta.z __6
     // *VERA_ADDRX_M = >ch
-    // [739] *VERA_ADDRX_M = clrscr::$6 -- _deref_pbuc1=vbuz1 
+    // [785] *VERA_ADDRX_M = clrscr::$6 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // cx16_conio.conio_screen_bank | VERA_INC_1
-    // [740] clrscr::$7 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK) | VERA_INC_1 -- vbuz1=_deref_pbuc1_bor_vbuc2 
+    // [786] clrscr::$7 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK) | VERA_INC_1 -- vbuaa=_deref_pbuc1_bor_vbuc2 
     lda #VERA_INC_1
     ora cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK
-    sta.z __7
     // *VERA_ADDRX_H = cx16_conio.conio_screen_bank | VERA_INC_1
-    // [741] *VERA_ADDRX_H = clrscr::$7 -- _deref_pbuc1=vbuz1 
+    // [787] *VERA_ADDRX_H = clrscr::$7 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_H
-    // [742] phi from clrscr::@2 to clrscr::@4 [phi:clrscr::@2->clrscr::@4]
-    // [742] phi clrscr::c#2 = 0 [phi:clrscr::@2->clrscr::@4#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z c
+    // [788] phi from clrscr::@2 to clrscr::@4 [phi:clrscr::@2->clrscr::@4]
+    // [788] phi clrscr::c#2 = 0 [phi:clrscr::@2->clrscr::@4#0] -- vbuyy=vbuc1 
+    ldy #0
     // clrscr::@4
   __b4:
     // for( char c=0;c<conio_map_width; c++ )
-    // [743] if(clrscr::c#2<clrscr::conio_map_width#0) goto clrscr::@5 -- vbuz1_lt_vwuz2_then_la1 
+    // [789] if(clrscr::c#2<clrscr::conio_map_width#0) goto clrscr::@5 -- vbuyy_lt_vwuz1_then_la1 
     lda.z conio_map_width+1
     bne __b5
-    lda.z c
-    cmp.z conio_map_width
+    cpy.z conio_map_width
     bcc __b5
     // clrscr::@6
     // line_text += cx16_conio.conio_rowskip
-    // [744] clrscr::line_text#1 = clrscr::line_text#2 + *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) -- pbuz1=pbuz1_plus__deref_pwuc1 
+    // [790] clrscr::line_text#1 = clrscr::line_text#2 + *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) -- pbuz1=pbuz1_plus__deref_pwuc1 
     clc
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP
     adc.z line_text
@@ -4960,63 +5047,53 @@ clrscr: {
     adc.z line_text+1
     sta.z line_text+1
     // for( char l=0;l<conio_map_height; l++ )
-    // [745] clrscr::l#1 = ++ clrscr::l#2 -- vbuz1=_inc_vbuz1 
-    inc.z l
-    // [728] phi from clrscr::@6 to clrscr::@1 [phi:clrscr::@6->clrscr::@1]
-    // [728] phi clrscr::line_text#2 = clrscr::line_text#1 [phi:clrscr::@6->clrscr::@1#0] -- register_copy 
-    // [728] phi clrscr::l#2 = clrscr::l#1 [phi:clrscr::@6->clrscr::@1#1] -- register_copy 
+    // [791] clrscr::l#1 = ++ clrscr::l#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [774] phi from clrscr::@6 to clrscr::@1 [phi:clrscr::@6->clrscr::@1]
+    // [774] phi clrscr::line_text#2 = clrscr::line_text#1 [phi:clrscr::@6->clrscr::@1#0] -- register_copy 
+    // [774] phi clrscr::l#2 = clrscr::l#1 [phi:clrscr::@6->clrscr::@1#1] -- register_copy 
     jmp __b1
     // clrscr::@5
   __b5:
     // *VERA_DATA0 = ' '
-    // [746] *VERA_DATA0 = ' ' -- _deref_pbuc1=vbuc2 
+    // [792] *VERA_DATA0 = ' ' -- _deref_pbuc1=vbuc2 
     lda #' '
     sta VERA_DATA0
     // *VERA_DATA0 = color
-    // [747] *VERA_DATA0 = clrscr::color#0 -- _deref_pbuc1=vbuz1 
+    // [793] *VERA_DATA0 = clrscr::color#0 -- _deref_pbuc1=vbuz1 
     lda.z color
     sta VERA_DATA0
     // for( char c=0;c<conio_map_width; c++ )
-    // [748] clrscr::c#1 = ++ clrscr::c#2 -- vbuz1=_inc_vbuz1 
-    inc.z c
-    // [742] phi from clrscr::@5 to clrscr::@4 [phi:clrscr::@5->clrscr::@4]
-    // [742] phi clrscr::c#2 = clrscr::c#1 [phi:clrscr::@5->clrscr::@4#0] -- register_copy 
+    // [794] clrscr::c#1 = ++ clrscr::c#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // [788] phi from clrscr::@5 to clrscr::@4 [phi:clrscr::@5->clrscr::@4]
+    // [788] phi clrscr::c#2 = clrscr::c#1 [phi:clrscr::@5->clrscr::@4#0] -- register_copy 
     jmp __b4
 }
   // vera_heap_segment_ceiling
-// vera_heap_segment_ceiling(byte zp($40) segmentid)
+// vera_heap_segment_ceiling(byte register(X) segmentid)
 vera_heap_segment_ceiling: {
-    .label __1 = $40
-    .label segment = $73
-    .label return = $26
-    .label segmentid = $40
-    .label __4 = $b4
-    .label __5 = $b4
-    .label __6 = $b4
-    .label __7 = $40
+    .label segment = $67
+    .label return = $c4
     // &vera_heap_segments[segmentid]
-    // [750] vera_heap_segment_ceiling::$4 = vera_heap_segment_ceiling::segmentid#2 << 2 -- vbuz1=vbuz2_rol_2 
-    lda.z segmentid
+    // [796] vera_heap_segment_ceiling::$4 = vera_heap_segment_ceiling::segmentid#2 << 2 -- vbuaa=vbuxx_rol_2 
+    txa
     asl
     asl
-    sta.z __4
-    // [751] vera_heap_segment_ceiling::$5 = vera_heap_segment_ceiling::$4 + vera_heap_segment_ceiling::segmentid#2 -- vbuz1=vbuz1_plus_vbuz2 
-    lda.z __5
+    // [797] vera_heap_segment_ceiling::$5 = vera_heap_segment_ceiling::$4 + vera_heap_segment_ceiling::segmentid#2 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z segmentid
-    sta.z __5
-    // [752] vera_heap_segment_ceiling::$6 = vera_heap_segment_ceiling::$5 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __6
-    // [753] vera_heap_segment_ceiling::$7 = vera_heap_segment_ceiling::$6 + vera_heap_segment_ceiling::segmentid#2 -- vbuz1=vbuz2_plus_vbuz1 
-    lda.z __7
+    adc.z $ff
+    // [798] vera_heap_segment_ceiling::$6 = vera_heap_segment_ceiling::$5 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [799] vera_heap_segment_ceiling::$7 = vera_heap_segment_ceiling::$6 + vera_heap_segment_ceiling::segmentid#2 -- vbuaa=vbuaa_plus_vbuxx 
+    stx.z $ff
     clc
-    adc.z __6
-    sta.z __7
-    // [754] vera_heap_segment_ceiling::$1 = vera_heap_segment_ceiling::$7 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __1
+    adc.z $ff
+    // [800] vera_heap_segment_ceiling::$1 = vera_heap_segment_ceiling::$7 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
     // segment = &vera_heap_segments[segmentid]
-    // [755] vera_heap_segment_ceiling::segment#0 = vera_heap_segments + vera_heap_segment_ceiling::$1 -- pssz1=pssc1_plus_vbuz2 
-    lda.z __1
+    // [801] vera_heap_segment_ceiling::segment#0 = vera_heap_segments + vera_heap_segment_ceiling::$1 -- pssz1=pssc1_plus_vbuaa 
     clc
     adc #<vera_heap_segments
     sta.z segment
@@ -5024,7 +5101,7 @@ vera_heap_segment_ceiling: {
     adc #0
     sta.z segment+1
     // return segment->ceil_address;
-    // [756] vera_heap_segment_ceiling::return#0 = ((dword*)vera_heap_segment_ceiling::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
+    // [802] vera_heap_segment_ceiling::return#0 = ((dword*)vera_heap_segment_ceiling::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS
     lda (segment),y
     sta.z return
@@ -5039,24 +5116,22 @@ vera_heap_segment_ceiling: {
     sta.z return+3
     // vera_heap_segment_ceiling::@return
     // }
-    // [757] return 
+    // [803] return 
     rts
 }
   // sprite_cpy_vram
-// sprite_cpy_vram(struct Sprite* zp($7b) Sprite, byte zp($b4) num)
+// sprite_cpy_vram(struct Sprite* zp($cc) Sprite)
 sprite_cpy_vram: {
-    .label __5 = $3c
-    .label __8 = $b5
-    .label __10 = $75
-    .label bsrc = $ab
-    .label vaddr = $10
-    .label baddr = $3c
-    .label s = $b6
-    .label Sprite = $7b
-    .label num = $b4
+    .label __3 = $3f
+    .label __12 = $ab
+    .label bsrc = $76
+    .label size = $ad
+    .label vaddr = $e
+    .label baddr = $3f
+    .label s = $7d
+    .label Sprite = $cc
     // bsrc = Sprite->BRAM_Address
-    // [759] sprite_cpy_vram::bsrc#0 = ((dword*)sprite_cpy_vram::Sprite#2)[OFFSET_STRUCT_SPRITE_BRAM_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
-    // Copy graphics to the VERA VRAM.
+    // [805] sprite_cpy_vram::bsrc#0 = ((dword*)sprite_cpy_vram::Sprite#2)[OFFSET_STRUCT_SPRITE_BRAM_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_BRAM_ADDRESS
     lda (Sprite),y
     sta.z bsrc
@@ -5069,123 +5144,72 @@ sprite_cpy_vram: {
     iny
     lda (Sprite),y
     sta.z bsrc+3
-    // [760] phi from sprite_cpy_vram to sprite_cpy_vram::@1 [phi:sprite_cpy_vram->sprite_cpy_vram::@1]
-    // [760] phi sprite_cpy_vram::s#10 = 0 [phi:sprite_cpy_vram->sprite_cpy_vram::@1#0] -- vbuz1=vbuc1 
+    // size = Sprite->SpriteSize
+    // [806] sprite_cpy_vram::size#0 = ((word*)sprite_cpy_vram::Sprite#2)[OFFSET_STRUCT_SPRITE_SPRITESIZE] -- vwuz1=pwuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_SPRITE_SPRITESIZE
+    lda (Sprite),y
+    sta.z size
+    iny
+    lda (Sprite),y
+    sta.z size+1
+    // [807] phi from sprite_cpy_vram to sprite_cpy_vram::@1 [phi:sprite_cpy_vram->sprite_cpy_vram::@1]
+    // [807] phi sprite_cpy_vram::s#2 = 0 [phi:sprite_cpy_vram->sprite_cpy_vram::@1#0] -- vbuz1=vbuc1 
     lda #0
     sta.z s
     // sprite_cpy_vram::@1
   __b1:
-    // for(byte s=0;s<num;s++)
-    // [761] if(sprite_cpy_vram::s#10<sprite_cpy_vram::num#3) goto sprite_cpy_vram::@2 -- vbuz1_lt_vbuz2_then_la1 
-    lda.z s
-    cmp.z num
-    bcc __b2
+    // for(byte s=0;s<Sprite->SpriteCount;s++)
+    // [808] if(sprite_cpy_vram::s#2<((byte*)sprite_cpy_vram::Sprite#2)[OFFSET_STRUCT_SPRITE_SPRITECOUNT]) goto sprite_cpy_vram::@2 -- vbuz1_lt_pbuz2_derefidx_vbuc1_then_la1 
+    ldy #OFFSET_STRUCT_SPRITE_SPRITECOUNT
+    lda (Sprite),y
+    cmp.z s
+    beq !+
+    bcs __b2
+  !:
     // sprite_cpy_vram::@return
     // }
-    // [762] return 
+    // [809] return 
     rts
     // sprite_cpy_vram::@2
   __b2:
     // vera_heap_malloc(segmentid, size)
-    // [763] vera_heap_malloc::size = $200 -- vwuz1=vwuc1 
-    lda #<$200
+    // [810] vera_heap_malloc::size = sprite_cpy_vram::size#0 -- vwuz1=vwuz2 
+    lda.z size
     sta.z vera_heap_malloc.size
-    lda #>$200
+    lda.z size+1
     sta.z vera_heap_malloc.size+1
-    // [764] call vera_heap_malloc 
-    // [564] phi from sprite_cpy_vram::@2 to vera_heap_malloc [phi:sprite_cpy_vram::@2->vera_heap_malloc]
-    // [564] phi vera_heap_malloc::segmentid#4 = HEAP_SPRITES [phi:sprite_cpy_vram::@2->vera_heap_malloc#0] -- vbuz1=vbuc1 
-    lda #HEAP_SPRITES
-    sta.z vera_heap_malloc.segmentid
+    // [811] call vera_heap_malloc 
+    // [623] phi from sprite_cpy_vram::@2 to vera_heap_malloc [phi:sprite_cpy_vram::@2->vera_heap_malloc]
+    // [623] phi vera_heap_malloc::segmentid#4 = HEAP_SPRITES [phi:sprite_cpy_vram::@2->vera_heap_malloc#0] -- vbuxx=vbuc1 
+    ldx #HEAP_SPRITES
     jsr vera_heap_malloc
     // vera_heap_malloc(segmentid, size)
-    // [765] vera_heap_malloc::return#11 = vera_heap_malloc::return#1
+    // [812] vera_heap_malloc::return#11 = vera_heap_malloc::return#1
     // sprite_cpy_vram::@3
     // vaddr = vera_heap_malloc(segmentid, size)
-    // [766] sprite_cpy_vram::vaddr#0 = vera_heap_malloc::return#11
-    // gotoxy(10, 10+s)
-    // [767] gotoxy::y#3 = $a + sprite_cpy_vram::s#10 -- vbuz1=vbuc1_plus_vbuz2 
-    lda #$a
-    clc
-    adc.z s
-    sta.z gotoxy.y
-    // [768] call gotoxy 
-    // [406] phi from sprite_cpy_vram::@3 to gotoxy [phi:sprite_cpy_vram::@3->gotoxy]
-    // [406] phi gotoxy::x#4 = $a [phi:sprite_cpy_vram::@3->gotoxy#0] -- vbuz1=vbuc1 
-    lda #$a
-    sta.z gotoxy.x
-    // [406] phi gotoxy::y#4 = gotoxy::y#3 [phi:sprite_cpy_vram::@3->gotoxy#1] -- register_copy 
-    jsr gotoxy
-    // [769] phi from sprite_cpy_vram::@3 to sprite_cpy_vram::@4 [phi:sprite_cpy_vram::@3->sprite_cpy_vram::@4]
-    // sprite_cpy_vram::@4
-    // printf("vram sprite %u = %x", s, vaddr)
-    // [770] call cputs 
-    // [529] phi from sprite_cpy_vram::@4 to cputs [phi:sprite_cpy_vram::@4->cputs]
-    // [529] phi cputs::s#13 = sprite_cpy_vram::s1 [phi:sprite_cpy_vram::@4->cputs#0] -- pbuz1=pbuc1 
-    lda #<s1
-    sta.z cputs.s
-    lda #>s1
-    sta.z cputs.s+1
-    jsr cputs
-    // sprite_cpy_vram::@5
-    // printf("vram sprite %u = %x", s, vaddr)
-    // [771] printf_uchar::uvalue#0 = sprite_cpy_vram::s#10 -- vbuz1=vbuz2 
-    lda.z s
-    sta.z printf_uchar.uvalue
-    // [772] call printf_uchar 
-    // [537] phi from sprite_cpy_vram::@5 to printf_uchar [phi:sprite_cpy_vram::@5->printf_uchar]
-    // [537] phi printf_uchar::format_radix#4 = DECIMAL [phi:sprite_cpy_vram::@5->printf_uchar#0] -- vbuz1=vbuc1 
-    lda #DECIMAL
-    sta.z printf_uchar.format_radix
-    // [537] phi printf_uchar::uvalue#4 = printf_uchar::uvalue#0 [phi:sprite_cpy_vram::@5->printf_uchar#1] -- register_copy 
-    jsr printf_uchar
-    // [773] phi from sprite_cpy_vram::@5 to sprite_cpy_vram::@6 [phi:sprite_cpy_vram::@5->sprite_cpy_vram::@6]
-    // sprite_cpy_vram::@6
-    // printf("vram sprite %u = %x", s, vaddr)
-    // [774] call cputs 
-    // [529] phi from sprite_cpy_vram::@6 to cputs [phi:sprite_cpy_vram::@6->cputs]
-    // [529] phi cputs::s#13 = sprite_cpy_vram::s2 [phi:sprite_cpy_vram::@6->cputs#0] -- pbuz1=pbuc1 
-    lda #<s2
-    sta.z cputs.s
-    lda #>s2
-    sta.z cputs.s+1
-    jsr cputs
-    // sprite_cpy_vram::@7
-    // printf("vram sprite %u = %x", s, vaddr)
-    // [775] printf_ulong::uvalue#0 = sprite_cpy_vram::vaddr#0 -- vduz1=vduz2 
-    lda.z vaddr
-    sta.z printf_ulong.uvalue
-    lda.z vaddr+1
-    sta.z printf_ulong.uvalue+1
-    lda.z vaddr+2
-    sta.z printf_ulong.uvalue+2
-    lda.z vaddr+3
-    sta.z printf_ulong.uvalue+3
-    // [776] call printf_ulong 
-    // [1282] phi from sprite_cpy_vram::@7 to printf_ulong [phi:sprite_cpy_vram::@7->printf_ulong]
-    jsr printf_ulong
-    // sprite_cpy_vram::@8
+    // [813] sprite_cpy_vram::vaddr#0 = vera_heap_malloc::return#11
     // mul16u((word)s,size)
-    // [777] mul16u::a#1 = (word)sprite_cpy_vram::s#10 -- vwuz1=_word_vbuz2 
+    // [814] mul16u::a#1 = (word)sprite_cpy_vram::s#2 -- vwuz1=_word_vbuz2 
     lda.z s
     sta.z mul16u.a
     lda #0
     sta.z mul16u.a+1
-    // [778] call mul16u 
-    // [1289] phi from sprite_cpy_vram::@8 to mul16u [phi:sprite_cpy_vram::@8->mul16u]
-    // [1289] phi mul16u::a#6 = mul16u::a#1 [phi:sprite_cpy_vram::@8->mul16u#0] -- register_copy 
-    // [1289] phi mul16u::b#2 = $200 [phi:sprite_cpy_vram::@8->mul16u#1] -- vwuz1=vwuc1 
-    lda #<$200
+    // [815] mul16u::b#0 = sprite_cpy_vram::size#0 -- vwuz1=vwuz2 
+    lda.z size
     sta.z mul16u.b
-    lda #>$200
+    lda.z size+1
     sta.z mul16u.b+1
+    // [816] call mul16u 
+    // [1391] phi from sprite_cpy_vram::@3 to mul16u [phi:sprite_cpy_vram::@3->mul16u]
+    // [1391] phi mul16u::a#6 = mul16u::a#1 [phi:sprite_cpy_vram::@3->mul16u#0] -- register_copy 
+    // [1391] phi mul16u::b#2 = mul16u::b#0 [phi:sprite_cpy_vram::@3->mul16u#1] -- register_copy 
     jsr mul16u
     // mul16u((word)s,size)
-    // [779] mul16u::return#2 = mul16u::res#2
-    // sprite_cpy_vram::@9
-    // [780] sprite_cpy_vram::$5 = mul16u::return#2
+    // [817] mul16u::return#2 = mul16u::res#2
+    // sprite_cpy_vram::@4
+    // [818] sprite_cpy_vram::$3 = mul16u::return#2
     // baddr = bsrc+mul16u((word)s,size)
-    // [781] sprite_cpy_vram::baddr#0 = sprite_cpy_vram::bsrc#0 + sprite_cpy_vram::$5 -- vduz1=vduz2_plus_vduz1 
+    // [819] sprite_cpy_vram::baddr#0 = sprite_cpy_vram::bsrc#0 + sprite_cpy_vram::$3 -- vduz1=vduz2_plus_vduz1 
     lda.z baddr
     clc
     adc.z bsrc
@@ -5200,8 +5224,8 @@ sprite_cpy_vram: {
     adc.z bsrc+3
     sta.z baddr+3
     // vera_cpy_bank_vram(baddr, vaddr, size)
-    // [782] vera_cpy_bank_vram::bsrc#0 = sprite_cpy_vram::baddr#0
-    // [783] vera_cpy_bank_vram::vdest#0 = sprite_cpy_vram::vaddr#0 -- vduz1=vduz2 
+    // [820] vera_cpy_bank_vram::bsrc#0 = sprite_cpy_vram::baddr#0
+    // [821] vera_cpy_bank_vram::vdest#0 = sprite_cpy_vram::vaddr#0 -- vduz1=vduz2 
     lda.z vaddr
     sta.z vera_cpy_bank_vram.vdest
     lda.z vaddr+1
@@ -5210,76 +5234,68 @@ sprite_cpy_vram: {
     sta.z vera_cpy_bank_vram.vdest+2
     lda.z vaddr+3
     sta.z vera_cpy_bank_vram.vdest+3
-    // [784] call vera_cpy_bank_vram 
-    // [810] phi from sprite_cpy_vram::@9 to vera_cpy_bank_vram [phi:sprite_cpy_vram::@9->vera_cpy_bank_vram]
-    // [810] phi vera_cpy_bank_vram::num#5 = $200 [phi:sprite_cpy_vram::@9->vera_cpy_bank_vram#0] -- vduz1=vduc1 
-    lda #<$200
+    // [822] vera_cpy_bank_vram::num#0 = sprite_cpy_vram::size#0 -- vduz1=vwuz2 
+    lda.z size
     sta.z vera_cpy_bank_vram.num
-    lda #>$200
+    lda.z size+1
     sta.z vera_cpy_bank_vram.num+1
-    lda #<$200>>$10
+    lda #0
     sta.z vera_cpy_bank_vram.num+2
-    lda #>$200>>$10
     sta.z vera_cpy_bank_vram.num+3
-    // [810] phi vera_cpy_bank_vram::bsrc#3 = vera_cpy_bank_vram::bsrc#0 [phi:sprite_cpy_vram::@9->vera_cpy_bank_vram#1] -- register_copy 
-    // [810] phi vera_cpy_bank_vram::vdest#3 = vera_cpy_bank_vram::vdest#0 [phi:sprite_cpy_vram::@9->vera_cpy_bank_vram#2] -- register_copy 
+    // [823] call vera_cpy_bank_vram 
+    // [853] phi from sprite_cpy_vram::@4 to vera_cpy_bank_vram [phi:sprite_cpy_vram::@4->vera_cpy_bank_vram]
+    // [853] phi vera_cpy_bank_vram::num#5 = vera_cpy_bank_vram::num#0 [phi:sprite_cpy_vram::@4->vera_cpy_bank_vram#0] -- register_copy 
+    // [853] phi vera_cpy_bank_vram::bsrc#3 = vera_cpy_bank_vram::bsrc#0 [phi:sprite_cpy_vram::@4->vera_cpy_bank_vram#1] -- register_copy 
+    // [853] phi vera_cpy_bank_vram::vdest#3 = vera_cpy_bank_vram::vdest#0 [phi:sprite_cpy_vram::@4->vera_cpy_bank_vram#2] -- register_copy 
     jsr vera_cpy_bank_vram
-    // sprite_cpy_vram::@10
+    // sprite_cpy_vram::@5
     // Sprite->VRAM_Addresses[s] = vaddr
-    // [785] sprite_cpy_vram::$8 = sprite_cpy_vram::s#10 << 2 -- vbuz1=vbuz2_rol_2 
+    // [824] sprite_cpy_vram::$6 = sprite_cpy_vram::s#2 << 2 -- vbuyy=vbuz1_rol_2 
     lda.z s
     asl
     asl
-    sta.z __8
-    // [786] sprite_cpy_vram::$10 = (dword*)sprite_cpy_vram::Sprite#2 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
+    tay
+    // [825] sprite_cpy_vram::$12 = (dword*)sprite_cpy_vram::Sprite#2 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
     lda #OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES
     clc
     adc.z Sprite
-    sta.z __10
+    sta.z __12
     lda #0
     adc.z Sprite+1
-    sta.z __10+1
-    // [787] sprite_cpy_vram::$10[sprite_cpy_vram::$8] = sprite_cpy_vram::vaddr#0 -- pduz1_derefidx_vbuz2=vduz3 
-    ldy.z __8
+    sta.z __12+1
+    // [826] sprite_cpy_vram::$12[sprite_cpy_vram::$6] = sprite_cpy_vram::vaddr#0 -- pduz1_derefidx_vbuyy=vduz2 
     lda.z vaddr
-    sta (__10),y
+    sta (__12),y
     iny
     lda.z vaddr+1
-    sta (__10),y
+    sta (__12),y
     iny
     lda.z vaddr+2
-    sta (__10),y
+    sta (__12),y
     iny
     lda.z vaddr+3
-    sta (__10),y
-    // for(byte s=0;s<num;s++)
-    // [788] sprite_cpy_vram::s#1 = ++ sprite_cpy_vram::s#10 -- vbuz1=_inc_vbuz1 
+    sta (__12),y
+    // for(byte s=0;s<Sprite->SpriteCount;s++)
+    // [827] sprite_cpy_vram::s#1 = ++ sprite_cpy_vram::s#2 -- vbuz1=_inc_vbuz1 
     inc.z s
-    // [760] phi from sprite_cpy_vram::@10 to sprite_cpy_vram::@1 [phi:sprite_cpy_vram::@10->sprite_cpy_vram::@1]
-    // [760] phi sprite_cpy_vram::s#10 = sprite_cpy_vram::s#1 [phi:sprite_cpy_vram::@10->sprite_cpy_vram::@1#0] -- register_copy 
+    // [807] phi from sprite_cpy_vram::@5 to sprite_cpy_vram::@1 [phi:sprite_cpy_vram::@5->sprite_cpy_vram::@1]
+    // [807] phi sprite_cpy_vram::s#2 = sprite_cpy_vram::s#1 [phi:sprite_cpy_vram::@5->sprite_cpy_vram::@1#0] -- register_copy 
     jmp __b1
-  .segment Data
-    s1: .text "vram sprite "
-    .byte 0
-    s2: .text " = "
-    .byte 0
 }
-.segment Code
   // tile_cpy_vram
-// tile_cpy_vram(struct Tile* zp($c5) Tile, byte zp($20) num)
+// tile_cpy_vram(struct Tile* zp($a9) Tile)
 tile_cpy_vram: {
-    .label __2 = $3c
-    .label __5 = $b6
-    .label __7 = $7b
-    .label bsrc = $ce
-    .label vaddr = $77
-    .label baddr = $3c
-    .label s = $21
-    .label Tile = $c5
-    .label num = $20
+    .label __2 = $3f
+    .label __9 = $ad
+    .label bsrc = $69
+    .label num = $6d
+    .label size = $ab
+    .label vaddr = $6e
+    .label baddr = $3f
+    .label s = $7e
+    .label Tile = $a9
     // bsrc = Tile->BRAM_Address
-    // [790] tile_cpy_vram::bsrc#0 = ((dword*)tile_cpy_vram::Tile#3)[OFFSET_STRUCT_TILE_BRAM_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
-    // Copy graphics to the VERA VRAM.
+    // [829] tile_cpy_vram::bsrc#0 = ((dword*)tile_cpy_vram::Tile#3)[OFFSET_STRUCT_TILE_BRAM_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_TILE_BRAM_ADDRESS
     lda (Tile),y
     sta.z bsrc
@@ -5292,40 +5308,52 @@ tile_cpy_vram: {
     iny
     lda (Tile),y
     sta.z bsrc+3
-    // [791] phi from tile_cpy_vram to tile_cpy_vram::@1 [phi:tile_cpy_vram->tile_cpy_vram::@1]
-    // [791] phi tile_cpy_vram::s#2 = 0 [phi:tile_cpy_vram->tile_cpy_vram::@1#0] -- vbuz1=vbuc1 
+    // num = Tile->TileCount
+    // [830] tile_cpy_vram::num#0 = ((byte*)tile_cpy_vram::Tile#3)[OFFSET_STRUCT_TILE_TILECOUNT] -- vbuz1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_TILECOUNT
+    lda (Tile),y
+    sta.z num
+    // size = Tile->TileSize
+    // [831] tile_cpy_vram::size#0 = ((word*)tile_cpy_vram::Tile#3)[OFFSET_STRUCT_TILE_TILESIZE] -- vwuz1=pwuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_TILESIZE
+    lda (Tile),y
+    sta.z size
+    iny
+    lda (Tile),y
+    sta.z size+1
+    // [832] phi from tile_cpy_vram to tile_cpy_vram::@1 [phi:tile_cpy_vram->tile_cpy_vram::@1]
+    // [832] phi tile_cpy_vram::s#2 = 0 [phi:tile_cpy_vram->tile_cpy_vram::@1#0] -- vbuz1=vbuc1 
     lda #0
     sta.z s
     // tile_cpy_vram::@1
   __b1:
     // for(byte s=0;s<num;s++)
-    // [792] if(tile_cpy_vram::s#2<tile_cpy_vram::num#4) goto tile_cpy_vram::@2 -- vbuz1_lt_vbuz2_then_la1 
+    // [833] if(tile_cpy_vram::s#2<tile_cpy_vram::num#0) goto tile_cpy_vram::@2 -- vbuz1_lt_vbuz2_then_la1 
     lda.z s
     cmp.z num
     bcc __b2
     // tile_cpy_vram::@return
     // }
-    // [793] return 
+    // [834] return 
     rts
     // tile_cpy_vram::@2
   __b2:
     // vera_heap_malloc(segmentid, size)
-    // [794] vera_heap_malloc::size = $800 -- vwuz1=vwuc1 
-    lda #<$800
+    // [835] vera_heap_malloc::size = tile_cpy_vram::size#0 -- vwuz1=vwuz2 
+    lda.z size
     sta.z vera_heap_malloc.size
-    lda #>$800
+    lda.z size+1
     sta.z vera_heap_malloc.size+1
-    // [795] call vera_heap_malloc 
-    // [564] phi from tile_cpy_vram::@2 to vera_heap_malloc [phi:tile_cpy_vram::@2->vera_heap_malloc]
-    // [564] phi vera_heap_malloc::segmentid#4 = HEAP_FLOOR_TILE [phi:tile_cpy_vram::@2->vera_heap_malloc#0] -- vbuz1=vbuc1 
-    lda #HEAP_FLOOR_TILE
-    sta.z vera_heap_malloc.segmentid
+    // [836] call vera_heap_malloc 
+    // [623] phi from tile_cpy_vram::@2 to vera_heap_malloc [phi:tile_cpy_vram::@2->vera_heap_malloc]
+    // [623] phi vera_heap_malloc::segmentid#4 = HEAP_FLOOR_TILE [phi:tile_cpy_vram::@2->vera_heap_malloc#0] -- vbuxx=vbuc1 
+    ldx #HEAP_FLOOR_TILE
     jsr vera_heap_malloc
     // vera_heap_malloc(segmentid, size)
-    // [796] vera_heap_malloc::return#12 = vera_heap_malloc::return#1
+    // [837] vera_heap_malloc::return#12 = vera_heap_malloc::return#1
     // tile_cpy_vram::@3
     // vaddr = vera_heap_malloc(segmentid, size)
-    // [797] tile_cpy_vram::vaddr#0 = vera_heap_malloc::return#12 -- vduz1=vduz2 
+    // [838] tile_cpy_vram::vaddr#0 = vera_heap_malloc::return#12 -- vduz1=vduz2 
     lda.z vera_heap_malloc.return
     sta.z vaddr
     lda.z vera_heap_malloc.return+1
@@ -5335,26 +5363,27 @@ tile_cpy_vram: {
     lda.z vera_heap_malloc.return+3
     sta.z vaddr+3
     // mul16u((word)s,size)
-    // [798] mul16u::a#2 = (word)tile_cpy_vram::s#2 -- vwuz1=_word_vbuz2 
+    // [839] mul16u::a#2 = (word)tile_cpy_vram::s#2 -- vwuz1=_word_vbuz2 
     lda.z s
     sta.z mul16u.a
     lda #0
     sta.z mul16u.a+1
-    // [799] call mul16u 
-    // [1289] phi from tile_cpy_vram::@3 to mul16u [phi:tile_cpy_vram::@3->mul16u]
-    // [1289] phi mul16u::a#6 = mul16u::a#2 [phi:tile_cpy_vram::@3->mul16u#0] -- register_copy 
-    // [1289] phi mul16u::b#2 = $800 [phi:tile_cpy_vram::@3->mul16u#1] -- vwuz1=vwuc1 
-    lda #<$800
+    // [840] mul16u::b#1 = tile_cpy_vram::size#0 -- vwuz1=vwuz2 
+    lda.z size
     sta.z mul16u.b
-    lda #>$800
+    lda.z size+1
     sta.z mul16u.b+1
+    // [841] call mul16u 
+    // [1391] phi from tile_cpy_vram::@3 to mul16u [phi:tile_cpy_vram::@3->mul16u]
+    // [1391] phi mul16u::a#6 = mul16u::a#2 [phi:tile_cpy_vram::@3->mul16u#0] -- register_copy 
+    // [1391] phi mul16u::b#2 = mul16u::b#1 [phi:tile_cpy_vram::@3->mul16u#1] -- register_copy 
     jsr mul16u
     // mul16u((word)s,size)
-    // [800] mul16u::return#3 = mul16u::res#2
+    // [842] mul16u::return#3 = mul16u::res#2
     // tile_cpy_vram::@4
-    // [801] tile_cpy_vram::$2 = mul16u::return#3
+    // [843] tile_cpy_vram::$2 = mul16u::return#3
     // baddr = bsrc+mul16u((word)s,size)
-    // [802] tile_cpy_vram::baddr#0 = tile_cpy_vram::bsrc#0 + tile_cpy_vram::$2 -- vduz1=vduz2_plus_vduz1 
+    // [844] tile_cpy_vram::baddr#0 = tile_cpy_vram::bsrc#0 + tile_cpy_vram::$2 -- vduz1=vduz2_plus_vduz1 
     lda.z baddr
     clc
     adc.z bsrc
@@ -5369,8 +5398,8 @@ tile_cpy_vram: {
     adc.z bsrc+3
     sta.z baddr+3
     // vera_cpy_bank_vram(baddr, vaddr, size)
-    // [803] vera_cpy_bank_vram::bsrc#1 = tile_cpy_vram::baddr#0
-    // [804] vera_cpy_bank_vram::vdest#1 = tile_cpy_vram::vaddr#0 -- vduz1=vduz2 
+    // [845] vera_cpy_bank_vram::bsrc#1 = tile_cpy_vram::baddr#0
+    // [846] vera_cpy_bank_vram::vdest#1 = tile_cpy_vram::vaddr#0 -- vduz1=vduz2 
     lda.z vaddr
     sta.z vera_cpy_bank_vram.vdest
     lda.z vaddr+1
@@ -5379,53 +5408,52 @@ tile_cpy_vram: {
     sta.z vera_cpy_bank_vram.vdest+2
     lda.z vaddr+3
     sta.z vera_cpy_bank_vram.vdest+3
-    // [805] call vera_cpy_bank_vram 
-    // [810] phi from tile_cpy_vram::@4 to vera_cpy_bank_vram [phi:tile_cpy_vram::@4->vera_cpy_bank_vram]
-    // [810] phi vera_cpy_bank_vram::num#5 = $800 [phi:tile_cpy_vram::@4->vera_cpy_bank_vram#0] -- vduz1=vduc1 
-    lda #<$800
+    // [847] vera_cpy_bank_vram::num#1 = tile_cpy_vram::size#0 -- vduz1=vwuz2 
+    lda.z size
     sta.z vera_cpy_bank_vram.num
-    lda #>$800
+    lda.z size+1
     sta.z vera_cpy_bank_vram.num+1
-    lda #<$800>>$10
+    lda #0
     sta.z vera_cpy_bank_vram.num+2
-    lda #>$800>>$10
     sta.z vera_cpy_bank_vram.num+3
-    // [810] phi vera_cpy_bank_vram::bsrc#3 = vera_cpy_bank_vram::bsrc#1 [phi:tile_cpy_vram::@4->vera_cpy_bank_vram#1] -- register_copy 
-    // [810] phi vera_cpy_bank_vram::vdest#3 = vera_cpy_bank_vram::vdest#1 [phi:tile_cpy_vram::@4->vera_cpy_bank_vram#2] -- register_copy 
+    // [848] call vera_cpy_bank_vram 
+    // [853] phi from tile_cpy_vram::@4 to vera_cpy_bank_vram [phi:tile_cpy_vram::@4->vera_cpy_bank_vram]
+    // [853] phi vera_cpy_bank_vram::num#5 = vera_cpy_bank_vram::num#1 [phi:tile_cpy_vram::@4->vera_cpy_bank_vram#0] -- register_copy 
+    // [853] phi vera_cpy_bank_vram::bsrc#3 = vera_cpy_bank_vram::bsrc#1 [phi:tile_cpy_vram::@4->vera_cpy_bank_vram#1] -- register_copy 
+    // [853] phi vera_cpy_bank_vram::vdest#3 = vera_cpy_bank_vram::vdest#1 [phi:tile_cpy_vram::@4->vera_cpy_bank_vram#2] -- register_copy 
     jsr vera_cpy_bank_vram
     // tile_cpy_vram::@5
     // Tile->VRAM_Addresses[s] = vaddr
-    // [806] tile_cpy_vram::$5 = tile_cpy_vram::s#2 << 2 -- vbuz1=vbuz2_rol_2 
+    // [849] tile_cpy_vram::$5 = tile_cpy_vram::s#2 << 2 -- vbuyy=vbuz1_rol_2 
     lda.z s
     asl
     asl
-    sta.z __5
-    // [807] tile_cpy_vram::$7 = (dword*)tile_cpy_vram::Tile#3 + OFFSET_STRUCT_TILE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
+    tay
+    // [850] tile_cpy_vram::$9 = (dword*)tile_cpy_vram::Tile#3 + OFFSET_STRUCT_TILE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
     lda #OFFSET_STRUCT_TILE_VRAM_ADDRESSES
     clc
     adc.z Tile
-    sta.z __7
+    sta.z __9
     lda #0
     adc.z Tile+1
-    sta.z __7+1
-    // [808] tile_cpy_vram::$7[tile_cpy_vram::$5] = tile_cpy_vram::vaddr#0 -- pduz1_derefidx_vbuz2=vduz3 
-    ldy.z __5
+    sta.z __9+1
+    // [851] tile_cpy_vram::$9[tile_cpy_vram::$5] = tile_cpy_vram::vaddr#0 -- pduz1_derefidx_vbuyy=vduz2 
     lda.z vaddr
-    sta (__7),y
+    sta (__9),y
     iny
     lda.z vaddr+1
-    sta (__7),y
+    sta (__9),y
     iny
     lda.z vaddr+2
-    sta (__7),y
+    sta (__9),y
     iny
     lda.z vaddr+3
-    sta (__7),y
+    sta (__9),y
     // for(byte s=0;s<num;s++)
-    // [809] tile_cpy_vram::s#1 = ++ tile_cpy_vram::s#2 -- vbuz1=_inc_vbuz1 
+    // [852] tile_cpy_vram::s#1 = ++ tile_cpy_vram::s#2 -- vbuz1=_inc_vbuz1 
     inc.z s
-    // [791] phi from tile_cpy_vram::@5 to tile_cpy_vram::@1 [phi:tile_cpy_vram::@5->tile_cpy_vram::@1]
-    // [791] phi tile_cpy_vram::s#2 = tile_cpy_vram::s#1 [phi:tile_cpy_vram::@5->tile_cpy_vram::@1#0] -- register_copy 
+    // [832] phi from tile_cpy_vram::@5 to tile_cpy_vram::@1 [phi:tile_cpy_vram::@5->tile_cpy_vram::@1]
+    // [832] phi tile_cpy_vram::s#2 = tile_cpy_vram::s#1 [phi:tile_cpy_vram::@5->tile_cpy_vram::@1#0] -- register_copy 
     jmp __b1
 }
   // vera_cpy_bank_vram
@@ -5435,121 +5463,111 @@ tile_cpy_vram: {
 // - bsrc: absolute address in the banked RAM of the CX16
 // - num: dword of the number of bytes to copy
 // Note: This function can switch RAM bank during copying to copy data from multiple RAM banks.
-// vera_cpy_bank_vram(dword zp($3c) bsrc, dword zp($ca) vdest, dword zp($22) num)
+// vera_cpy_bank_vram(dword zp($3f) bsrc, dword zp($24) vdest, dword zp($5f) num)
 vera_cpy_bank_vram: {
-    .label __0 = $7d
-    .label __1 = $b7
-    .label __2 = $75
-    .label __3 = $b8
-    .label __4 = $6f
-    .label __5 = $b9
-    .label __6 = $af
-    .label __7 = $af
-    .label __8 = $7f
-    .label __9 = $75
-    .label __10 = $a9
-    .label __11 = $75
-    .label __12 = $75
-    .label __13 = $af
-    .label __14 = $af
-    .label __15 = $aa
-    .label __16 = $75
-    .label __17 = $c3
-    .label __24 = $75
-    .label __25 = $b1
-    .label bank = $ba
+    .label __0 = $72
+    .label __2 = $65
+    .label __4 = $74
+    .label __6 = $72
+    .label __7 = $72
+    .label __9 = $72
+    .label __11 = $74
+    .label __12 = $74
+    .label __13 = $72
+    .label __14 = $72
+    .label __16 = $74
+    .label __17 = $af
+    .label __24 = $74
+    .label __25 = $7b
+    .label bank = $7f
     // select the bank
-    .label addr = $c3
-    .label i = $6b
-    .label bsrc = $3c
-    .label vdest = $ca
-    .label num = $22
+    .label addr = $af
+    .label i = $c8
+    .label bsrc = $3f
+    .label vdest = $24
+    .label num = $5f
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [811] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [854] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     // Select DATA0
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // <vdest
-    // [812] vera_cpy_bank_vram::$0 = < vera_cpy_bank_vram::vdest#3 -- vwuz1=_lo_vduz2 
+    // [855] vera_cpy_bank_vram::$0 = < vera_cpy_bank_vram::vdest#3 -- vwuz1=_lo_vduz2 
     lda.z vdest
     sta.z __0
     lda.z vdest+1
     sta.z __0+1
     // <(<vdest)
-    // [813] vera_cpy_bank_vram::$1 = < vera_cpy_bank_vram::$0 -- vbuz1=_lo_vwuz2 
+    // [856] vera_cpy_bank_vram::$1 = < vera_cpy_bank_vram::$0 -- vbuaa=_lo_vwuz1 
     lda.z __0
-    sta.z __1
     // *VERA_ADDRX_L = <(<vdest)
-    // [814] *VERA_ADDRX_L = vera_cpy_bank_vram::$1 -- _deref_pbuc1=vbuz1 
+    // [857] *VERA_ADDRX_L = vera_cpy_bank_vram::$1 -- _deref_pbuc1=vbuaa 
     // Set address
     sta VERA_ADDRX_L
     // <vdest
-    // [815] vera_cpy_bank_vram::$2 = < vera_cpy_bank_vram::vdest#3 -- vwuz1=_lo_vduz2 
+    // [858] vera_cpy_bank_vram::$2 = < vera_cpy_bank_vram::vdest#3 -- vwuz1=_lo_vduz2 
     lda.z vdest
     sta.z __2
     lda.z vdest+1
     sta.z __2+1
     // >(<vdest)
-    // [816] vera_cpy_bank_vram::$3 = > vera_cpy_bank_vram::$2 -- vbuz1=_hi_vwuz2 
-    sta.z __3
+    // [859] vera_cpy_bank_vram::$3 = > vera_cpy_bank_vram::$2 -- vbuaa=_hi_vwuz1 
     // *VERA_ADDRX_M = >(<vdest)
-    // [817] *VERA_ADDRX_M = vera_cpy_bank_vram::$3 -- _deref_pbuc1=vbuz1 
+    // [860] *VERA_ADDRX_M = vera_cpy_bank_vram::$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // >vdest
-    // [818] vera_cpy_bank_vram::$4 = > vera_cpy_bank_vram::vdest#3 -- vwuz1=_hi_vduz2 
+    // [861] vera_cpy_bank_vram::$4 = > vera_cpy_bank_vram::vdest#3 -- vwuz1=_hi_vduz2 
     lda.z vdest+2
     sta.z __4
     lda.z vdest+3
     sta.z __4+1
     // <(>vdest)
-    // [819] vera_cpy_bank_vram::$5 = < vera_cpy_bank_vram::$4 -- vbuz1=_lo_vwuz2 
+    // [862] vera_cpy_bank_vram::$5 = < vera_cpy_bank_vram::$4 -- vbuaa=_lo_vwuz1 
     lda.z __4
-    sta.z __5
     // *VERA_ADDRX_H = <(>vdest)
-    // [820] *VERA_ADDRX_H = vera_cpy_bank_vram::$5 -- _deref_pbuc1=vbuz1 
+    // [863] *VERA_ADDRX_H = vera_cpy_bank_vram::$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_H
     // *VERA_ADDRX_H |= VERA_INC_1
-    // [821] *VERA_ADDRX_H = *VERA_ADDRX_H | VERA_INC_1 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [864] *VERA_ADDRX_H = *VERA_ADDRX_H | VERA_INC_1 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     lda #VERA_INC_1
     ora VERA_ADDRX_H
     sta VERA_ADDRX_H
     // >bsrc
-    // [822] vera_cpy_bank_vram::$6 = > vera_cpy_bank_vram::bsrc#3 -- vwuz1=_hi_vduz2 
+    // [865] vera_cpy_bank_vram::$6 = > vera_cpy_bank_vram::bsrc#3 -- vwuz1=_hi_vduz2 
     lda.z bsrc+2
     sta.z __6
     lda.z bsrc+3
     sta.z __6+1
     // (>bsrc)<<8
-    // [823] vera_cpy_bank_vram::$7 = vera_cpy_bank_vram::$6 << 8 -- vwuz1=vwuz1_rol_8 
+    // [866] vera_cpy_bank_vram::$7 = vera_cpy_bank_vram::$6 << 8 -- vwuz1=vwuz1_rol_8 
     lda.z __7
     sta.z __7+1
     lda #0
     sta.z __7
     // <(>bsrc)<<8
-    // [824] vera_cpy_bank_vram::$8 = < vera_cpy_bank_vram::$7 -- vbuz1=_lo_vwuz2 
-    sta.z __8
+    // [867] vera_cpy_bank_vram::$8 = < vera_cpy_bank_vram::$7 -- vbuyy=_lo_vwuz1 
+    tay
     // <bsrc
-    // [825] vera_cpy_bank_vram::$9 = < vera_cpy_bank_vram::bsrc#3 -- vwuz1=_lo_vduz2 
+    // [868] vera_cpy_bank_vram::$9 = < vera_cpy_bank_vram::bsrc#3 -- vwuz1=_lo_vduz2 
     lda.z bsrc
     sta.z __9
     lda.z bsrc+1
     sta.z __9+1
     // >(<bsrc)
-    // [826] vera_cpy_bank_vram::$10 = > vera_cpy_bank_vram::$9 -- vbuz1=_hi_vwuz2 
-    sta.z __10
+    // [869] vera_cpy_bank_vram::$10 = > vera_cpy_bank_vram::$9 -- vbuxx=_hi_vwuz1 
+    tax
     // ((word)<(>bsrc)<<8)|>(<bsrc)
-    // [827] vera_cpy_bank_vram::$24 = (word)vera_cpy_bank_vram::$8 -- vwuz1=_word_vbuz2 
-    lda.z __8
+    // [870] vera_cpy_bank_vram::$24 = (word)vera_cpy_bank_vram::$8 -- vwuz1=_word_vbuyy 
+    tya
     sta.z __24
-    lda #0
     sta.z __24+1
-    // [828] vera_cpy_bank_vram::$11 = vera_cpy_bank_vram::$24 | vera_cpy_bank_vram::$10 -- vwuz1=vwuz1_bor_vbuz2 
-    lda.z __10
+    // [871] vera_cpy_bank_vram::$11 = vera_cpy_bank_vram::$24 | vera_cpy_bank_vram::$10 -- vwuz1=vwuz1_bor_vbuxx 
+    txa
     ora.z __11
     sta.z __11
     // (((word)<(>bsrc)<<8)|>(<bsrc))>>5
-    // [829] vera_cpy_bank_vram::$12 = vera_cpy_bank_vram::$11 >> 5 -- vwuz1=vwuz1_ror_5 
+    // [872] vera_cpy_bank_vram::$12 = vera_cpy_bank_vram::$11 >> 5 -- vwuz1=vwuz1_ror_5 
     lsr.z __12+1
     ror.z __12
     lsr.z __12+1
@@ -5561,13 +5579,13 @@ vera_cpy_bank_vram: {
     lsr.z __12+1
     ror.z __12
     // >bsrc
-    // [830] vera_cpy_bank_vram::$13 = > vera_cpy_bank_vram::bsrc#3 -- vwuz1=_hi_vduz2 
+    // [873] vera_cpy_bank_vram::$13 = > vera_cpy_bank_vram::bsrc#3 -- vwuz1=_hi_vduz2 
     lda.z bsrc+2
     sta.z __13
     lda.z bsrc+3
     sta.z __13+1
     // (>bsrc)<<3
-    // [831] vera_cpy_bank_vram::$14 = vera_cpy_bank_vram::$13 << 3 -- vwuz1=vwuz1_rol_3 
+    // [874] vera_cpy_bank_vram::$14 = vera_cpy_bank_vram::$13 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z __14
     rol.z __14+1
     asl.z __14
@@ -5575,15 +5593,14 @@ vera_cpy_bank_vram: {
     asl.z __14
     rol.z __14+1
     // <(>bsrc)<<3
-    // [832] vera_cpy_bank_vram::$15 = < vera_cpy_bank_vram::$14 -- vbuz1=_lo_vwuz2 
+    // [875] vera_cpy_bank_vram::$15 = < vera_cpy_bank_vram::$14 -- vbuaa=_lo_vwuz1 
     lda.z __14
-    sta.z __15
     // ((((word)<(>bsrc)<<8)|>(<bsrc))>>5)+((word)<(>bsrc)<<3)
-    // [833] vera_cpy_bank_vram::$25 = (word)vera_cpy_bank_vram::$15 -- vwuz1=_word_vbuz2 
+    // [876] vera_cpy_bank_vram::$25 = (word)vera_cpy_bank_vram::$15 -- vwuz1=_word_vbuaa 
     sta.z __25
-    lda #0
+    tya
     sta.z __25+1
-    // [834] vera_cpy_bank_vram::$16 = vera_cpy_bank_vram::$12 + vera_cpy_bank_vram::$25 -- vwuz1=vwuz1_plus_vwuz2 
+    // [877] vera_cpy_bank_vram::$16 = vera_cpy_bank_vram::$12 + vera_cpy_bank_vram::$25 -- vwuz1=vwuz1_plus_vwuz2 
     lda.z __16
     clc
     adc.z __25
@@ -5592,17 +5609,17 @@ vera_cpy_bank_vram: {
     adc.z __25+1
     sta.z __16+1
     // bank = (byte)(((((word)<(>bsrc)<<8)|>(<bsrc))>>5)+((word)<(>bsrc)<<3))
-    // [835] vera_cpy_bank_vram::bank#0 = (byte)vera_cpy_bank_vram::$16 -- vbuz1=_byte_vwuz2 
+    // [878] vera_cpy_bank_vram::bank#0 = (byte)vera_cpy_bank_vram::$16 -- vbuz1=_byte_vwuz2 
     lda.z __16
     sta.z bank
     // <bsrc
-    // [836] vera_cpy_bank_vram::$17 = < vera_cpy_bank_vram::bsrc#3 -- vwuz1=_lo_vduz2 
+    // [879] vera_cpy_bank_vram::$17 = < vera_cpy_bank_vram::bsrc#3 -- vwuz1=_lo_vduz2 
     lda.z bsrc
     sta.z __17
     lda.z bsrc+1
     sta.z __17+1
     // (<bsrc)&0x1FFF
-    // [837] vera_cpy_bank_vram::addr#0 = vera_cpy_bank_vram::$17 & $1fff -- vwuz1=vwuz1_band_vwuc1 
+    // [880] vera_cpy_bank_vram::addr#0 = vera_cpy_bank_vram::$17 & $1fff -- vwuz1=vwuz1_band_vwuc1 
     lda.z addr
     and #<$1fff
     sta.z addr
@@ -5610,7 +5627,7 @@ vera_cpy_bank_vram: {
     and #>$1fff
     sta.z addr+1
     // addr += 0xA000
-    // [838] vera_cpy_bank_vram::addr#1 = (byte*)vera_cpy_bank_vram::addr#0 + $a000 -- pbuz1=pbuz1_plus_vwuc1 
+    // [881] vera_cpy_bank_vram::addr#1 = (byte*)vera_cpy_bank_vram::addr#0 + $a000 -- pbuz1=pbuz1_plus_vwuc1 
     // strip off the top 3 bits, which are representing the bank of the word!
     clc
     lda.z addr
@@ -5620,17 +5637,16 @@ vera_cpy_bank_vram: {
     adc #>$a000
     sta.z addr+1
     // cx16_ram_bank(bank)
-    // [839] cx16_ram_bank::bank#3 = vera_cpy_bank_vram::bank#0 -- vbuz1=vbuz2 
-    lda.z bank
-    sta.z cx16_ram_bank.bank
-    // [840] call cx16_ram_bank 
-    // [1069] phi from vera_cpy_bank_vram to cx16_ram_bank [phi:vera_cpy_bank_vram->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#3 [phi:vera_cpy_bank_vram->cx16_ram_bank#0] -- register_copy 
+    // [882] cx16_ram_bank::bank#3 = vera_cpy_bank_vram::bank#0 -- vbuxx=vbuz1 
+    ldx.z bank
+    // [883] call cx16_ram_bank 
+    // [1249] phi from vera_cpy_bank_vram to cx16_ram_bank [phi:vera_cpy_bank_vram->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#3 [phi:vera_cpy_bank_vram->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
-    // [841] phi from vera_cpy_bank_vram to vera_cpy_bank_vram::@1 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1]
-    // [841] phi vera_cpy_bank_vram::bank#2 = vera_cpy_bank_vram::bank#0 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1#0] -- register_copy 
-    // [841] phi vera_cpy_bank_vram::addr#4 = vera_cpy_bank_vram::addr#1 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1#1] -- register_copy 
-    // [841] phi vera_cpy_bank_vram::i#2 = 0 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1#2] -- vduz1=vduc1 
+    // [884] phi from vera_cpy_bank_vram to vera_cpy_bank_vram::@1 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1]
+    // [884] phi vera_cpy_bank_vram::bank#2 = vera_cpy_bank_vram::bank#0 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1#0] -- register_copy 
+    // [884] phi vera_cpy_bank_vram::addr#4 = vera_cpy_bank_vram::addr#1 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1#1] -- register_copy 
+    // [884] phi vera_cpy_bank_vram::i#2 = 0 [phi:vera_cpy_bank_vram->vera_cpy_bank_vram::@1#2] -- vduz1=vduc1 
     lda #<0
     sta.z i
     sta.z i+1
@@ -5642,7 +5658,7 @@ vera_cpy_bank_vram: {
     // vera_cpy_bank_vram::@1
   __b1:
     // for(dword i=0; i<num; i++)
-    // [842] if(vera_cpy_bank_vram::i#2<vera_cpy_bank_vram::num#5) goto vera_cpy_bank_vram::@2 -- vduz1_lt_vduz2_then_la1 
+    // [885] if(vera_cpy_bank_vram::i#2<vera_cpy_bank_vram::num#5) goto vera_cpy_bank_vram::@2 -- vduz1_lt_vduz2_then_la1 
     lda.z i+3
     cmp.z num+3
     bcc __b2
@@ -5661,12 +5677,12 @@ vera_cpy_bank_vram: {
   !:
     // vera_cpy_bank_vram::@return
     // }
-    // [843] return 
+    // [886] return 
     rts
     // vera_cpy_bank_vram::@2
   __b2:
     // if(addr == 0xC000)
-    // [844] if(vera_cpy_bank_vram::addr#4!=$c000) goto vera_cpy_bank_vram::@3 -- pbuz1_neq_vwuc1_then_la1 
+    // [887] if(vera_cpy_bank_vram::addr#4!=$c000) goto vera_cpy_bank_vram::@3 -- pbuz1_neq_vwuc1_then_la1 
     lda.z addr+1
     cmp #>$c000
     bne __b3
@@ -5675,41 +5691,40 @@ vera_cpy_bank_vram: {
     bne __b3
     // vera_cpy_bank_vram::@4
     // bank++;
-    // [845] vera_cpy_bank_vram::bank#1 = ++ vera_cpy_bank_vram::bank#2 -- vbuz1=_inc_vbuz1 
+    // [888] vera_cpy_bank_vram::bank#1 = ++ vera_cpy_bank_vram::bank#2 -- vbuz1=_inc_vbuz1 
     inc.z bank
     // cx16_ram_bank(bank)
-    // [846] cx16_ram_bank::bank#4 = vera_cpy_bank_vram::bank#1 -- vbuz1=vbuz2 
-    lda.z bank
-    sta.z cx16_ram_bank.bank
-    // [847] call cx16_ram_bank 
-    // [1069] phi from vera_cpy_bank_vram::@4 to cx16_ram_bank [phi:vera_cpy_bank_vram::@4->cx16_ram_bank]
-    // [1069] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#4 [phi:vera_cpy_bank_vram::@4->cx16_ram_bank#0] -- register_copy 
+    // [889] cx16_ram_bank::bank#4 = vera_cpy_bank_vram::bank#1 -- vbuxx=vbuz1 
+    ldx.z bank
+    // [890] call cx16_ram_bank 
+    // [1249] phi from vera_cpy_bank_vram::@4 to cx16_ram_bank [phi:vera_cpy_bank_vram::@4->cx16_ram_bank]
+    // [1249] phi cx16_ram_bank::bank#11 = cx16_ram_bank::bank#4 [phi:vera_cpy_bank_vram::@4->cx16_ram_bank#0] -- register_copy 
     jsr cx16_ram_bank
-    // [848] phi from vera_cpy_bank_vram::@4 to vera_cpy_bank_vram::@3 [phi:vera_cpy_bank_vram::@4->vera_cpy_bank_vram::@3]
-    // [848] phi vera_cpy_bank_vram::bank#5 = vera_cpy_bank_vram::bank#1 [phi:vera_cpy_bank_vram::@4->vera_cpy_bank_vram::@3#0] -- register_copy 
-    // [848] phi vera_cpy_bank_vram::addr#5 = (byte*) 40960 [phi:vera_cpy_bank_vram::@4->vera_cpy_bank_vram::@3#1] -- pbuz1=pbuc1 
+    // [891] phi from vera_cpy_bank_vram::@4 to vera_cpy_bank_vram::@3 [phi:vera_cpy_bank_vram::@4->vera_cpy_bank_vram::@3]
+    // [891] phi vera_cpy_bank_vram::bank#5 = vera_cpy_bank_vram::bank#1 [phi:vera_cpy_bank_vram::@4->vera_cpy_bank_vram::@3#0] -- register_copy 
+    // [891] phi vera_cpy_bank_vram::addr#5 = (byte*) 40960 [phi:vera_cpy_bank_vram::@4->vera_cpy_bank_vram::@3#1] -- pbuz1=pbuc1 
     lda #<$a000
     sta.z addr
     lda #>$a000
     sta.z addr+1
-    // [848] phi from vera_cpy_bank_vram::@2 to vera_cpy_bank_vram::@3 [phi:vera_cpy_bank_vram::@2->vera_cpy_bank_vram::@3]
-    // [848] phi vera_cpy_bank_vram::bank#5 = vera_cpy_bank_vram::bank#2 [phi:vera_cpy_bank_vram::@2->vera_cpy_bank_vram::@3#0] -- register_copy 
-    // [848] phi vera_cpy_bank_vram::addr#5 = vera_cpy_bank_vram::addr#4 [phi:vera_cpy_bank_vram::@2->vera_cpy_bank_vram::@3#1] -- register_copy 
+    // [891] phi from vera_cpy_bank_vram::@2 to vera_cpy_bank_vram::@3 [phi:vera_cpy_bank_vram::@2->vera_cpy_bank_vram::@3]
+    // [891] phi vera_cpy_bank_vram::bank#5 = vera_cpy_bank_vram::bank#2 [phi:vera_cpy_bank_vram::@2->vera_cpy_bank_vram::@3#0] -- register_copy 
+    // [891] phi vera_cpy_bank_vram::addr#5 = vera_cpy_bank_vram::addr#4 [phi:vera_cpy_bank_vram::@2->vera_cpy_bank_vram::@3#1] -- register_copy 
     // vera_cpy_bank_vram::@3
   __b3:
     // *VERA_DATA0 = *addr
-    // [849] *VERA_DATA0 = *vera_cpy_bank_vram::addr#5 -- _deref_pbuc1=_deref_pbuz1 
+    // [892] *VERA_DATA0 = *vera_cpy_bank_vram::addr#5 -- _deref_pbuc1=_deref_pbuz1 
     ldy #0
     lda (addr),y
     sta VERA_DATA0
     // addr++;
-    // [850] vera_cpy_bank_vram::addr#2 = ++ vera_cpy_bank_vram::addr#5 -- pbuz1=_inc_pbuz1 
+    // [893] vera_cpy_bank_vram::addr#2 = ++ vera_cpy_bank_vram::addr#5 -- pbuz1=_inc_pbuz1 
     inc.z addr
     bne !+
     inc.z addr+1
   !:
     // for(dword i=0; i<num; i++)
-    // [851] vera_cpy_bank_vram::i#1 = ++ vera_cpy_bank_vram::i#2 -- vduz1=_inc_vduz1 
+    // [894] vera_cpy_bank_vram::i#1 = ++ vera_cpy_bank_vram::i#2 -- vduz1=_inc_vduz1 
     inc.z i
     bne !+
     inc.z i+1
@@ -5718,277 +5733,225 @@ vera_cpy_bank_vram: {
     bne !+
     inc.z i+3
   !:
-    // [841] phi from vera_cpy_bank_vram::@3 to vera_cpy_bank_vram::@1 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1]
-    // [841] phi vera_cpy_bank_vram::bank#2 = vera_cpy_bank_vram::bank#5 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1#0] -- register_copy 
-    // [841] phi vera_cpy_bank_vram::addr#4 = vera_cpy_bank_vram::addr#2 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1#1] -- register_copy 
-    // [841] phi vera_cpy_bank_vram::i#2 = vera_cpy_bank_vram::i#1 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1#2] -- register_copy 
+    // [884] phi from vera_cpy_bank_vram::@3 to vera_cpy_bank_vram::@1 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1]
+    // [884] phi vera_cpy_bank_vram::bank#2 = vera_cpy_bank_vram::bank#5 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1#0] -- register_copy 
+    // [884] phi vera_cpy_bank_vram::addr#4 = vera_cpy_bank_vram::addr#2 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1#1] -- register_copy 
+    // [884] phi vera_cpy_bank_vram::i#2 = vera_cpy_bank_vram::i#1 [phi:vera_cpy_bank_vram::@3->vera_cpy_bank_vram::@1#2] -- register_copy 
     jmp __b1
 }
   // tile_background
 tile_background: {
-    .label __3 = $7b
-    .label __5 = $b9
-    .label rnd = $b9
-    .label c = $b6
-    .label r = $b4
-    // [853] phi from tile_background to tile_background::@1 [phi:tile_background->tile_background::@1]
-    // [853] phi rem16u#19 = 0 [phi:tile_background->tile_background::@1#0] -- vwuz1=vwuc1 
+    .label __3 = $72
+    .label c = $53
+    .label r = $3c
+    // [896] phi from tile_background to tile_background::@1 [phi:tile_background->tile_background::@1]
+    // [896] phi rem16u#19 = 0 [phi:tile_background->tile_background::@1#0] -- vwuz1=vwuc1 
     lda #<0
     sta.z rem16u
     sta.z rem16u+1
-    // [853] phi rand_state#18 = 1 [phi:tile_background->tile_background::@1#1] -- vwuz1=vwuc1 
+    // [896] phi rand_state#18 = 1 [phi:tile_background->tile_background::@1#1] -- vwuz1=vwuc1 
     lda #<1
     sta.z rand_state
     lda #>1
     sta.z rand_state+1
-    // [853] phi tile_background::r#2 = 0 [phi:tile_background->tile_background::@1#2] -- vbuz1=vbuc1 
+    // [896] phi tile_background::r#2 = 5 [phi:tile_background->tile_background::@1#2] -- vbuz1=vbuc1 
+    lda #5
     sta.z r
     // tile_background::@1
   __b1:
-    // for(byte r=0;r<6;r+=1)
-    // [854] if(tile_background::r#2<6) goto tile_background::@2 -- vbuz1_lt_vbuc1_then_la1 
+    // for(byte r=5;r<10;r+=1)
+    // [897] if(tile_background::r#2<$a) goto tile_background::@2 -- vbuz1_lt_vbuc1_then_la1 
     lda.z r
-    cmp #6
+    cmp #$a
     bcc __b4
     // tile_background::@return
     // }
-    // [855] return 
+    // [898] return 
     rts
-    // [856] phi from tile_background::@1 to tile_background::@2 [phi:tile_background::@1->tile_background::@2]
+    // [899] phi from tile_background::@1 to tile_background::@2 [phi:tile_background::@1->tile_background::@2]
   __b4:
-    // [856] phi rem16u#27 = rem16u#19 [phi:tile_background::@1->tile_background::@2#0] -- register_copy 
-    // [856] phi rand_state#24 = rand_state#18 [phi:tile_background::@1->tile_background::@2#1] -- register_copy 
-    // [856] phi tile_background::c#2 = 0 [phi:tile_background::@1->tile_background::@2#2] -- vbuz1=vbuc1 
+    // [899] phi rem16u#27 = rem16u#19 [phi:tile_background::@1->tile_background::@2#0] -- register_copy 
+    // [899] phi rand_state#24 = rand_state#18 [phi:tile_background::@1->tile_background::@2#1] -- register_copy 
+    // [899] phi tile_background::c#2 = 0 [phi:tile_background::@1->tile_background::@2#2] -- vbuz1=vbuc1 
     lda #0
     sta.z c
     // tile_background::@2
   __b2:
     // for(byte c=0;c<5;c+=1)
-    // [857] if(tile_background::c#2<5) goto tile_background::@3 -- vbuz1_lt_vbuc1_then_la1 
+    // [900] if(tile_background::c#2<5) goto tile_background::@3 -- vbuz1_lt_vbuc1_then_la1 
     lda.z c
     cmp #5
     bcc __b3
     // tile_background::@4
     // r+=1
-    // [858] tile_background::r#1 = tile_background::r#2 + 1 -- vbuz1=vbuz1_plus_1 
+    // [901] tile_background::r#1 = tile_background::r#2 + 1 -- vbuz1=vbuz1_plus_1 
     inc.z r
-    // [853] phi from tile_background::@4 to tile_background::@1 [phi:tile_background::@4->tile_background::@1]
-    // [853] phi rem16u#19 = rem16u#27 [phi:tile_background::@4->tile_background::@1#0] -- register_copy 
-    // [853] phi rand_state#18 = rand_state#24 [phi:tile_background::@4->tile_background::@1#1] -- register_copy 
-    // [853] phi tile_background::r#2 = tile_background::r#1 [phi:tile_background::@4->tile_background::@1#2] -- register_copy 
+    // [896] phi from tile_background::@4 to tile_background::@1 [phi:tile_background::@4->tile_background::@1]
+    // [896] phi rem16u#19 = rem16u#27 [phi:tile_background::@4->tile_background::@1#0] -- register_copy 
+    // [896] phi rand_state#18 = rand_state#24 [phi:tile_background::@4->tile_background::@1#1] -- register_copy 
+    // [896] phi tile_background::r#2 = tile_background::r#1 [phi:tile_background::@4->tile_background::@1#2] -- register_copy 
     jmp __b1
-    // [859] phi from tile_background::@2 to tile_background::@3 [phi:tile_background::@2->tile_background::@3]
+    // [902] phi from tile_background::@2 to tile_background::@3 [phi:tile_background::@2->tile_background::@3]
     // tile_background::@3
   __b3:
     // rand()
-    // [860] call rand 
-    // [284] phi from tile_background::@3 to rand [phi:tile_background::@3->rand]
-    // [284] phi rand_state#13 = rand_state#24 [phi:tile_background::@3->rand#0] -- register_copy 
+    // [903] call rand 
+    // [365] phi from tile_background::@3 to rand [phi:tile_background::@3->rand]
+    // [365] phi rand_state#13 = rand_state#24 [phi:tile_background::@3->rand#0] -- register_copy 
     jsr rand
     // rand()
-    // [861] rand::return#3 = rand::return#0
+    // [904] rand::return#3 = rand::return#0
     // tile_background::@5
     // modr16u(rand(),3,0)
-    // [862] modr16u::dividend#1 = rand::return#3
-    // [863] call modr16u 
-    // [293] phi from tile_background::@5 to modr16u [phi:tile_background::@5->modr16u]
-    // [293] phi modr16u::dividend#2 = modr16u::dividend#1 [phi:tile_background::@5->modr16u#0] -- register_copy 
+    // [905] modr16u::dividend#1 = rand::return#3
+    // [906] call modr16u 
+    // [374] phi from tile_background::@5 to modr16u [phi:tile_background::@5->modr16u]
+    // [374] phi modr16u::dividend#2 = modr16u::dividend#1 [phi:tile_background::@5->modr16u#0] -- register_copy 
     jsr modr16u
     // modr16u(rand(),3,0)
-    // [864] modr16u::return#3 = modr16u::return#0
+    // [907] modr16u::return#3 = modr16u::return#0
     // tile_background::@6
-    // [865] tile_background::$3 = modr16u::return#3 -- vwuz1=vwuz2 
+    // [908] tile_background::$3 = modr16u::return#3 -- vwuz1=vwuz2 
     lda.z modr16u.return
     sta.z __3
     lda.z modr16u.return+1
     sta.z __3+1
     // rnd = (byte)modr16u(rand(),3,0)
-    // [866] tile_background::rnd#0 = (byte)tile_background::$3 -- vbuz1=_byte_vwuz2 
+    // [909] tile_background::rnd#0 = (byte)tile_background::$3 -- vbuaa=_byte_vwuz1 
     lda.z __3
-    sta.z rnd
     // vera_tile_element( 0, c, r, 3, TileDB[rnd])
-    // [867] tile_background::$5 = tile_background::rnd#0 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __5
-    // [868] vera_tile_element::x#2 = tile_background::c#2 -- vbuz1=vbuz2 
+    // [910] tile_background::$5 = tile_background::rnd#0 << 1 -- vbuxx=vbuaa_rol_1 
+    asl
+    tax
+    // [911] vera_tile_element::x#2 = tile_background::c#2 -- vbuz1=vbuz2 
     lda.z c
     sta.z vera_tile_element.x
-    // [869] vera_tile_element::y#2 = tile_background::r#2 -- vbuz1=vbuz2 
+    // [912] vera_tile_element::y#2 = tile_background::r#2 -- vbuz1=vbuz2 
     lda.z r
     sta.z vera_tile_element.y
-    // [870] vera_tile_element::Tile#1 = TileDB[tile_background::$5] -- pssz1=qssc1_derefidx_vbuz2 
-    ldy.z __5
-    lda TileDB,y
+    // [913] vera_tile_element::Tile#1 = TileDB[tile_background::$5] -- pssz1=qssc1_derefidx_vbuxx 
+    lda TileDB,x
     sta.z vera_tile_element.Tile
-    lda TileDB+1,y
+    lda TileDB+1,x
     sta.z vera_tile_element.Tile+1
-    // [871] call vera_tile_element 
-    // [298] phi from tile_background::@6 to vera_tile_element [phi:tile_background::@6->vera_tile_element]
-    // [298] phi vera_tile_element::y#3 = vera_tile_element::y#2 [phi:tile_background::@6->vera_tile_element#0] -- register_copy 
-    // [298] phi vera_tile_element::x#3 = vera_tile_element::x#2 [phi:tile_background::@6->vera_tile_element#1] -- register_copy 
-    // [298] phi vera_tile_element::Tile#2 = vera_tile_element::Tile#1 [phi:tile_background::@6->vera_tile_element#2] -- register_copy 
+    // [914] call vera_tile_element 
+    // [379] phi from tile_background::@6 to vera_tile_element [phi:tile_background::@6->vera_tile_element]
+    // [379] phi vera_tile_element::y#3 = vera_tile_element::y#2 [phi:tile_background::@6->vera_tile_element#0] -- register_copy 
+    // [379] phi vera_tile_element::x#3 = vera_tile_element::x#2 [phi:tile_background::@6->vera_tile_element#1] -- register_copy 
+    // [379] phi vera_tile_element::Tile#2 = vera_tile_element::Tile#1 [phi:tile_background::@6->vera_tile_element#2] -- register_copy 
     jsr vera_tile_element
     // tile_background::@7
     // c+=1
-    // [872] tile_background::c#1 = tile_background::c#2 + 1 -- vbuz1=vbuz1_plus_1 
+    // [915] tile_background::c#1 = tile_background::c#2 + 1 -- vbuz1=vbuz1_plus_1 
     inc.z c
-    // [856] phi from tile_background::@7 to tile_background::@2 [phi:tile_background::@7->tile_background::@2]
-    // [856] phi rem16u#27 = divr16u::rem#10 [phi:tile_background::@7->tile_background::@2#0] -- register_copy 
-    // [856] phi rand_state#24 = rand_state#14 [phi:tile_background::@7->tile_background::@2#1] -- register_copy 
-    // [856] phi tile_background::c#2 = tile_background::c#1 [phi:tile_background::@7->tile_background::@2#2] -- register_copy 
+    // [899] phi from tile_background::@7 to tile_background::@2 [phi:tile_background::@7->tile_background::@2]
+    // [899] phi rem16u#27 = divr16u::rem#10 [phi:tile_background::@7->tile_background::@2#0] -- register_copy 
+    // [899] phi rand_state#24 = rand_state#14 [phi:tile_background::@7->tile_background::@2#1] -- register_copy 
+    // [899] phi tile_background::c#2 = tile_background::c#1 [phi:tile_background::@7->tile_background::@2#2] -- register_copy 
     jmp __b2
 }
   // create_sprite
-// create_sprite(byte zp($20) sprite)
+// create_sprite(byte register(A) sprite)
 create_sprite: {
-    .label __4 = $f
-    .label __5 = $b1
-    .label __7 = $c7
-    .label __8 = $c3
-    .label __17 = $20
-    .label __18 = $c7
-    .label __22 = $6f
-    .label __33 = $b1
-    .label __34 = $c3
-    .label vera_sprite_bpp1_vera_sprite_4bpp1___3 = $f
-    .label vera_sprite_bpp1_vera_sprite_4bpp1___4 = $6f
-    .label vera_sprite_bpp1_vera_sprite_4bpp1___5 = $f
-    .label vera_sprite_bpp1_vera_sprite_4bpp1___6 = $f
-    .label vera_sprite_bpp1_vera_sprite_4bpp1___7 = $6f
-    .label vera_sprite_bpp1_vera_sprite_8bpp1___3 = $aa
-    .label vera_sprite_bpp1_vera_sprite_8bpp1___4 = $75
-    .label vera_sprite_bpp1_vera_sprite_8bpp1___5 = $c7
-    .label vera_sprite_bpp1_vera_sprite_8bpp1___6 = $c7
-    .label vera_sprite_bpp1_vera_sprite_8bpp1___7 = $75
-    .label vera_sprite_address1___0 = $af
-    .label vera_sprite_address1___2 = $c7
-    .label vera_sprite_address1___3 = $c7
-    .label vera_sprite_address1___4 = $75
-    .label vera_sprite_address1___5 = $75
-    .label vera_sprite_address1___6 = $b9
-    .label vera_sprite_address1___7 = $75
-    .label vera_sprite_address1___8 = $40
-    .label vera_sprite_address1___9 = $40
-    .label vera_sprite_address1___10 = $af
-    .label vera_sprite_address1___11 = $a9
-    .label vera_sprite_address1___12 = $a9
-    .label vera_sprite_address1___13 = $40
-    .label vera_sprite_address1___14 = $af
-    .label vera_sprite_xy1___3 = $c7
-    .label vera_sprite_xy1___4 = $c5
-    .label vera_sprite_xy1___5 = $c7
-    .label vera_sprite_xy1___6 = $b9
-    .label vera_sprite_xy1___7 = $b9
-    .label vera_sprite_xy1___8 = $f
-    .label vera_sprite_xy1___9 = $f
-    .label vera_sprite_xy1___10 = $c5
-    .label vera_sprite_height1_vera_sprite_height_81___3 = $ba
-    .label vera_sprite_height1_vera_sprite_height_81___4 = $6f
-    .label vera_sprite_height1_vera_sprite_height_81___5 = $f
-    .label vera_sprite_height1_vera_sprite_height_81___7 = $f
-    .label vera_sprite_height1_vera_sprite_height_81___8 = $6f
-    .label vera_sprite_height1_vera_sprite_height_161___3 = $b8
-    .label vera_sprite_height1_vera_sprite_height_161___4 = $6f
-    .label vera_sprite_height1_vera_sprite_height_161___5 = $b9
-    .label vera_sprite_height1_vera_sprite_height_161___6 = $b9
-    .label vera_sprite_height1_vera_sprite_height_161___7 = $b9
-    .label vera_sprite_height1_vera_sprite_height_161___8 = $6f
-    .label vera_sprite_height1_vera_sprite_height_321___3 = $b5
-    .label vera_sprite_height1_vera_sprite_height_321___4 = $6f
-    .label vera_sprite_height1_vera_sprite_height_321___5 = $b6
-    .label vera_sprite_height1_vera_sprite_height_321___6 = $b7
-    .label vera_sprite_height1_vera_sprite_height_321___7 = $b7
-    .label vera_sprite_height1_vera_sprite_height_321___8 = $6f
-    .label vera_sprite_height1_vera_sprite_height_641___3 = $c7
-    .label vera_sprite_height1_vera_sprite_height_641___4 = $75
-    .label vera_sprite_height1_vera_sprite_height_641___5 = $d2
-    .label vera_sprite_height1_vera_sprite_height_641___6 = $b9
-    .label vera_sprite_height1_vera_sprite_height_641___7 = $b9
-    .label vera_sprite_height1_vera_sprite_height_641___8 = $75
-    .label vera_sprite_palette_offset1___3 = $ba
-    .label vera_sprite_palette_offset1___4 = $c8
-    .label vera_sprite_palette_offset1___5 = $b3
-    .label vera_sprite_palette_offset1___6 = $b4
-    .label vera_sprite_palette_offset1___7 = $b9
-    .label vera_sprite_palette_offset1___8 = $c8
-    .label Sprite = $7d
-    .label Offset = $7f
-    .label vera_sprite_bpp1_bpp = $a9
-    .label vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset = $6f
-    .label vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset = $75
-    .label vera_sprite_address1_address = $ab
-    .label vera_sprite_address1_sprite_offset = $af
-    .label vera_sprite_xy1_x = $b1
-    .label vera_sprite_xy1_y = $c3
-    .label vera_sprite_xy1_sprite_offset = $c5
-    .label vera_sprite_height1_height = $ba
-    .label vera_sprite_height1_vera_sprite_height_81_sprite_offset = $6f
-    .label vera_sprite_height1_vera_sprite_height_161_sprite_offset = $6f
-    .label vera_sprite_height1_vera_sprite_height_321_sprite_offset = $6f
-    .label vera_sprite_height1_vera_sprite_height_641_sprite_offset = $75
-    .label vera_sprite_palette_offset1_palette_offset = $b9
-    .label vera_sprite_palette_offset1_sprite_offset = $c8
-    .label s = $21
-    .label sprite = $20
+    .label __5 = $a9
+    .label __8 = $ab
+    .label __22 = $72
+    .label __33 = $a9
+    .label __34 = $ab
+    .label vera_sprite_bpp1_vera_sprite_4bpp1___4 = $72
+    .label vera_sprite_bpp1_vera_sprite_4bpp1___7 = $72
+    .label vera_sprite_bpp1_vera_sprite_8bpp1___4 = $74
+    .label vera_sprite_bpp1_vera_sprite_8bpp1___7 = $74
+    .label vera_sprite_address1___0 = $72
+    .label vera_sprite_address1___4 = $74
+    .label vera_sprite_address1___5 = $74
+    .label vera_sprite_address1___7 = $72
+    .label vera_sprite_address1___9 = $7a
+    .label vera_sprite_address1___10 = $7b
+    .label vera_sprite_address1___14 = $72
+    .label vera_sprite_xy1___4 = $ad
+    .label vera_sprite_xy1___10 = $ad
+    .label vera_sprite_height1_vera_sprite_height_81___4 = $67
+    .label vera_sprite_height1_vera_sprite_height_81___8 = $67
+    .label vera_sprite_height1_vera_sprite_height_161___4 = $74
+    .label vera_sprite_height1_vera_sprite_height_161___8 = $74
+    .label vera_sprite_height1_vera_sprite_height_321___4 = $67
+    .label vera_sprite_height1_vera_sprite_height_321___8 = $67
+    .label vera_sprite_height1_vera_sprite_height_641___4 = $af
+    .label vera_sprite_height1_vera_sprite_height_641___8 = $af
+    .label vera_sprite_palette_offset1___4 = $c2
+    .label vera_sprite_palette_offset1___8 = $c2
+    .label Sprite = $65
+    .label Offset = $6d
+    .label vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset = $72
+    .label vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset = $74
+    .label vera_sprite_address1_address = $76
+    .label vera_sprite_address1_sprite_offset = $72
+    .label vera_sprite_xy1_x = $a9
+    .label vera_sprite_xy1_y = $ab
+    .label vera_sprite_xy1_sprite_offset = $ad
+    .label vera_sprite_height1_vera_sprite_height_81_sprite_offset = $67
+    .label vera_sprite_height1_vera_sprite_height_161_sprite_offset = $74
+    .label vera_sprite_height1_vera_sprite_height_321_sprite_offset = $67
+    .label vera_sprite_height1_vera_sprite_height_641_sprite_offset = $af
+    .label vera_sprite_palette_offset1_palette_offset = $7f
+    .label vera_sprite_palette_offset1_sprite_offset = $c2
     // Sprite = SpriteDB[sprite]
-    // [874] create_sprite::$17 = create_sprite::sprite#2 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __17
-    // [875] create_sprite::Sprite#0 = SpriteDB[create_sprite::$17] -- pssz1=qssc1_derefidx_vbuz2 
+    // [917] create_sprite::$17 = create_sprite::sprite#2 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [918] create_sprite::Sprite#0 = SpriteDB[create_sprite::$17] -- pssz1=qssc1_derefidx_vbuaa 
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
-    ldy.z __17
+    tay
     lda SpriteDB,y
     sta.z Sprite
     lda SpriteDB+1,y
     sta.z Sprite+1
-    // [876] phi from create_sprite to create_sprite::@1 [phi:create_sprite->create_sprite::@1]
-    // [876] phi create_sprite::s#10 = 0 [phi:create_sprite->create_sprite::@1#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z s
+    // [919] phi from create_sprite to create_sprite::@1 [phi:create_sprite->create_sprite::@1]
+    // [919] phi create_sprite::s#10 = 0 [phi:create_sprite->create_sprite::@1#0] -- vbuxx=vbuc1 
+    ldx #0
     // create_sprite::@1
   __b1:
-    // for(byte s=0;s<Sprite->Count;s++)
-    // [877] if(create_sprite::s#10<((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_COUNT]) goto create_sprite::@2 -- vbuz1_lt_pbuz2_derefidx_vbuc1_then_la1 
-    ldy #OFFSET_STRUCT_SPRITE_COUNT
+    // for(byte s=0;s<Sprite->SpriteCount;s++)
+    // [920] if(create_sprite::s#10<((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_SPRITECOUNT]) goto create_sprite::@2 -- vbuxx_lt_pbuz1_derefidx_vbuc1_then_la1 
+    ldy #OFFSET_STRUCT_SPRITE_SPRITECOUNT
     lda (Sprite),y
-    cmp.z s
-    beq !+
-    bcs __b2
-  !:
+    sta.z $ff
+    cpx.z $ff
+    bcc __b2
     // create_sprite::@return
     // }
-    // [878] return 
+    // [921] return 
     rts
     // create_sprite::@2
   __b2:
     // Sprite->Offset+s
-    // [879] create_sprite::Offset#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_OFFSET] + create_sprite::s#10 -- vbuz1=pbuz2_derefidx_vbuc1_plus_vbuz3 
-    lda.z s
+    // [922] create_sprite::Offset#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_OFFSET] + create_sprite::s#10 -- vbuz1=pbuz2_derefidx_vbuc1_plus_vbuxx 
     ldy #OFFSET_STRUCT_SPRITE_OFFSET
+    txa
     clc
     adc (Sprite),y
     sta.z Offset
     // vera_sprite_bpp(Offset, Sprite->BPP)
-    // [880] create_sprite::vera_sprite_bpp1_bpp#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_BPP] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [923] create_sprite::vera_sprite_bpp1_bpp#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_BPP] -- vbuaa=pbuz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_BPP
     lda (Sprite),y
-    sta.z vera_sprite_bpp1_bpp
     // create_sprite::vera_sprite_bpp1
     // if(bpp==4)
-    // [881] if(create_sprite::vera_sprite_bpp1_bpp#0==4) goto create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #4
-    cmp.z vera_sprite_bpp1_bpp
+    // [924] if(create_sprite::vera_sprite_bpp1_bpp#0==4) goto create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #4
     bne !vera_sprite_bpp1_vera_sprite_4bpp1+
     jmp vera_sprite_bpp1_vera_sprite_4bpp1
   !vera_sprite_bpp1_vera_sprite_4bpp1:
     // create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1
     // (word)sprite << 3
-    // [882] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$7 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [925] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$7 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_bpp1_vera_sprite_8bpp1___7
     lda #0
     sta.z vera_sprite_bpp1_vera_sprite_8bpp1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [883] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset#0 = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [926] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset#0 = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset
     rol.z vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset+1
     asl.z vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset
@@ -5996,12 +5959,12 @@ create_sprite: {
     asl.z vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset
     rol.z vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [884] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [927] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+1
-    // [885] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$4 = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset#0 + <VERA_SPRITE_ATTR+1 -- vwuz1=vwuz1_plus_vwuc1 
+    // [928] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$4 = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_sprite_offset#0 + <VERA_SPRITE_ATTR+1 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_bpp1_vera_sprite_8bpp1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+1
@@ -6010,40 +5973,37 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+1
     sta.z vera_sprite_bpp1_vera_sprite_8bpp1___4+1
     // <sprite_offset+1
-    // [886] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$3 = < create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$4 -- vbuz1=_lo_vwuz2 
+    // [929] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$3 = < create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_bpp1_vera_sprite_8bpp1___4
-    sta.z vera_sprite_bpp1_vera_sprite_8bpp1___3
     // *VERA_ADDRX_L = <sprite_offset+1
-    // [887] *VERA_ADDRX_L = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$3 -- _deref_pbuc1=vbuz1 
+    // [930] *VERA_ADDRX_L = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+1
-    // [888] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$5 = > create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$4 -- vbuz1=_hi_vwuz2 
+    // [931] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$5 = > create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_bpp1_vera_sprite_8bpp1___4+1
-    sta.z vera_sprite_bpp1_vera_sprite_8bpp1___5
     // *VERA_ADDRX_M = >sprite_offset+1
-    // [889] *VERA_ADDRX_M = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$5 -- _deref_pbuc1=vbuz1 
+    // [932] *VERA_ADDRX_M = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [890] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [933] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 | >VERA_SPRITE_8BPP
-    // [891] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$6 = *VERA_DATA0 | >VERA_SPRITE_8BPP -- vbuz1=_deref_pbuc1_bor_vbuc2 
+    // [934] create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$6 = *VERA_DATA0 | >VERA_SPRITE_8BPP -- vbuaa=_deref_pbuc1_bor_vbuc2 
     lda #>VERA_SPRITE_8BPP
     ora VERA_DATA0
-    sta.z vera_sprite_bpp1_vera_sprite_8bpp1___6
     // *VERA_DATA0 = *VERA_DATA0 | >VERA_SPRITE_8BPP
-    // [892] *VERA_DATA0 = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$6 -- _deref_pbuc1=vbuz1 
+    // [935] *VERA_DATA0 = create_sprite::vera_sprite_bpp1_vera_sprite_8bpp1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // create_sprite::@3
   __b3:
     // vera_sprite_address(Offset, Sprite->VRAM_Addresses[s])
-    // [893] create_sprite::$18 = create_sprite::s#10 << 2 -- vbuz1=vbuz2_rol_2 
-    lda.z s
+    // [936] create_sprite::$18 = create_sprite::s#10 << 2 -- vbuyy=vbuxx_rol_2 
+    txa
     asl
     asl
-    sta.z __18
-    // [894] create_sprite::$22 = (dword*)create_sprite::Sprite#0 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
+    tay
+    // [937] create_sprite::$22 = (dword*)create_sprite::Sprite#0 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
     lda #OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES
     clc
     adc.z Sprite
@@ -6051,8 +6011,7 @@ create_sprite: {
     lda #0
     adc.z Sprite+1
     sta.z __22+1
-    // [895] create_sprite::vera_sprite_address1_address#0 = create_sprite::$22[create_sprite::$18] -- vduz1=pduz2_derefidx_vbuz3 
-    ldy.z __18
+    // [938] create_sprite::vera_sprite_address1_address#0 = create_sprite::$22[create_sprite::$18] -- vduz1=pduz2_derefidx_vbuyy 
     lda (__22),y
     sta.z vera_sprite_address1_address
     iny
@@ -6066,12 +6025,12 @@ create_sprite: {
     sta.z vera_sprite_address1_address+3
     // create_sprite::vera_sprite_address1
     // (word)sprite << 3
-    // [896] create_sprite::vera_sprite_address1_$14 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [939] create_sprite::vera_sprite_address1_$14 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_address1___14
     lda #0
     sta.z vera_sprite_address1___14+1
-    // [897] create_sprite::vera_sprite_address1_$0 = create_sprite::vera_sprite_address1_$14 << 3 -- vwuz1=vwuz1_rol_3 
+    // [940] create_sprite::vera_sprite_address1_$0 = create_sprite::vera_sprite_address1_$14 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_address1___0
     rol.z vera_sprite_address1___0+1
     asl.z vera_sprite_address1___0
@@ -6079,7 +6038,7 @@ create_sprite: {
     asl.z vera_sprite_address1___0
     rol.z vera_sprite_address1___0+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [898] create_sprite::vera_sprite_address1_sprite_offset#0 = <VERA_SPRITE_ATTR + create_sprite::vera_sprite_address1_$0 -- vwuz1=vwuc1_plus_vwuz1 
+    // [941] create_sprite::vera_sprite_address1_sprite_offset#0 = <VERA_SPRITE_ATTR + create_sprite::vera_sprite_address1_$0 -- vwuz1=vwuc1_plus_vwuz1 
     clc
     lda.z vera_sprite_address1_sprite_offset
     adc #<VERA_SPRITE_ATTR&$ffff
@@ -6088,36 +6047,34 @@ create_sprite: {
     adc #>VERA_SPRITE_ATTR&$ffff
     sta.z vera_sprite_address1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [899] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [942] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // <sprite_offset
-    // [900] create_sprite::vera_sprite_address1_$2 = < create_sprite::vera_sprite_address1_sprite_offset#0 -- vbuz1=_lo_vwuz2 
+    // [943] create_sprite::vera_sprite_address1_$2 = < create_sprite::vera_sprite_address1_sprite_offset#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_address1_sprite_offset
-    sta.z vera_sprite_address1___2
     // *VERA_ADDRX_L = <sprite_offset
-    // [901] *VERA_ADDRX_L = create_sprite::vera_sprite_address1_$2 -- _deref_pbuc1=vbuz1 
+    // [944] *VERA_ADDRX_L = create_sprite::vera_sprite_address1_$2 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset
-    // [902] create_sprite::vera_sprite_address1_$3 = > create_sprite::vera_sprite_address1_sprite_offset#0 -- vbuz1=_hi_vwuz2 
+    // [945] create_sprite::vera_sprite_address1_$3 = > create_sprite::vera_sprite_address1_sprite_offset#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_address1_sprite_offset+1
-    sta.z vera_sprite_address1___3
     // *VERA_ADDRX_M = >sprite_offset
-    // [903] *VERA_ADDRX_M = create_sprite::vera_sprite_address1_$3 -- _deref_pbuc1=vbuz1 
+    // [946] *VERA_ADDRX_M = create_sprite::vera_sprite_address1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_1 | <(>VERA_SPRITE_ATTR)
-    // [904] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [947] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #VERA_INC_1|(<(VERA_SPRITE_ATTR>>$10))
     sta VERA_ADDRX_H
     // <address
-    // [905] create_sprite::vera_sprite_address1_$4 = < create_sprite::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
+    // [948] create_sprite::vera_sprite_address1_$4 = < create_sprite::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
     lda.z vera_sprite_address1_address
     sta.z vera_sprite_address1___4
     lda.z vera_sprite_address1_address+1
     sta.z vera_sprite_address1___4+1
     // (<address)>>5
-    // [906] create_sprite::vera_sprite_address1_$5 = create_sprite::vera_sprite_address1_$4 >> 5 -- vwuz1=vwuz1_ror_5 
+    // [949] create_sprite::vera_sprite_address1_$5 = create_sprite::vera_sprite_address1_$4 >> 5 -- vwuz1=vwuz1_ror_5 
     lsr.z vera_sprite_address1___5+1
     ror.z vera_sprite_address1___5
     lsr.z vera_sprite_address1___5+1
@@ -6129,24 +6086,21 @@ create_sprite: {
     lsr.z vera_sprite_address1___5+1
     ror.z vera_sprite_address1___5
     // <((<address)>>5)
-    // [907] create_sprite::vera_sprite_address1_$6 = < create_sprite::vera_sprite_address1_$5 -- vbuz1=_lo_vwuz2 
+    // [950] create_sprite::vera_sprite_address1_$6 = < create_sprite::vera_sprite_address1_$5 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_address1___5
-    sta.z vera_sprite_address1___6
     // *VERA_DATA0 = <((<address)>>5)
-    // [908] *VERA_DATA0 = create_sprite::vera_sprite_address1_$6 -- _deref_pbuc1=vbuz1 
+    // [951] *VERA_DATA0 = create_sprite::vera_sprite_address1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // <address
-    // [909] create_sprite::vera_sprite_address1_$7 = < create_sprite::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
+    // [952] create_sprite::vera_sprite_address1_$7 = < create_sprite::vera_sprite_address1_address#0 -- vwuz1=_lo_vduz2 
     lda.z vera_sprite_address1_address
     sta.z vera_sprite_address1___7
     lda.z vera_sprite_address1_address+1
     sta.z vera_sprite_address1___7+1
     // >(<address)
-    // [910] create_sprite::vera_sprite_address1_$8 = > create_sprite::vera_sprite_address1_$7 -- vbuz1=_hi_vwuz2 
-    sta.z vera_sprite_address1___8
+    // [953] create_sprite::vera_sprite_address1_$8 = > create_sprite::vera_sprite_address1_$7 -- vbuaa=_hi_vwuz1 
     // (>(<address))>>5
-    // [911] create_sprite::vera_sprite_address1_$9 = create_sprite::vera_sprite_address1_$8 >> 5 -- vbuz1=vbuz1_ror_5 
-    lda.z vera_sprite_address1___9
+    // [954] create_sprite::vera_sprite_address1_$9 = create_sprite::vera_sprite_address1_$8 >> 5 -- vbuz1=vbuaa_ror_5 
     lsr
     lsr
     lsr
@@ -6154,42 +6108,36 @@ create_sprite: {
     lsr
     sta.z vera_sprite_address1___9
     // >address
-    // [912] create_sprite::vera_sprite_address1_$10 = > create_sprite::vera_sprite_address1_address#0 -- vwuz1=_hi_vduz2 
+    // [955] create_sprite::vera_sprite_address1_$10 = > create_sprite::vera_sprite_address1_address#0 -- vwuz1=_hi_vduz2 
     lda.z vera_sprite_address1_address+2
     sta.z vera_sprite_address1___10
     lda.z vera_sprite_address1_address+3
     sta.z vera_sprite_address1___10+1
     // <(>address)
-    // [913] create_sprite::vera_sprite_address1_$11 = < create_sprite::vera_sprite_address1_$10 -- vbuz1=_lo_vwuz2 
+    // [956] create_sprite::vera_sprite_address1_$11 = < create_sprite::vera_sprite_address1_$10 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_address1___10
-    sta.z vera_sprite_address1___11
     // (<(>address))<<3
-    // [914] create_sprite::vera_sprite_address1_$12 = create_sprite::vera_sprite_address1_$11 << 3 -- vbuz1=vbuz1_rol_3 
-    lda.z vera_sprite_address1___12
+    // [957] create_sprite::vera_sprite_address1_$12 = create_sprite::vera_sprite_address1_$11 << 3 -- vbuaa=vbuaa_rol_3 
     asl
     asl
     asl
-    sta.z vera_sprite_address1___12
     // ((>(<address))>>5)|((<(>address))<<3)
-    // [915] create_sprite::vera_sprite_address1_$13 = create_sprite::vera_sprite_address1_$9 | create_sprite::vera_sprite_address1_$12 -- vbuz1=vbuz1_bor_vbuz2 
-    lda.z vera_sprite_address1___13
-    ora.z vera_sprite_address1___12
-    sta.z vera_sprite_address1___13
+    // [958] create_sprite::vera_sprite_address1_$13 = create_sprite::vera_sprite_address1_$9 | create_sprite::vera_sprite_address1_$12 -- vbuaa=vbuz1_bor_vbuaa 
+    ora.z vera_sprite_address1___9
     // *VERA_DATA0 = ((>(<address))>>5)|((<(>address))<<3)
-    // [916] *VERA_DATA0 = create_sprite::vera_sprite_address1_$13 -- _deref_pbuc1=vbuz1 
+    // [959] *VERA_DATA0 = create_sprite::vera_sprite_address1_$13 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // create_sprite::@4
     // s&03
-    // [917] create_sprite::$4 = create_sprite::s#10 & 3 -- vbuz1=vbuz2_band_vbuc1 
-    lda #3
-    and.z s
-    sta.z __4
+    // [960] create_sprite::$4 = create_sprite::s#10 & 3 -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #3
     // (word)(s&03)<<6
-    // [918] create_sprite::$33 = (word)create_sprite::$4 -- vwuz1=_word_vbuz2 
+    // [961] create_sprite::$33 = (word)create_sprite::$4 -- vwuz1=_word_vbuaa 
     sta.z __33
     lda #0
     sta.z __33+1
-    // [919] create_sprite::$5 = create_sprite::$33 << 6 -- vwuz1=vwuz1_rol_6 
+    // [962] create_sprite::$5 = create_sprite::$33 << 6 -- vwuz1=vwuz1_rol_6 
     lda.z __5+1
     lsr
     sta.z $ff
@@ -6203,7 +6151,7 @@ create_sprite: {
     ror.z __5+1
     ror.z __5
     // vera_sprite_xy(Offset, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6))
-    // [920] create_sprite::vera_sprite_xy1_x#0 = $28 + create_sprite::$5 -- vwuz1=vbuc1_plus_vwuz1 
+    // [963] create_sprite::vera_sprite_xy1_x#0 = $28 + create_sprite::$5 -- vwuz1=vbuc1_plus_vwuz1 
     lda #$28
     clc
     adc.z vera_sprite_xy1_x
@@ -6212,17 +6160,16 @@ create_sprite: {
     inc.z vera_sprite_xy1_x+1
   !:
     // s>>2
-    // [921] create_sprite::$7 = create_sprite::s#10 >> 2 -- vbuz1=vbuz2_ror_2 
-    lda.z s
+    // [964] create_sprite::$7 = create_sprite::s#10 >> 2 -- vbuaa=vbuxx_ror_2 
+    txa
     lsr
     lsr
-    sta.z __7
     // (word)(s>>2)<<6
-    // [922] create_sprite::$34 = (word)create_sprite::$7 -- vwuz1=_word_vbuz2 
+    // [965] create_sprite::$34 = (word)create_sprite::$7 -- vwuz1=_word_vbuaa 
     sta.z __34
     lda #0
     sta.z __34+1
-    // [923] create_sprite::$8 = create_sprite::$34 << 6 -- vwuz1=vwuz1_rol_6 
+    // [966] create_sprite::$8 = create_sprite::$34 << 6 -- vwuz1=vwuz1_rol_6 
     lda.z __8+1
     lsr
     sta.z $ff
@@ -6236,7 +6183,7 @@ create_sprite: {
     ror.z __8+1
     ror.z __8
     // vera_sprite_xy(Offset, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6))
-    // [924] create_sprite::vera_sprite_xy1_y#0 = $64 + create_sprite::$8 -- vwuz1=vbuc1_plus_vwuz1 
+    // [967] create_sprite::vera_sprite_xy1_y#0 = $64 + create_sprite::$8 -- vwuz1=vbuc1_plus_vwuz1 
     lda #$64
     clc
     adc.z vera_sprite_xy1_y
@@ -6246,13 +6193,13 @@ create_sprite: {
   !:
     // create_sprite::vera_sprite_xy1
     // (word)sprite << 3
-    // [925] create_sprite::vera_sprite_xy1_$10 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [968] create_sprite::vera_sprite_xy1_$10 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_xy1___10
     lda #0
     sta.z vera_sprite_xy1___10+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [926] create_sprite::vera_sprite_xy1_sprite_offset#0 = create_sprite::vera_sprite_xy1_$10 << 3 -- vwuz1=vwuz1_rol_3 
+    // [969] create_sprite::vera_sprite_xy1_sprite_offset#0 = create_sprite::vera_sprite_xy1_$10 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_xy1_sprite_offset
     rol.z vera_sprite_xy1_sprite_offset+1
     asl.z vera_sprite_xy1_sprite_offset
@@ -6260,12 +6207,12 @@ create_sprite: {
     asl.z vera_sprite_xy1_sprite_offset
     rol.z vera_sprite_xy1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [927] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [970] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+2
-    // [928] create_sprite::vera_sprite_xy1_$4 = create_sprite::vera_sprite_xy1_sprite_offset#0 + <VERA_SPRITE_ATTR+2 -- vwuz1=vwuz1_plus_vwuc1 
+    // [971] create_sprite::vera_sprite_xy1_$4 = create_sprite::vera_sprite_xy1_sprite_offset#0 + <VERA_SPRITE_ATTR+2 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_xy1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+2
@@ -6274,64 +6221,56 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+2
     sta.z vera_sprite_xy1___4+1
     // <sprite_offset+2
-    // [929] create_sprite::vera_sprite_xy1_$3 = < create_sprite::vera_sprite_xy1_$4 -- vbuz1=_lo_vwuz2 
+    // [972] create_sprite::vera_sprite_xy1_$3 = < create_sprite::vera_sprite_xy1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_xy1___4
-    sta.z vera_sprite_xy1___3
     // *VERA_ADDRX_L = <sprite_offset+2
-    // [930] *VERA_ADDRX_L = create_sprite::vera_sprite_xy1_$3 -- _deref_pbuc1=vbuz1 
+    // [973] *VERA_ADDRX_L = create_sprite::vera_sprite_xy1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+2
-    // [931] create_sprite::vera_sprite_xy1_$5 = > create_sprite::vera_sprite_xy1_$4 -- vbuz1=_hi_vwuz2 
+    // [974] create_sprite::vera_sprite_xy1_$5 = > create_sprite::vera_sprite_xy1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_xy1___4+1
-    sta.z vera_sprite_xy1___5
     // *VERA_ADDRX_M = >sprite_offset+2
-    // [932] *VERA_ADDRX_M = create_sprite::vera_sprite_xy1_$5 -- _deref_pbuc1=vbuz1 
+    // [975] *VERA_ADDRX_M = create_sprite::vera_sprite_xy1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_1 | <(>VERA_SPRITE_ATTR)
-    // [933] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [976] *VERA_ADDRX_H = VERA_INC_1|<>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #VERA_INC_1|(<(VERA_SPRITE_ATTR>>$10))
     sta VERA_ADDRX_H
     // <x
-    // [934] create_sprite::vera_sprite_xy1_$6 = < create_sprite::vera_sprite_xy1_x#0 -- vbuz1=_lo_vwuz2 
+    // [977] create_sprite::vera_sprite_xy1_$6 = < create_sprite::vera_sprite_xy1_x#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_xy1_x
-    sta.z vera_sprite_xy1___6
     // *VERA_DATA0 = <x
-    // [935] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$6 -- _deref_pbuc1=vbuz1 
+    // [978] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // >x
-    // [936] create_sprite::vera_sprite_xy1_$7 = > create_sprite::vera_sprite_xy1_x#0 -- vbuz1=_hi_vwuz2 
+    // [979] create_sprite::vera_sprite_xy1_$7 = > create_sprite::vera_sprite_xy1_x#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_xy1_x+1
-    sta.z vera_sprite_xy1___7
     // *VERA_DATA0 = >x
-    // [937] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$7 -- _deref_pbuc1=vbuz1 
+    // [980] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // <y
-    // [938] create_sprite::vera_sprite_xy1_$8 = < create_sprite::vera_sprite_xy1_y#0 -- vbuz1=_lo_vwuz2 
+    // [981] create_sprite::vera_sprite_xy1_$8 = < create_sprite::vera_sprite_xy1_y#0 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_xy1_y
-    sta.z vera_sprite_xy1___8
     // *VERA_DATA0 = <y
-    // [939] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$8 -- _deref_pbuc1=vbuz1 
+    // [982] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$8 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // >y
-    // [940] create_sprite::vera_sprite_xy1_$9 = > create_sprite::vera_sprite_xy1_y#0 -- vbuz1=_hi_vwuz2 
+    // [983] create_sprite::vera_sprite_xy1_$9 = > create_sprite::vera_sprite_xy1_y#0 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_xy1_y+1
-    sta.z vera_sprite_xy1___9
     // *VERA_DATA0 = >y
-    // [941] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$9 -- _deref_pbuc1=vbuz1 
+    // [984] *VERA_DATA0 = create_sprite::vera_sprite_xy1_$9 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // create_sprite::@5
     // vera_sprite_height(Offset, Sprite->Height)
-    // [942] create_sprite::vera_sprite_height1_height#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_HEIGHT] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [985] create_sprite::vera_sprite_height1_height#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_HEIGHT] -- vbuaa=pbuz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_HEIGHT
     lda (Sprite),y
-    sta.z vera_sprite_height1_height
     // create_sprite::vera_sprite_height1
     // case 8:
     //             vera_sprite_height_8(sprite);
     //             break;
-    // [943] if(create_sprite::vera_sprite_height1_height#0==8) goto create_sprite::vera_sprite_height1_vera_sprite_height_81 -- vbuz1_eq_vbuc1_then_la1 
-    lda #8
-    cmp.z vera_sprite_height1_height
+    // [986] if(create_sprite::vera_sprite_height1_height#0==8) goto create_sprite::vera_sprite_height1_vera_sprite_height_81 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #8
     bne !vera_sprite_height1_vera_sprite_height_81+
     jmp vera_sprite_height1_vera_sprite_height_81
   !vera_sprite_height1_vera_sprite_height_81:
@@ -6339,9 +6278,8 @@ create_sprite: {
     // case 16:
     //             vera_sprite_height_16(sprite);
     //             break;
-    // [944] if(create_sprite::vera_sprite_height1_height#0==$10) goto create_sprite::vera_sprite_height1_vera_sprite_height_161 -- vbuz1_eq_vbuc1_then_la1 
-    lda #$10
-    cmp.z vera_sprite_height1_height
+    // [987] if(create_sprite::vera_sprite_height1_height#0==$10) goto create_sprite::vera_sprite_height1_vera_sprite_height_161 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$10
     bne !vera_sprite_height1_vera_sprite_height_161+
     jmp vera_sprite_height1_vera_sprite_height_161
   !vera_sprite_height1_vera_sprite_height_161:
@@ -6349,9 +6287,8 @@ create_sprite: {
     // case 32:
     //             vera_sprite_height_32(sprite);
     //             break;
-    // [945] if(create_sprite::vera_sprite_height1_height#0==$20) goto create_sprite::vera_sprite_height1_vera_sprite_height_321 -- vbuz1_eq_vbuc1_then_la1 
-    lda #$20
-    cmp.z vera_sprite_height1_height
+    // [988] if(create_sprite::vera_sprite_height1_height#0==$20) goto create_sprite::vera_sprite_height1_vera_sprite_height_321 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$20
     bne !vera_sprite_height1_vera_sprite_height_321+
     jmp vera_sprite_height1_vera_sprite_height_321
   !vera_sprite_height1_vera_sprite_height_321:
@@ -6359,21 +6296,20 @@ create_sprite: {
     // case 64:
     //             vera_sprite_height_64(sprite);
     //             break;
-    // [946] if(create_sprite::vera_sprite_height1_height#0==$40) goto create_sprite::vera_sprite_height1_vera_sprite_height_641 -- vbuz1_eq_vbuc1_then_la1 
-    lda #$40
-    cmp.z vera_sprite_height1_height
+    // [989] if(create_sprite::vera_sprite_height1_height#0==$40) goto create_sprite::vera_sprite_height1_vera_sprite_height_641 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$40
     beq vera_sprite_height1_vera_sprite_height_641
     jmp __b6
     // create_sprite::vera_sprite_height1_vera_sprite_height_641
   vera_sprite_height1_vera_sprite_height_641:
     // (word)sprite << 3
-    // [947] create_sprite::vera_sprite_height1_vera_sprite_height_641_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [990] create_sprite::vera_sprite_height1_vera_sprite_height_641_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_height1_vera_sprite_height_641___8
     lda #0
     sta.z vera_sprite_height1_vera_sprite_height_641___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [948] create_sprite::vera_sprite_height1_vera_sprite_height_641_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_641_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [991] create_sprite::vera_sprite_height1_vera_sprite_height_641_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_641_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_height1_vera_sprite_height_641_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_641_sprite_offset+1
     asl.z vera_sprite_height1_vera_sprite_height_641_sprite_offset
@@ -6381,12 +6317,12 @@ create_sprite: {
     asl.z vera_sprite_height1_vera_sprite_height_641_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_641_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [949] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [992] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [950] create_sprite::vera_sprite_height1_vera_sprite_height_641_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_641_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [993] create_sprite::vera_sprite_height1_vera_sprite_height_641_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_641_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_height1_vera_sprite_height_641___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -6395,96 +6331,87 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_height1_vera_sprite_height_641___4+1
     // <sprite_offset+7
-    // [951] create_sprite::vera_sprite_height1_vera_sprite_height_641_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_641_$4 -- vbuz1=_lo_vwuz2 
+    // [994] create_sprite::vera_sprite_height1_vera_sprite_height_641_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_641_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_641___4
-    sta.z vera_sprite_height1_vera_sprite_height_641___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [952] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_641_$3 -- _deref_pbuc1=vbuz1 
+    // [995] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_641_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [953] create_sprite::vera_sprite_height1_vera_sprite_height_641_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_641_$4 -- vbuz1=_hi_vwuz2 
+    // [996] create_sprite::vera_sprite_height1_vera_sprite_height_641_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_641_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_641___4+1
-    sta.z vera_sprite_height1_vera_sprite_height_641___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [954] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_641_$5 -- _deref_pbuc1=vbuz1 
+    // [997] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_641_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [955] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [998] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK
-    // [956] create_sprite::vera_sprite_height1_vera_sprite_height_641_$6 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [999] create_sprite::vera_sprite_height1_vera_sprite_height_641_$6 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_HEIGHT_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_height1_vera_sprite_height_641___6
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_64
-    // [957] create_sprite::vera_sprite_height1_vera_sprite_height_641_$7 = create_sprite::vera_sprite_height1_vera_sprite_height_641_$6 | VERA_SPRITE_HEIGHT_64 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_HEIGHT_64
-    ora.z vera_sprite_height1_vera_sprite_height_641___7
-    sta.z vera_sprite_height1_vera_sprite_height_641___7
+    // [1000] create_sprite::vera_sprite_height1_vera_sprite_height_641_$7 = create_sprite::vera_sprite_height1_vera_sprite_height_641_$6 | VERA_SPRITE_HEIGHT_64 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_HEIGHT_64
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_64
-    // [958] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_641_$7 -- _deref_pbuc1=vbuz1 
+    // [1001] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_641_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // create_sprite::@6
   __b6:
     // vera_sprite_width(Offset, Sprite->Width)
-    // [959] vera_sprite_width::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
+    // [1002] vera_sprite_width::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
     lda.z Offset
     sta.z vera_sprite_width.sprite
-    // [960] vera_sprite_width::width#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_WIDTH] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [1003] vera_sprite_width::width#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_WIDTH] -- vbuaa=pbuz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_WIDTH
     lda (Sprite),y
-    sta.z vera_sprite_width.width
-    // [961] call vera_sprite_width 
+    // [1004] call vera_sprite_width 
     jsr vera_sprite_width
     // create_sprite::@8
     // vera_sprite_zdepth(Offset, Sprite->Zdepth)
-    // [962] vera_sprite_zdepth::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
+    // [1005] vera_sprite_zdepth::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
     lda.z Offset
     sta.z vera_sprite_zdepth.sprite
-    // [963] vera_sprite_zdepth::zdepth#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_ZDEPTH] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [1006] vera_sprite_zdepth::zdepth#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_ZDEPTH] -- vbuaa=pbuz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_ZDEPTH
     lda (Sprite),y
-    sta.z vera_sprite_zdepth.zdepth
-    // [964] call vera_sprite_zdepth 
+    // [1007] call vera_sprite_zdepth 
     jsr vera_sprite_zdepth
     // create_sprite::@9
     // vera_sprite_hflip(Offset, Sprite->Hflip)
-    // [965] vera_sprite_hflip::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
+    // [1008] vera_sprite_hflip::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
     lda.z Offset
     sta.z vera_sprite_hflip.sprite
-    // [966] vera_sprite_hflip::hflip#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_HFLIP] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [1009] vera_sprite_hflip::hflip#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_HFLIP] -- vbuaa=pbuz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_HFLIP
     lda (Sprite),y
-    sta.z vera_sprite_hflip.hflip
-    // [967] call vera_sprite_hflip 
+    // [1010] call vera_sprite_hflip 
     jsr vera_sprite_hflip
     // create_sprite::@10
     // vera_sprite_vflip(Offset, Sprite->Vflip)
-    // [968] vera_sprite_vflip::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
+    // [1011] vera_sprite_vflip::sprite#0 = create_sprite::Offset#0 -- vbuz1=vbuz2 
     lda.z Offset
     sta.z vera_sprite_vflip.sprite
-    // [969] vera_sprite_vflip::vflip#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_VFLIP] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [1012] vera_sprite_vflip::vflip#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_VFLIP] -- vbuaa=pbuz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_VFLIP
     lda (Sprite),y
-    sta.z vera_sprite_vflip.vflip
-    // [970] call vera_sprite_vflip 
+    // [1013] call vera_sprite_vflip 
     jsr vera_sprite_vflip
     // create_sprite::@11
     // vera_sprite_palette_offset(Offset, Sprite->Palette)
-    // [971] create_sprite::vera_sprite_palette_offset1_palette_offset#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_PALETTE] -- vbuz1=pbuz2_derefidx_vbuc1 
+    // [1014] create_sprite::vera_sprite_palette_offset1_palette_offset#0 = ((byte*)create_sprite::Sprite#0)[OFFSET_STRUCT_SPRITE_PALETTE] -- vbuz1=pbuz2_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_SPRITE_PALETTE
     lda (Sprite),y
     sta.z vera_sprite_palette_offset1_palette_offset
     // create_sprite::vera_sprite_palette_offset1
     // (word)sprite << 3
-    // [972] create_sprite::vera_sprite_palette_offset1_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [1015] create_sprite::vera_sprite_palette_offset1_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_palette_offset1___8
     lda #0
     sta.z vera_sprite_palette_offset1___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [973] create_sprite::vera_sprite_palette_offset1_sprite_offset#0 = create_sprite::vera_sprite_palette_offset1_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1016] create_sprite::vera_sprite_palette_offset1_sprite_offset#0 = create_sprite::vera_sprite_palette_offset1_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_palette_offset1_sprite_offset
     rol.z vera_sprite_palette_offset1_sprite_offset+1
     asl.z vera_sprite_palette_offset1_sprite_offset
@@ -6492,12 +6419,12 @@ create_sprite: {
     asl.z vera_sprite_palette_offset1_sprite_offset
     rol.z vera_sprite_palette_offset1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [974] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1017] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [975] create_sprite::vera_sprite_palette_offset1_$4 = create_sprite::vera_sprite_palette_offset1_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1018] create_sprite::vera_sprite_palette_offset1_$4 = create_sprite::vera_sprite_palette_offset1_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_palette_offset1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -6506,53 +6433,48 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_palette_offset1___4+1
     // <sprite_offset+7
-    // [976] create_sprite::vera_sprite_palette_offset1_$3 = < create_sprite::vera_sprite_palette_offset1_$4 -- vbuz1=_lo_vwuz2 
+    // [1019] create_sprite::vera_sprite_palette_offset1_$3 = < create_sprite::vera_sprite_palette_offset1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_palette_offset1___4
-    sta.z vera_sprite_palette_offset1___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [977] *VERA_ADDRX_L = create_sprite::vera_sprite_palette_offset1_$3 -- _deref_pbuc1=vbuz1 
+    // [1020] *VERA_ADDRX_L = create_sprite::vera_sprite_palette_offset1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [978] create_sprite::vera_sprite_palette_offset1_$5 = > create_sprite::vera_sprite_palette_offset1_$4 -- vbuz1=_hi_vwuz2 
+    // [1021] create_sprite::vera_sprite_palette_offset1_$5 = > create_sprite::vera_sprite_palette_offset1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_palette_offset1___4+1
-    sta.z vera_sprite_palette_offset1___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [979] *VERA_ADDRX_M = create_sprite::vera_sprite_palette_offset1_$5 -- _deref_pbuc1=vbuz1 
+    // [1022] *VERA_ADDRX_M = create_sprite::vera_sprite_palette_offset1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [980] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1023] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_PALETTE_OFFSET_MASK
-    // [981] create_sprite::vera_sprite_palette_offset1_$6 = *VERA_DATA0 & ~VERA_SPRITE_PALETTE_OFFSET_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1024] create_sprite::vera_sprite_palette_offset1_$6 = *VERA_DATA0 & ~VERA_SPRITE_PALETTE_OFFSET_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_PALETTE_OFFSET_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_palette_offset1___6
     // *VERA_DATA0 & ~VERA_SPRITE_PALETTE_OFFSET_MASK | palette_offset
-    // [982] create_sprite::vera_sprite_palette_offset1_$7 = create_sprite::vera_sprite_palette_offset1_$6 | create_sprite::vera_sprite_palette_offset1_palette_offset#0 -- vbuz1=vbuz2_bor_vbuz1 
-    lda.z vera_sprite_palette_offset1___7
-    ora.z vera_sprite_palette_offset1___6
-    sta.z vera_sprite_palette_offset1___7
+    // [1025] create_sprite::vera_sprite_palette_offset1_$7 = create_sprite::vera_sprite_palette_offset1_$6 | create_sprite::vera_sprite_palette_offset1_palette_offset#0 -- vbuaa=vbuaa_bor_vbuz1 
+    ora.z vera_sprite_palette_offset1_palette_offset
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_PALETTE_OFFSET_MASK | palette_offset
-    // [983] *VERA_DATA0 = create_sprite::vera_sprite_palette_offset1_$7 -- _deref_pbuc1=vbuz1 
+    // [1026] *VERA_DATA0 = create_sprite::vera_sprite_palette_offset1_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // create_sprite::@7
-    // for(byte s=0;s<Sprite->Count;s++)
-    // [984] create_sprite::s#1 = ++ create_sprite::s#10 -- vbuz1=_inc_vbuz1 
-    inc.z s
-    // [876] phi from create_sprite::@7 to create_sprite::@1 [phi:create_sprite::@7->create_sprite::@1]
-    // [876] phi create_sprite::s#10 = create_sprite::s#1 [phi:create_sprite::@7->create_sprite::@1#0] -- register_copy 
+    // for(byte s=0;s<Sprite->SpriteCount;s++)
+    // [1027] create_sprite::s#1 = ++ create_sprite::s#10 -- vbuxx=_inc_vbuxx 
+    inx
+    // [919] phi from create_sprite::@7 to create_sprite::@1 [phi:create_sprite::@7->create_sprite::@1]
+    // [919] phi create_sprite::s#10 = create_sprite::s#1 [phi:create_sprite::@7->create_sprite::@1#0] -- register_copy 
     jmp __b1
     // create_sprite::vera_sprite_height1_vera_sprite_height_321
   vera_sprite_height1_vera_sprite_height_321:
     // (word)sprite << 3
-    // [985] create_sprite::vera_sprite_height1_vera_sprite_height_321_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [1028] create_sprite::vera_sprite_height1_vera_sprite_height_321_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_height1_vera_sprite_height_321___8
     lda #0
     sta.z vera_sprite_height1_vera_sprite_height_321___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [986] create_sprite::vera_sprite_height1_vera_sprite_height_321_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_321_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1029] create_sprite::vera_sprite_height1_vera_sprite_height_321_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_321_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_height1_vera_sprite_height_321_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_321_sprite_offset+1
     asl.z vera_sprite_height1_vera_sprite_height_321_sprite_offset
@@ -6560,12 +6482,12 @@ create_sprite: {
     asl.z vera_sprite_height1_vera_sprite_height_321_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_321_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [987] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1030] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [988] create_sprite::vera_sprite_height1_vera_sprite_height_321_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_321_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1031] create_sprite::vera_sprite_height1_vera_sprite_height_321_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_321_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_height1_vera_sprite_height_321___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -6574,47 +6496,42 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_height1_vera_sprite_height_321___4+1
     // <sprite_offset+7
-    // [989] create_sprite::vera_sprite_height1_vera_sprite_height_321_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_321_$4 -- vbuz1=_lo_vwuz2 
+    // [1032] create_sprite::vera_sprite_height1_vera_sprite_height_321_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_321_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_321___4
-    sta.z vera_sprite_height1_vera_sprite_height_321___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [990] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_321_$3 -- _deref_pbuc1=vbuz1 
+    // [1033] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_321_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [991] create_sprite::vera_sprite_height1_vera_sprite_height_321_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_321_$4 -- vbuz1=_hi_vwuz2 
+    // [1034] create_sprite::vera_sprite_height1_vera_sprite_height_321_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_321_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_321___4+1
-    sta.z vera_sprite_height1_vera_sprite_height_321___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [992] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_321_$5 -- _deref_pbuc1=vbuz1 
+    // [1035] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_321_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [993] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1036] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK
-    // [994] create_sprite::vera_sprite_height1_vera_sprite_height_321_$6 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1037] create_sprite::vera_sprite_height1_vera_sprite_height_321_$6 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_HEIGHT_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_height1_vera_sprite_height_321___6
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_32
-    // [995] create_sprite::vera_sprite_height1_vera_sprite_height_321_$7 = create_sprite::vera_sprite_height1_vera_sprite_height_321_$6 | VERA_SPRITE_HEIGHT_32 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_HEIGHT_32
-    ora.z vera_sprite_height1_vera_sprite_height_321___7
-    sta.z vera_sprite_height1_vera_sprite_height_321___7
+    // [1038] create_sprite::vera_sprite_height1_vera_sprite_height_321_$7 = create_sprite::vera_sprite_height1_vera_sprite_height_321_$6 | VERA_SPRITE_HEIGHT_32 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_HEIGHT_32
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_32
-    // [996] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_321_$7 -- _deref_pbuc1=vbuz1 
+    // [1039] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_321_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     jmp __b6
     // create_sprite::vera_sprite_height1_vera_sprite_height_161
   vera_sprite_height1_vera_sprite_height_161:
     // (word)sprite << 3
-    // [997] create_sprite::vera_sprite_height1_vera_sprite_height_161_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [1040] create_sprite::vera_sprite_height1_vera_sprite_height_161_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_height1_vera_sprite_height_161___8
     lda #0
     sta.z vera_sprite_height1_vera_sprite_height_161___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [998] create_sprite::vera_sprite_height1_vera_sprite_height_161_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_161_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1041] create_sprite::vera_sprite_height1_vera_sprite_height_161_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_161_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_height1_vera_sprite_height_161_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_161_sprite_offset+1
     asl.z vera_sprite_height1_vera_sprite_height_161_sprite_offset
@@ -6622,12 +6539,12 @@ create_sprite: {
     asl.z vera_sprite_height1_vera_sprite_height_161_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_161_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [999] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1042] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [1000] create_sprite::vera_sprite_height1_vera_sprite_height_161_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_161_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1043] create_sprite::vera_sprite_height1_vera_sprite_height_161_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_161_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_height1_vera_sprite_height_161___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -6636,47 +6553,42 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_height1_vera_sprite_height_161___4+1
     // <sprite_offset+7
-    // [1001] create_sprite::vera_sprite_height1_vera_sprite_height_161_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_161_$4 -- vbuz1=_lo_vwuz2 
+    // [1044] create_sprite::vera_sprite_height1_vera_sprite_height_161_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_161_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_161___4
-    sta.z vera_sprite_height1_vera_sprite_height_161___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [1002] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_161_$3 -- _deref_pbuc1=vbuz1 
+    // [1045] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_161_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [1003] create_sprite::vera_sprite_height1_vera_sprite_height_161_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_161_$4 -- vbuz1=_hi_vwuz2 
+    // [1046] create_sprite::vera_sprite_height1_vera_sprite_height_161_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_161_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_161___4+1
-    sta.z vera_sprite_height1_vera_sprite_height_161___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [1004] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_161_$5 -- _deref_pbuc1=vbuz1 
+    // [1047] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_161_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1005] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1048] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK
-    // [1006] create_sprite::vera_sprite_height1_vera_sprite_height_161_$6 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1049] create_sprite::vera_sprite_height1_vera_sprite_height_161_$6 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_HEIGHT_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_height1_vera_sprite_height_161___6
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_16
-    // [1007] create_sprite::vera_sprite_height1_vera_sprite_height_161_$7 = create_sprite::vera_sprite_height1_vera_sprite_height_161_$6 | VERA_SPRITE_HEIGHT_16 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_HEIGHT_16
-    ora.z vera_sprite_height1_vera_sprite_height_161___7
-    sta.z vera_sprite_height1_vera_sprite_height_161___7
+    // [1050] create_sprite::vera_sprite_height1_vera_sprite_height_161_$7 = create_sprite::vera_sprite_height1_vera_sprite_height_161_$6 | VERA_SPRITE_HEIGHT_16 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_HEIGHT_16
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_16
-    // [1008] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_161_$7 -- _deref_pbuc1=vbuz1 
+    // [1051] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_161_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     jmp __b6
     // create_sprite::vera_sprite_height1_vera_sprite_height_81
   vera_sprite_height1_vera_sprite_height_81:
     // (word)sprite << 3
-    // [1009] create_sprite::vera_sprite_height1_vera_sprite_height_81_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [1052] create_sprite::vera_sprite_height1_vera_sprite_height_81_$8 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_height1_vera_sprite_height_81___8
     lda #0
     sta.z vera_sprite_height1_vera_sprite_height_81___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1010] create_sprite::vera_sprite_height1_vera_sprite_height_81_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_81_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1053] create_sprite::vera_sprite_height1_vera_sprite_height_81_sprite_offset#0 = create_sprite::vera_sprite_height1_vera_sprite_height_81_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_height1_vera_sprite_height_81_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_81_sprite_offset+1
     asl.z vera_sprite_height1_vera_sprite_height_81_sprite_offset
@@ -6684,12 +6596,12 @@ create_sprite: {
     asl.z vera_sprite_height1_vera_sprite_height_81_sprite_offset
     rol.z vera_sprite_height1_vera_sprite_height_81_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1011] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1054] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [1012] create_sprite::vera_sprite_height1_vera_sprite_height_81_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_81_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1055] create_sprite::vera_sprite_height1_vera_sprite_height_81_$4 = create_sprite::vera_sprite_height1_vera_sprite_height_81_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_height1_vera_sprite_height_81___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -6698,42 +6610,39 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_height1_vera_sprite_height_81___4+1
     // <sprite_offset+7
-    // [1013] create_sprite::vera_sprite_height1_vera_sprite_height_81_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_81_$4 -- vbuz1=_lo_vwuz2 
+    // [1056] create_sprite::vera_sprite_height1_vera_sprite_height_81_$3 = < create_sprite::vera_sprite_height1_vera_sprite_height_81_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_81___4
-    sta.z vera_sprite_height1_vera_sprite_height_81___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [1014] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_81_$3 -- _deref_pbuc1=vbuz1 
+    // [1057] *VERA_ADDRX_L = create_sprite::vera_sprite_height1_vera_sprite_height_81_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [1015] create_sprite::vera_sprite_height1_vera_sprite_height_81_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_81_$4 -- vbuz1=_hi_vwuz2 
+    // [1058] create_sprite::vera_sprite_height1_vera_sprite_height_81_$5 = > create_sprite::vera_sprite_height1_vera_sprite_height_81_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_height1_vera_sprite_height_81___4+1
-    sta.z vera_sprite_height1_vera_sprite_height_81___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [1016] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_81_$5 -- _deref_pbuc1=vbuz1 
+    // [1059] *VERA_ADDRX_M = create_sprite::vera_sprite_height1_vera_sprite_height_81_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1017] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1060] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_8
-    // [1018] create_sprite::vera_sprite_height1_vera_sprite_height_81_$7 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1061] create_sprite::vera_sprite_height1_vera_sprite_height_81_$7 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_HEIGHT_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_height1_vera_sprite_height_81___7
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_8
-    // [1019] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_81_$7 -- _deref_pbuc1=vbuz1 
+    // [1062] *VERA_DATA0 = create_sprite::vera_sprite_height1_vera_sprite_height_81_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     jmp __b6
     // create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1
   vera_sprite_bpp1_vera_sprite_4bpp1:
     // (word)sprite << 3
-    // [1020] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$7 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
+    // [1063] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$7 = (word)create_sprite::Offset#0 -- vwuz1=_word_vbuz2 
     lda.z Offset
     sta.z vera_sprite_bpp1_vera_sprite_4bpp1___7
     lda #0
     sta.z vera_sprite_bpp1_vera_sprite_4bpp1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1021] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset#0 = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1064] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset#0 = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset
     rol.z vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset+1
     asl.z vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset
@@ -6741,12 +6650,12 @@ create_sprite: {
     asl.z vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset
     rol.z vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1022] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1065] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+1
-    // [1023] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$4 = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset#0 + <VERA_SPRITE_ATTR+1 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1066] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$4 = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_sprite_offset#0 + <VERA_SPRITE_ATTR+1 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_bpp1_vera_sprite_4bpp1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+1
@@ -6755,33 +6664,385 @@ create_sprite: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+1
     sta.z vera_sprite_bpp1_vera_sprite_4bpp1___4+1
     // <sprite_offset+1
-    // [1024] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$3 = < create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$4 -- vbuz1=_lo_vwuz2 
+    // [1067] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$3 = < create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_bpp1_vera_sprite_4bpp1___4
-    sta.z vera_sprite_bpp1_vera_sprite_4bpp1___3
     // *VERA_ADDRX_L = <sprite_offset+1
-    // [1025] *VERA_ADDRX_L = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$3 -- _deref_pbuc1=vbuz1 
+    // [1068] *VERA_ADDRX_L = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+1
-    // [1026] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$5 = > create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$4 -- vbuz1=_hi_vwuz2 
+    // [1069] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$5 = > create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_bpp1_vera_sprite_4bpp1___4+1
-    sta.z vera_sprite_bpp1_vera_sprite_4bpp1___5
     // *VERA_ADDRX_M = >sprite_offset+1
-    // [1027] *VERA_ADDRX_M = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$5 -- _deref_pbuc1=vbuz1 
+    // [1070] *VERA_ADDRX_M = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1028] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1071] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~>VERA_SPRITE_8BPP
-    // [1029] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$6 = *VERA_DATA0 & ~>VERA_SPRITE_8BPP -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1072] create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$6 = *VERA_DATA0 & ~>VERA_SPRITE_8BPP -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #(>VERA_SPRITE_8BPP)^$ff
     and VERA_DATA0
-    sta.z vera_sprite_bpp1_vera_sprite_4bpp1___6
     // *VERA_DATA0 = *VERA_DATA0 & ~>VERA_SPRITE_8BPP
-    // [1030] *VERA_DATA0 = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$6 -- _deref_pbuc1=vbuz1 
+    // [1073] *VERA_DATA0 = create_sprite::vera_sprite_bpp1_vera_sprite_4bpp1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     jmp __b3
 }
+  // show_memory_map
+show_memory_map: {
+    .label __17 = $af
+    .label __19 = $ab
+    .label Sprite = $ad
+    .label j = $7f
+    .label i = $7a
+    .label Tile = $a9
+    .label j1 = $7e
+    .label i1 = $7d
+    // [1075] phi from show_memory_map to show_memory_map::@1 [phi:show_memory_map->show_memory_map::@1]
+    // [1075] phi show_memory_map::i#10 = 0 [phi:show_memory_map->show_memory_map::@1#0] -- vbuz1=vbuc1 
+    lda #0
+    sta.z i
+    // show_memory_map::@1
+  __b1:
+    // for(byte i=0;i<2;i++)
+    // [1076] if(show_memory_map::i#10<2) goto show_memory_map::@2 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z i
+    cmp #2
+    bcs !__b2+
+    jmp __b2
+  !__b2:
+    // [1077] phi from show_memory_map::@1 to show_memory_map::@6 [phi:show_memory_map::@1->show_memory_map::@6]
+    // [1077] phi show_memory_map::i1#10 = 0 [phi:show_memory_map::@1->show_memory_map::@6#0] -- vbuz1=vbuc1 
+    lda #0
+    sta.z i1
+    // show_memory_map::@6
+  __b6:
+    // for(byte i=0;i<3;i++)
+    // [1078] if(show_memory_map::i1#10<3) goto show_memory_map::@7 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z i1
+    cmp #3
+    bcc __b7
+    // show_memory_map::@return
+    // }
+    // [1079] return 
+    rts
+    // show_memory_map::@7
+  __b7:
+    // Tile = TileDB[i]
+    // [1080] show_memory_map::$14 = show_memory_map::i1#10 << 1 -- vbuaa=vbuz1_rol_1 
+    lda.z i1
+    asl
+    // [1081] show_memory_map::Tile#0 = TileDB[show_memory_map::$14] -- pssz1=qssc1_derefidx_vbuaa 
+    tay
+    lda TileDB,y
+    sta.z Tile
+    lda TileDB+1,y
+    sta.z Tile+1
+    // gotoxy(0, 4+i)
+    // [1082] gotoxy::y#6 = 4 + show_memory_map::i1#10 -- vbuxx=vbuc1_plus_vbuz1 
+    lda #4
+    clc
+    adc.z i1
+    tax
+    // [1083] call gotoxy 
+    // [330] phi from show_memory_map::@7 to gotoxy [phi:show_memory_map::@7->gotoxy]
+    // [330] phi gotoxy::y#7 = gotoxy::y#6 [phi:show_memory_map::@7->gotoxy#0] -- register_copy 
+    jsr gotoxy
+    // [1084] phi from show_memory_map::@7 to show_memory_map::@18 [phi:show_memory_map::@7->show_memory_map::@18]
+    // show_memory_map::@18
+    // printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address)
+    // [1085] call cputs 
+    // [343] phi from show_memory_map::@18 to cputs [phi:show_memory_map::@18->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s4 [phi:show_memory_map::@18->cputs#0] -- pbuz1=pbuc1 
+    lda #<s4
+    sta.z cputs.s
+    lda #>s4
+    sta.z cputs.s+1
+    jsr cputs
+    // show_memory_map::@19
+    // printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address)
+    // [1086] printf_uchar::uvalue#1 = show_memory_map::i1#10 -- vbuxx=vbuz1 
+    ldx.z i1
+    // [1087] call printf_uchar 
+    // [596] phi from show_memory_map::@19 to printf_uchar [phi:show_memory_map::@19->printf_uchar]
+    // [596] phi printf_uchar::format_radix#5 = DECIMAL [phi:show_memory_map::@19->printf_uchar#0] -- vbuyy=vbuc1 
+    ldy #DECIMAL
+    // [596] phi printf_uchar::uvalue#5 = printf_uchar::uvalue#1 [phi:show_memory_map::@19->printf_uchar#1] -- register_copy 
+    jsr printf_uchar
+    // [1088] phi from show_memory_map::@19 to show_memory_map::@20 [phi:show_memory_map::@19->show_memory_map::@20]
+    // show_memory_map::@20
+    // printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address)
+    // [1089] call cputs 
+    // [343] phi from show_memory_map::@20 to cputs [phi:show_memory_map::@20->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s1 [phi:show_memory_map::@20->cputs#0] -- pbuz1=pbuc1 
+    lda #<s1
+    sta.z cputs.s
+    lda #>s1
+    sta.z cputs.s+1
+    jsr cputs
+    // show_memory_map::@21
+    // printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address)
+    // [1090] printf_ulong::uvalue#5 = ((dword*)show_memory_map::Tile#0)[OFFSET_STRUCT_TILE_BRAM_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_TILE_BRAM_ADDRESS
+    lda (Tile),y
+    sta.z printf_ulong.uvalue
+    iny
+    lda (Tile),y
+    sta.z printf_ulong.uvalue+1
+    iny
+    lda (Tile),y
+    sta.z printf_ulong.uvalue+2
+    iny
+    lda (Tile),y
+    sta.z printf_ulong.uvalue+3
+    // [1091] call printf_ulong 
+    // [351] phi from show_memory_map::@21 to printf_ulong [phi:show_memory_map::@21->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#5 [phi:show_memory_map::@21->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [1092] phi from show_memory_map::@21 to show_memory_map::@22 [phi:show_memory_map::@21->show_memory_map::@22]
+    // show_memory_map::@22
+    // printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address)
+    // [1093] call cputs 
+    // [343] phi from show_memory_map::@22 to cputs [phi:show_memory_map::@22->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s2 [phi:show_memory_map::@22->cputs#0] -- pbuz1=pbuc1 
+    lda #<s2
+    sta.z cputs.s
+    lda #>s2
+    sta.z cputs.s+1
+    jsr cputs
+    // [1094] phi from show_memory_map::@22 to show_memory_map::@8 [phi:show_memory_map::@22->show_memory_map::@8]
+    // [1094] phi show_memory_map::j1#2 = 0 [phi:show_memory_map::@22->show_memory_map::@8#0] -- vbuz1=vbuc1 
+    lda #0
+    sta.z j1
+    // show_memory_map::@8
+  __b8:
+    // for(byte j=0;j<4;j++)
+    // [1095] if(show_memory_map::j1#2<4) goto show_memory_map::@9 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z j1
+    cmp #4
+    bcc __b9
+    // show_memory_map::@10
+    // for(byte i=0;i<3;i++)
+    // [1096] show_memory_map::i1#1 = ++ show_memory_map::i1#10 -- vbuz1=_inc_vbuz1 
+    inc.z i1
+    // [1077] phi from show_memory_map::@10 to show_memory_map::@6 [phi:show_memory_map::@10->show_memory_map::@6]
+    // [1077] phi show_memory_map::i1#10 = show_memory_map::i1#1 [phi:show_memory_map::@10->show_memory_map::@6#0] -- register_copy 
+    jmp __b6
+    // show_memory_map::@9
+  __b9:
+    // printf("%x ", Tile->VRAM_Addresses[j])
+    // [1097] show_memory_map::$15 = show_memory_map::j1#2 << 2 -- vbuyy=vbuz1_rol_2 
+    lda.z j1
+    asl
+    asl
+    tay
+    // [1098] show_memory_map::$19 = (dword*)show_memory_map::Tile#0 + OFFSET_STRUCT_TILE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
+    lda #OFFSET_STRUCT_TILE_VRAM_ADDRESSES
+    clc
+    adc.z Tile
+    sta.z __19
+    lda #0
+    adc.z Tile+1
+    sta.z __19+1
+    // [1099] printf_ulong::uvalue#6 = show_memory_map::$19[show_memory_map::$15] -- vduz1=pduz2_derefidx_vbuyy 
+    lda (__19),y
+    sta.z printf_ulong.uvalue
+    iny
+    lda (__19),y
+    sta.z printf_ulong.uvalue+1
+    iny
+    lda (__19),y
+    sta.z printf_ulong.uvalue+2
+    iny
+    lda (__19),y
+    sta.z printf_ulong.uvalue+3
+    // [1100] call printf_ulong 
+    // [351] phi from show_memory_map::@9 to printf_ulong [phi:show_memory_map::@9->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#6 [phi:show_memory_map::@9->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [1101] phi from show_memory_map::@9 to show_memory_map::@23 [phi:show_memory_map::@9->show_memory_map::@23]
+    // show_memory_map::@23
+    // printf("%x ", Tile->VRAM_Addresses[j])
+    // [1102] call cputs 
+    // [343] phi from show_memory_map::@23 to cputs [phi:show_memory_map::@23->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s3 [phi:show_memory_map::@23->cputs#0] -- pbuz1=pbuc1 
+    lda #<s3
+    sta.z cputs.s
+    lda #>s3
+    sta.z cputs.s+1
+    jsr cputs
+    // show_memory_map::@24
+    // for(byte j=0;j<4;j++)
+    // [1103] show_memory_map::j1#1 = ++ show_memory_map::j1#2 -- vbuz1=_inc_vbuz1 
+    inc.z j1
+    // [1094] phi from show_memory_map::@24 to show_memory_map::@8 [phi:show_memory_map::@24->show_memory_map::@8]
+    // [1094] phi show_memory_map::j1#2 = show_memory_map::j1#1 [phi:show_memory_map::@24->show_memory_map::@8#0] -- register_copy 
+    jmp __b8
+    // show_memory_map::@2
+  __b2:
+    // Sprite = SpriteDB[i]
+    // [1104] show_memory_map::$12 = show_memory_map::i#10 << 1 -- vbuaa=vbuz1_rol_1 
+    lda.z i
+    asl
+    // [1105] show_memory_map::Sprite#0 = SpriteDB[show_memory_map::$12] -- pssz1=qssc1_derefidx_vbuaa 
+    tay
+    lda SpriteDB,y
+    sta.z Sprite
+    lda SpriteDB+1,y
+    sta.z Sprite+1
+    // gotoxy(0, 1+i)
+    // [1106] gotoxy::y#5 = 1 + show_memory_map::i#10 -- vbuxx=vbuc1_plus_vbuz1 
+    lda #1
+    clc
+    adc.z i
+    tax
+    // [1107] call gotoxy 
+    // [330] phi from show_memory_map::@2 to gotoxy [phi:show_memory_map::@2->gotoxy]
+    // [330] phi gotoxy::y#7 = gotoxy::y#5 [phi:show_memory_map::@2->gotoxy#0] -- register_copy 
+    jsr gotoxy
+    // [1108] phi from show_memory_map::@2 to show_memory_map::@11 [phi:show_memory_map::@2->show_memory_map::@11]
+    // show_memory_map::@11
+    // printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address)
+    // [1109] call cputs 
+    // [343] phi from show_memory_map::@11 to cputs [phi:show_memory_map::@11->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s [phi:show_memory_map::@11->cputs#0] -- pbuz1=pbuc1 
+    lda #<s
+    sta.z cputs.s
+    lda #>s
+    sta.z cputs.s+1
+    jsr cputs
+    // show_memory_map::@12
+    // printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address)
+    // [1110] printf_uchar::uvalue#0 = show_memory_map::i#10 -- vbuxx=vbuz1 
+    ldx.z i
+    // [1111] call printf_uchar 
+    // [596] phi from show_memory_map::@12 to printf_uchar [phi:show_memory_map::@12->printf_uchar]
+    // [596] phi printf_uchar::format_radix#5 = DECIMAL [phi:show_memory_map::@12->printf_uchar#0] -- vbuyy=vbuc1 
+    ldy #DECIMAL
+    // [596] phi printf_uchar::uvalue#5 = printf_uchar::uvalue#0 [phi:show_memory_map::@12->printf_uchar#1] -- register_copy 
+    jsr printf_uchar
+    // [1112] phi from show_memory_map::@12 to show_memory_map::@13 [phi:show_memory_map::@12->show_memory_map::@13]
+    // show_memory_map::@13
+    // printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address)
+    // [1113] call cputs 
+    // [343] phi from show_memory_map::@13 to cputs [phi:show_memory_map::@13->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s1 [phi:show_memory_map::@13->cputs#0] -- pbuz1=pbuc1 
+    lda #<s1
+    sta.z cputs.s
+    lda #>s1
+    sta.z cputs.s+1
+    jsr cputs
+    // show_memory_map::@14
+    // printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address)
+    // [1114] printf_ulong::uvalue#3 = ((dword*)show_memory_map::Sprite#0)[OFFSET_STRUCT_SPRITE_BRAM_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_SPRITE_BRAM_ADDRESS
+    lda (Sprite),y
+    sta.z printf_ulong.uvalue
+    iny
+    lda (Sprite),y
+    sta.z printf_ulong.uvalue+1
+    iny
+    lda (Sprite),y
+    sta.z printf_ulong.uvalue+2
+    iny
+    lda (Sprite),y
+    sta.z printf_ulong.uvalue+3
+    // [1115] call printf_ulong 
+    // [351] phi from show_memory_map::@14 to printf_ulong [phi:show_memory_map::@14->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#3 [phi:show_memory_map::@14->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [1116] phi from show_memory_map::@14 to show_memory_map::@15 [phi:show_memory_map::@14->show_memory_map::@15]
+    // show_memory_map::@15
+    // printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address)
+    // [1117] call cputs 
+    // [343] phi from show_memory_map::@15 to cputs [phi:show_memory_map::@15->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s2 [phi:show_memory_map::@15->cputs#0] -- pbuz1=pbuc1 
+    lda #<s2
+    sta.z cputs.s
+    lda #>s2
+    sta.z cputs.s+1
+    jsr cputs
+    // [1118] phi from show_memory_map::@15 to show_memory_map::@3 [phi:show_memory_map::@15->show_memory_map::@3]
+    // [1118] phi show_memory_map::j#2 = 0 [phi:show_memory_map::@15->show_memory_map::@3#0] -- vbuz1=vbuc1 
+    lda #0
+    sta.z j
+    // show_memory_map::@3
+  __b3:
+    // for(byte j=0;j<12;j++)
+    // [1119] if(show_memory_map::j#2<$c) goto show_memory_map::@4 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z j
+    cmp #$c
+    bcc __b4
+    // show_memory_map::@5
+    // for(byte i=0;i<2;i++)
+    // [1120] show_memory_map::i#1 = ++ show_memory_map::i#10 -- vbuz1=_inc_vbuz1 
+    inc.z i
+    // [1075] phi from show_memory_map::@5 to show_memory_map::@1 [phi:show_memory_map::@5->show_memory_map::@1]
+    // [1075] phi show_memory_map::i#10 = show_memory_map::i#1 [phi:show_memory_map::@5->show_memory_map::@1#0] -- register_copy 
+    jmp __b1
+    // show_memory_map::@4
+  __b4:
+    // printf("%x ", Sprite->VRAM_Addresses[j])
+    // [1121] show_memory_map::$13 = show_memory_map::j#2 << 2 -- vbuyy=vbuz1_rol_2 
+    lda.z j
+    asl
+    asl
+    tay
+    // [1122] show_memory_map::$17 = (dword*)show_memory_map::Sprite#0 + OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES -- pduz1=pduz2_plus_vbuc1 
+    lda #OFFSET_STRUCT_SPRITE_VRAM_ADDRESSES
+    clc
+    adc.z Sprite
+    sta.z __17
+    lda #0
+    adc.z Sprite+1
+    sta.z __17+1
+    // [1123] printf_ulong::uvalue#4 = show_memory_map::$17[show_memory_map::$13] -- vduz1=pduz2_derefidx_vbuyy 
+    lda (__17),y
+    sta.z printf_ulong.uvalue
+    iny
+    lda (__17),y
+    sta.z printf_ulong.uvalue+1
+    iny
+    lda (__17),y
+    sta.z printf_ulong.uvalue+2
+    iny
+    lda (__17),y
+    sta.z printf_ulong.uvalue+3
+    // [1124] call printf_ulong 
+    // [351] phi from show_memory_map::@4 to printf_ulong [phi:show_memory_map::@4->printf_ulong]
+    // [351] phi printf_ulong::uvalue#10 = printf_ulong::uvalue#4 [phi:show_memory_map::@4->printf_ulong#0] -- register_copy 
+    jsr printf_ulong
+    // [1125] phi from show_memory_map::@4 to show_memory_map::@16 [phi:show_memory_map::@4->show_memory_map::@16]
+    // show_memory_map::@16
+    // printf("%x ", Sprite->VRAM_Addresses[j])
+    // [1126] call cputs 
+    // [343] phi from show_memory_map::@16 to cputs [phi:show_memory_map::@16->cputs]
+    // [343] phi cputs::s#26 = show_memory_map::s3 [phi:show_memory_map::@16->cputs#0] -- pbuz1=pbuc1 
+    lda #<s3
+    sta.z cputs.s
+    lda #>s3
+    sta.z cputs.s+1
+    jsr cputs
+    // show_memory_map::@17
+    // for(byte j=0;j<12;j++)
+    // [1127] show_memory_map::j#1 = ++ show_memory_map::j#2 -- vbuz1=_inc_vbuz1 
+    inc.z j
+    // [1118] phi from show_memory_map::@17 to show_memory_map::@3 [phi:show_memory_map::@17->show_memory_map::@3]
+    // [1118] phi show_memory_map::j#2 = show_memory_map::j#1 [phi:show_memory_map::@17->show_memory_map::@3#0] -- register_copy 
+    jmp __b3
+  .segment Data
+    s: .text "s:"
+    .byte 0
+    s1: .text " bram:"
+    .byte 0
+    s2: .text ", vram:"
+    .byte 0
+    s3: .text " "
+    .byte 0
+    s4: .text "t:"
+    .byte 0
+}
+.segment Code
   // kbhit
 // Return true if there's a key waiting, return false if not
 kbhit: {
@@ -6789,10 +7050,9 @@ kbhit: {
     .label IN_DEV = $28a
     // Current input device number
     .label GETIN = $ffe4
-    .label ch = $bb
-    .label return = $40
+    .label ch = $b1
     // ch = 0
-    // [1031] kbhit::ch = 0 -- vbuz1=vbuc1 
+    // [1128] kbhit::ch = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z ch
     // kickasm
@@ -6828,84 +7088,539 @@ kbhit: {
         nop
      
     // return ch;
-    // [1033] kbhit::return#0 = kbhit::ch -- vbuz1=vbuz2 
-    sta.z return
+    // [1130] kbhit::return#0 = kbhit::ch -- vbuaa=vbuz1 
     // kbhit::@return
     // }
-    // [1034] kbhit::return#1 = kbhit::return#0
-    // [1035] return 
+    // [1131] kbhit::return#1 = kbhit::return#0
+    // [1132] return 
     rts
+}
+  // cputc
+// Output one character at the current cursor position
+// Moves the cursor forward. Scrolls the entire screen if needed
+// cputc(byte zp($d) c)
+cputc: {
+    .label __16 = $b2
+    .label conio_screen_text = $b2
+    .label conio_map_width = $b4
+    .label conio_addr = $b2
+    .label c = $d
+    // vera_layer_get_color(cx16_conio.conio_screen_layer)
+    // [1134] vera_layer_get_color::layer#0 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
+    ldx cx16_conio
+    // [1135] call vera_layer_get_color 
+    // [1554] phi from cputc to vera_layer_get_color [phi:cputc->vera_layer_get_color]
+    // [1554] phi vera_layer_get_color::layer#2 = vera_layer_get_color::layer#0 [phi:cputc->vera_layer_get_color#0] -- register_copy 
+    jsr vera_layer_get_color
+    // vera_layer_get_color(cx16_conio.conio_screen_layer)
+    // [1136] vera_layer_get_color::return#3 = vera_layer_get_color::return#2
+    // cputc::@7
+    // color = vera_layer_get_color(cx16_conio.conio_screen_layer)
+    // [1137] cputc::color#0 = vera_layer_get_color::return#3 -- vbuxx=vbuaa 
+    tax
+    // conio_screen_text = cx16_conio.conio_screen_text
+    // [1138] cputc::conio_screen_text#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) -- pbuz1=_deref_qbuc1 
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
+    sta.z conio_screen_text
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT+1
+    sta.z conio_screen_text+1
+    // conio_map_width = cx16_conio.conio_map_width
+    // [1139] cputc::conio_map_width#0 = *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH) -- vwuz1=_deref_pwuc1 
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH
+    sta.z conio_map_width
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH+1
+    sta.z conio_map_width+1
+    // conio_screen_text + conio_line_text[cx16_conio.conio_screen_layer]
+    // [1140] cputc::$15 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
+    lda cx16_conio
+    asl
+    // conio_addr = conio_screen_text + conio_line_text[cx16_conio.conio_screen_layer]
+    // [1141] cputc::conio_addr#0 = cputc::conio_screen_text#0 + conio_line_text[cputc::$15] -- pbuz1=pbuz1_plus_pwuc1_derefidx_vbuaa 
+    tay
+    clc
+    lda.z conio_addr
+    adc conio_line_text,y
+    sta.z conio_addr
+    lda.z conio_addr+1
+    adc conio_line_text+1,y
+    sta.z conio_addr+1
+    // conio_cursor_x[cx16_conio.conio_screen_layer] << 1
+    // [1142] cputc::$2 = conio_cursor_x[*((byte*)&cx16_conio)] << 1 -- vbuaa=pbuc1_derefidx_(_deref_pbuc2)_rol_1 
+    ldy cx16_conio
+    lda conio_cursor_x,y
+    asl
+    // conio_addr += conio_cursor_x[cx16_conio.conio_screen_layer] << 1
+    // [1143] cputc::conio_addr#1 = cputc::conio_addr#0 + cputc::$2 -- pbuz1=pbuz1_plus_vbuaa 
+    clc
+    adc.z conio_addr
+    sta.z conio_addr
+    bcc !+
+    inc.z conio_addr+1
+  !:
+    // if(c=='\n')
+    // [1144] if(cputc::c#3==' ') goto cputc::@1 -- vbuz1_eq_vbuc1_then_la1 
+    lda #'\n'
+    cmp.z c
+    beq __b1
+    // cputc::@2
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [1145] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // Select DATA0
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // <conio_addr
+    // [1146] cputc::$4 = < cputc::conio_addr#1 -- vbuaa=_lo_pbuz1 
+    lda.z conio_addr
+    // *VERA_ADDRX_L = <conio_addr
+    // [1147] *VERA_ADDRX_L = cputc::$4 -- _deref_pbuc1=vbuaa 
+    // Set address
+    sta VERA_ADDRX_L
+    // >conio_addr
+    // [1148] cputc::$5 = > cputc::conio_addr#1 -- vbuaa=_hi_pbuz1 
+    lda.z conio_addr+1
+    // *VERA_ADDRX_M = >conio_addr
+    // [1149] *VERA_ADDRX_M = cputc::$5 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // cx16_conio.conio_screen_bank | VERA_INC_1
+    // [1150] cputc::$6 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK) | VERA_INC_1 -- vbuaa=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_INC_1
+    ora cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK
+    // *VERA_ADDRX_H = cx16_conio.conio_screen_bank | VERA_INC_1
+    // [1151] *VERA_ADDRX_H = cputc::$6 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // *VERA_DATA0 = c
+    // [1152] *VERA_DATA0 = cputc::c#3 -- _deref_pbuc1=vbuz1 
+    lda.z c
+    sta VERA_DATA0
+    // *VERA_DATA0 = color
+    // [1153] *VERA_DATA0 = cputc::color#0 -- _deref_pbuc1=vbuxx 
+    stx VERA_DATA0
+    // conio_cursor_x[cx16_conio.conio_screen_layer]++;
+    // [1154] conio_cursor_x[*((byte*)&cx16_conio)] = ++ conio_cursor_x[*((byte*)&cx16_conio)] -- pbuc1_derefidx_(_deref_pbuc2)=_inc_pbuc1_derefidx_(_deref_pbuc2) 
+    ldx cx16_conio
+    ldy cx16_conio
+    lda conio_cursor_x,x
+    inc
+    sta conio_cursor_x,y
+    // scroll_enable = conio_scroll_enable[cx16_conio.conio_screen_layer]
+    // [1155] cputc::scroll_enable#0 = conio_scroll_enable[*((byte*)&cx16_conio)] -- vbuaa=pbuc1_derefidx_(_deref_pbuc2) 
+    lda conio_scroll_enable,y
+    // if(scroll_enable)
+    // [1156] if(0!=cputc::scroll_enable#0) goto cputc::@5 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b5
+    // cputc::@3
+    // (unsigned int)conio_cursor_x[cx16_conio.conio_screen_layer] == conio_map_width
+    // [1157] cputc::$16 = (word)conio_cursor_x[*((byte*)&cx16_conio)] -- vwuz1=_word_pbuc1_derefidx_(_deref_pbuc2) 
+    lda conio_cursor_x,y
+    sta.z __16
+    lda #0
+    sta.z __16+1
+    // if((unsigned int)conio_cursor_x[cx16_conio.conio_screen_layer] == conio_map_width)
+    // [1158] if(cputc::$16!=cputc::conio_map_width#0) goto cputc::@return -- vwuz1_neq_vwuz2_then_la1 
+    cmp.z conio_map_width+1
+    bne __breturn
+    lda.z __16
+    cmp.z conio_map_width
+    bne __breturn
+    // [1159] phi from cputc::@3 to cputc::@4 [phi:cputc::@3->cputc::@4]
+    // cputc::@4
+    // cputln()
+    // [1160] call cputln 
+    jsr cputln
+    // cputc::@return
+  __breturn:
+    // }
+    // [1161] return 
+    rts
+    // cputc::@5
+  __b5:
+    // if(conio_cursor_x[cx16_conio.conio_screen_layer] == cx16_conio.conio_screen_width)
+    // [1162] if(conio_cursor_x[*((byte*)&cx16_conio)]!=*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH)) goto cputc::@return -- pbuc1_derefidx_(_deref_pbuc2)_neq__deref_pbuc3_then_la1 
+    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
+    ldy cx16_conio
+    cmp conio_cursor_x,y
+    bne __breturn
+    // [1163] phi from cputc::@5 to cputc::@6 [phi:cputc::@5->cputc::@6]
+    // cputc::@6
+    // cputln()
+    // [1164] call cputln 
+    jsr cputln
+    rts
+    // [1165] phi from cputc::@7 to cputc::@1 [phi:cputc::@7->cputc::@1]
+    // cputc::@1
+  __b1:
+    // cputln()
+    // [1166] call cputln 
+    jsr cputln
+    rts
+}
+  // ultoa
+// Converts unsigned number value to a string representing it in RADIX format.
+// If the leading digits are zero they are not included in the string.
+// - value : The number to be converted to RADIX
+// - buffer : receives the string representing the number and zero-termination.
+// - radix : The radix to convert the number to (from the enum RADIX)
+// ultoa(dword zp(5) value, byte* zp($20) buffer)
+ultoa: {
+    .label digit_value = $b6
+    .label buffer = $20
+    .label digit = $1f
+    .label value = 5
+    // [1168] phi from ultoa to ultoa::@1 [phi:ultoa->ultoa::@1]
+    // [1168] phi ultoa::buffer#11 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:ultoa->ultoa::@1#0] -- pbuz1=pbuc1 
+    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer
+    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer+1
+    // [1168] phi ultoa::started#2 = 0 [phi:ultoa->ultoa::@1#1] -- vbuxx=vbuc1 
+    ldx #0
+    // [1168] phi ultoa::value#2 = ultoa::value#1 [phi:ultoa->ultoa::@1#2] -- register_copy 
+    // [1168] phi ultoa::digit#2 = 0 [phi:ultoa->ultoa::@1#3] -- vbuz1=vbuc1 
+    txa
+    sta.z digit
+    // ultoa::@1
+  __b1:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [1169] if(ultoa::digit#2<8-1) goto ultoa::@2 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z digit
+    cmp #8-1
+    bcc __b2
+    // ultoa::@3
+    // *buffer++ = DIGITS[(char)value]
+    // [1170] ultoa::$11 = (byte)ultoa::value#2 -- vbuaa=_byte_vduz1 
+    lda.z value
+    // [1171] *ultoa::buffer#11 = DIGITS[ultoa::$11] -- _deref_pbuz1=pbuc1_derefidx_vbuaa 
+    tay
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // *buffer++ = DIGITS[(char)value];
+    // [1172] ultoa::buffer#3 = ++ ultoa::buffer#11 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // *buffer = 0
+    // [1173] *ultoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    lda #0
+    tay
+    sta (buffer),y
+    // ultoa::@return
+    // }
+    // [1174] return 
+    rts
+    // ultoa::@2
+  __b2:
+    // digit_value = digit_values[digit]
+    // [1175] ultoa::$10 = ultoa::digit#2 << 2 -- vbuaa=vbuz1_rol_2 
+    lda.z digit
+    asl
+    asl
+    // [1176] ultoa::digit_value#0 = RADIX_HEXADECIMAL_VALUES_LONG[ultoa::$10] -- vduz1=pduc1_derefidx_vbuaa 
+    tay
+    lda RADIX_HEXADECIMAL_VALUES_LONG,y
+    sta.z digit_value
+    lda RADIX_HEXADECIMAL_VALUES_LONG+1,y
+    sta.z digit_value+1
+    lda RADIX_HEXADECIMAL_VALUES_LONG+2,y
+    sta.z digit_value+2
+    lda RADIX_HEXADECIMAL_VALUES_LONG+3,y
+    sta.z digit_value+3
+    // if (started || value >= digit_value)
+    // [1177] if(0!=ultoa::started#2) goto ultoa::@5 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne __b5
+    // ultoa::@7
+    // [1178] if(ultoa::value#2>=ultoa::digit_value#0) goto ultoa::@5 -- vduz1_ge_vduz2_then_la1 
+    lda.z value+3
+    cmp.z digit_value+3
+    bcc !+
+    bne __b5
+    lda.z value+2
+    cmp.z digit_value+2
+    bcc !+
+    bne __b5
+    lda.z value+1
+    cmp.z digit_value+1
+    bcc !+
+    bne __b5
+    lda.z value
+    cmp.z digit_value
+    bcs __b5
+  !:
+    // [1179] phi from ultoa::@7 to ultoa::@4 [phi:ultoa::@7->ultoa::@4]
+    // [1179] phi ultoa::buffer#14 = ultoa::buffer#11 [phi:ultoa::@7->ultoa::@4#0] -- register_copy 
+    // [1179] phi ultoa::started#4 = ultoa::started#2 [phi:ultoa::@7->ultoa::@4#1] -- register_copy 
+    // [1179] phi ultoa::value#6 = ultoa::value#2 [phi:ultoa::@7->ultoa::@4#2] -- register_copy 
+    // ultoa::@4
+  __b4:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [1180] ultoa::digit#1 = ++ ultoa::digit#2 -- vbuz1=_inc_vbuz1 
+    inc.z digit
+    // [1168] phi from ultoa::@4 to ultoa::@1 [phi:ultoa::@4->ultoa::@1]
+    // [1168] phi ultoa::buffer#11 = ultoa::buffer#14 [phi:ultoa::@4->ultoa::@1#0] -- register_copy 
+    // [1168] phi ultoa::started#2 = ultoa::started#4 [phi:ultoa::@4->ultoa::@1#1] -- register_copy 
+    // [1168] phi ultoa::value#2 = ultoa::value#6 [phi:ultoa::@4->ultoa::@1#2] -- register_copy 
+    // [1168] phi ultoa::digit#2 = ultoa::digit#1 [phi:ultoa::@4->ultoa::@1#3] -- register_copy 
+    jmp __b1
+    // ultoa::@5
+  __b5:
+    // ultoa_append(buffer++, value, digit_value)
+    // [1181] ultoa_append::buffer#0 = ultoa::buffer#11 -- pbuz1=pbuz2 
+    lda.z buffer
+    sta.z ultoa_append.buffer
+    lda.z buffer+1
+    sta.z ultoa_append.buffer+1
+    // [1182] ultoa_append::value#0 = ultoa::value#2
+    // [1183] ultoa_append::sub#0 = ultoa::digit_value#0
+    // [1184] call ultoa_append 
+    // [1573] phi from ultoa::@5 to ultoa_append [phi:ultoa::@5->ultoa_append]
+    jsr ultoa_append
+    // ultoa_append(buffer++, value, digit_value)
+    // [1185] ultoa_append::return#0 = ultoa_append::value#2
+    // ultoa::@6
+    // value = ultoa_append(buffer++, value, digit_value)
+    // [1186] ultoa::value#0 = ultoa_append::return#0
+    // value = ultoa_append(buffer++, value, digit_value);
+    // [1187] ultoa::buffer#4 = ++ ultoa::buffer#11 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // [1179] phi from ultoa::@6 to ultoa::@4 [phi:ultoa::@6->ultoa::@4]
+    // [1179] phi ultoa::buffer#14 = ultoa::buffer#4 [phi:ultoa::@6->ultoa::@4#0] -- register_copy 
+    // [1179] phi ultoa::started#4 = 1 [phi:ultoa::@6->ultoa::@4#1] -- vbuxx=vbuc1 
+    ldx #1
+    // [1179] phi ultoa::value#6 = ultoa::value#0 [phi:ultoa::@6->ultoa::@4#2] -- register_copy 
+    jmp __b4
+}
+  // printf_number_buffer
+// Print the contents of the number buffer using a specific format.
+// This handles minimum length, zero-filling, and left/right justification from the format
+// printf_number_buffer(byte register(A) buffer_sign)
+printf_number_buffer: {
+    // printf_number_buffer::@1
+    // if(buffer.sign)
+    // [1189] if(0==printf_number_buffer::buffer_sign#10) goto printf_number_buffer::@2 -- 0_eq_vbuaa_then_la1 
+    cmp #0
+    beq __b2
+    // printf_number_buffer::@3
+    // cputc(buffer.sign)
+    // [1190] cputc::c#2 = printf_number_buffer::buffer_sign#10 -- vbuz1=vbuaa 
+    sta.z cputc.c
+    // [1191] call cputc 
+    // [1133] phi from printf_number_buffer::@3 to cputc [phi:printf_number_buffer::@3->cputc]
+    // [1133] phi cputc::c#3 = cputc::c#2 [phi:printf_number_buffer::@3->cputc#0] -- register_copy 
+    jsr cputc
+    // [1192] phi from printf_number_buffer::@1 printf_number_buffer::@3 to printf_number_buffer::@2 [phi:printf_number_buffer::@1/printf_number_buffer::@3->printf_number_buffer::@2]
+    // printf_number_buffer::@2
+  __b2:
+    // cputs(buffer.digits)
+    // [1193] call cputs 
+    // [343] phi from printf_number_buffer::@2 to cputs [phi:printf_number_buffer::@2->cputs]
+    // [343] phi cputs::s#26 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:printf_number_buffer::@2->cputs#0] -- pbuz1=pbuc1 
+    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z cputs.s
+    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z cputs.s+1
+    jsr cputs
+    // printf_number_buffer::@return
+    // }
+    // [1194] return 
+    rts
+}
+  // utoa
+// Converts unsigned number value to a string representing it in RADIX format.
+// If the leading digits are zero they are not included in the string.
+// - value : The number to be converted to RADIX
+// - buffer : receives the string representing the number and zero-termination.
+// - radix : The radix to convert the number to (from the enum RADIX)
+// utoa(word zp($34) value, byte* zp($3a) buffer)
+utoa: {
+    .label digit_value = $ba
+    .label buffer = $3a
+    .label digit = 3
+    .label value = $34
+    // [1196] phi from utoa to utoa::@1 [phi:utoa->utoa::@1]
+    // [1196] phi utoa::buffer#11 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:utoa->utoa::@1#0] -- pbuz1=pbuc1 
+    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer
+    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer+1
+    // [1196] phi utoa::started#2 = 0 [phi:utoa->utoa::@1#1] -- vbuxx=vbuc1 
+    ldx #0
+    // [1196] phi utoa::value#2 = utoa::value#1 [phi:utoa->utoa::@1#2] -- register_copy 
+    // [1196] phi utoa::digit#2 = 0 [phi:utoa->utoa::@1#3] -- vbuz1=vbuc1 
+    txa
+    sta.z digit
+    // utoa::@1
+  __b1:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [1197] if(utoa::digit#2<5-1) goto utoa::@2 -- vbuz1_lt_vbuc1_then_la1 
+    lda.z digit
+    cmp #5-1
+    bcc __b2
+    // utoa::@3
+    // *buffer++ = DIGITS[(char)value]
+    // [1198] utoa::$11 = (byte)utoa::value#2 -- vbuaa=_byte_vwuz1 
+    lda.z value
+    // [1199] *utoa::buffer#11 = DIGITS[utoa::$11] -- _deref_pbuz1=pbuc1_derefidx_vbuaa 
+    tay
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // *buffer++ = DIGITS[(char)value];
+    // [1200] utoa::buffer#3 = ++ utoa::buffer#11 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // *buffer = 0
+    // [1201] *utoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    lda #0
+    tay
+    sta (buffer),y
+    // utoa::@return
+    // }
+    // [1202] return 
+    rts
+    // utoa::@2
+  __b2:
+    // digit_value = digit_values[digit]
+    // [1203] utoa::$10 = utoa::digit#2 << 1 -- vbuaa=vbuz1_rol_1 
+    lda.z digit
+    asl
+    // [1204] utoa::digit_value#0 = RADIX_DECIMAL_VALUES[utoa::$10] -- vwuz1=pwuc1_derefidx_vbuaa 
+    tay
+    lda RADIX_DECIMAL_VALUES,y
+    sta.z digit_value
+    lda RADIX_DECIMAL_VALUES+1,y
+    sta.z digit_value+1
+    // if (started || value >= digit_value)
+    // [1205] if(0!=utoa::started#2) goto utoa::@5 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne __b5
+    // utoa::@7
+    // [1206] if(utoa::value#2>=utoa::digit_value#0) goto utoa::@5 -- vwuz1_ge_vwuz2_then_la1 
+    cmp.z value+1
+    bne !+
+    lda.z digit_value
+    cmp.z value
+    beq __b5
+  !:
+    bcc __b5
+    // [1207] phi from utoa::@7 to utoa::@4 [phi:utoa::@7->utoa::@4]
+    // [1207] phi utoa::buffer#14 = utoa::buffer#11 [phi:utoa::@7->utoa::@4#0] -- register_copy 
+    // [1207] phi utoa::started#4 = utoa::started#2 [phi:utoa::@7->utoa::@4#1] -- register_copy 
+    // [1207] phi utoa::value#6 = utoa::value#2 [phi:utoa::@7->utoa::@4#2] -- register_copy 
+    // utoa::@4
+  __b4:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [1208] utoa::digit#1 = ++ utoa::digit#2 -- vbuz1=_inc_vbuz1 
+    inc.z digit
+    // [1196] phi from utoa::@4 to utoa::@1 [phi:utoa::@4->utoa::@1]
+    // [1196] phi utoa::buffer#11 = utoa::buffer#14 [phi:utoa::@4->utoa::@1#0] -- register_copy 
+    // [1196] phi utoa::started#2 = utoa::started#4 [phi:utoa::@4->utoa::@1#1] -- register_copy 
+    // [1196] phi utoa::value#2 = utoa::value#6 [phi:utoa::@4->utoa::@1#2] -- register_copy 
+    // [1196] phi utoa::digit#2 = utoa::digit#1 [phi:utoa::@4->utoa::@1#3] -- register_copy 
+    jmp __b1
+    // utoa::@5
+  __b5:
+    // utoa_append(buffer++, value, digit_value)
+    // [1209] utoa_append::buffer#0 = utoa::buffer#11 -- pbuz1=pbuz2 
+    lda.z buffer
+    sta.z utoa_append.buffer
+    lda.z buffer+1
+    sta.z utoa_append.buffer+1
+    // [1210] utoa_append::value#0 = utoa::value#2
+    // [1211] utoa_append::sub#0 = utoa::digit_value#0
+    // [1212] call utoa_append 
+    // [1580] phi from utoa::@5 to utoa_append [phi:utoa::@5->utoa_append]
+    jsr utoa_append
+    // utoa_append(buffer++, value, digit_value)
+    // [1213] utoa_append::return#0 = utoa_append::value#2
+    // utoa::@6
+    // value = utoa_append(buffer++, value, digit_value)
+    // [1214] utoa::value#0 = utoa_append::return#0
+    // value = utoa_append(buffer++, value, digit_value);
+    // [1215] utoa::buffer#4 = ++ utoa::buffer#11 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // [1207] phi from utoa::@6 to utoa::@4 [phi:utoa::@6->utoa::@4]
+    // [1207] phi utoa::buffer#14 = utoa::buffer#4 [phi:utoa::@6->utoa::@4#0] -- register_copy 
+    // [1207] phi utoa::started#4 = 1 [phi:utoa::@6->utoa::@4#1] -- vbuxx=vbuc1 
+    ldx #1
+    // [1207] phi utoa::value#6 = utoa::value#0 [phi:utoa::@6->utoa::@4#2] -- register_copy 
+    jmp __b4
 }
   // divr16u
 // Performs division on two 16 bit unsigned ints and an initial remainder
 // Returns the quotient dividend/divisor.
 // The final remainder will be set into the global variable rem16u
 // Implemented using simple binary division
-// divr16u(word zp($55) dividend, word zp($1e) rem)
+// divr16u(word zp($20) dividend, word zp($22) rem)
 divr16u: {
     .const divisor = 3
-    .label __1 = $bc
-    .label __2 = $bc
-    .label rem = $1e
-    .label dividend = $55
-    .label quotient = $50
-    .label i = 8
-    .label return = $50
-    // [1037] phi from divr16u to divr16u::@1 [phi:divr16u->divr16u::@1]
-    // [1037] phi divr16u::i#2 = 0 [phi:divr16u->divr16u::@1#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z i
-    // [1037] phi divr16u::quotient#3 = 0 [phi:divr16u->divr16u::@1#1] -- vwuz1=vwuc1 
+    .label rem = $22
+    .label dividend = $20
+    .label quotient = $b2
+    .label return = $b2
+    // [1217] phi from divr16u to divr16u::@1 [phi:divr16u->divr16u::@1]
+    // [1217] phi divr16u::i#2 = 0 [phi:divr16u->divr16u::@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [1217] phi divr16u::quotient#3 = 0 [phi:divr16u->divr16u::@1#1] -- vwuz1=vwuc1 
+    txa
     sta.z quotient
     sta.z quotient+1
-    // [1037] phi divr16u::dividend#2 = divr16u::dividend#1 [phi:divr16u->divr16u::@1#2] -- register_copy 
-    // [1037] phi divr16u::rem#4 = 0 [phi:divr16u->divr16u::@1#3] -- vwuz1=vbuc1 
+    // [1217] phi divr16u::dividend#2 = divr16u::dividend#1 [phi:divr16u->divr16u::@1#2] -- register_copy 
+    // [1217] phi divr16u::rem#4 = 0 [phi:divr16u->divr16u::@1#3] -- vwuz1=vbuc1 
     sta.z rem
     sta.z rem+1
-    // [1037] phi from divr16u::@3 to divr16u::@1 [phi:divr16u::@3->divr16u::@1]
-    // [1037] phi divr16u::i#2 = divr16u::i#1 [phi:divr16u::@3->divr16u::@1#0] -- register_copy 
-    // [1037] phi divr16u::quotient#3 = divr16u::return#0 [phi:divr16u::@3->divr16u::@1#1] -- register_copy 
-    // [1037] phi divr16u::dividend#2 = divr16u::dividend#0 [phi:divr16u::@3->divr16u::@1#2] -- register_copy 
-    // [1037] phi divr16u::rem#4 = divr16u::rem#10 [phi:divr16u::@3->divr16u::@1#3] -- register_copy 
+    // [1217] phi from divr16u::@3 to divr16u::@1 [phi:divr16u::@3->divr16u::@1]
+    // [1217] phi divr16u::i#2 = divr16u::i#1 [phi:divr16u::@3->divr16u::@1#0] -- register_copy 
+    // [1217] phi divr16u::quotient#3 = divr16u::return#0 [phi:divr16u::@3->divr16u::@1#1] -- register_copy 
+    // [1217] phi divr16u::dividend#2 = divr16u::dividend#0 [phi:divr16u::@3->divr16u::@1#2] -- register_copy 
+    // [1217] phi divr16u::rem#4 = divr16u::rem#10 [phi:divr16u::@3->divr16u::@1#3] -- register_copy 
     // divr16u::@1
   __b1:
     // rem = rem << 1
-    // [1038] divr16u::rem#0 = divr16u::rem#4 << 1 -- vwuz1=vwuz1_rol_1 
+    // [1218] divr16u::rem#0 = divr16u::rem#4 << 1 -- vwuz1=vwuz1_rol_1 
     asl.z rem
     rol.z rem+1
     // >dividend
-    // [1039] divr16u::$1 = > divr16u::dividend#2 -- vbuz1=_hi_vwuz2 
+    // [1219] divr16u::$1 = > divr16u::dividend#2 -- vbuaa=_hi_vwuz1 
     lda.z dividend+1
-    sta.z __1
     // >dividend & $80
-    // [1040] divr16u::$2 = divr16u::$1 & $80 -- vbuz1=vbuz1_band_vbuc1 
-    lda #$80
-    and.z __2
-    sta.z __2
+    // [1220] divr16u::$2 = divr16u::$1 & $80 -- vbuaa=vbuaa_band_vbuc1 
+    and #$80
     // if( (>dividend & $80) != 0 )
-    // [1041] if(divr16u::$2==0) goto divr16u::@2 -- vbuz1_eq_0_then_la1 
+    // [1221] if(divr16u::$2==0) goto divr16u::@2 -- vbuaa_eq_0_then_la1 
     cmp #0
     beq __b2
     // divr16u::@4
     // rem = rem | 1
-    // [1042] divr16u::rem#1 = divr16u::rem#0 | 1 -- vwuz1=vwuz1_bor_vbuc1 
+    // [1222] divr16u::rem#1 = divr16u::rem#0 | 1 -- vwuz1=vwuz1_bor_vbuc1 
     lda #1
     ora.z rem
     sta.z rem
-    // [1043] phi from divr16u::@1 divr16u::@4 to divr16u::@2 [phi:divr16u::@1/divr16u::@4->divr16u::@2]
-    // [1043] phi divr16u::rem#5 = divr16u::rem#0 [phi:divr16u::@1/divr16u::@4->divr16u::@2#0] -- register_copy 
+    // [1223] phi from divr16u::@1 divr16u::@4 to divr16u::@2 [phi:divr16u::@1/divr16u::@4->divr16u::@2]
+    // [1223] phi divr16u::rem#5 = divr16u::rem#0 [phi:divr16u::@1/divr16u::@4->divr16u::@2#0] -- register_copy 
     // divr16u::@2
   __b2:
     // dividend = dividend << 1
-    // [1044] divr16u::dividend#0 = divr16u::dividend#2 << 1 -- vwuz1=vwuz1_rol_1 
+    // [1224] divr16u::dividend#0 = divr16u::dividend#2 << 1 -- vwuz1=vwuz1_rol_1 
     asl.z dividend
     rol.z dividend+1
     // quotient = quotient << 1
-    // [1045] divr16u::quotient#1 = divr16u::quotient#3 << 1 -- vwuz1=vwuz1_rol_1 
+    // [1225] divr16u::quotient#1 = divr16u::quotient#3 << 1 -- vwuz1=vwuz1_rol_1 
     asl.z quotient
     rol.z quotient+1
     // if(rem>=divisor)
-    // [1046] if(divr16u::rem#5<divr16u::divisor#0) goto divr16u::@3 -- vwuz1_lt_vwuc1_then_la1 
+    // [1226] if(divr16u::rem#5<divr16u::divisor#0) goto divr16u::@3 -- vwuz1_lt_vwuc1_then_la1 
     lda.z rem+1
     cmp #>divisor
     bcc __b3
@@ -6916,13 +7631,13 @@ divr16u: {
   !:
     // divr16u::@5
     // quotient++;
-    // [1047] divr16u::quotient#2 = ++ divr16u::quotient#1 -- vwuz1=_inc_vwuz1 
+    // [1227] divr16u::quotient#2 = ++ divr16u::quotient#1 -- vwuz1=_inc_vwuz1 
     inc.z quotient
     bne !+
     inc.z quotient+1
   !:
     // rem = rem - divisor
-    // [1048] divr16u::rem#2 = divr16u::rem#5 - divr16u::divisor#0 -- vwuz1=vwuz1_minus_vwuc1 
+    // [1228] divr16u::rem#2 = divr16u::rem#5 - divr16u::divisor#0 -- vwuz1=vwuz1_minus_vwuc1 
     lda.z rem
     sec
     sbc #<divisor
@@ -6930,21 +7645,20 @@ divr16u: {
     lda.z rem+1
     sbc #>divisor
     sta.z rem+1
-    // [1049] phi from divr16u::@2 divr16u::@5 to divr16u::@3 [phi:divr16u::@2/divr16u::@5->divr16u::@3]
-    // [1049] phi divr16u::return#0 = divr16u::quotient#1 [phi:divr16u::@2/divr16u::@5->divr16u::@3#0] -- register_copy 
-    // [1049] phi divr16u::rem#10 = divr16u::rem#5 [phi:divr16u::@2/divr16u::@5->divr16u::@3#1] -- register_copy 
+    // [1229] phi from divr16u::@2 divr16u::@5 to divr16u::@3 [phi:divr16u::@2/divr16u::@5->divr16u::@3]
+    // [1229] phi divr16u::return#0 = divr16u::quotient#1 [phi:divr16u::@2/divr16u::@5->divr16u::@3#0] -- register_copy 
+    // [1229] phi divr16u::rem#10 = divr16u::rem#5 [phi:divr16u::@2/divr16u::@5->divr16u::@3#1] -- register_copy 
     // divr16u::@3
   __b3:
     // for( char i : 0..15)
-    // [1050] divr16u::i#1 = ++ divr16u::i#2 -- vbuz1=_inc_vbuz1 
-    inc.z i
-    // [1051] if(divr16u::i#1!=$10) goto divr16u::@1 -- vbuz1_neq_vbuc1_then_la1 
-    lda #$10
-    cmp.z i
+    // [1230] divr16u::i#1 = ++ divr16u::i#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [1231] if(divr16u::i#1!=$10) goto divr16u::@1 -- vbuxx_neq_vbuc1_then_la1 
+    cpx #$10
     bne __b1
     // divr16u::@return
     // }
-    // [1052] return 
+    // [1232] return 
     rts
 }
   // vera_layer_set_text_color_mode
@@ -6952,26 +7666,26 @@ divr16u: {
 // - layer: Value of 0 or 1.
 // - color_mode: Specifies the color mode to be VERA_LAYER_CONFIG_16 or VERA_LAYER_CONFIG_256 for text mode.
 vera_layer_set_text_color_mode: {
-    .label addr = $5b
+    .label addr = $4f
     // addr = vera_layer_config[layer]
-    // [1053] vera_layer_set_text_color_mode::addr#0 = *(vera_layer_config+vera_layer_mode_text::layer#0*SIZEOF_POINTER) -- pbuz1=_deref_qbuc1 
+    // [1233] vera_layer_set_text_color_mode::addr#0 = *(vera_layer_config+vera_layer_mode_text::layer#0*SIZEOF_POINTER) -- pbuz1=_deref_qbuc1 
     lda vera_layer_config+vera_layer_mode_text.layer*SIZEOF_POINTER
     sta.z addr
     lda vera_layer_config+vera_layer_mode_text.layer*SIZEOF_POINTER+1
     sta.z addr+1
     // *addr &= ~VERA_LAYER_CONFIG_256C
-    // [1054] *vera_layer_set_text_color_mode::addr#0 = *vera_layer_set_text_color_mode::addr#0 & ~VERA_LAYER_CONFIG_256C -- _deref_pbuz1=_deref_pbuz1_band_vbuc1 
+    // [1234] *vera_layer_set_text_color_mode::addr#0 = *vera_layer_set_text_color_mode::addr#0 & ~VERA_LAYER_CONFIG_256C -- _deref_pbuz1=_deref_pbuz1_band_vbuc1 
     lda #VERA_LAYER_CONFIG_256C^$ff
     ldy #0
     and (addr),y
     sta (addr),y
     // *addr |= color_mode
-    // [1055] *vera_layer_set_text_color_mode::addr#0 = *vera_layer_set_text_color_mode::addr#0 -- _deref_pbuz1=_deref_pbuz1 
+    // [1235] *vera_layer_set_text_color_mode::addr#0 = *vera_layer_set_text_color_mode::addr#0 -- _deref_pbuz1=_deref_pbuz1 
     lda (addr),y
     sta (addr),y
     // vera_layer_set_text_color_mode::@return
     // }
-    // [1056] return 
+    // [1236] return 
     rts
 }
   // vera_layer_get_mapbase_bank
@@ -6980,14 +7694,12 @@ vera_layer_set_text_color_mode: {
 // - return: Bank in vera vram.
 vera_layer_get_mapbase_bank: {
     .const layer = 1
-    .label return = $5a
     // return vera_mapbase_bank[layer];
-    // [1057] vera_layer_get_mapbase_bank::return#0 = *(vera_mapbase_bank+vera_layer_get_mapbase_bank::layer#0) -- vbuz1=_deref_pbuc1 
+    // [1237] vera_layer_get_mapbase_bank::return#0 = *(vera_mapbase_bank+vera_layer_get_mapbase_bank::layer#0) -- vbuaa=_deref_pbuc1 
     lda vera_mapbase_bank+layer
-    sta.z return
     // vera_layer_get_mapbase_bank::@return
     // }
-    // [1058] return 
+    // [1238] return 
     rts
 }
   // vera_layer_get_mapbase_offset
@@ -6996,16 +7708,16 @@ vera_layer_get_mapbase_bank: {
 // - return: Offset in vera vram of the specified bank.
 vera_layer_get_mapbase_offset: {
     .const layer = 1
-    .label return = $5b
+    .label return = $4f
     // return vera_mapbase_offset[layer];
-    // [1059] vera_layer_get_mapbase_offset::return#0 = *(vera_mapbase_offset+vera_layer_get_mapbase_offset::layer#0<<1) -- vwuz1=_deref_pwuc1 
+    // [1239] vera_layer_get_mapbase_offset::return#0 = *(vera_mapbase_offset+vera_layer_get_mapbase_offset::layer#0<<1) -- vwuz1=_deref_pwuc1 
     lda vera_mapbase_offset+(layer<<1)
     sta.z return
     lda vera_mapbase_offset+(layer<<1)+1
     sta.z return+1
     // vera_layer_get_mapbase_offset::@return
     // }
-    // [1060] return 
+    // [1240] return 
     rts
 }
   // vera_layer_get_rowshift
@@ -7014,14 +7726,12 @@ vera_layer_get_mapbase_offset: {
 // - return: Rowshift value to calculate fast from a y value to line offset in tile mode.
 vera_layer_get_rowshift: {
     .const layer = 1
-    .label return = $e
     // return vera_layer_rowshift[layer];
-    // [1061] vera_layer_get_rowshift::return#0 = *(vera_layer_rowshift+vera_layer_get_rowshift::layer#0) -- vbuz1=_deref_pbuc1 
+    // [1241] vera_layer_get_rowshift::return#0 = *(vera_layer_rowshift+vera_layer_get_rowshift::layer#0) -- vbuaa=_deref_pbuc1 
     lda vera_layer_rowshift+layer
-    sta.z return
     // vera_layer_get_rowshift::@return
     // }
-    // [1062] return 
+    // [1242] return 
     rts
 }
   // vera_layer_get_rowskip
@@ -7030,53 +7740,53 @@ vera_layer_get_rowshift: {
 // - return: Skip value to calculate fast from a y value to line offset in tile mode.
 vera_layer_get_rowskip: {
     .const layer = 1
-    .label return = $5b
+    .label return = $4f
     // return vera_layer_rowskip[layer];
-    // [1063] vera_layer_get_rowskip::return#0 = *(vera_layer_rowskip+vera_layer_get_rowskip::layer#0<<1) -- vwuz1=_deref_pwuc1 
+    // [1243] vera_layer_get_rowskip::return#0 = *(vera_layer_rowskip+vera_layer_get_rowskip::layer#0<<1) -- vwuz1=_deref_pwuc1 
     lda vera_layer_rowskip+(layer<<1)
     sta.z return
     lda vera_layer_rowskip+(layer<<1)+1
     sta.z return+1
     // vera_layer_get_rowskip::@return
     // }
-    // [1064] return 
+    // [1244] return 
     rts
 }
   // printf_string
 // Print a string value using a specific format
 // Handles justification and min length 
-// printf_string(byte* zp($af) str)
+// printf_string(byte* zp($c2) str)
 printf_string: {
-    .label str = $af
+    .label str = $c2
     // printf_string::@1
     // cputs(str)
-    // [1066] cputs::s#2 = printf_string::str#2
-    // [1067] call cputs 
-    // [529] phi from printf_string::@1 to cputs [phi:printf_string::@1->cputs]
-    // [529] phi cputs::s#13 = cputs::s#2 [phi:printf_string::@1->cputs#0] -- register_copy 
+    // [1246] cputs::s#2 = printf_string::str#2 -- pbuz1=pbuz2 
+    lda.z str
+    sta.z cputs.s
+    lda.z str+1
+    sta.z cputs.s+1
+    // [1247] call cputs 
+    // [343] phi from printf_string::@1 to cputs [phi:printf_string::@1->cputs]
+    // [343] phi cputs::s#26 = cputs::s#2 [phi:printf_string::@1->cputs#0] -- register_copy 
     jsr cputs
     // printf_string::@return
     // }
-    // [1068] return 
+    // [1248] return 
     rts
 }
   // cx16_ram_bank
 // Configure the bank of a banked ram on the X16.
-// cx16_ram_bank(byte zp($aa) bank)
+// cx16_ram_bank(byte register(X) bank)
 cx16_ram_bank: {
-    .label return = $b3
-    .label bank = $aa
     // current_bank = VIA1->PORT_A
-    // [1070] cx16_ram_bank::return#0 = *((byte*)VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A) -- vbuz1=_deref_pbuc1 
+    // [1250] cx16_ram_bank::return#0 = *((byte*)VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A) -- vbuaa=_deref_pbuc1 
     lda VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A
-    sta.z return
     // VIA1->PORT_A = bank
-    // [1071] *((byte*)VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A) = cx16_ram_bank::bank#11 -- _deref_pbuc1=vbuz1 
-    lda.z bank
-    sta VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A
+    // [1251] *((byte*)VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A) = cx16_ram_bank::bank#11 -- _deref_pbuc1=vbuxx 
+    stx VIA1+OFFSET_STRUCT_MOS6522_VIA_PORT_A
     // cx16_ram_bank::@return
     // }
-    // [1072] return 
+    // [1252] return 
     rts
 }
   // cbm_k_setnam
@@ -7114,27 +7824,26 @@ EXAMPLE:
   LDY #>NAME
   JSR SETNAM
 */
-// cbm_k_setnam(byte* zp($60) filename)
+// cbm_k_setnam(byte* zp($54) filename)
 cbm_k_setnam: {
-    .label filename = $60
-    .label filename_len = $bd
-    .label __0 = $c8
+    .label filename = $54
+    .label filename_len = $bc
+    .label __0 = $af
     // strlen(filename)
-    // [1073] strlen::str#1 = cbm_k_setnam::filename -- pbuz1=pbuz2 
+    // [1253] strlen::str#1 = cbm_k_setnam::filename -- pbuz1=pbuz2 
     lda.z filename
     sta.z strlen.str
     lda.z filename+1
     sta.z strlen.str+1
-    // [1074] call strlen 
-    // [1452] phi from cbm_k_setnam to strlen [phi:cbm_k_setnam->strlen]
-    // [1452] phi strlen::str#6 = strlen::str#1 [phi:cbm_k_setnam->strlen#0] -- register_copy 
+    // [1254] call strlen 
+    // [1587] phi from cbm_k_setnam to strlen [phi:cbm_k_setnam->strlen]
     jsr strlen
     // strlen(filename)
-    // [1075] strlen::return#2 = strlen::len#2
+    // [1255] strlen::return#2 = strlen::len#2
     // cbm_k_setnam::@1
-    // [1076] cbm_k_setnam::$0 = strlen::return#2
+    // [1256] cbm_k_setnam::$0 = strlen::return#2
     // filename_len = (char)strlen(filename)
-    // [1077] cbm_k_setnam::filename_len = (byte)cbm_k_setnam::$0 -- vbuz1=_byte_vwuz2 
+    // [1257] cbm_k_setnam::filename_len = (byte)cbm_k_setnam::$0 -- vbuz1=_byte_vwuz2 
     lda.z __0
     sta.z filename_len
     // asm
@@ -7144,7 +7853,7 @@ cbm_k_setnam: {
     jsr CBM_SETNAM
     // cbm_k_setnam::@return
     // }
-    // [1079] return 
+    // [1259] return 
     rts
 }
   // cbm_k_setlfs
@@ -7199,11 +7908,11 @@ EXAMPLE:
   LDY #255
   JSR SETLFS
 */
-// cbm_k_setlfs(byte zp($62) channel, byte zp($63) device, byte zp($64) secondary)
+// cbm_k_setlfs(byte zp($56) channel, byte zp($57) device, byte zp($58) secondary)
 cbm_k_setlfs: {
-    .label channel = $62
-    .label device = $63
-    .label secondary = $64
+    .label channel = $56
+    .label device = $57
+    .label secondary = $58
     // asm
     // asm { ldxdevice ldachannel ldysecondary jsrCBM_SETLFS  }
     ldx device
@@ -7212,7 +7921,7 @@ cbm_k_setlfs: {
     jsr CBM_SETLFS
     // cbm_k_setlfs::@return
     // }
-    // [1081] return 
+    // [1261] return 
     rts
 }
   // cbm_k_open
@@ -7241,10 +7950,9 @@ How to Use:
   2) Call this routine.
 */
 cbm_k_open: {
-    .label status = $be
-    .label return = $f
+    .label status = $bd
     // status
-    // [1082] cbm_k_open::status = 0 -- vbuz1=vbuc1 
+    // [1262] cbm_k_open::status = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z status
     // asm
@@ -7255,12 +7963,11 @@ cbm_k_open: {
   !error:
     sta status
     // return status;
-    // [1084] cbm_k_open::return#0 = cbm_k_open::status -- vbuz1=vbuz2 
-    sta.z return
+    // [1264] cbm_k_open::return#0 = cbm_k_open::status -- vbuaa=vbuz1 
     // cbm_k_open::@return
     // }
-    // [1085] cbm_k_open::return#1 = cbm_k_open::return#0
-    // [1086] return 
+    // [1265] cbm_k_open::return#1 = cbm_k_open::return#0
+    // [1266] return 
     rts
 }
   // cbm_k_chkin
@@ -7300,13 +8007,12 @@ Possible errors are:
   #5: Device not present
   #6: File not an input file
 */
-// cbm_k_chkin(byte zp($65) channel)
+// cbm_k_chkin(byte zp($59) channel)
 cbm_k_chkin: {
-    .label channel = $65
-    .label status = $bf
-    .label return = $f
+    .label channel = $59
+    .label status = $be
     // status
-    // [1087] cbm_k_chkin::status = 0 -- vbuz1=vbuc1 
+    // [1267] cbm_k_chkin::status = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z status
     // asm
@@ -7318,12 +8024,11 @@ cbm_k_chkin: {
   !error:
     sta status
     // return status;
-    // [1089] cbm_k_chkin::return#0 = cbm_k_chkin::status -- vbuz1=vbuz2 
-    sta.z return
+    // [1269] cbm_k_chkin::return#0 = cbm_k_chkin::status -- vbuaa=vbuz1 
     // cbm_k_chkin::@return
     // }
-    // [1090] cbm_k_chkin::return#1 = cbm_k_chkin::return#0
-    // [1091] return 
+    // [1270] cbm_k_chkin::return#1 = cbm_k_chkin::return#0
+    // [1271] return 
     rts
 }
   // cbm_k_chrin
@@ -7368,10 +8073,9 @@ FROM OTHER DEVICES
   2) Store the data.
 */
 cbm_k_chrin: {
-    .label value = $c0
-    .label return = $40
+    .label value = $bf
     // value
-    // [1092] cbm_k_chrin::value = 0 -- vbuz1=vbuc1 
+    // [1272] cbm_k_chrin::value = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z value
     // asm
@@ -7379,12 +8083,11 @@ cbm_k_chrin: {
     jsr CBM_CHRIN
     sta value
     // return value;
-    // [1094] cbm_k_chrin::return#0 = cbm_k_chrin::value -- vbuz1=vbuz2 
-    sta.z return
+    // [1274] cbm_k_chrin::return#0 = cbm_k_chrin::value -- vbuaa=vbuz1 
     // cbm_k_chrin::@return
     // }
-    // [1095] cbm_k_chrin::return#1 = cbm_k_chrin::return#0
-    // [1096] return 
+    // [1275] cbm_k_chrin::return#1 = cbm_k_chrin::return#0
+    // [1276] return 
     rts
 }
   // cbm_k_readst
@@ -7439,10 +8142,9 @@ How to Use:
      gram.
 */
 cbm_k_readst: {
-    .label status = $c1
-    .label return = $7f
+    .label status = $c0
     // status
-    // [1097] cbm_k_readst::status = 0 -- vbuz1=vbuc1 
+    // [1277] cbm_k_readst::status = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z status
     // asm
@@ -7450,12 +8152,11 @@ cbm_k_readst: {
     jsr CBM_READST
     sta status
     // return status;
-    // [1099] cbm_k_readst::return#0 = cbm_k_readst::status -- vbuz1=vbuz2 
-    sta.z return
+    // [1279] cbm_k_readst::return#0 = cbm_k_readst::status -- vbuaa=vbuz1 
     // cbm_k_readst::@return
     // }
-    // [1100] cbm_k_readst::return#1 = cbm_k_readst::return#0
-    // [1101] return 
+    // [1280] cbm_k_readst::return#1 = cbm_k_readst::return#0
+    // [1281] return 
     rts
 }
   // cbm_k_close
@@ -7481,13 +8182,12 @@ How to Use:
      closed.
   2) Call this routine.
 */
-// cbm_k_close(byte zp($66) channel)
+// cbm_k_close(byte zp($5a) channel)
 cbm_k_close: {
-    .label channel = $66
-    .label status = $c2
-    .label return = $f
+    .label channel = $5a
+    .label status = $c1
     // status
-    // [1102] cbm_k_close::status = 0 -- vbuz1=vbuc1 
+    // [1282] cbm_k_close::status = 0 -- vbuz1=vbuc1 
     lda #0
     sta.z status
     // asm
@@ -7499,12 +8199,11 @@ cbm_k_close: {
   !error:
     sta status
     // return status;
-    // [1104] cbm_k_close::return#0 = cbm_k_close::status -- vbuz1=vbuz2 
-    sta.z return
+    // [1284] cbm_k_close::return#0 = cbm_k_close::status -- vbuaa=vbuz1 
     // cbm_k_close::@return
     // }
-    // [1105] cbm_k_close::return#1 = cbm_k_close::return#0
-    // [1106] return 
+    // [1285] cbm_k_close::return#1 = cbm_k_close::return#0
+    // [1286] return 
     rts
 }
   // cbm_k_clrchn
@@ -7543,182 +8242,7 @@ cbm_k_clrchn: {
     jsr CBM_CLRCHN
     // cbm_k_clrchn::@return
     // }
-    // [1108] return 
-    rts
-}
-  // cputc
-// Output one character at the current cursor position
-// Moves the cursor forward. Scrolls the entire screen if needed
-// cputc(byte zp($ba) c)
-cputc: {
-    .label __2 = $c7
-    .label __4 = $c7
-    .label __5 = $c7
-    .label __6 = $c7
-    .label __15 = $c7
-    .label __16 = $75
-    .label color = $b9
-    .label conio_screen_text = $c3
-    .label conio_map_width = $c5
-    .label conio_addr = $c3
-    .label scroll_enable = $b9
-    .label c = $ba
-    // vera_layer_get_color(cx16_conio.conio_screen_layer)
-    // [1110] vera_layer_get_color::layer#0 = *((byte*)&cx16_conio) -- vbuz1=_deref_pbuc1 
-    lda cx16_conio
-    sta.z vera_layer_get_color.layer
-    // [1111] call vera_layer_get_color 
-    // [1458] phi from cputc to vera_layer_get_color [phi:cputc->vera_layer_get_color]
-    // [1458] phi vera_layer_get_color::layer#2 = vera_layer_get_color::layer#0 [phi:cputc->vera_layer_get_color#0] -- register_copy 
-    jsr vera_layer_get_color
-    // vera_layer_get_color(cx16_conio.conio_screen_layer)
-    // [1112] vera_layer_get_color::return#3 = vera_layer_get_color::return#2
-    // cputc::@7
-    // color = vera_layer_get_color(cx16_conio.conio_screen_layer)
-    // [1113] cputc::color#0 = vera_layer_get_color::return#3
-    // conio_screen_text = cx16_conio.conio_screen_text
-    // [1114] cputc::conio_screen_text#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) -- pbuz1=_deref_qbuc1 
-    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
-    sta.z conio_screen_text
-    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT+1
-    sta.z conio_screen_text+1
-    // conio_map_width = cx16_conio.conio_map_width
-    // [1115] cputc::conio_map_width#0 = *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH) -- vwuz1=_deref_pwuc1 
-    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH
-    sta.z conio_map_width
-    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_MAP_WIDTH+1
-    sta.z conio_map_width+1
-    // conio_screen_text + conio_line_text[cx16_conio.conio_screen_layer]
-    // [1116] cputc::$15 = *((byte*)&cx16_conio) << 1 -- vbuz1=_deref_pbuc1_rol_1 
-    lda cx16_conio
-    asl
-    sta.z __15
-    // conio_addr = conio_screen_text + conio_line_text[cx16_conio.conio_screen_layer]
-    // [1117] cputc::conio_addr#0 = cputc::conio_screen_text#0 + conio_line_text[cputc::$15] -- pbuz1=pbuz1_plus_pwuc1_derefidx_vbuz2 
-    tay
-    clc
-    lda.z conio_addr
-    adc conio_line_text,y
-    sta.z conio_addr
-    lda.z conio_addr+1
-    adc conio_line_text+1,y
-    sta.z conio_addr+1
-    // conio_cursor_x[cx16_conio.conio_screen_layer] << 1
-    // [1118] cputc::$2 = conio_cursor_x[*((byte*)&cx16_conio)] << 1 -- vbuz1=pbuc1_derefidx_(_deref_pbuc2)_rol_1 
-    ldy cx16_conio
-    lda conio_cursor_x,y
-    asl
-    sta.z __2
-    // conio_addr += conio_cursor_x[cx16_conio.conio_screen_layer] << 1
-    // [1119] cputc::conio_addr#1 = cputc::conio_addr#0 + cputc::$2 -- pbuz1=pbuz1_plus_vbuz2 
-    clc
-    adc.z conio_addr
-    sta.z conio_addr
-    bcc !+
-    inc.z conio_addr+1
-  !:
-    // if(c=='\n')
-    // [1120] if(cputc::c#3==' ') goto cputc::@1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #'\n'
-    cmp.z c
-    beq __b1
-    // cputc::@2
-    // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1121] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
-    // Select DATA0
-    lda #VERA_ADDRSEL^$ff
-    and VERA_CTRL
-    sta VERA_CTRL
-    // <conio_addr
-    // [1122] cputc::$4 = < cputc::conio_addr#1 -- vbuz1=_lo_pbuz2 
-    lda.z conio_addr
-    sta.z __4
-    // *VERA_ADDRX_L = <conio_addr
-    // [1123] *VERA_ADDRX_L = cputc::$4 -- _deref_pbuc1=vbuz1 
-    // Set address
-    sta VERA_ADDRX_L
-    // >conio_addr
-    // [1124] cputc::$5 = > cputc::conio_addr#1 -- vbuz1=_hi_pbuz2 
-    lda.z conio_addr+1
-    sta.z __5
-    // *VERA_ADDRX_M = >conio_addr
-    // [1125] *VERA_ADDRX_M = cputc::$5 -- _deref_pbuc1=vbuz1 
-    sta VERA_ADDRX_M
-    // cx16_conio.conio_screen_bank | VERA_INC_1
-    // [1126] cputc::$6 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK) | VERA_INC_1 -- vbuz1=_deref_pbuc1_bor_vbuc2 
-    lda #VERA_INC_1
-    ora cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_BANK
-    sta.z __6
-    // *VERA_ADDRX_H = cx16_conio.conio_screen_bank | VERA_INC_1
-    // [1127] *VERA_ADDRX_H = cputc::$6 -- _deref_pbuc1=vbuz1 
-    sta VERA_ADDRX_H
-    // *VERA_DATA0 = c
-    // [1128] *VERA_DATA0 = cputc::c#3 -- _deref_pbuc1=vbuz1 
-    lda.z c
-    sta VERA_DATA0
-    // *VERA_DATA0 = color
-    // [1129] *VERA_DATA0 = cputc::color#0 -- _deref_pbuc1=vbuz1 
-    lda.z color
-    sta VERA_DATA0
-    // conio_cursor_x[cx16_conio.conio_screen_layer]++;
-    // [1130] conio_cursor_x[*((byte*)&cx16_conio)] = ++ conio_cursor_x[*((byte*)&cx16_conio)] -- pbuc1_derefidx_(_deref_pbuc2)=_inc_pbuc1_derefidx_(_deref_pbuc2) 
-    ldx cx16_conio
-    ldy cx16_conio
-    lda conio_cursor_x,x
-    inc
-    sta conio_cursor_x,y
-    // scroll_enable = conio_scroll_enable[cx16_conio.conio_screen_layer]
-    // [1131] cputc::scroll_enable#0 = conio_scroll_enable[*((byte*)&cx16_conio)] -- vbuz1=pbuc1_derefidx_(_deref_pbuc2) 
-    lda conio_scroll_enable,y
-    sta.z scroll_enable
-    // if(scroll_enable)
-    // [1132] if(0!=cputc::scroll_enable#0) goto cputc::@5 -- 0_neq_vbuz1_then_la1 
-    cmp #0
-    bne __b5
-    // cputc::@3
-    // (unsigned int)conio_cursor_x[cx16_conio.conio_screen_layer] == conio_map_width
-    // [1133] cputc::$16 = (word)conio_cursor_x[*((byte*)&cx16_conio)] -- vwuz1=_word_pbuc1_derefidx_(_deref_pbuc2) 
-    lda conio_cursor_x,y
-    sta.z __16
-    lda #0
-    sta.z __16+1
-    // if((unsigned int)conio_cursor_x[cx16_conio.conio_screen_layer] == conio_map_width)
-    // [1134] if(cputc::$16!=cputc::conio_map_width#0) goto cputc::@return -- vwuz1_neq_vwuz2_then_la1 
-    cmp.z conio_map_width+1
-    bne __breturn
-    lda.z __16
-    cmp.z conio_map_width
-    bne __breturn
-    // [1135] phi from cputc::@3 to cputc::@4 [phi:cputc::@3->cputc::@4]
-    // cputc::@4
-    // cputln()
-    // [1136] call cputln 
-    jsr cputln
-    // cputc::@return
-  __breturn:
-    // }
-    // [1137] return 
-    rts
-    // cputc::@5
-  __b5:
-    // if(conio_cursor_x[cx16_conio.conio_screen_layer] == cx16_conio.conio_screen_width)
-    // [1138] if(conio_cursor_x[*((byte*)&cx16_conio)]!=*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH)) goto cputc::@return -- pbuc1_derefidx_(_deref_pbuc2)_neq__deref_pbuc3_then_la1 
-    lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
-    ldy cx16_conio
-    cmp conio_cursor_x,y
-    bne __breturn
-    // [1139] phi from cputc::@5 to cputc::@6 [phi:cputc::@5->cputc::@6]
-    // cputc::@6
-    // cputln()
-    // [1140] call cputln 
-    jsr cputln
-    rts
-    // [1141] phi from cputc::@7 to cputc::@1 [phi:cputc::@7->cputc::@1]
-    // cputc::@1
-  __b1:
-    // cputln()
-    // [1142] call cputln 
-    jsr cputln
+    // [1288] return 
     rts
 }
   // uctoa
@@ -7727,144 +8251,136 @@ cputc: {
 // - value : The number to be converted to RADIX
 // - buffer : receives the string representing the number and zero-termination.
 // - radix : The radix to convert the number to (from the enum RADIX)
-// uctoa(byte zp($f) value, byte* zp($c5) buffer, byte zp($7f) radix)
+// uctoa(byte register(X) value, byte* zp($cc) buffer, byte register(Y) radix)
 uctoa: {
-    .label __4 = $40
-    .label digit_value = $a9
-    .label buffer = $c5
-    .label digit = $20
-    .label value = $f
-    .label radix = $7f
-    .label started = $21
-    .label max_digits = $aa
-    .label digit_values = $7d
+    .label buffer = $cc
+    .label digit = $53
+    .label started = $6d
+    .label max_digits = $3c
+    .label digit_values = $65
     // if(radix==DECIMAL)
-    // [1143] if(uctoa::radix#0==DECIMAL) goto uctoa::@1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #DECIMAL
-    cmp.z radix
+    // [1289] if(uctoa::radix#0==DECIMAL) goto uctoa::@1 -- vbuyy_eq_vbuc1_then_la1 
+    cpy #DECIMAL
     beq __b2
     // uctoa::@2
     // if(radix==HEXADECIMAL)
-    // [1144] if(uctoa::radix#0==HEXADECIMAL) goto uctoa::@1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #HEXADECIMAL
-    cmp.z radix
+    // [1290] if(uctoa::radix#0==HEXADECIMAL) goto uctoa::@1 -- vbuyy_eq_vbuc1_then_la1 
+    cpy #HEXADECIMAL
     beq __b3
     // uctoa::@3
     // if(radix==OCTAL)
-    // [1145] if(uctoa::radix#0==OCTAL) goto uctoa::@1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #OCTAL
-    cmp.z radix
+    // [1291] if(uctoa::radix#0==OCTAL) goto uctoa::@1 -- vbuyy_eq_vbuc1_then_la1 
+    cpy #OCTAL
     beq __b4
     // uctoa::@4
     // if(radix==BINARY)
-    // [1146] if(uctoa::radix#0==BINARY) goto uctoa::@1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #BINARY
-    cmp.z radix
+    // [1292] if(uctoa::radix#0==BINARY) goto uctoa::@1 -- vbuyy_eq_vbuc1_then_la1 
+    cpy #BINARY
     beq __b5
     // uctoa::@5
     // *buffer++ = 'e'
-    // [1147] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS) = 'e' -- _deref_pbuc1=vbuc2 
+    // [1293] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS) = 'e' -- _deref_pbuc1=vbuc2 
     // Unknown radix
     lda #'e'
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     // *buffer++ = 'r'
-    // [1148] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1) = 'r' -- _deref_pbuc1=vbuc2 
+    // [1294] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1) = 'r' -- _deref_pbuc1=vbuc2 
     lda #'r'
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1
-    // [1149] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
+    // [1295] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
     // *buffer = 0
-    // [1150] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
+    // [1296] *((byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
     lda #0
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
     // uctoa::@return
     // }
-    // [1151] return 
+    // [1297] return 
     rts
-    // [1152] phi from uctoa to uctoa::@1 [phi:uctoa->uctoa::@1]
+    // [1298] phi from uctoa to uctoa::@1 [phi:uctoa->uctoa::@1]
   __b2:
-    // [1152] phi uctoa::digit_values#8 = RADIX_DECIMAL_VALUES_CHAR [phi:uctoa->uctoa::@1#0] -- pbuz1=pbuc1 
+    // [1298] phi uctoa::digit_values#8 = RADIX_DECIMAL_VALUES_CHAR [phi:uctoa->uctoa::@1#0] -- pbuz1=pbuc1 
     lda #<RADIX_DECIMAL_VALUES_CHAR
     sta.z digit_values
     lda #>RADIX_DECIMAL_VALUES_CHAR
     sta.z digit_values+1
-    // [1152] phi uctoa::max_digits#7 = 3 [phi:uctoa->uctoa::@1#1] -- vbuz1=vbuc1 
+    // [1298] phi uctoa::max_digits#7 = 3 [phi:uctoa->uctoa::@1#1] -- vbuz1=vbuc1 
     lda #3
     sta.z max_digits
     jmp __b1
-    // [1152] phi from uctoa::@2 to uctoa::@1 [phi:uctoa::@2->uctoa::@1]
+    // [1298] phi from uctoa::@2 to uctoa::@1 [phi:uctoa::@2->uctoa::@1]
   __b3:
-    // [1152] phi uctoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES_CHAR [phi:uctoa::@2->uctoa::@1#0] -- pbuz1=pbuc1 
+    // [1298] phi uctoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES_CHAR [phi:uctoa::@2->uctoa::@1#0] -- pbuz1=pbuc1 
     lda #<RADIX_HEXADECIMAL_VALUES_CHAR
     sta.z digit_values
     lda #>RADIX_HEXADECIMAL_VALUES_CHAR
     sta.z digit_values+1
-    // [1152] phi uctoa::max_digits#7 = 2 [phi:uctoa::@2->uctoa::@1#1] -- vbuz1=vbuc1 
+    // [1298] phi uctoa::max_digits#7 = 2 [phi:uctoa::@2->uctoa::@1#1] -- vbuz1=vbuc1 
     lda #2
     sta.z max_digits
     jmp __b1
-    // [1152] phi from uctoa::@3 to uctoa::@1 [phi:uctoa::@3->uctoa::@1]
+    // [1298] phi from uctoa::@3 to uctoa::@1 [phi:uctoa::@3->uctoa::@1]
   __b4:
-    // [1152] phi uctoa::digit_values#8 = RADIX_OCTAL_VALUES_CHAR [phi:uctoa::@3->uctoa::@1#0] -- pbuz1=pbuc1 
+    // [1298] phi uctoa::digit_values#8 = RADIX_OCTAL_VALUES_CHAR [phi:uctoa::@3->uctoa::@1#0] -- pbuz1=pbuc1 
     lda #<RADIX_OCTAL_VALUES_CHAR
     sta.z digit_values
     lda #>RADIX_OCTAL_VALUES_CHAR
     sta.z digit_values+1
-    // [1152] phi uctoa::max_digits#7 = 3 [phi:uctoa::@3->uctoa::@1#1] -- vbuz1=vbuc1 
+    // [1298] phi uctoa::max_digits#7 = 3 [phi:uctoa::@3->uctoa::@1#1] -- vbuz1=vbuc1 
     lda #3
     sta.z max_digits
     jmp __b1
-    // [1152] phi from uctoa::@4 to uctoa::@1 [phi:uctoa::@4->uctoa::@1]
+    // [1298] phi from uctoa::@4 to uctoa::@1 [phi:uctoa::@4->uctoa::@1]
   __b5:
-    // [1152] phi uctoa::digit_values#8 = RADIX_BINARY_VALUES_CHAR [phi:uctoa::@4->uctoa::@1#0] -- pbuz1=pbuc1 
+    // [1298] phi uctoa::digit_values#8 = RADIX_BINARY_VALUES_CHAR [phi:uctoa::@4->uctoa::@1#0] -- pbuz1=pbuc1 
     lda #<RADIX_BINARY_VALUES_CHAR
     sta.z digit_values
     lda #>RADIX_BINARY_VALUES_CHAR
     sta.z digit_values+1
-    // [1152] phi uctoa::max_digits#7 = 8 [phi:uctoa::@4->uctoa::@1#1] -- vbuz1=vbuc1 
+    // [1298] phi uctoa::max_digits#7 = 8 [phi:uctoa::@4->uctoa::@1#1] -- vbuz1=vbuc1 
     lda #8
     sta.z max_digits
     // uctoa::@1
   __b1:
-    // [1153] phi from uctoa::@1 to uctoa::@6 [phi:uctoa::@1->uctoa::@6]
-    // [1153] phi uctoa::buffer#11 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:uctoa::@1->uctoa::@6#0] -- pbuz1=pbuc1 
+    // [1299] phi from uctoa::@1 to uctoa::@6 [phi:uctoa::@1->uctoa::@6]
+    // [1299] phi uctoa::buffer#11 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:uctoa::@1->uctoa::@6#0] -- pbuz1=pbuc1 
     lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     sta.z buffer
     lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     sta.z buffer+1
-    // [1153] phi uctoa::started#2 = 0 [phi:uctoa::@1->uctoa::@6#1] -- vbuz1=vbuc1 
+    // [1299] phi uctoa::started#2 = 0 [phi:uctoa::@1->uctoa::@6#1] -- vbuz1=vbuc1 
     lda #0
     sta.z started
-    // [1153] phi uctoa::value#2 = uctoa::value#1 [phi:uctoa::@1->uctoa::@6#2] -- register_copy 
-    // [1153] phi uctoa::digit#2 = 0 [phi:uctoa::@1->uctoa::@6#3] -- vbuz1=vbuc1 
+    // [1299] phi uctoa::value#2 = uctoa::value#1 [phi:uctoa::@1->uctoa::@6#2] -- register_copy 
+    // [1299] phi uctoa::digit#2 = 0 [phi:uctoa::@1->uctoa::@6#3] -- vbuz1=vbuc1 
     sta.z digit
     // uctoa::@6
   __b6:
     // max_digits-1
-    // [1154] uctoa::$4 = uctoa::max_digits#7 - 1 -- vbuz1=vbuz2_minus_1 
-    ldx.z max_digits
-    dex
-    stx.z __4
+    // [1300] uctoa::$4 = uctoa::max_digits#7 - 1 -- vbuaa=vbuz1_minus_1 
+    lda.z max_digits
+    sec
+    sbc #1
     // for( char digit=0; digit<max_digits-1; digit++ )
-    // [1155] if(uctoa::digit#2<uctoa::$4) goto uctoa::@7 -- vbuz1_lt_vbuz2_then_la1 
-    lda.z digit
-    cmp.z __4
-    bcc __b7
+    // [1301] if(uctoa::digit#2<uctoa::$4) goto uctoa::@7 -- vbuz1_lt_vbuaa_then_la1 
+    cmp.z digit
+    beq !+
+    bcs __b7
+  !:
     // uctoa::@8
     // *buffer++ = DIGITS[(char)value]
-    // [1156] *uctoa::buffer#11 = DIGITS[uctoa::value#2] -- _deref_pbuz1=pbuc1_derefidx_vbuz2 
-    ldy.z value
-    lda DIGITS,y
+    // [1302] *uctoa::buffer#11 = DIGITS[uctoa::value#2] -- _deref_pbuz1=pbuc1_derefidx_vbuxx 
+    lda DIGITS,x
     ldy #0
     sta (buffer),y
     // *buffer++ = DIGITS[(char)value];
-    // [1157] uctoa::buffer#3 = ++ uctoa::buffer#11 -- pbuz1=_inc_pbuz1 
+    // [1303] uctoa::buffer#3 = ++ uctoa::buffer#11 -- pbuz1=_inc_pbuz1 
     inc.z buffer
     bne !+
     inc.z buffer+1
   !:
     // *buffer = 0
-    // [1158] *uctoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    // [1304] *uctoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
     lda #0
     tay
     sta (buffer),y
@@ -7872,281 +8388,78 @@ uctoa: {
     // uctoa::@7
   __b7:
     // digit_value = digit_values[digit]
-    // [1159] uctoa::digit_value#0 = uctoa::digit_values#8[uctoa::digit#2] -- vbuz1=pbuz2_derefidx_vbuz3 
+    // [1305] uctoa::digit_value#0 = uctoa::digit_values#8[uctoa::digit#2] -- vbuyy=pbuz1_derefidx_vbuz2 
     ldy.z digit
     lda (digit_values),y
-    sta.z digit_value
+    tay
     // if (started || value >= digit_value)
-    // [1160] if(0!=uctoa::started#2) goto uctoa::@10 -- 0_neq_vbuz1_then_la1 
+    // [1306] if(0!=uctoa::started#2) goto uctoa::@10 -- 0_neq_vbuz1_then_la1 
     lda.z started
-    cmp #0
     bne __b10
     // uctoa::@12
-    // [1161] if(uctoa::value#2>=uctoa::digit_value#0) goto uctoa::@10 -- vbuz1_ge_vbuz2_then_la1 
-    lda.z value
-    cmp.z digit_value
+    // [1307] if(uctoa::value#2>=uctoa::digit_value#0) goto uctoa::@10 -- vbuxx_ge_vbuyy_then_la1 
+    sty.z $ff
+    cpx.z $ff
     bcs __b10
-    // [1162] phi from uctoa::@12 to uctoa::@9 [phi:uctoa::@12->uctoa::@9]
-    // [1162] phi uctoa::buffer#14 = uctoa::buffer#11 [phi:uctoa::@12->uctoa::@9#0] -- register_copy 
-    // [1162] phi uctoa::started#4 = uctoa::started#2 [phi:uctoa::@12->uctoa::@9#1] -- register_copy 
-    // [1162] phi uctoa::value#6 = uctoa::value#2 [phi:uctoa::@12->uctoa::@9#2] -- register_copy 
+    // [1308] phi from uctoa::@12 to uctoa::@9 [phi:uctoa::@12->uctoa::@9]
+    // [1308] phi uctoa::buffer#14 = uctoa::buffer#11 [phi:uctoa::@12->uctoa::@9#0] -- register_copy 
+    // [1308] phi uctoa::started#4 = uctoa::started#2 [phi:uctoa::@12->uctoa::@9#1] -- register_copy 
+    // [1308] phi uctoa::value#6 = uctoa::value#2 [phi:uctoa::@12->uctoa::@9#2] -- register_copy 
     // uctoa::@9
   __b9:
     // for( char digit=0; digit<max_digits-1; digit++ )
-    // [1163] uctoa::digit#1 = ++ uctoa::digit#2 -- vbuz1=_inc_vbuz1 
+    // [1309] uctoa::digit#1 = ++ uctoa::digit#2 -- vbuz1=_inc_vbuz1 
     inc.z digit
-    // [1153] phi from uctoa::@9 to uctoa::@6 [phi:uctoa::@9->uctoa::@6]
-    // [1153] phi uctoa::buffer#11 = uctoa::buffer#14 [phi:uctoa::@9->uctoa::@6#0] -- register_copy 
-    // [1153] phi uctoa::started#2 = uctoa::started#4 [phi:uctoa::@9->uctoa::@6#1] -- register_copy 
-    // [1153] phi uctoa::value#2 = uctoa::value#6 [phi:uctoa::@9->uctoa::@6#2] -- register_copy 
-    // [1153] phi uctoa::digit#2 = uctoa::digit#1 [phi:uctoa::@9->uctoa::@6#3] -- register_copy 
+    // [1299] phi from uctoa::@9 to uctoa::@6 [phi:uctoa::@9->uctoa::@6]
+    // [1299] phi uctoa::buffer#11 = uctoa::buffer#14 [phi:uctoa::@9->uctoa::@6#0] -- register_copy 
+    // [1299] phi uctoa::started#2 = uctoa::started#4 [phi:uctoa::@9->uctoa::@6#1] -- register_copy 
+    // [1299] phi uctoa::value#2 = uctoa::value#6 [phi:uctoa::@9->uctoa::@6#2] -- register_copy 
+    // [1299] phi uctoa::digit#2 = uctoa::digit#1 [phi:uctoa::@9->uctoa::@6#3] -- register_copy 
     jmp __b6
     // uctoa::@10
   __b10:
     // uctoa_append(buffer++, value, digit_value)
-    // [1164] uctoa_append::buffer#0 = uctoa::buffer#11 -- pbuz1=pbuz2 
+    // [1310] uctoa_append::buffer#0 = uctoa::buffer#11 -- pbuz1=pbuz2 
     lda.z buffer
     sta.z uctoa_append.buffer
     lda.z buffer+1
     sta.z uctoa_append.buffer+1
-    // [1165] uctoa_append::value#0 = uctoa::value#2
-    // [1166] uctoa_append::sub#0 = uctoa::digit_value#0
-    // [1167] call uctoa_append 
-    // [1477] phi from uctoa::@10 to uctoa_append [phi:uctoa::@10->uctoa_append]
+    // [1311] uctoa_append::value#0 = uctoa::value#2
+    // [1312] uctoa_append::sub#0 = uctoa::digit_value#0 -- vbuz1=vbuyy 
+    sty.z uctoa_append.sub
+    // [1313] call uctoa_append 
+    // [1593] phi from uctoa::@10 to uctoa_append [phi:uctoa::@10->uctoa_append]
     jsr uctoa_append
     // uctoa_append(buffer++, value, digit_value)
-    // [1168] uctoa_append::return#0 = uctoa_append::value#2
+    // [1314] uctoa_append::return#0 = uctoa_append::value#2
     // uctoa::@11
     // value = uctoa_append(buffer++, value, digit_value)
-    // [1169] uctoa::value#0 = uctoa_append::return#0
+    // [1315] uctoa::value#0 = uctoa_append::return#0
     // value = uctoa_append(buffer++, value, digit_value);
-    // [1170] uctoa::buffer#4 = ++ uctoa::buffer#11 -- pbuz1=_inc_pbuz1 
+    // [1316] uctoa::buffer#4 = ++ uctoa::buffer#11 -- pbuz1=_inc_pbuz1 
     inc.z buffer
     bne !+
     inc.z buffer+1
   !:
-    // [1162] phi from uctoa::@11 to uctoa::@9 [phi:uctoa::@11->uctoa::@9]
-    // [1162] phi uctoa::buffer#14 = uctoa::buffer#4 [phi:uctoa::@11->uctoa::@9#0] -- register_copy 
-    // [1162] phi uctoa::started#4 = 1 [phi:uctoa::@11->uctoa::@9#1] -- vbuz1=vbuc1 
+    // [1308] phi from uctoa::@11 to uctoa::@9 [phi:uctoa::@11->uctoa::@9]
+    // [1308] phi uctoa::buffer#14 = uctoa::buffer#4 [phi:uctoa::@11->uctoa::@9#0] -- register_copy 
+    // [1308] phi uctoa::started#4 = 1 [phi:uctoa::@11->uctoa::@9#1] -- vbuz1=vbuc1 
     lda #1
     sta.z started
-    // [1162] phi uctoa::value#6 = uctoa::value#0 [phi:uctoa::@11->uctoa::@9#2] -- register_copy 
+    // [1308] phi uctoa::value#6 = uctoa::value#0 [phi:uctoa::@11->uctoa::@9#2] -- register_copy 
     jmp __b9
 }
-  // printf_number_buffer
-// Print the contents of the number buffer using a specific format.
-// This handles minimum length, zero-filling, and left/right justification from the format
-// printf_number_buffer(byte zp($aa) buffer_sign, byte zp($20) format_min_length, byte zp($21) format_justify_left, byte zp($b3) format_zero_padding, byte zp($b5) format_upper_case)
-printf_number_buffer: {
-    .label __19 = $c8
-    .label buffer_sign = $aa
-    .label len = $ba
-    .label padding = $20
-    .label format_min_length = $20
-    .label format_zero_padding = $b3
-    .label format_justify_left = $21
-    .label format_upper_case = $b5
-    // if(format.min_length)
-    // [1172] if(0==printf_number_buffer::format_min_length#2) goto printf_number_buffer::@1 -- 0_eq_vbuz1_then_la1 
-    lda.z format_min_length
-    cmp #0
-    beq __b6
-    // [1173] phi from printf_number_buffer to printf_number_buffer::@6 [phi:printf_number_buffer->printf_number_buffer::@6]
-    // printf_number_buffer::@6
-    // strlen(buffer.digits)
-    // [1174] call strlen 
-    // [1452] phi from printf_number_buffer::@6 to strlen [phi:printf_number_buffer::@6->strlen]
-    // [1452] phi strlen::str#6 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:printf_number_buffer::@6->strlen#0] -- pbuz1=pbuc1 
-    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    sta.z strlen.str
-    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    sta.z strlen.str+1
-    jsr strlen
-    // strlen(buffer.digits)
-    // [1175] strlen::return#3 = strlen::len#2
-    // printf_number_buffer::@14
-    // [1176] printf_number_buffer::$19 = strlen::return#3
-    // len = (signed char)strlen(buffer.digits)
-    // [1177] printf_number_buffer::len#0 = (signed byte)printf_number_buffer::$19 -- vbsz1=_sbyte_vwuz2 
-    // There is a minimum length - work out the padding
-    lda.z __19
-    sta.z len
-    // if(buffer.sign)
-    // [1178] if(0==printf_number_buffer::buffer_sign#10) goto printf_number_buffer::@13 -- 0_eq_vbuz1_then_la1 
-    lda.z buffer_sign
-    cmp #0
-    beq __b13
-    // printf_number_buffer::@7
-    // len++;
-    // [1179] printf_number_buffer::len#1 = ++ printf_number_buffer::len#0 -- vbsz1=_inc_vbsz1 
-    inc.z len
-    // [1180] phi from printf_number_buffer::@14 printf_number_buffer::@7 to printf_number_buffer::@13 [phi:printf_number_buffer::@14/printf_number_buffer::@7->printf_number_buffer::@13]
-    // [1180] phi printf_number_buffer::len#2 = printf_number_buffer::len#0 [phi:printf_number_buffer::@14/printf_number_buffer::@7->printf_number_buffer::@13#0] -- register_copy 
-    // printf_number_buffer::@13
-  __b13:
-    // padding = (signed char)format.min_length - len
-    // [1181] printf_number_buffer::padding#1 = (signed byte)printf_number_buffer::format_min_length#2 - printf_number_buffer::len#2 -- vbsz1=vbsz1_minus_vbsz2 
-    lda.z padding
-    sec
-    sbc.z len
-    sta.z padding
-    // if(padding<0)
-    // [1182] if(printf_number_buffer::padding#1>=0) goto printf_number_buffer::@21 -- vbsz1_ge_0_then_la1 
-    cmp #0
-    bpl __b1
-    // [1184] phi from printf_number_buffer printf_number_buffer::@13 to printf_number_buffer::@1 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1]
-  __b6:
-    // [1184] phi printf_number_buffer::padding#10 = 0 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1#0] -- vbsz1=vbsc1 
-    lda #0
-    sta.z padding
-    // [1183] phi from printf_number_buffer::@13 to printf_number_buffer::@21 [phi:printf_number_buffer::@13->printf_number_buffer::@21]
-    // printf_number_buffer::@21
-    // [1184] phi from printf_number_buffer::@21 to printf_number_buffer::@1 [phi:printf_number_buffer::@21->printf_number_buffer::@1]
-    // [1184] phi printf_number_buffer::padding#10 = printf_number_buffer::padding#1 [phi:printf_number_buffer::@21->printf_number_buffer::@1#0] -- register_copy 
-    // printf_number_buffer::@1
-  __b1:
-    // if(!format.justify_left && !format.zero_padding && padding)
-    // [1185] if(0!=printf_number_buffer::format_justify_left#10) goto printf_number_buffer::@2 -- 0_neq_vbuz1_then_la1 
-    lda.z format_justify_left
-    cmp #0
-    bne __b2
-    // printf_number_buffer::@17
-    // [1186] if(0!=printf_number_buffer::format_zero_padding#10) goto printf_number_buffer::@2 -- 0_neq_vbuz1_then_la1 
-    lda.z format_zero_padding
-    cmp #0
-    bne __b2
-    // printf_number_buffer::@16
-    // [1187] if(0!=printf_number_buffer::padding#10) goto printf_number_buffer::@8 -- 0_neq_vbsz1_then_la1 
-    lda.z padding
-    cmp #0
-    bne __b8
-    jmp __b2
-    // printf_number_buffer::@8
-  __b8:
-    // printf_padding(' ',(char)padding)
-    // [1188] printf_padding::length#0 = (byte)printf_number_buffer::padding#10 -- vbuz1=vbuz2 
-    lda.z padding
-    sta.z printf_padding.length
-    // [1189] call printf_padding 
-    // [1484] phi from printf_number_buffer::@8 to printf_padding [phi:printf_number_buffer::@8->printf_padding]
-    // [1484] phi printf_padding::pad#7 = ' ' [phi:printf_number_buffer::@8->printf_padding#0] -- vbuz1=vbuc1 
-    lda #' '
-    sta.z printf_padding.pad
-    // [1484] phi printf_padding::length#6 = printf_padding::length#0 [phi:printf_number_buffer::@8->printf_padding#1] -- register_copy 
-    jsr printf_padding
-    // printf_number_buffer::@2
-  __b2:
-    // if(buffer.sign)
-    // [1190] if(0==printf_number_buffer::buffer_sign#10) goto printf_number_buffer::@3 -- 0_eq_vbuz1_then_la1 
-    lda.z buffer_sign
-    cmp #0
-    beq __b3
-    // printf_number_buffer::@9
-    // cputc(buffer.sign)
-    // [1191] cputc::c#2 = printf_number_buffer::buffer_sign#10 -- vbuz1=vbuz2 
-    sta.z cputc.c
-    // [1192] call cputc 
-    // [1109] phi from printf_number_buffer::@9 to cputc [phi:printf_number_buffer::@9->cputc]
-    // [1109] phi cputc::c#3 = cputc::c#2 [phi:printf_number_buffer::@9->cputc#0] -- register_copy 
-    jsr cputc
-    // printf_number_buffer::@3
-  __b3:
-    // if(format.zero_padding && padding)
-    // [1193] if(0==printf_number_buffer::format_zero_padding#10) goto printf_number_buffer::@4 -- 0_eq_vbuz1_then_la1 
-    lda.z format_zero_padding
-    cmp #0
-    beq __b4
-    // printf_number_buffer::@18
-    // [1194] if(0!=printf_number_buffer::padding#10) goto printf_number_buffer::@10 -- 0_neq_vbsz1_then_la1 
-    lda.z padding
-    cmp #0
-    bne __b10
-    jmp __b4
-    // printf_number_buffer::@10
-  __b10:
-    // printf_padding('0',(char)padding)
-    // [1195] printf_padding::length#1 = (byte)printf_number_buffer::padding#10 -- vbuz1=vbuz2 
-    lda.z padding
-    sta.z printf_padding.length
-    // [1196] call printf_padding 
-    // [1484] phi from printf_number_buffer::@10 to printf_padding [phi:printf_number_buffer::@10->printf_padding]
-    // [1484] phi printf_padding::pad#7 = '0' [phi:printf_number_buffer::@10->printf_padding#0] -- vbuz1=vbuc1 
-    lda #'0'
-    sta.z printf_padding.pad
-    // [1484] phi printf_padding::length#6 = printf_padding::length#1 [phi:printf_number_buffer::@10->printf_padding#1] -- register_copy 
-    jsr printf_padding
-    // printf_number_buffer::@4
-  __b4:
-    // if(format.upper_case)
-    // [1197] if(0==printf_number_buffer::format_upper_case#10) goto printf_number_buffer::@5 -- 0_eq_vbuz1_then_la1 
-    lda.z format_upper_case
-    cmp #0
-    beq __b5
-    // [1198] phi from printf_number_buffer::@4 to printf_number_buffer::@11 [phi:printf_number_buffer::@4->printf_number_buffer::@11]
-    // printf_number_buffer::@11
-    // strupr(buffer.digits)
-    // [1199] call strupr 
-    // [1491] phi from printf_number_buffer::@11 to strupr [phi:printf_number_buffer::@11->strupr]
-    jsr strupr
-    // [1200] phi from printf_number_buffer::@11 printf_number_buffer::@4 to printf_number_buffer::@5 [phi:printf_number_buffer::@11/printf_number_buffer::@4->printf_number_buffer::@5]
-    // printf_number_buffer::@5
-  __b5:
-    // cputs(buffer.digits)
-    // [1201] call cputs 
-    // [529] phi from printf_number_buffer::@5 to cputs [phi:printf_number_buffer::@5->cputs]
-    // [529] phi cputs::s#13 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:printf_number_buffer::@5->cputs#0] -- pbuz1=pbuc1 
-    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    sta.z cputs.s
-    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    sta.z cputs.s+1
-    jsr cputs
-    // printf_number_buffer::@15
-    // if(format.justify_left && !format.zero_padding && padding)
-    // [1202] if(0==printf_number_buffer::format_justify_left#10) goto printf_number_buffer::@return -- 0_eq_vbuz1_then_la1 
-    lda.z format_justify_left
-    cmp #0
-    beq __breturn
-    // printf_number_buffer::@20
-    // [1203] if(0!=printf_number_buffer::format_zero_padding#10) goto printf_number_buffer::@return -- 0_neq_vbuz1_then_la1 
-    lda.z format_zero_padding
-    cmp #0
-    bne __breturn
-    // printf_number_buffer::@19
-    // [1204] if(0!=printf_number_buffer::padding#10) goto printf_number_buffer::@12 -- 0_neq_vbsz1_then_la1 
-    lda.z padding
-    cmp #0
-    bne __b12
-    rts
-    // printf_number_buffer::@12
-  __b12:
-    // printf_padding(' ',(char)padding)
-    // [1205] printf_padding::length#2 = (byte)printf_number_buffer::padding#10 -- vbuz1=vbuz2 
-    lda.z padding
-    sta.z printf_padding.length
-    // [1206] call printf_padding 
-    // [1484] phi from printf_number_buffer::@12 to printf_padding [phi:printf_number_buffer::@12->printf_padding]
-    // [1484] phi printf_padding::pad#7 = ' ' [phi:printf_number_buffer::@12->printf_padding#0] -- vbuz1=vbuc1 
-    lda #' '
-    sta.z printf_padding.pad
-    // [1484] phi printf_padding::length#6 = printf_padding::length#2 [phi:printf_number_buffer::@12->printf_padding#1] -- register_copy 
-    jsr printf_padding
-    // printf_number_buffer::@return
-  __breturn:
-    // }
-    // [1207] return 
-    rts
-}
   // vera_heap_block_free_find
-// vera_heap_block_free_find(struct vera_heap_segment* zp($b1) segment, dword zp($6b) size)
+// vera_heap_block_free_find(struct vera_heap_segment* zp($72) segment, dword zp($5f) size)
 vera_heap_block_free_find: {
-    .label __0 = $6f
-    .label __2 = $26
-    .label block = $b1
-    .label return = $b1
-    .label segment = $b1
-    .label size = $6b
+    .label __0 = $67
+    .label __2 = $c8
+    .label block = $72
+    .label return = $72
+    .label segment = $72
+    .label size = $5f
     // block = segment->head_block
-    // [1208] vera_heap_block_free_find::block#0 = ((struct vera_heap**)vera_heap_block_free_find::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK] -- pssz1=qssz1_derefidx_vbuc1 
+    // [1317] vera_heap_block_free_find::block#0 = ((struct vera_heap**)vera_heap_block_free_find::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK] -- pssz1=qssz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_HEAD_BLOCK
     lda (block),y
     pha
@@ -8155,55 +8468,55 @@ vera_heap_block_free_find: {
     sta.z block+1
     pla
     sta.z block
-    // [1209] phi from vera_heap_block_free_find vera_heap_block_free_find::@3 to vera_heap_block_free_find::@1 [phi:vera_heap_block_free_find/vera_heap_block_free_find::@3->vera_heap_block_free_find::@1]
-    // [1209] phi vera_heap_block_free_find::block#2 = vera_heap_block_free_find::block#0 [phi:vera_heap_block_free_find/vera_heap_block_free_find::@3->vera_heap_block_free_find::@1#0] -- register_copy 
+    // [1318] phi from vera_heap_block_free_find vera_heap_block_free_find::@3 to vera_heap_block_free_find::@1 [phi:vera_heap_block_free_find/vera_heap_block_free_find::@3->vera_heap_block_free_find::@1]
+    // [1318] phi vera_heap_block_free_find::block#2 = vera_heap_block_free_find::block#0 [phi:vera_heap_block_free_find/vera_heap_block_free_find::@3->vera_heap_block_free_find::@1#0] -- register_copy 
     // vera_heap_block_free_find::@1
   __b1:
     // while(block)
-    // [1210] if((struct vera_heap*)0!=vera_heap_block_free_find::block#2) goto vera_heap_block_free_find::@2 -- pssc1_neq_pssz1_then_la1 
+    // [1319] if((struct vera_heap*)0!=vera_heap_block_free_find::block#2) goto vera_heap_block_free_find::@2 -- pssc1_neq_pssz1_then_la1 
     lda.z block+1
     cmp #>0
     bne __b2
     lda.z block
     cmp #<0
     bne __b2
-    // [1211] phi from vera_heap_block_free_find::@1 to vera_heap_block_free_find::@return [phi:vera_heap_block_free_find::@1->vera_heap_block_free_find::@return]
-    // [1211] phi vera_heap_block_free_find::return#2 = (struct vera_heap*) 0 [phi:vera_heap_block_free_find::@1->vera_heap_block_free_find::@return#0] -- pssz1=pssc1 
+    // [1320] phi from vera_heap_block_free_find::@1 to vera_heap_block_free_find::@return [phi:vera_heap_block_free_find::@1->vera_heap_block_free_find::@return]
+    // [1320] phi vera_heap_block_free_find::return#2 = (struct vera_heap*) 0 [phi:vera_heap_block_free_find::@1->vera_heap_block_free_find::@return#0] -- pssz1=pssc1 
     lda #<0
     sta.z return
     sta.z return+1
     // vera_heap_block_free_find::@return
     // }
-    // [1212] return 
+    // [1321] return 
     rts
     // vera_heap_block_free_find::@2
   __b2:
     // vera_heap_block_is_empty(block)
-    // [1213] vera_heap_block_is_empty::block#0 = vera_heap_block_free_find::block#2
-    // [1214] call vera_heap_block_is_empty 
+    // [1322] vera_heap_block_is_empty::block#0 = vera_heap_block_free_find::block#2
+    // [1323] call vera_heap_block_is_empty 
     jsr vera_heap_block_is_empty
-    // [1215] vera_heap_block_is_empty::return#2 = vera_heap_block_is_empty::return#0
+    // [1324] vera_heap_block_is_empty::return#2 = vera_heap_block_is_empty::return#0
     // vera_heap_block_free_find::@5
-    // [1216] vera_heap_block_free_find::$0 = vera_heap_block_is_empty::return#2
+    // [1325] vera_heap_block_free_find::$0 = vera_heap_block_is_empty::return#2
     // if(vera_heap_block_is_empty(block))
-    // [1217] if(0==vera_heap_block_free_find::$0) goto vera_heap_block_free_find::@3 -- 0_eq_vwuz1_then_la1 
+    // [1326] if(0==vera_heap_block_free_find::$0) goto vera_heap_block_free_find::@3 -- 0_eq_vwuz1_then_la1 
     lda.z __0
     ora.z __0+1
     beq __b3
     // vera_heap_block_free_find::@4
     // vera_heap_block_size_get(block)
-    // [1218] vera_heap_block_size_get::block#0 = vera_heap_block_free_find::block#2 -- pssz1=pssz2 
+    // [1327] vera_heap_block_size_get::block#0 = vera_heap_block_free_find::block#2 -- pssz1=pssz2 
     lda.z block
     sta.z vera_heap_block_size_get.block
     lda.z block+1
     sta.z vera_heap_block_size_get.block+1
-    // [1219] call vera_heap_block_size_get 
+    // [1328] call vera_heap_block_size_get 
     jsr vera_heap_block_size_get
-    // [1220] vera_heap_block_size_get::return#2 = vera_heap_block_size_get::return#0
+    // [1329] vera_heap_block_size_get::return#2 = vera_heap_block_size_get::return#0
     // vera_heap_block_free_find::@6
-    // [1221] vera_heap_block_free_find::$2 = vera_heap_block_size_get::return#2
+    // [1330] vera_heap_block_free_find::$2 = vera_heap_block_size_get::return#2
     // if(size==vera_heap_block_size_get(block))
-    // [1222] if(vera_heap_block_free_find::size#0!=vera_heap_block_free_find::$2) goto vera_heap_block_free_find::@3 -- vduz1_neq_vduz2_then_la1 
+    // [1331] if(vera_heap_block_free_find::size#0!=vera_heap_block_free_find::$2) goto vera_heap_block_free_find::@3 -- vduz1_neq_vduz2_then_la1 
     lda.z size+3
     cmp.z __2+3
     bne __b3
@@ -8216,13 +8529,13 @@ vera_heap_block_free_find: {
     lda.z size
     cmp.z __2
     bne __b3
-    // [1211] phi from vera_heap_block_free_find::@6 to vera_heap_block_free_find::@return [phi:vera_heap_block_free_find::@6->vera_heap_block_free_find::@return]
-    // [1211] phi vera_heap_block_free_find::return#2 = vera_heap_block_free_find::block#2 [phi:vera_heap_block_free_find::@6->vera_heap_block_free_find::@return#0] -- register_copy 
+    // [1320] phi from vera_heap_block_free_find::@6 to vera_heap_block_free_find::@return [phi:vera_heap_block_free_find::@6->vera_heap_block_free_find::@return]
+    // [1320] phi vera_heap_block_free_find::return#2 = vera_heap_block_free_find::block#2 [phi:vera_heap_block_free_find::@6->vera_heap_block_free_find::@return#0] -- register_copy 
     rts
     // vera_heap_block_free_find::@3
   __b3:
     // block = block->next
-    // [1223] vera_heap_block_free_find::block#1 = ((struct vera_heap**)vera_heap_block_free_find::block#2)[OFFSET_STRUCT_VERA_HEAP_NEXT] -- pssz1=qssz1_derefidx_vbuc1 
+    // [1332] vera_heap_block_free_find::block#1 = ((struct vera_heap**)vera_heap_block_free_find::block#2)[OFFSET_STRUCT_VERA_HEAP_NEXT] -- pssz1=qssz1_derefidx_vbuc1 
     ldy #OFFSET_STRUCT_VERA_HEAP_NEXT
     lda (block),y
     pha
@@ -8234,13 +8547,13 @@ vera_heap_block_free_find: {
     jmp __b1
 }
   // vera_heap_block_empty_set
-// vera_heap_block_empty_set(struct vera_heap* zp($73) block)
+// vera_heap_block_empty_set(struct vera_heap* zp($67) block)
 vera_heap_block_empty_set: {
-    .label __1 = $6f
-    .label __4 = $c3
-    .label block = $73
+    .label __1 = $74
+    .label __4 = $af
+    .label block = $67
     // (block->size & ~VERA_HEAP_EMPTY) | empty
-    // [1225] vera_heap_block_empty_set::$1 = ((word*)vera_heap_block_empty_set::block#2)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_EMPTY -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
+    // [1334] vera_heap_block_empty_set::$1 = ((word*)vera_heap_block_empty_set::block#2)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_EMPTY -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda (block),y
     and #<VERA_HEAP_EMPTY^$ffff
@@ -8250,22 +8563,22 @@ vera_heap_block_empty_set: {
     and #>VERA_HEAP_EMPTY^$ffff
     sta.z __1+1
     // (block->size & ~VERA_HEAP_EMPTY) | empty?VERA_HEAP_EMPTY:0
-    // [1226] if(0!=vera_heap_block_empty_set::$1) goto vera_heap_block_empty_set::@1 -- 0_neq_vwuz1_then_la1 
+    // [1335] if(0!=vera_heap_block_empty_set::$1) goto vera_heap_block_empty_set::@1 -- 0_neq_vwuz1_then_la1 
     lda.z __1
     ora.z __1+1
     bne __b1
-    // [1228] phi from vera_heap_block_empty_set to vera_heap_block_empty_set::@2 [phi:vera_heap_block_empty_set->vera_heap_block_empty_set::@2]
-    // [1228] phi vera_heap_block_empty_set::$4 = 0 [phi:vera_heap_block_empty_set->vera_heap_block_empty_set::@2#0] -- vwuz1=vbuc1 
+    // [1337] phi from vera_heap_block_empty_set to vera_heap_block_empty_set::@2 [phi:vera_heap_block_empty_set->vera_heap_block_empty_set::@2]
+    // [1337] phi vera_heap_block_empty_set::$4 = 0 [phi:vera_heap_block_empty_set->vera_heap_block_empty_set::@2#0] -- vwuz1=vbuc1 
     lda #<0
     sta.z __4
     sta.z __4+1
     jmp __b2
-    // [1227] phi from vera_heap_block_empty_set to vera_heap_block_empty_set::@1 [phi:vera_heap_block_empty_set->vera_heap_block_empty_set::@1]
+    // [1336] phi from vera_heap_block_empty_set to vera_heap_block_empty_set::@1 [phi:vera_heap_block_empty_set->vera_heap_block_empty_set::@1]
     // vera_heap_block_empty_set::@1
   __b1:
     // (block->size & ~VERA_HEAP_EMPTY) | empty?VERA_HEAP_EMPTY:0
-    // [1228] phi from vera_heap_block_empty_set::@1 to vera_heap_block_empty_set::@2 [phi:vera_heap_block_empty_set::@1->vera_heap_block_empty_set::@2]
-    // [1228] phi vera_heap_block_empty_set::$4 = VERA_HEAP_EMPTY [phi:vera_heap_block_empty_set::@1->vera_heap_block_empty_set::@2#0] -- vwuz1=vwuc1 
+    // [1337] phi from vera_heap_block_empty_set::@1 to vera_heap_block_empty_set::@2 [phi:vera_heap_block_empty_set::@1->vera_heap_block_empty_set::@2]
+    // [1337] phi vera_heap_block_empty_set::$4 = VERA_HEAP_EMPTY [phi:vera_heap_block_empty_set::@1->vera_heap_block_empty_set::@2#0] -- vwuz1=vwuc1 
     lda #<VERA_HEAP_EMPTY
     sta.z __4
     lda #>VERA_HEAP_EMPTY
@@ -8273,7 +8586,7 @@ vera_heap_block_empty_set: {
     // vera_heap_block_empty_set::@2
   __b2:
     // block->size = (block->size & ~VERA_HEAP_EMPTY) | empty?VERA_HEAP_EMPTY:0
-    // [1229] ((word*)vera_heap_block_empty_set::block#2)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_empty_set::$4 -- pwuz1_derefidx_vbuc1=vwuz2 
+    // [1338] ((word*)vera_heap_block_empty_set::block#2)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_empty_set::$4 -- pwuz1_derefidx_vbuc1=vwuz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda.z __4
     sta (block),y
@@ -8282,19 +8595,19 @@ vera_heap_block_empty_set: {
     sta (block),y
     // vera_heap_block_empty_set::@return
     // }
-    // [1230] return 
+    // [1339] return 
     rts
 }
   // vera_heap_block_address_get
-// vera_heap_block_address_get(struct vera_heap* zp($b1) block)
+// vera_heap_block_address_get(struct vera_heap* zp($72) block)
 vera_heap_block_address_get: {
-    .label __0 = $6f
-    .label __9 = $ca
-    .label return = $10
-    .label block = $b1
-    .label __11 = $10
+    .label __0 = $67
+    .label __9 = $c4
+    .label return = $e
+    .label block = $72
+    .label __11 = $e
     // block->size & VERA_HEAP_ADDRESS_16
-    // [1231] vera_heap_block_address_get::$0 = ((word*)vera_heap_block_address_get::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & VERA_HEAP_ADDRESS_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
+    // [1340] vera_heap_block_address_get::$0 = ((word*)vera_heap_block_address_get::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & VERA_HEAP_ADDRESS_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda (block),y
     and #<VERA_HEAP_ADDRESS_16
@@ -8304,24 +8617,24 @@ vera_heap_block_address_get: {
     and #>VERA_HEAP_ADDRESS_16
     sta.z __0+1
     // (block->size & VERA_HEAP_ADDRESS_16)?0x10000:0x00000
-    // [1232] if(0!=vera_heap_block_address_get::$0) goto vera_heap_block_address_get::@1 -- 0_neq_vwuz1_then_la1 
+    // [1341] if(0!=vera_heap_block_address_get::$0) goto vera_heap_block_address_get::@1 -- 0_neq_vwuz1_then_la1 
     lda.z __0
     ora.z __0+1
     bne __b1
-    // [1234] phi from vera_heap_block_address_get to vera_heap_block_address_get::@2 [phi:vera_heap_block_address_get->vera_heap_block_address_get::@2]
-    // [1234] phi vera_heap_block_address_get::$11 = 0 [phi:vera_heap_block_address_get->vera_heap_block_address_get::@2#0] -- vduz1=vbuc1 
+    // [1343] phi from vera_heap_block_address_get to vera_heap_block_address_get::@2 [phi:vera_heap_block_address_get->vera_heap_block_address_get::@2]
+    // [1343] phi vera_heap_block_address_get::$11 = 0 [phi:vera_heap_block_address_get->vera_heap_block_address_get::@2#0] -- vduz1=vbuc1 
     lda #0
     sta.z __11
     sta.z __11+1
     sta.z __11+2
     sta.z __11+3
     jmp __b2
-    // [1233] phi from vera_heap_block_address_get to vera_heap_block_address_get::@1 [phi:vera_heap_block_address_get->vera_heap_block_address_get::@1]
+    // [1342] phi from vera_heap_block_address_get to vera_heap_block_address_get::@1 [phi:vera_heap_block_address_get->vera_heap_block_address_get::@1]
     // vera_heap_block_address_get::@1
   __b1:
     // (block->size & VERA_HEAP_ADDRESS_16)?0x10000:0x00000
-    // [1234] phi from vera_heap_block_address_get::@1 to vera_heap_block_address_get::@2 [phi:vera_heap_block_address_get::@1->vera_heap_block_address_get::@2]
-    // [1234] phi vera_heap_block_address_get::$11 = $10000 [phi:vera_heap_block_address_get::@1->vera_heap_block_address_get::@2#0] -- vduz1=vduc1 
+    // [1343] phi from vera_heap_block_address_get::@1 to vera_heap_block_address_get::@2 [phi:vera_heap_block_address_get::@1->vera_heap_block_address_get::@2]
+    // [1343] phi vera_heap_block_address_get::$11 = $10000 [phi:vera_heap_block_address_get::@1->vera_heap_block_address_get::@2#0] -- vduz1=vduc1 
     lda #<$10000
     sta.z __11
     lda #>$10000
@@ -8333,7 +8646,7 @@ vera_heap_block_address_get: {
     // vera_heap_block_address_get::@2
   __b2:
     // (dword)block->address | ((block->size & VERA_HEAP_ADDRESS_16)?0x10000:0x00000)
-    // [1235] vera_heap_block_address_get::$9 = (dword)*((word*)vera_heap_block_address_get::block#0) -- vduz1=_dword__deref_pwuz2 
+    // [1344] vera_heap_block_address_get::$9 = (dword)*((word*)vera_heap_block_address_get::block#0) -- vduz1=_dword__deref_pwuz2 
     ldy #0
     sty.z __9+2
     sty.z __9+3
@@ -8342,7 +8655,7 @@ vera_heap_block_address_get: {
     iny
     lda (block),y
     sta.z __9+1
-    // [1236] vera_heap_block_address_get::return#0 = vera_heap_block_address_get::$9 | vera_heap_block_address_get::$11 -- vduz1=vduz2_bor_vduz1 
+    // [1345] vera_heap_block_address_get::return#0 = vera_heap_block_address_get::$9 | vera_heap_block_address_get::$11 -- vduz1=vduz2_bor_vduz1 
     lda.z __9
     ora.z return
     sta.z return
@@ -8357,20 +8670,20 @@ vera_heap_block_address_get: {
     sta.z return+3
     // vera_heap_block_address_get::@return
     // }
-    // [1237] return 
+    // [1346] return 
     rts
 }
   // vera_heap_address
-// vera_heap_address(struct vera_heap_segment* zp($6f) segment, dword zp($77) size)
+// vera_heap_address(struct vera_heap_segment* zp($72) segment, dword zp($6e) size)
 vera_heap_address: {
-    .label last_address = $22
-    .label next_address = $77
-    .label ceil_address = $ca
-    .label return = $22
-    .label segment = $6f
-    .label size = $77
+    .label last_address = $24
+    .label next_address = $6e
+    .label ceil_address = $c4
+    .label return = $24
+    .label segment = $72
+    .label size = $6e
     // last_address = segment->next_address
-    // [1238] vera_heap_address::last_address#0 = ((dword*)vera_heap_address::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
+    // [1347] vera_heap_address::last_address#0 = ((dword*)vera_heap_address::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
     // TODO: handle out of memory (return 0).
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS
     lda (segment),y
@@ -8385,7 +8698,7 @@ vera_heap_address: {
     lda (segment),y
     sta.z last_address+3
     // next_address = last_address + size
-    // [1239] vera_heap_address::next_address#0 = vera_heap_address::last_address#0 + vera_heap_address::size#0 -- vduz1=vduz2_plus_vduz1 
+    // [1348] vera_heap_address::next_address#0 = vera_heap_address::last_address#0 + vera_heap_address::size#0 -- vduz1=vduz2_plus_vduz1 
     lda.z next_address
     clc
     adc.z last_address
@@ -8400,7 +8713,7 @@ vera_heap_address: {
     adc.z last_address+3
     sta.z next_address+3
     // ceil_address = segment->ceil_address
-    // [1240] vera_heap_address::ceil_address#0 = ((dword*)vera_heap_address::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
+    // [1349] vera_heap_address::ceil_address#0 = ((dword*)vera_heap_address::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS] -- vduz1=pduz2_derefidx_vbuc1 
     // if (next_address > segment->ceil_address) // TODO: fragment
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_CEIL_ADDRESS
     lda (segment),y
@@ -8415,7 +8728,7 @@ vera_heap_address: {
     lda (segment),y
     sta.z ceil_address+3
     // if (next_address > ceil_address)
-    // [1241] if(vera_heap_address::next_address#0<=vera_heap_address::ceil_address#0) goto vera_heap_address::@1 -- vduz1_le_vduz2_then_la1 
+    // [1350] if(vera_heap_address::next_address#0<=vera_heap_address::ceil_address#0) goto vera_heap_address::@1 -- vduz1_le_vduz2_then_la1 
     cmp.z next_address+3
     bcc !+
     bne __b1
@@ -8431,8 +8744,8 @@ vera_heap_address: {
     cmp.z next_address
     bcs __b1
   !:
-    // [1243] phi from vera_heap_address to vera_heap_address::@return [phi:vera_heap_address->vera_heap_address::@return]
-    // [1243] phi vera_heap_address::return#2 = 0 [phi:vera_heap_address->vera_heap_address::@return#0] -- vduz1=vbuc1 
+    // [1352] phi from vera_heap_address to vera_heap_address::@return [phi:vera_heap_address->vera_heap_address::@return]
+    // [1352] phi vera_heap_address::return#2 = 0 [phi:vera_heap_address->vera_heap_address::@return#0] -- vduz1=vbuc1 
     lda #0
     sta.z return
     sta.z return+1
@@ -8442,7 +8755,7 @@ vera_heap_address: {
     // vera_heap_address::@1
   __b1:
     // segment->next_address = next_address
-    // [1242] ((dword*)vera_heap_address::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS] = vera_heap_address::next_address#0 -- pduz1_derefidx_vbuc1=vduz2 
+    // [1351] ((dword*)vera_heap_address::segment#0)[OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS] = vera_heap_address::next_address#0 -- pduz1_derefidx_vbuc1=vduz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SEGMENT_NEXT_ADDRESS
     lda.z next_address
     sta (segment),y
@@ -8455,26 +8768,26 @@ vera_heap_address: {
     iny
     lda.z next_address+3
     sta (segment),y
-    // [1243] phi from vera_heap_address::@1 to vera_heap_address::@return [phi:vera_heap_address::@1->vera_heap_address::@return]
-    // [1243] phi vera_heap_address::return#2 = vera_heap_address::last_address#0 [phi:vera_heap_address::@1->vera_heap_address::@return#0] -- register_copy 
+    // [1352] phi from vera_heap_address::@1 to vera_heap_address::@return [phi:vera_heap_address::@1->vera_heap_address::@return]
+    // [1352] phi vera_heap_address::return#2 = vera_heap_address::last_address#0 [phi:vera_heap_address::@1->vera_heap_address::@return#0] -- register_copy 
     // vera_heap_address::@return
     // }
-    // [1244] return 
+    // [1353] return 
     rts
 }
   // vera_heap_block_address_set
-// vera_heap_block_address_set(struct vera_heap* zp($7d) block)
+// vera_heap_block_address_set(struct vera_heap* zp($c2) block)
 vera_heap_block_address_set: {
     .label address = vera_heap_malloc.address
-    .label __2 = $6f
-    .label __3 = $75
-    .label __6 = $af
-    .label addr = $ca
-    .label ad_lo = $6f
-    .label ad_hi = $75
-    .label block = $7d
+    .label __2 = $72
+    .label __3 = $74
+    .label __6 = $7b
+    .label addr = $c8
+    .label ad_lo = $72
+    .label ad_hi = $74
+    .label block = $c2
     // addr = *address
-    // [1245] vera_heap_block_address_set::addr#0 = *vera_heap_block_address_set::address#0 -- vduz1=_deref_pduc1 
+    // [1354] vera_heap_block_address_set::addr#0 = *vera_heap_block_address_set::address#0 -- vduz1=_deref_pduc1 
     lda.z address
     sta.z addr
     lda.z address+1
@@ -8484,19 +8797,19 @@ vera_heap_block_address_set: {
     lda.z address+3
     sta.z addr+3
     // ad_lo = <(addr)
-    // [1246] vera_heap_block_address_set::ad_lo#0 = < vera_heap_block_address_set::addr#0 -- vwuz1=_lo_vduz2 
+    // [1355] vera_heap_block_address_set::ad_lo#0 = < vera_heap_block_address_set::addr#0 -- vwuz1=_lo_vduz2 
     lda.z addr
     sta.z ad_lo
     lda.z addr+1
     sta.z ad_lo+1
     // ad_hi = >(addr)
-    // [1247] vera_heap_block_address_set::ad_hi#0 = > vera_heap_block_address_set::addr#0 -- vwuz1=_hi_vduz2 
+    // [1356] vera_heap_block_address_set::ad_hi#0 = > vera_heap_block_address_set::addr#0 -- vwuz1=_hi_vduz2 
     lda.z addr+2
     sta.z ad_hi
     lda.z addr+3
     sta.z ad_hi+1
     // block->address = ad_lo
-    // [1248] *((word*)vera_heap_block_address_set::block#0) = vera_heap_block_address_set::ad_lo#0 -- _deref_pwuz1=vwuz2 
+    // [1357] *((word*)vera_heap_block_address_set::block#0) = vera_heap_block_address_set::ad_lo#0 -- _deref_pwuz1=vwuz2 
     ldy #0
     lda.z ad_lo
     sta (block),y
@@ -8504,7 +8817,7 @@ vera_heap_block_address_set: {
     lda.z ad_lo+1
     sta (block),y
     // block->size & ~VERA_HEAP_ADDRESS_16
-    // [1249] vera_heap_block_address_set::$2 = ((word*)vera_heap_block_address_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_ADDRESS_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
+    // [1358] vera_heap_block_address_set::$2 = ((word*)vera_heap_block_address_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_ADDRESS_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda (block),y
     and #<VERA_HEAP_ADDRESS_16^$ffff
@@ -8514,7 +8827,7 @@ vera_heap_block_address_set: {
     and #>VERA_HEAP_ADDRESS_16^$ffff
     sta.z __2+1
     // (block->size & ~VERA_HEAP_ADDRESS_16) | ad_hi
-    // [1250] vera_heap_block_address_set::$3 = vera_heap_block_address_set::$2 | vera_heap_block_address_set::ad_hi#0 -- vwuz1=vwuz2_bor_vwuz1 
+    // [1359] vera_heap_block_address_set::$3 = vera_heap_block_address_set::$2 | vera_heap_block_address_set::ad_hi#0 -- vwuz1=vwuz2_bor_vwuz1 
     lda.z __3
     ora.z __2
     sta.z __3
@@ -8522,22 +8835,22 @@ vera_heap_block_address_set: {
     ora.z __2+1
     sta.z __3+1
     // (block->size & ~VERA_HEAP_ADDRESS_16) | ad_hi?VERA_HEAP_ADDRESS_16:0
-    // [1251] if(0!=vera_heap_block_address_set::$3) goto vera_heap_block_address_set::@1 -- 0_neq_vwuz1_then_la1 
+    // [1360] if(0!=vera_heap_block_address_set::$3) goto vera_heap_block_address_set::@1 -- 0_neq_vwuz1_then_la1 
     lda.z __3
     ora.z __3+1
     bne __b1
-    // [1253] phi from vera_heap_block_address_set to vera_heap_block_address_set::@2 [phi:vera_heap_block_address_set->vera_heap_block_address_set::@2]
-    // [1253] phi vera_heap_block_address_set::$6 = 0 [phi:vera_heap_block_address_set->vera_heap_block_address_set::@2#0] -- vwuz1=vbuc1 
+    // [1362] phi from vera_heap_block_address_set to vera_heap_block_address_set::@2 [phi:vera_heap_block_address_set->vera_heap_block_address_set::@2]
+    // [1362] phi vera_heap_block_address_set::$6 = 0 [phi:vera_heap_block_address_set->vera_heap_block_address_set::@2#0] -- vwuz1=vbuc1 
     lda #<0
     sta.z __6
     sta.z __6+1
     jmp __b2
-    // [1252] phi from vera_heap_block_address_set to vera_heap_block_address_set::@1 [phi:vera_heap_block_address_set->vera_heap_block_address_set::@1]
+    // [1361] phi from vera_heap_block_address_set to vera_heap_block_address_set::@1 [phi:vera_heap_block_address_set->vera_heap_block_address_set::@1]
     // vera_heap_block_address_set::@1
   __b1:
     // (block->size & ~VERA_HEAP_ADDRESS_16) | ad_hi?VERA_HEAP_ADDRESS_16:0
-    // [1253] phi from vera_heap_block_address_set::@1 to vera_heap_block_address_set::@2 [phi:vera_heap_block_address_set::@1->vera_heap_block_address_set::@2]
-    // [1253] phi vera_heap_block_address_set::$6 = VERA_HEAP_ADDRESS_16 [phi:vera_heap_block_address_set::@1->vera_heap_block_address_set::@2#0] -- vwuz1=vwuc1 
+    // [1362] phi from vera_heap_block_address_set::@1 to vera_heap_block_address_set::@2 [phi:vera_heap_block_address_set::@1->vera_heap_block_address_set::@2]
+    // [1362] phi vera_heap_block_address_set::$6 = VERA_HEAP_ADDRESS_16 [phi:vera_heap_block_address_set::@1->vera_heap_block_address_set::@2#0] -- vwuz1=vwuc1 
     lda #<VERA_HEAP_ADDRESS_16
     sta.z __6
     lda #>VERA_HEAP_ADDRESS_16
@@ -8545,7 +8858,7 @@ vera_heap_block_address_set: {
     // vera_heap_block_address_set::@2
   __b2:
     // block->size = (block->size & ~VERA_HEAP_ADDRESS_16) | ad_hi?VERA_HEAP_ADDRESS_16:0
-    // [1254] ((word*)vera_heap_block_address_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_address_set::$6 -- pwuz1_derefidx_vbuc1=vwuz2 
+    // [1363] ((word*)vera_heap_block_address_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_address_set::$6 -- pwuz1_derefidx_vbuc1=vwuz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda.z __6
     sta (block),y
@@ -8554,25 +8867,25 @@ vera_heap_block_address_set: {
     sta (block),y
     // vera_heap_block_address_set::@return
     // }
-    // [1255] return 
+    // [1364] return 
     rts
 }
   // vera_heap_block_size_set
-// vera_heap_block_size_set(struct vera_heap* zp($7d) block)
+// vera_heap_block_size_set(struct vera_heap* zp($c2) block)
 vera_heap_block_size_set: {
     .label size = vera_heap_malloc.size
-    .label __2 = $af
-    .label __3 = $75
-    .label __4 = $af
-    .label __5 = $75
-    .label __6 = $6f
-    .label __9 = $af
-    .label sz = $ca
-    .label sz_lo = $75
-    .label sz_hi = $6f
-    .label block = $7d
+    .label __2 = $7b
+    .label __3 = $74
+    .label __4 = $7b
+    .label __5 = $74
+    .label __6 = $72
+    .label __9 = $7b
+    .label sz = $c8
+    .label sz_lo = $74
+    .label sz_hi = $72
+    .label block = $c2
     // sz = *size
-    // [1256] vera_heap_block_size_set::sz#0 = *vera_heap_block_size_set::size#0 -- vduz1=_deref_pduc1 
+    // [1365] vera_heap_block_size_set::sz#0 = *vera_heap_block_size_set::size#0 -- vduz1=_deref_pduc1 
     lda.z size
     sta.z sz
     lda.z size+1
@@ -8582,19 +8895,19 @@ vera_heap_block_size_set: {
     lda.z size+3
     sta.z sz+3
     // sz_lo = <sz
-    // [1257] vera_heap_block_size_set::sz_lo#0 = < vera_heap_block_size_set::sz#0 -- vwuz1=_lo_vduz2 
+    // [1366] vera_heap_block_size_set::sz_lo#0 = < vera_heap_block_size_set::sz#0 -- vwuz1=_lo_vduz2 
     lda.z sz
     sta.z sz_lo
     lda.z sz+1
     sta.z sz_lo+1
     // sz_hi = >sz
-    // [1258] vera_heap_block_size_set::sz_hi#0 = > vera_heap_block_size_set::sz#0 -- vwuz1=_hi_vduz2 
+    // [1367] vera_heap_block_size_set::sz_hi#0 = > vera_heap_block_size_set::sz#0 -- vwuz1=_hi_vduz2 
     lda.z sz+2
     sta.z sz_hi
     lda.z sz+3
     sta.z sz_hi+1
     // block->size & ~VERA_HEAP_SIZE_MASK
-    // [1259] vera_heap_block_size_set::$2 = ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_SIZE_MASK -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
+    // [1368] vera_heap_block_size_set::$2 = ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_SIZE_MASK -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda (block),y
     and #<VERA_HEAP_SIZE_MASK^$ffff
@@ -8604,7 +8917,7 @@ vera_heap_block_size_set: {
     and #>VERA_HEAP_SIZE_MASK^$ffff
     sta.z __2+1
     // sz_lo & VERA_HEAP_SIZE_MASK
-    // [1260] vera_heap_block_size_set::$3 = vera_heap_block_size_set::sz_lo#0 & VERA_HEAP_SIZE_MASK -- vwuz1=vwuz1_band_vwuc1 
+    // [1369] vera_heap_block_size_set::$3 = vera_heap_block_size_set::sz_lo#0 & VERA_HEAP_SIZE_MASK -- vwuz1=vwuz1_band_vwuc1 
     lda.z __3
     and #<VERA_HEAP_SIZE_MASK
     sta.z __3
@@ -8612,7 +8925,7 @@ vera_heap_block_size_set: {
     and #>VERA_HEAP_SIZE_MASK
     sta.z __3+1
     // (block->size & ~VERA_HEAP_SIZE_MASK) | sz_lo & VERA_HEAP_SIZE_MASK
-    // [1261] vera_heap_block_size_set::$4 = vera_heap_block_size_set::$2 | vera_heap_block_size_set::$3 -- vwuz1=vwuz1_bor_vwuz2 
+    // [1370] vera_heap_block_size_set::$4 = vera_heap_block_size_set::$2 | vera_heap_block_size_set::$3 -- vwuz1=vwuz1_bor_vwuz2 
     lda.z __4
     ora.z __3
     sta.z __4
@@ -8620,7 +8933,7 @@ vera_heap_block_size_set: {
     ora.z __3+1
     sta.z __4+1
     // block->size = (block->size & ~VERA_HEAP_SIZE_MASK) | sz_lo & VERA_HEAP_SIZE_MASK
-    // [1262] ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_size_set::$4 -- pwuz1_derefidx_vbuc1=vwuz2 
+    // [1371] ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_size_set::$4 -- pwuz1_derefidx_vbuc1=vwuz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda.z __4
     sta (block),y
@@ -8628,7 +8941,7 @@ vera_heap_block_size_set: {
     lda.z __4+1
     sta (block),y
     // block->size & ~VERA_HEAP_SIZE_16
-    // [1263] vera_heap_block_size_set::$5 = ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_SIZE_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
+    // [1372] vera_heap_block_size_set::$5 = ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_SIZE_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda (block),y
     and #<VERA_HEAP_SIZE_16^$ffff
@@ -8638,7 +8951,7 @@ vera_heap_block_size_set: {
     and #>VERA_HEAP_SIZE_16^$ffff
     sta.z __5+1
     // (block->size & ~VERA_HEAP_SIZE_16) | sz_hi
-    // [1264] vera_heap_block_size_set::$6 = vera_heap_block_size_set::$5 | vera_heap_block_size_set::sz_hi#0 -- vwuz1=vwuz2_bor_vwuz1 
+    // [1373] vera_heap_block_size_set::$6 = vera_heap_block_size_set::$5 | vera_heap_block_size_set::sz_hi#0 -- vwuz1=vwuz2_bor_vwuz1 
     lda.z __6
     ora.z __5
     sta.z __6
@@ -8646,22 +8959,22 @@ vera_heap_block_size_set: {
     ora.z __5+1
     sta.z __6+1
     // (block->size & ~VERA_HEAP_SIZE_16) | sz_hi?VERA_HEAP_SIZE_16:0
-    // [1265] if(0!=vera_heap_block_size_set::$6) goto vera_heap_block_size_set::@1 -- 0_neq_vwuz1_then_la1 
+    // [1374] if(0!=vera_heap_block_size_set::$6) goto vera_heap_block_size_set::@1 -- 0_neq_vwuz1_then_la1 
     lda.z __6
     ora.z __6+1
     bne __b1
-    // [1267] phi from vera_heap_block_size_set to vera_heap_block_size_set::@2 [phi:vera_heap_block_size_set->vera_heap_block_size_set::@2]
-    // [1267] phi vera_heap_block_size_set::$9 = 0 [phi:vera_heap_block_size_set->vera_heap_block_size_set::@2#0] -- vwuz1=vbuc1 
+    // [1376] phi from vera_heap_block_size_set to vera_heap_block_size_set::@2 [phi:vera_heap_block_size_set->vera_heap_block_size_set::@2]
+    // [1376] phi vera_heap_block_size_set::$9 = 0 [phi:vera_heap_block_size_set->vera_heap_block_size_set::@2#0] -- vwuz1=vbuc1 
     lda #<0
     sta.z __9
     sta.z __9+1
     jmp __b2
-    // [1266] phi from vera_heap_block_size_set to vera_heap_block_size_set::@1 [phi:vera_heap_block_size_set->vera_heap_block_size_set::@1]
+    // [1375] phi from vera_heap_block_size_set to vera_heap_block_size_set::@1 [phi:vera_heap_block_size_set->vera_heap_block_size_set::@1]
     // vera_heap_block_size_set::@1
   __b1:
     // (block->size & ~VERA_HEAP_SIZE_16) | sz_hi?VERA_HEAP_SIZE_16:0
-    // [1267] phi from vera_heap_block_size_set::@1 to vera_heap_block_size_set::@2 [phi:vera_heap_block_size_set::@1->vera_heap_block_size_set::@2]
-    // [1267] phi vera_heap_block_size_set::$9 = VERA_HEAP_SIZE_16 [phi:vera_heap_block_size_set::@1->vera_heap_block_size_set::@2#0] -- vwuz1=vwuc1 
+    // [1376] phi from vera_heap_block_size_set::@1 to vera_heap_block_size_set::@2 [phi:vera_heap_block_size_set::@1->vera_heap_block_size_set::@2]
+    // [1376] phi vera_heap_block_size_set::$9 = VERA_HEAP_SIZE_16 [phi:vera_heap_block_size_set::@1->vera_heap_block_size_set::@2#0] -- vwuz1=vwuc1 
     lda #<VERA_HEAP_SIZE_16
     sta.z __9
     lda #>VERA_HEAP_SIZE_16
@@ -8669,7 +8982,7 @@ vera_heap_block_size_set: {
     // vera_heap_block_size_set::@2
   __b2:
     // block->size = (block->size & ~VERA_HEAP_SIZE_16) | sz_hi?VERA_HEAP_SIZE_16:0
-    // [1268] ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_size_set::$9 -- pwuz1_derefidx_vbuc1=vwuz2 
+    // [1377] ((word*)vera_heap_block_size_set::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] = vera_heap_block_size_set::$9 -- pwuz1_derefidx_vbuc1=vwuz2 
     ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
     lda.z __9
     sta (block),y
@@ -8678,38 +8991,33 @@ vera_heap_block_size_set: {
     sta (block),y
     // vera_heap_block_size_set::@return
     // }
-    // [1269] return 
+    // [1378] return 
     rts
 }
   // vera_layer_set_config
 // Set the configuration of the layer.
 // - layer: Value of 0 or 1.
 // - config: Specifies the modes which are specified using T256C / 'Bitmap Mode' / 'Color Depth'.
-// vera_layer_set_config(byte zp($59) layer, byte zp($e) config)
+// vera_layer_set_config(byte register(A) layer, byte register(X) config)
 vera_layer_set_config: {
-    .label __0 = $58
-    .label addr = $5b
-    .label layer = $59
-    .label config = $e
+    .label addr = $4f
     // addr = vera_layer_config[layer]
-    // [1270] vera_layer_set_config::$0 = vera_layer_set_config::layer#0 << 1 -- vbuz1=vbuz2_rol_1 
-    lda.z layer
+    // [1379] vera_layer_set_config::$0 = vera_layer_set_config::layer#0 << 1 -- vbuaa=vbuaa_rol_1 
     asl
-    sta.z __0
-    // [1271] vera_layer_set_config::addr#0 = vera_layer_config[vera_layer_set_config::$0] -- pbuz1=qbuc1_derefidx_vbuz2 
+    // [1380] vera_layer_set_config::addr#0 = vera_layer_config[vera_layer_set_config::$0] -- pbuz1=qbuc1_derefidx_vbuaa 
     tay
     lda vera_layer_config,y
     sta.z addr
     lda vera_layer_config+1,y
     sta.z addr+1
     // *addr = config
-    // [1272] *vera_layer_set_config::addr#0 = vera_layer_set_config::config#0 -- _deref_pbuz1=vbuz2 
-    lda.z config
+    // [1381] *vera_layer_set_config::addr#0 = vera_layer_set_config::config#0 -- _deref_pbuz1=vbuxx 
+    txa
     ldy #0
     sta (addr),y
     // vera_layer_set_config::@return
     // }
-    // [1273] return 
+    // [1382] return 
     rts
 }
   // vera_layer_set_tilebase
@@ -8718,29 +9026,26 @@ vera_layer_set_config: {
 // - tilebase: Specifies the base address of the tile map.
 //   Note that the register only specifies bits 16:11 of the address,
 //   so the resulting address in the VERA VRAM is always aligned to a multiple of 2048 bytes!
-// vera_layer_set_tilebase(byte zp($59) layer, byte zp($e) tilebase)
+// vera_layer_set_tilebase(byte register(A) layer, byte register(X) tilebase)
 vera_layer_set_tilebase: {
-    .label __0 = $59
-    .label addr = $5b
-    .label layer = $59
-    .label tilebase = $e
+    .label addr = $4f
     // addr = vera_layer_tilebase[layer]
-    // [1274] vera_layer_set_tilebase::$0 = vera_layer_set_tilebase::layer#0 << 1 -- vbuz1=vbuz1_rol_1 
-    asl.z __0
-    // [1275] vera_layer_set_tilebase::addr#0 = vera_layer_tilebase[vera_layer_set_tilebase::$0] -- pbuz1=qbuc1_derefidx_vbuz2 
-    ldy.z __0
+    // [1383] vera_layer_set_tilebase::$0 = vera_layer_set_tilebase::layer#0 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [1384] vera_layer_set_tilebase::addr#0 = vera_layer_tilebase[vera_layer_set_tilebase::$0] -- pbuz1=qbuc1_derefidx_vbuaa 
+    tay
     lda vera_layer_tilebase,y
     sta.z addr
     lda vera_layer_tilebase+1,y
     sta.z addr+1
     // *addr = tilebase
-    // [1276] *vera_layer_set_tilebase::addr#0 = vera_layer_set_tilebase::tilebase#0 -- _deref_pbuz1=vbuz2 
-    lda.z tilebase
+    // [1385] *vera_layer_set_tilebase::addr#0 = vera_layer_set_tilebase::tilebase#0 -- _deref_pbuz1=vbuxx 
+    txa
     ldy #0
     sta (addr),y
     // vera_layer_set_tilebase::@return
     // }
-    // [1277] return 
+    // [1386] return 
     rts
 }
   // vera_layer_get_backcolor
@@ -8749,18 +9054,14 @@ vera_layer_set_tilebase: {
 // - return: a 4 bit value ( decimal between 0 and 15).
 //   This will only work when the VERA is in 16 color mode!
 //   Note that on the VERA, the transparent color has value 0.
-// vera_layer_get_backcolor(byte zp($b3) layer)
+// vera_layer_get_backcolor(byte register(X) layer)
 vera_layer_get_backcolor: {
-    .label return = $b3
-    .label layer = $b3
     // return vera_layer_backcolor[layer];
-    // [1278] vera_layer_get_backcolor::return#0 = vera_layer_backcolor[vera_layer_get_backcolor::layer#0] -- vbuz1=pbuc1_derefidx_vbuz1 
-    ldy.z return
-    lda vera_layer_backcolor,y
-    sta.z return
+    // [1387] vera_layer_get_backcolor::return#0 = vera_layer_backcolor[vera_layer_get_backcolor::layer#0] -- vbuaa=pbuc1_derefidx_vbuxx 
+    lda vera_layer_backcolor,x
     // vera_layer_get_backcolor::@return
     // }
-    // [1279] return 
+    // [1388] return 
     rts
 }
   // vera_layer_get_textcolor
@@ -8769,80 +9070,27 @@ vera_layer_get_backcolor: {
 // - return: a 4 bit value ( decimal between 0 and 15).
 //   This will only work when the VERA is in 16 color mode!
 //   Note that on the VERA, the transparent color has value 0.
-// vera_layer_get_textcolor(byte zp($b4) layer)
+// vera_layer_get_textcolor(byte register(X) layer)
 vera_layer_get_textcolor: {
-    .label return = $b4
-    .label layer = $b4
     // return vera_layer_textcolor[layer];
-    // [1280] vera_layer_get_textcolor::return#0 = vera_layer_textcolor[vera_layer_get_textcolor::layer#0] -- vbuz1=pbuc1_derefidx_vbuz1 
-    ldy.z return
-    lda vera_layer_textcolor,y
-    sta.z return
+    // [1389] vera_layer_get_textcolor::return#0 = vera_layer_textcolor[vera_layer_get_textcolor::layer#0] -- vbuaa=pbuc1_derefidx_vbuxx 
+    lda vera_layer_textcolor,x
     // vera_layer_get_textcolor::@return
     // }
-    // [1281] return 
-    rts
-}
-  // printf_ulong
-// Print an unsigned int using a specific format
-// printf_ulong(dword zp($26) uvalue)
-printf_ulong: {
-    .const format_min_length = 0
-    .const format_justify_left = 0
-    .const format_zero_padding = 0
-    .const format_upper_case = 0
-    .label uvalue = $26
-    // printf_ulong::@1
-    // printf_buffer.sign = format.sign_always?'+':0
-    // [1283] *((byte*)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
-    // Handle any sign
-    lda #0
-    sta printf_buffer
-    // ultoa(uvalue, printf_buffer.digits, format.radix)
-    // [1284] ultoa::value#1 = printf_ulong::uvalue#0
-    // [1285] call ultoa 
-  // Format number into buffer
-    // [1509] phi from printf_ulong::@1 to ultoa [phi:printf_ulong::@1->ultoa]
-    jsr ultoa
-    // printf_ulong::@2
-    // printf_number_buffer(printf_buffer, format)
-    // [1286] printf_number_buffer::buffer_sign#0 = *((byte*)&printf_buffer) -- vbuz1=_deref_pbuc1 
-    lda printf_buffer
-    sta.z printf_number_buffer.buffer_sign
-    // [1287] call printf_number_buffer 
-  // Print using format
-    // [1171] phi from printf_ulong::@2 to printf_number_buffer [phi:printf_ulong::@2->printf_number_buffer]
-    // [1171] phi printf_number_buffer::format_upper_case#10 = printf_ulong::format_upper_case#0 [phi:printf_ulong::@2->printf_number_buffer#0] -- vbuz1=vbuc1 
-    lda #format_upper_case
-    sta.z printf_number_buffer.format_upper_case
-    // [1171] phi printf_number_buffer::buffer_sign#10 = printf_number_buffer::buffer_sign#0 [phi:printf_ulong::@2->printf_number_buffer#1] -- register_copy 
-    // [1171] phi printf_number_buffer::format_zero_padding#10 = printf_ulong::format_zero_padding#0 [phi:printf_ulong::@2->printf_number_buffer#2] -- vbuz1=vbuc1 
-    lda #format_zero_padding
-    sta.z printf_number_buffer.format_zero_padding
-    // [1171] phi printf_number_buffer::format_justify_left#10 = printf_ulong::format_justify_left#0 [phi:printf_ulong::@2->printf_number_buffer#3] -- vbuz1=vbuc1 
-    lda #format_justify_left
-    sta.z printf_number_buffer.format_justify_left
-    // [1171] phi printf_number_buffer::format_min_length#2 = printf_ulong::format_min_length#0 [phi:printf_ulong::@2->printf_number_buffer#4] -- vbuz1=vbuc1 
-    lda #format_min_length
-    sta.z printf_number_buffer.format_min_length
-    jsr printf_number_buffer
-    // printf_ulong::@return
-    // }
-    // [1288] return 
+    // [1390] return 
     rts
 }
   // mul16u
 // Perform binary multiplication of two unsigned 16-bit unsigned ints into a 32-bit unsigned long
-// mul16u(word zp($c3) a, word zp($b1) b)
+// mul16u(word zp($af) a, word zp($72) b)
 mul16u: {
-    .label __1 = $f
-    .label mb = $6b
-    .label a = $c3
-    .label res = $3c
-    .label return = $3c
-    .label b = $b1
+    .label mb = $5f
+    .label a = $af
+    .label res = $3f
+    .label b = $72
+    .label return = $3f
     // mb = b
-    // [1290] mul16u::mb#0 = (dword)mul16u::b#2 -- vduz1=_dword_vwuz2 
+    // [1392] mul16u::mb#0 = (dword)mul16u::b#2 -- vduz1=_dword_vwuz2 
     lda.z b
     sta.z mb
     lda.z b+1
@@ -8850,41 +9098,40 @@ mul16u: {
     lda #0
     sta.z mb+2
     sta.z mb+3
-    // [1291] phi from mul16u to mul16u::@1 [phi:mul16u->mul16u::@1]
-    // [1291] phi mul16u::mb#2 = mul16u::mb#0 [phi:mul16u->mul16u::@1#0] -- register_copy 
-    // [1291] phi mul16u::res#2 = 0 [phi:mul16u->mul16u::@1#1] -- vduz1=vduc1 
+    // [1393] phi from mul16u to mul16u::@1 [phi:mul16u->mul16u::@1]
+    // [1393] phi mul16u::mb#2 = mul16u::mb#0 [phi:mul16u->mul16u::@1#0] -- register_copy 
+    // [1393] phi mul16u::res#2 = 0 [phi:mul16u->mul16u::@1#1] -- vduz1=vduc1 
     sta.z res
     sta.z res+1
     lda #<0>>$10
     sta.z res+2
     lda #>0>>$10
     sta.z res+3
-    // [1291] phi mul16u::a#3 = mul16u::a#6 [phi:mul16u->mul16u::@1#2] -- register_copy 
+    // [1393] phi mul16u::a#3 = mul16u::a#6 [phi:mul16u->mul16u::@1#2] -- register_copy 
     // mul16u::@1
   __b1:
     // while(a!=0)
-    // [1292] if(mul16u::a#3!=0) goto mul16u::@2 -- vwuz1_neq_0_then_la1 
+    // [1394] if(mul16u::a#3!=0) goto mul16u::@2 -- vwuz1_neq_0_then_la1 
     lda.z a
     ora.z a+1
     bne __b2
     // mul16u::@return
     // }
-    // [1293] return 
+    // [1395] return 
     rts
     // mul16u::@2
   __b2:
     // a&1
-    // [1294] mul16u::$1 = mul16u::a#3 & 1 -- vbuz1=vwuz2_band_vbuc1 
+    // [1396] mul16u::$1 = mul16u::a#3 & 1 -- vbuaa=vwuz1_band_vbuc1 
     lda #1
     and.z a
-    sta.z __1
     // if( (a&1) != 0)
-    // [1295] if(mul16u::$1==0) goto mul16u::@3 -- vbuz1_eq_0_then_la1 
+    // [1397] if(mul16u::$1==0) goto mul16u::@3 -- vbuaa_eq_0_then_la1 
     cmp #0
     beq __b3
     // mul16u::@4
     // res = res + mb
-    // [1296] mul16u::res#1 = mul16u::res#2 + mul16u::mb#2 -- vduz1=vduz1_plus_vduz2 
+    // [1398] mul16u::res#1 = mul16u::res#2 + mul16u::mb#2 -- vduz1=vduz1_plus_vduz2 
     lda.z res
     clc
     adc.z mb
@@ -8898,64 +9145,47 @@ mul16u: {
     lda.z res+3
     adc.z mb+3
     sta.z res+3
-    // [1297] phi from mul16u::@2 mul16u::@4 to mul16u::@3 [phi:mul16u::@2/mul16u::@4->mul16u::@3]
-    // [1297] phi mul16u::res#6 = mul16u::res#2 [phi:mul16u::@2/mul16u::@4->mul16u::@3#0] -- register_copy 
+    // [1399] phi from mul16u::@2 mul16u::@4 to mul16u::@3 [phi:mul16u::@2/mul16u::@4->mul16u::@3]
+    // [1399] phi mul16u::res#6 = mul16u::res#2 [phi:mul16u::@2/mul16u::@4->mul16u::@3#0] -- register_copy 
     // mul16u::@3
   __b3:
     // a = a>>1
-    // [1298] mul16u::a#0 = mul16u::a#3 >> 1 -- vwuz1=vwuz1_ror_1 
+    // [1400] mul16u::a#0 = mul16u::a#3 >> 1 -- vwuz1=vwuz1_ror_1 
     lsr.z a+1
     ror.z a
     // mb = mb<<1
-    // [1299] mul16u::mb#1 = mul16u::mb#2 << 1 -- vduz1=vduz1_rol_1 
+    // [1401] mul16u::mb#1 = mul16u::mb#2 << 1 -- vduz1=vduz1_rol_1 
     asl.z mb
     rol.z mb+1
     rol.z mb+2
     rol.z mb+3
-    // [1291] phi from mul16u::@3 to mul16u::@1 [phi:mul16u::@3->mul16u::@1]
-    // [1291] phi mul16u::mb#2 = mul16u::mb#1 [phi:mul16u::@3->mul16u::@1#0] -- register_copy 
-    // [1291] phi mul16u::res#2 = mul16u::res#6 [phi:mul16u::@3->mul16u::@1#1] -- register_copy 
-    // [1291] phi mul16u::a#3 = mul16u::a#0 [phi:mul16u::@3->mul16u::@1#2] -- register_copy 
+    // [1393] phi from mul16u::@3 to mul16u::@1 [phi:mul16u::@3->mul16u::@1]
+    // [1393] phi mul16u::mb#2 = mul16u::mb#1 [phi:mul16u::@3->mul16u::@1#0] -- register_copy 
+    // [1393] phi mul16u::res#2 = mul16u::res#6 [phi:mul16u::@3->mul16u::@1#1] -- register_copy 
+    // [1393] phi mul16u::a#3 = mul16u::a#0 [phi:mul16u::@3->mul16u::@1#2] -- register_copy 
     jmp __b1
 }
   // vera_sprite_width
-// vera_sprite_width(byte zp($b9) sprite, byte zp($ba) width)
+// vera_sprite_width(byte zp($7d) sprite, byte register(A) width)
 vera_sprite_width: {
-    .label vera_sprite_width_81___3 = $b9
-    .label vera_sprite_width_81___4 = $75
-    .label vera_sprite_width_81___5 = $b9
-    .label vera_sprite_width_81___7 = $f
-    .label vera_sprite_width_81___8 = $75
-    .label vera_sprite_width_161___3 = $c7
-    .label vera_sprite_width_161___4 = $75
-    .label vera_sprite_width_161___5 = $c7
-    .label vera_sprite_width_161___6 = $c7
-    .label vera_sprite_width_161___7 = $c7
-    .label vera_sprite_width_161___8 = $75
-    .label vera_sprite_width_321___3 = $d2
-    .label vera_sprite_width_321___4 = $75
-    .label vera_sprite_width_321___5 = $b9
-    .label vera_sprite_width_321___6 = $b9
-    .label vera_sprite_width_321___7 = $b9
-    .label vera_sprite_width_321___8 = $75
-    .label vera_sprite_width_641___3 = $f
-    .label vera_sprite_width_641___4 = $af
-    .label vera_sprite_width_641___5 = $ba
-    .label vera_sprite_width_641___6 = $c7
-    .label vera_sprite_width_641___7 = $c7
-    .label vera_sprite_width_641___8 = $af
-    .label vera_sprite_width_81_sprite_offset = $75
-    .label vera_sprite_width_161_sprite_offset = $75
-    .label vera_sprite_width_321_sprite_offset = $75
-    .label vera_sprite_width_641_sprite_offset = $af
-    .label sprite = $b9
-    .label width = $ba
+    .label vera_sprite_width_81___4 = $67
+    .label vera_sprite_width_81___8 = $67
+    .label vera_sprite_width_161___4 = $cc
+    .label vera_sprite_width_161___8 = $cc
+    .label vera_sprite_width_321___4 = $74
+    .label vera_sprite_width_321___8 = $74
+    .label vera_sprite_width_641___4 = $7b
+    .label vera_sprite_width_641___8 = $7b
+    .label vera_sprite_width_81_sprite_offset = $67
+    .label vera_sprite_width_161_sprite_offset = $cc
+    .label vera_sprite_width_321_sprite_offset = $74
+    .label vera_sprite_width_641_sprite_offset = $7b
+    .label sprite = $7d
     // case 8:
     //             vera_sprite_width_8(sprite);
     //             break;
-    // [1300] if(vera_sprite_width::width#0==8) goto vera_sprite_width::vera_sprite_width_81 -- vbuz1_eq_vbuc1_then_la1 
-    lda #8
-    cmp.z width
+    // [1402] if(vera_sprite_width::width#0==8) goto vera_sprite_width::vera_sprite_width_81 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #8
     bne !vera_sprite_width_81+
     jmp vera_sprite_width_81
   !vera_sprite_width_81:
@@ -8963,9 +9193,8 @@ vera_sprite_width: {
     // case 16:
     //             vera_sprite_width_16(sprite);
     //             break;
-    // [1301] if(vera_sprite_width::width#0==$10) goto vera_sprite_width::vera_sprite_width_161 -- vbuz1_eq_vbuc1_then_la1 
-    lda #$10
-    cmp.z width
+    // [1403] if(vera_sprite_width::width#0==$10) goto vera_sprite_width::vera_sprite_width_161 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$10
     bne !vera_sprite_width_161+
     jmp vera_sprite_width_161
   !vera_sprite_width_161:
@@ -8973,29 +9202,27 @@ vera_sprite_width: {
     // case 32:
     //             vera_sprite_width_32(sprite);
     //             break;
-    // [1302] if(vera_sprite_width::width#0==$20) goto vera_sprite_width::vera_sprite_width_321 -- vbuz1_eq_vbuc1_then_la1 
-    lda #$20
-    cmp.z width
+    // [1404] if(vera_sprite_width::width#0==$20) goto vera_sprite_width::vera_sprite_width_321 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$20
     beq vera_sprite_width_321
     // vera_sprite_width::@3
     // case 64:
     //             vera_sprite_width_64(sprite);
     //             break;
-    // [1303] if(vera_sprite_width::width#0==$40) goto vera_sprite_width::vera_sprite_width_641 -- vbuz1_eq_vbuc1_then_la1 
-    lda #$40
-    cmp.z width
+    // [1405] if(vera_sprite_width::width#0==$40) goto vera_sprite_width::vera_sprite_width_641 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$40
     beq vera_sprite_width_641
     rts
     // vera_sprite_width::vera_sprite_width_641
   vera_sprite_width_641:
     // (word)sprite << 3
-    // [1304] vera_sprite_width::vera_sprite_width_641_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1406] vera_sprite_width::vera_sprite_width_641_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_width_641___8
     lda #0
     sta.z vera_sprite_width_641___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1305] vera_sprite_width::vera_sprite_width_641_sprite_offset#0 = vera_sprite_width::vera_sprite_width_641_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1407] vera_sprite_width::vera_sprite_width_641_sprite_offset#0 = vera_sprite_width::vera_sprite_width_641_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_width_641_sprite_offset
     rol.z vera_sprite_width_641_sprite_offset+1
     asl.z vera_sprite_width_641_sprite_offset
@@ -9003,12 +9230,12 @@ vera_sprite_width: {
     asl.z vera_sprite_width_641_sprite_offset
     rol.z vera_sprite_width_641_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1306] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1408] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [1307] vera_sprite_width::vera_sprite_width_641_$4 = vera_sprite_width::vera_sprite_width_641_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1409] vera_sprite_width::vera_sprite_width_641_$4 = vera_sprite_width::vera_sprite_width_641_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_width_641___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -9017,50 +9244,45 @@ vera_sprite_width: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_width_641___4+1
     // <sprite_offset+7
-    // [1308] vera_sprite_width::vera_sprite_width_641_$3 = < vera_sprite_width::vera_sprite_width_641_$4 -- vbuz1=_lo_vwuz2 
+    // [1410] vera_sprite_width::vera_sprite_width_641_$3 = < vera_sprite_width::vera_sprite_width_641_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_width_641___4
-    sta.z vera_sprite_width_641___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [1309] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_641_$3 -- _deref_pbuc1=vbuz1 
+    // [1411] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_641_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [1310] vera_sprite_width::vera_sprite_width_641_$5 = > vera_sprite_width::vera_sprite_width_641_$4 -- vbuz1=_hi_vwuz2 
+    // [1412] vera_sprite_width::vera_sprite_width_641_$5 = > vera_sprite_width::vera_sprite_width_641_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_width_641___4+1
-    sta.z vera_sprite_width_641___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [1311] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_641_$5 -- _deref_pbuc1=vbuz1 
+    // [1413] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_641_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1312] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1414] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK
-    // [1313] vera_sprite_width::vera_sprite_width_641_$6 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1415] vera_sprite_width::vera_sprite_width_641_$6 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_WIDTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_width_641___6
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_64
-    // [1314] vera_sprite_width::vera_sprite_width_641_$7 = vera_sprite_width::vera_sprite_width_641_$6 | VERA_SPRITE_WIDTH_64 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_WIDTH_64
-    ora.z vera_sprite_width_641___7
-    sta.z vera_sprite_width_641___7
+    // [1416] vera_sprite_width::vera_sprite_width_641_$7 = vera_sprite_width::vera_sprite_width_641_$6 | VERA_SPRITE_WIDTH_64 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_WIDTH_64
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_64
-    // [1315] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_641_$7 -- _deref_pbuc1=vbuz1 
+    // [1417] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_641_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // vera_sprite_width::@return
     // }
-    // [1316] return 
+    // [1418] return 
     rts
     // vera_sprite_width::vera_sprite_width_321
   vera_sprite_width_321:
     // (word)sprite << 3
-    // [1317] vera_sprite_width::vera_sprite_width_321_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1419] vera_sprite_width::vera_sprite_width_321_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_width_321___8
     lda #0
     sta.z vera_sprite_width_321___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1318] vera_sprite_width::vera_sprite_width_321_sprite_offset#0 = vera_sprite_width::vera_sprite_width_321_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1420] vera_sprite_width::vera_sprite_width_321_sprite_offset#0 = vera_sprite_width::vera_sprite_width_321_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_width_321_sprite_offset
     rol.z vera_sprite_width_321_sprite_offset+1
     asl.z vera_sprite_width_321_sprite_offset
@@ -9068,12 +9290,12 @@ vera_sprite_width: {
     asl.z vera_sprite_width_321_sprite_offset
     rol.z vera_sprite_width_321_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1319] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1421] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [1320] vera_sprite_width::vera_sprite_width_321_$4 = vera_sprite_width::vera_sprite_width_321_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1422] vera_sprite_width::vera_sprite_width_321_$4 = vera_sprite_width::vera_sprite_width_321_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_width_321___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -9082,47 +9304,42 @@ vera_sprite_width: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_width_321___4+1
     // <sprite_offset+7
-    // [1321] vera_sprite_width::vera_sprite_width_321_$3 = < vera_sprite_width::vera_sprite_width_321_$4 -- vbuz1=_lo_vwuz2 
+    // [1423] vera_sprite_width::vera_sprite_width_321_$3 = < vera_sprite_width::vera_sprite_width_321_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_width_321___4
-    sta.z vera_sprite_width_321___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [1322] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_321_$3 -- _deref_pbuc1=vbuz1 
+    // [1424] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_321_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [1323] vera_sprite_width::vera_sprite_width_321_$5 = > vera_sprite_width::vera_sprite_width_321_$4 -- vbuz1=_hi_vwuz2 
+    // [1425] vera_sprite_width::vera_sprite_width_321_$5 = > vera_sprite_width::vera_sprite_width_321_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_width_321___4+1
-    sta.z vera_sprite_width_321___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [1324] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_321_$5 -- _deref_pbuc1=vbuz1 
+    // [1426] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_321_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1325] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1427] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK
-    // [1326] vera_sprite_width::vera_sprite_width_321_$6 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1428] vera_sprite_width::vera_sprite_width_321_$6 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_WIDTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_width_321___6
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_32
-    // [1327] vera_sprite_width::vera_sprite_width_321_$7 = vera_sprite_width::vera_sprite_width_321_$6 | VERA_SPRITE_WIDTH_32 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_WIDTH_32
-    ora.z vera_sprite_width_321___7
-    sta.z vera_sprite_width_321___7
+    // [1429] vera_sprite_width::vera_sprite_width_321_$7 = vera_sprite_width::vera_sprite_width_321_$6 | VERA_SPRITE_WIDTH_32 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_WIDTH_32
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_32
-    // [1328] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_321_$7 -- _deref_pbuc1=vbuz1 
+    // [1430] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_321_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
     // vera_sprite_width::vera_sprite_width_161
   vera_sprite_width_161:
     // (word)sprite << 3
-    // [1329] vera_sprite_width::vera_sprite_width_161_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1431] vera_sprite_width::vera_sprite_width_161_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_width_161___8
     lda #0
     sta.z vera_sprite_width_161___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1330] vera_sprite_width::vera_sprite_width_161_sprite_offset#0 = vera_sprite_width::vera_sprite_width_161_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1432] vera_sprite_width::vera_sprite_width_161_sprite_offset#0 = vera_sprite_width::vera_sprite_width_161_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_width_161_sprite_offset
     rol.z vera_sprite_width_161_sprite_offset+1
     asl.z vera_sprite_width_161_sprite_offset
@@ -9130,12 +9347,12 @@ vera_sprite_width: {
     asl.z vera_sprite_width_161_sprite_offset
     rol.z vera_sprite_width_161_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1331] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1433] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [1332] vera_sprite_width::vera_sprite_width_161_$4 = vera_sprite_width::vera_sprite_width_161_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1434] vera_sprite_width::vera_sprite_width_161_$4 = vera_sprite_width::vera_sprite_width_161_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_width_161___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -9144,47 +9361,42 @@ vera_sprite_width: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_width_161___4+1
     // <sprite_offset+7
-    // [1333] vera_sprite_width::vera_sprite_width_161_$3 = < vera_sprite_width::vera_sprite_width_161_$4 -- vbuz1=_lo_vwuz2 
+    // [1435] vera_sprite_width::vera_sprite_width_161_$3 = < vera_sprite_width::vera_sprite_width_161_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_width_161___4
-    sta.z vera_sprite_width_161___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [1334] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_161_$3 -- _deref_pbuc1=vbuz1 
+    // [1436] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_161_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [1335] vera_sprite_width::vera_sprite_width_161_$5 = > vera_sprite_width::vera_sprite_width_161_$4 -- vbuz1=_hi_vwuz2 
+    // [1437] vera_sprite_width::vera_sprite_width_161_$5 = > vera_sprite_width::vera_sprite_width_161_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_width_161___4+1
-    sta.z vera_sprite_width_161___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [1336] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_161_$5 -- _deref_pbuc1=vbuz1 
+    // [1438] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_161_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1337] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1439] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK
-    // [1338] vera_sprite_width::vera_sprite_width_161_$6 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1440] vera_sprite_width::vera_sprite_width_161_$6 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_WIDTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_width_161___6
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_16
-    // [1339] vera_sprite_width::vera_sprite_width_161_$7 = vera_sprite_width::vera_sprite_width_161_$6 | VERA_SPRITE_WIDTH_16 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_WIDTH_16
-    ora.z vera_sprite_width_161___7
-    sta.z vera_sprite_width_161___7
+    // [1441] vera_sprite_width::vera_sprite_width_161_$7 = vera_sprite_width::vera_sprite_width_161_$6 | VERA_SPRITE_WIDTH_16 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_WIDTH_16
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_16
-    // [1340] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_161_$7 -- _deref_pbuc1=vbuz1 
+    // [1442] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_161_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
     // vera_sprite_width::vera_sprite_width_81
   vera_sprite_width_81:
     // (word)sprite << 3
-    // [1341] vera_sprite_width::vera_sprite_width_81_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1443] vera_sprite_width::vera_sprite_width_81_$8 = (word)vera_sprite_width::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_width_81___8
     lda #0
     sta.z vera_sprite_width_81___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1342] vera_sprite_width::vera_sprite_width_81_sprite_offset#0 = vera_sprite_width::vera_sprite_width_81_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1444] vera_sprite_width::vera_sprite_width_81_sprite_offset#0 = vera_sprite_width::vera_sprite_width_81_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_width_81_sprite_offset
     rol.z vera_sprite_width_81_sprite_offset+1
     asl.z vera_sprite_width_81_sprite_offset
@@ -9192,12 +9404,12 @@ vera_sprite_width: {
     asl.z vera_sprite_width_81_sprite_offset
     rol.z vera_sprite_width_81_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1343] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1445] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+7
-    // [1344] vera_sprite_width::vera_sprite_width_81_$4 = vera_sprite_width::vera_sprite_width_81_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1446] vera_sprite_width::vera_sprite_width_81_$4 = vera_sprite_width::vera_sprite_width_81_sprite_offset#0 + <VERA_SPRITE_ATTR+7 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_width_81___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+7
@@ -9206,71 +9418,51 @@ vera_sprite_width: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+7
     sta.z vera_sprite_width_81___4+1
     // <sprite_offset+7
-    // [1345] vera_sprite_width::vera_sprite_width_81_$3 = < vera_sprite_width::vera_sprite_width_81_$4 -- vbuz1=_lo_vwuz2 
+    // [1447] vera_sprite_width::vera_sprite_width_81_$3 = < vera_sprite_width::vera_sprite_width_81_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_width_81___4
-    sta.z vera_sprite_width_81___3
     // *VERA_ADDRX_L = <sprite_offset+7
-    // [1346] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_81_$3 -- _deref_pbuc1=vbuz1 
+    // [1448] *VERA_ADDRX_L = vera_sprite_width::vera_sprite_width_81_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+7
-    // [1347] vera_sprite_width::vera_sprite_width_81_$5 = > vera_sprite_width::vera_sprite_width_81_$4 -- vbuz1=_hi_vwuz2 
+    // [1449] vera_sprite_width::vera_sprite_width_81_$5 = > vera_sprite_width::vera_sprite_width_81_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_width_81___4+1
-    sta.z vera_sprite_width_81___5
     // *VERA_ADDRX_M = >sprite_offset+7
-    // [1348] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_81_$5 -- _deref_pbuc1=vbuz1 
+    // [1450] *VERA_ADDRX_M = vera_sprite_width::vera_sprite_width_81_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1349] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1451] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_8
-    // [1350] vera_sprite_width::vera_sprite_width_81_$7 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1452] vera_sprite_width::vera_sprite_width_81_$7 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_WIDTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_width_81___7
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_8
-    // [1351] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_81_$7 -- _deref_pbuc1=vbuz1 
+    // [1453] *VERA_DATA0 = vera_sprite_width::vera_sprite_width_81_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
 }
   // vera_sprite_zdepth
-// vera_sprite_zdepth(byte zp($b9) sprite, byte zp($ba) zdepth)
+// vera_sprite_zdepth(byte zp($7d) sprite, byte register(A) zdepth)
 vera_sprite_zdepth: {
-    .label vera_sprite_zdepth_in_front1___3 = $b9
-    .label vera_sprite_zdepth_in_front1___4 = $75
-    .label vera_sprite_zdepth_in_front1___5 = $b9
-    .label vera_sprite_zdepth_in_front1___6 = $f
-    .label vera_sprite_zdepth_in_front1___7 = $f
-    .label vera_sprite_zdepth_in_front1___8 = $75
-    .label vera_sprite_zdepth_between_layer0_and_layer11___3 = $c7
-    .label vera_sprite_zdepth_between_layer0_and_layer11___4 = $af
-    .label vera_sprite_zdepth_between_layer0_and_layer11___5 = $c7
-    .label vera_sprite_zdepth_between_layer0_and_layer11___6 = $c7
-    .label vera_sprite_zdepth_between_layer0_and_layer11___7 = $c7
-    .label vera_sprite_zdepth_between_layer0_and_layer11___8 = $af
-    .label vera_sprite_zdepth_between_background_and_layer01___3 = $d2
-    .label vera_sprite_zdepth_between_background_and_layer01___4 = $75
-    .label vera_sprite_zdepth_between_background_and_layer01___5 = $b9
-    .label vera_sprite_zdepth_between_background_and_layer01___6 = $b9
-    .label vera_sprite_zdepth_between_background_and_layer01___7 = $b9
-    .label vera_sprite_zdepth_between_background_and_layer01___8 = $75
-    .label vera_sprite_zdepth_disable1___3 = $f
-    .label vera_sprite_zdepth_disable1___4 = $75
-    .label vera_sprite_zdepth_disable1___5 = $ba
-    .label vera_sprite_zdepth_disable1___6 = $c7
-    .label vera_sprite_zdepth_disable1___7 = $75
-    .label vera_sprite_zdepth_in_front1_sprite_offset = $75
-    .label vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset = $af
-    .label vera_sprite_zdepth_between_background_and_layer01_sprite_offset = $75
-    .label vera_sprite_zdepth_disable1_sprite_offset = $75
-    .label sprite = $b9
-    .label zdepth = $ba
+    .label vera_sprite_zdepth_in_front1___4 = $74
+    .label vera_sprite_zdepth_in_front1___8 = $74
+    .label vera_sprite_zdepth_between_layer0_and_layer11___4 = $7b
+    .label vera_sprite_zdepth_between_layer0_and_layer11___8 = $7b
+    .label vera_sprite_zdepth_between_background_and_layer01___4 = $67
+    .label vera_sprite_zdepth_between_background_and_layer01___8 = $67
+    .label vera_sprite_zdepth_disable1___4 = $cc
+    .label vera_sprite_zdepth_disable1___7 = $cc
+    .label vera_sprite_zdepth_in_front1_sprite_offset = $74
+    .label vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset = $7b
+    .label vera_sprite_zdepth_between_background_and_layer01_sprite_offset = $67
+    .label vera_sprite_zdepth_disable1_sprite_offset = $cc
+    .label sprite = $7d
     // case 3:
     //             vera_sprite_zdepth_in_front(sprite);
     //             break;
-    // [1352] if(vera_sprite_zdepth::zdepth#0==3) goto vera_sprite_zdepth::vera_sprite_zdepth_in_front1 -- vbuz1_eq_vbuc1_then_la1 
-    lda #3
-    cmp.z zdepth
+    // [1454] if(vera_sprite_zdepth::zdepth#0==3) goto vera_sprite_zdepth::vera_sprite_zdepth_in_front1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #3
     bne !vera_sprite_zdepth_in_front1+
     jmp vera_sprite_zdepth_in_front1
   !vera_sprite_zdepth_in_front1:
@@ -9278,9 +9470,8 @@ vera_sprite_zdepth: {
     // case 2:
     //             vera_sprite_zdepth_between_layer0_and_layer1(sprite);
     //             break;
-    // [1353] if(vera_sprite_zdepth::zdepth#0==2) goto vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11 -- vbuz1_eq_vbuc1_then_la1 
-    lda #2
-    cmp.z zdepth
+    // [1455] if(vera_sprite_zdepth::zdepth#0==2) goto vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #2
     bne !vera_sprite_zdepth_between_layer0_and_layer11+
     jmp vera_sprite_zdepth_between_layer0_and_layer11
   !vera_sprite_zdepth_between_layer0_and_layer11:
@@ -9288,29 +9479,27 @@ vera_sprite_zdepth: {
     // case 1:
     //             vera_sprite_zdepth_between_background_and_layer0(sprite);
     //             break;
-    // [1354] if(vera_sprite_zdepth::zdepth#0==1) goto vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01 -- vbuz1_eq_vbuc1_then_la1 
-    lda #1
-    cmp.z zdepth
+    // [1456] if(vera_sprite_zdepth::zdepth#0==1) goto vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #1
     beq vera_sprite_zdepth_between_background_and_layer01
     // vera_sprite_zdepth::@3
     // case 0:
     //             vera_sprite_zdepth_disable(sprite);
     //             break;
-    // [1355] if(vera_sprite_zdepth::zdepth#0==0) goto vera_sprite_zdepth::vera_sprite_zdepth_disable1 -- vbuz1_eq_0_then_la1 
-    lda.z zdepth
+    // [1457] if(vera_sprite_zdepth::zdepth#0==0) goto vera_sprite_zdepth::vera_sprite_zdepth_disable1 -- vbuaa_eq_0_then_la1 
     cmp #0
     beq vera_sprite_zdepth_disable1
     rts
     // vera_sprite_zdepth::vera_sprite_zdepth_disable1
   vera_sprite_zdepth_disable1:
     // (word)sprite << 3
-    // [1356] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$7 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1458] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$7 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_zdepth_disable1___7
     lda #0
     sta.z vera_sprite_zdepth_disable1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1357] vera_sprite_zdepth::vera_sprite_zdepth_disable1_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1459] vera_sprite_zdepth::vera_sprite_zdepth_disable1_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_zdepth_disable1_sprite_offset
     rol.z vera_sprite_zdepth_disable1_sprite_offset+1
     asl.z vera_sprite_zdepth_disable1_sprite_offset
@@ -9318,12 +9507,12 @@ vera_sprite_zdepth: {
     asl.z vera_sprite_zdepth_disable1_sprite_offset
     rol.z vera_sprite_zdepth_disable1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1358] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1460] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1359] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$4 = vera_sprite_zdepth::vera_sprite_zdepth_disable1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1461] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$4 = vera_sprite_zdepth::vera_sprite_zdepth_disable1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_zdepth_disable1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9332,45 +9521,42 @@ vera_sprite_zdepth: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_zdepth_disable1___4+1
     // <sprite_offset+6
-    // [1360] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_disable1_$4 -- vbuz1=_lo_vwuz2 
+    // [1462] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_disable1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_zdepth_disable1___4
-    sta.z vera_sprite_zdepth_disable1___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1361] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$3 -- _deref_pbuc1=vbuz1 
+    // [1463] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1362] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_disable1_$4 -- vbuz1=_hi_vwuz2 
+    // [1464] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_disable1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_zdepth_disable1___4+1
-    sta.z vera_sprite_zdepth_disable1___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1363] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$5 -- _deref_pbuc1=vbuz1 
+    // [1465] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1364] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1466] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK
-    // [1365] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1467] vera_sprite_zdepth::vera_sprite_zdepth_disable1_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_ZDEPTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_zdepth_disable1___6
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK
-    // [1366] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$6 -- _deref_pbuc1=vbuz1 
+    // [1468] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_disable1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // vera_sprite_zdepth::@return
     // }
-    // [1367] return 
+    // [1469] return 
     rts
     // vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01
   vera_sprite_zdepth_between_background_and_layer01:
     // (word)sprite << 3
-    // [1368] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$8 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1470] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$8 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_zdepth_between_background_and_layer01___8
     lda #0
     sta.z vera_sprite_zdepth_between_background_and_layer01___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1369] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1471] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_zdepth_between_background_and_layer01_sprite_offset
     rol.z vera_sprite_zdepth_between_background_and_layer01_sprite_offset+1
     asl.z vera_sprite_zdepth_between_background_and_layer01_sprite_offset
@@ -9378,12 +9564,12 @@ vera_sprite_zdepth: {
     asl.z vera_sprite_zdepth_between_background_and_layer01_sprite_offset
     rol.z vera_sprite_zdepth_between_background_and_layer01_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1370] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1472] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1371] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$4 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1473] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$4 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_zdepth_between_background_and_layer01___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9392,47 +9578,42 @@ vera_sprite_zdepth: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_zdepth_between_background_and_layer01___4+1
     // <sprite_offset+6
-    // [1372] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$4 -- vbuz1=_lo_vwuz2 
+    // [1474] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_zdepth_between_background_and_layer01___4
-    sta.z vera_sprite_zdepth_between_background_and_layer01___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1373] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$3 -- _deref_pbuc1=vbuz1 
+    // [1475] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1374] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$4 -- vbuz1=_hi_vwuz2 
+    // [1476] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_zdepth_between_background_and_layer01___4+1
-    sta.z vera_sprite_zdepth_between_background_and_layer01___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1375] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$5 -- _deref_pbuc1=vbuz1 
+    // [1477] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1376] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1478] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK
-    // [1377] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1479] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_ZDEPTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_zdepth_between_background_and_layer01___6
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0
-    // [1378] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$7 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$6 | VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0
-    ora.z vera_sprite_zdepth_between_background_and_layer01___7
-    sta.z vera_sprite_zdepth_between_background_and_layer01___7
+    // [1480] vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$7 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$6 | VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0
-    // [1379] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$7 -- _deref_pbuc1=vbuz1 
+    // [1481] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_between_background_and_layer01_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
     // vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11
   vera_sprite_zdepth_between_layer0_and_layer11:
     // (word)sprite << 3
-    // [1380] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$8 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1482] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$8 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_zdepth_between_layer0_and_layer11___8
     lda #0
     sta.z vera_sprite_zdepth_between_layer0_and_layer11___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1381] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1483] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset
     rol.z vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset+1
     asl.z vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset
@@ -9440,12 +9621,12 @@ vera_sprite_zdepth: {
     asl.z vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset
     rol.z vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1382] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1484] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1383] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$4 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1485] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$4 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_zdepth_between_layer0_and_layer11___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9454,47 +9635,42 @@ vera_sprite_zdepth: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_zdepth_between_layer0_and_layer11___4+1
     // <sprite_offset+6
-    // [1384] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$4 -- vbuz1=_lo_vwuz2 
+    // [1486] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_zdepth_between_layer0_and_layer11___4
-    sta.z vera_sprite_zdepth_between_layer0_and_layer11___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1385] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$3 -- _deref_pbuc1=vbuz1 
+    // [1487] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1386] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$4 -- vbuz1=_hi_vwuz2 
+    // [1488] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_zdepth_between_layer0_and_layer11___4+1
-    sta.z vera_sprite_zdepth_between_layer0_and_layer11___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1387] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$5 -- _deref_pbuc1=vbuz1 
+    // [1489] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1388] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1490] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK
-    // [1389] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1491] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_ZDEPTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_zdepth_between_layer0_and_layer11___6
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1
-    // [1390] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$7 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$6 | VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1 -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1
-    ora.z vera_sprite_zdepth_between_layer0_and_layer11___7
-    sta.z vera_sprite_zdepth_between_layer0_and_layer11___7
+    // [1492] vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$7 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$6 | VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1
-    // [1391] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$7 -- _deref_pbuc1=vbuz1 
+    // [1493] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_between_layer0_and_layer11_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
     // vera_sprite_zdepth::vera_sprite_zdepth_in_front1
   vera_sprite_zdepth_in_front1:
     // (word)sprite << 3
-    // [1392] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$8 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1494] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$8 = (word)vera_sprite_zdepth::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_zdepth_in_front1___8
     lda #0
     sta.z vera_sprite_zdepth_in_front1___8+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1393] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$8 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1495] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_sprite_offset#0 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$8 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_zdepth_in_front1_sprite_offset
     rol.z vera_sprite_zdepth_in_front1_sprite_offset+1
     asl.z vera_sprite_zdepth_in_front1_sprite_offset
@@ -9502,12 +9678,12 @@ vera_sprite_zdepth: {
     asl.z vera_sprite_zdepth_in_front1_sprite_offset
     rol.z vera_sprite_zdepth_in_front1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1394] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1496] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1395] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$4 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1497] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$4 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_zdepth_in_front1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9516,69 +9692,56 @@ vera_sprite_zdepth: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_zdepth_in_front1___4+1
     // <sprite_offset+6
-    // [1396] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$4 -- vbuz1=_lo_vwuz2 
+    // [1498] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$3 = < vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_zdepth_in_front1___4
-    sta.z vera_sprite_zdepth_in_front1___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1397] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$3 -- _deref_pbuc1=vbuz1 
+    // [1499] *VERA_ADDRX_L = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1398] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$4 -- vbuz1=_hi_vwuz2 
+    // [1500] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$5 = > vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_zdepth_in_front1___4+1
-    sta.z vera_sprite_zdepth_in_front1___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1399] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$5 -- _deref_pbuc1=vbuz1 
+    // [1501] *VERA_ADDRX_M = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1400] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1502] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK
-    // [1401] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1503] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$6 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_ZDEPTH_MASK^$ff
     and VERA_DATA0
-    sta.z vera_sprite_zdepth_in_front1___6
     // *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_IN_FRONT
-    // [1402] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$7 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$6 | VERA_SPRITE_ZDEPTH_IN_FRONT -- vbuz1=vbuz1_bor_vbuc1 
-    lda #VERA_SPRITE_ZDEPTH_IN_FRONT
-    ora.z vera_sprite_zdepth_in_front1___7
-    sta.z vera_sprite_zdepth_in_front1___7
+    // [1504] vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$7 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$6 | VERA_SPRITE_ZDEPTH_IN_FRONT -- vbuaa=vbuaa_bor_vbuc1 
+    ora #VERA_SPRITE_ZDEPTH_IN_FRONT
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_IN_FRONT
-    // [1403] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$7 -- _deref_pbuc1=vbuz1 
+    // [1505] *VERA_DATA0 = vera_sprite_zdepth::vera_sprite_zdepth_in_front1_$7 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
 }
   // vera_sprite_hflip
-// vera_sprite_hflip(byte zp($b9) sprite, byte zp($ba) hflip)
+// vera_sprite_hflip(byte zp($7e) sprite, byte register(A) hflip)
 vera_sprite_hflip: {
-    .label vera_sprite_hflip_on1___3 = $d2
-    .label vera_sprite_hflip_on1___4 = $75
-    .label vera_sprite_hflip_on1___5 = $b9
-    .label vera_sprite_hflip_on1___6 = $b9
-    .label vera_sprite_hflip_on1___7 = $75
-    .label vera_sprite_hflip_off1___3 = $f
-    .label vera_sprite_hflip_off1___4 = $af
-    .label vera_sprite_hflip_off1___5 = $ba
-    .label vera_sprite_hflip_off1___6 = $c7
-    .label vera_sprite_hflip_off1___7 = $af
-    .label vera_sprite_hflip_on1_sprite_offset = $75
-    .label vera_sprite_hflip_off1_sprite_offset = $af
-    .label sprite = $b9
-    .label hflip = $ba
+    .label vera_sprite_hflip_on1___4 = $74
+    .label vera_sprite_hflip_on1___7 = $74
+    .label vera_sprite_hflip_off1___4 = $7b
+    .label vera_sprite_hflip_off1___7 = $7b
+    .label vera_sprite_hflip_on1_sprite_offset = $74
+    .label vera_sprite_hflip_off1_sprite_offset = $7b
+    .label sprite = $7e
     // if(hflip)
-    // [1404] if(0!=vera_sprite_hflip::hflip#0) goto vera_sprite_hflip::vera_sprite_hflip_on1 -- 0_neq_vbuz1_then_la1 
-    lda.z hflip
+    // [1506] if(0!=vera_sprite_hflip::hflip#0) goto vera_sprite_hflip::vera_sprite_hflip_on1 -- 0_neq_vbuaa_then_la1 
     cmp #0
     bne vera_sprite_hflip_on1
     // vera_sprite_hflip::vera_sprite_hflip_off1
     // (word)sprite << 3
-    // [1405] vera_sprite_hflip::vera_sprite_hflip_off1_$7 = (word)vera_sprite_hflip::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1507] vera_sprite_hflip::vera_sprite_hflip_off1_$7 = (word)vera_sprite_hflip::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_hflip_off1___7
     lda #0
     sta.z vera_sprite_hflip_off1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1406] vera_sprite_hflip::vera_sprite_hflip_off1_sprite_offset#0 = vera_sprite_hflip::vera_sprite_hflip_off1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1508] vera_sprite_hflip::vera_sprite_hflip_off1_sprite_offset#0 = vera_sprite_hflip::vera_sprite_hflip_off1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_hflip_off1_sprite_offset
     rol.z vera_sprite_hflip_off1_sprite_offset+1
     asl.z vera_sprite_hflip_off1_sprite_offset
@@ -9586,12 +9749,12 @@ vera_sprite_hflip: {
     asl.z vera_sprite_hflip_off1_sprite_offset
     rol.z vera_sprite_hflip_off1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1407] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1509] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1408] vera_sprite_hflip::vera_sprite_hflip_off1_$4 = vera_sprite_hflip::vera_sprite_hflip_off1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1510] vera_sprite_hflip::vera_sprite_hflip_off1_$4 = vera_sprite_hflip::vera_sprite_hflip_off1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_hflip_off1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9600,45 +9763,42 @@ vera_sprite_hflip: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_hflip_off1___4+1
     // <sprite_offset+6
-    // [1409] vera_sprite_hflip::vera_sprite_hflip_off1_$3 = < vera_sprite_hflip::vera_sprite_hflip_off1_$4 -- vbuz1=_lo_vwuz2 
+    // [1511] vera_sprite_hflip::vera_sprite_hflip_off1_$3 = < vera_sprite_hflip::vera_sprite_hflip_off1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_hflip_off1___4
-    sta.z vera_sprite_hflip_off1___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1410] *VERA_ADDRX_L = vera_sprite_hflip::vera_sprite_hflip_off1_$3 -- _deref_pbuc1=vbuz1 
+    // [1512] *VERA_ADDRX_L = vera_sprite_hflip::vera_sprite_hflip_off1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1411] vera_sprite_hflip::vera_sprite_hflip_off1_$5 = > vera_sprite_hflip::vera_sprite_hflip_off1_$4 -- vbuz1=_hi_vwuz2 
+    // [1513] vera_sprite_hflip::vera_sprite_hflip_off1_$5 = > vera_sprite_hflip::vera_sprite_hflip_off1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_hflip_off1___4+1
-    sta.z vera_sprite_hflip_off1___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1412] *VERA_ADDRX_M = vera_sprite_hflip::vera_sprite_hflip_off1_$5 -- _deref_pbuc1=vbuz1 
+    // [1514] *VERA_ADDRX_M = vera_sprite_hflip::vera_sprite_hflip_off1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1413] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1515] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_HFLIP
-    // [1414] vera_sprite_hflip::vera_sprite_hflip_off1_$6 = *VERA_DATA0 & ~VERA_SPRITE_HFLIP -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1516] vera_sprite_hflip::vera_sprite_hflip_off1_$6 = *VERA_DATA0 & ~VERA_SPRITE_HFLIP -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_HFLIP^$ff
     and VERA_DATA0
-    sta.z vera_sprite_hflip_off1___6
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HFLIP
-    // [1415] *VERA_DATA0 = vera_sprite_hflip::vera_sprite_hflip_off1_$6 -- _deref_pbuc1=vbuz1 
+    // [1517] *VERA_DATA0 = vera_sprite_hflip::vera_sprite_hflip_off1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // vera_sprite_hflip::@return
     // }
-    // [1416] return 
+    // [1518] return 
     rts
     // vera_sprite_hflip::vera_sprite_hflip_on1
   vera_sprite_hflip_on1:
     // (word)sprite << 3
-    // [1417] vera_sprite_hflip::vera_sprite_hflip_on1_$7 = (word)vera_sprite_hflip::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1519] vera_sprite_hflip::vera_sprite_hflip_on1_$7 = (word)vera_sprite_hflip::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_hflip_on1___7
     lda #0
     sta.z vera_sprite_hflip_on1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1418] vera_sprite_hflip::vera_sprite_hflip_on1_sprite_offset#0 = vera_sprite_hflip::vera_sprite_hflip_on1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1520] vera_sprite_hflip::vera_sprite_hflip_on1_sprite_offset#0 = vera_sprite_hflip::vera_sprite_hflip_on1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_hflip_on1_sprite_offset
     rol.z vera_sprite_hflip_on1_sprite_offset+1
     asl.z vera_sprite_hflip_on1_sprite_offset
@@ -9646,12 +9806,12 @@ vera_sprite_hflip: {
     asl.z vera_sprite_hflip_on1_sprite_offset
     rol.z vera_sprite_hflip_on1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1419] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1521] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1420] vera_sprite_hflip::vera_sprite_hflip_on1_$4 = vera_sprite_hflip::vera_sprite_hflip_on1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1522] vera_sprite_hflip::vera_sprite_hflip_on1_$4 = vera_sprite_hflip::vera_sprite_hflip_on1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_hflip_on1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9660,64 +9820,53 @@ vera_sprite_hflip: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_hflip_on1___4+1
     // <sprite_offset+6
-    // [1421] vera_sprite_hflip::vera_sprite_hflip_on1_$3 = < vera_sprite_hflip::vera_sprite_hflip_on1_$4 -- vbuz1=_lo_vwuz2 
+    // [1523] vera_sprite_hflip::vera_sprite_hflip_on1_$3 = < vera_sprite_hflip::vera_sprite_hflip_on1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_hflip_on1___4
-    sta.z vera_sprite_hflip_on1___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1422] *VERA_ADDRX_L = vera_sprite_hflip::vera_sprite_hflip_on1_$3 -- _deref_pbuc1=vbuz1 
+    // [1524] *VERA_ADDRX_L = vera_sprite_hflip::vera_sprite_hflip_on1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1423] vera_sprite_hflip::vera_sprite_hflip_on1_$5 = > vera_sprite_hflip::vera_sprite_hflip_on1_$4 -- vbuz1=_hi_vwuz2 
+    // [1525] vera_sprite_hflip::vera_sprite_hflip_on1_$5 = > vera_sprite_hflip::vera_sprite_hflip_on1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_hflip_on1___4+1
-    sta.z vera_sprite_hflip_on1___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1424] *VERA_ADDRX_M = vera_sprite_hflip::vera_sprite_hflip_on1_$5 -- _deref_pbuc1=vbuz1 
+    // [1526] *VERA_ADDRX_M = vera_sprite_hflip::vera_sprite_hflip_on1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1425] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1527] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 | VERA_SPRITE_HFLIP
-    // [1426] vera_sprite_hflip::vera_sprite_hflip_on1_$6 = *VERA_DATA0 | VERA_SPRITE_HFLIP -- vbuz1=_deref_pbuc1_bor_vbuc2 
+    // [1528] vera_sprite_hflip::vera_sprite_hflip_on1_$6 = *VERA_DATA0 | VERA_SPRITE_HFLIP -- vbuaa=_deref_pbuc1_bor_vbuc2 
     lda #VERA_SPRITE_HFLIP
     ora VERA_DATA0
-    sta.z vera_sprite_hflip_on1___6
     // *VERA_DATA0 = *VERA_DATA0 | VERA_SPRITE_HFLIP
-    // [1427] *VERA_DATA0 = vera_sprite_hflip::vera_sprite_hflip_on1_$6 -- _deref_pbuc1=vbuz1 
+    // [1529] *VERA_DATA0 = vera_sprite_hflip::vera_sprite_hflip_on1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
 }
   // vera_sprite_vflip
-// vera_sprite_vflip(byte zp($b9) sprite, byte zp($ba) vflip)
+// vera_sprite_vflip(byte zp($7e) sprite, byte register(A) vflip)
 vera_sprite_vflip: {
-    .label vera_sprite_vflip_on1___3 = $d2
-    .label vera_sprite_vflip_on1___4 = $75
-    .label vera_sprite_vflip_on1___5 = $b9
-    .label vera_sprite_vflip_on1___6 = $b9
-    .label vera_sprite_vflip_on1___7 = $75
-    .label vera_sprite_vflip_off1___3 = $f
-    .label vera_sprite_vflip_off1___4 = $75
-    .label vera_sprite_vflip_off1___5 = $ba
-    .label vera_sprite_vflip_off1___6 = $c7
-    .label vera_sprite_vflip_off1___7 = $75
-    .label vera_sprite_vflip_on1_sprite_offset = $75
-    .label vera_sprite_vflip_off1_sprite_offset = $75
-    .label sprite = $b9
-    .label vflip = $ba
+    .label vera_sprite_vflip_on1___4 = $cc
+    .label vera_sprite_vflip_on1___7 = $cc
+    .label vera_sprite_vflip_off1___4 = $67
+    .label vera_sprite_vflip_off1___7 = $67
+    .label vera_sprite_vflip_on1_sprite_offset = $cc
+    .label vera_sprite_vflip_off1_sprite_offset = $67
+    .label sprite = $7e
     // if(vflip)
-    // [1428] if(0!=vera_sprite_vflip::vflip#0) goto vera_sprite_vflip::vera_sprite_vflip_on1 -- 0_neq_vbuz1_then_la1 
-    lda.z vflip
+    // [1530] if(0!=vera_sprite_vflip::vflip#0) goto vera_sprite_vflip::vera_sprite_vflip_on1 -- 0_neq_vbuaa_then_la1 
     cmp #0
     bne vera_sprite_vflip_on1
     // vera_sprite_vflip::vera_sprite_vflip_off1
     // (word)sprite << 3
-    // [1429] vera_sprite_vflip::vera_sprite_vflip_off1_$7 = (word)vera_sprite_vflip::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1531] vera_sprite_vflip::vera_sprite_vflip_off1_$7 = (word)vera_sprite_vflip::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_vflip_off1___7
     lda #0
     sta.z vera_sprite_vflip_off1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1430] vera_sprite_vflip::vera_sprite_vflip_off1_sprite_offset#0 = vera_sprite_vflip::vera_sprite_vflip_off1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1532] vera_sprite_vflip::vera_sprite_vflip_off1_sprite_offset#0 = vera_sprite_vflip::vera_sprite_vflip_off1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_vflip_off1_sprite_offset
     rol.z vera_sprite_vflip_off1_sprite_offset+1
     asl.z vera_sprite_vflip_off1_sprite_offset
@@ -9725,12 +9874,12 @@ vera_sprite_vflip: {
     asl.z vera_sprite_vflip_off1_sprite_offset
     rol.z vera_sprite_vflip_off1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1431] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1533] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1432] vera_sprite_vflip::vera_sprite_vflip_off1_$4 = vera_sprite_vflip::vera_sprite_vflip_off1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1534] vera_sprite_vflip::vera_sprite_vflip_off1_$4 = vera_sprite_vflip::vera_sprite_vflip_off1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_vflip_off1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9739,45 +9888,42 @@ vera_sprite_vflip: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_vflip_off1___4+1
     // <sprite_offset+6
-    // [1433] vera_sprite_vflip::vera_sprite_vflip_off1_$3 = < vera_sprite_vflip::vera_sprite_vflip_off1_$4 -- vbuz1=_lo_vwuz2 
+    // [1535] vera_sprite_vflip::vera_sprite_vflip_off1_$3 = < vera_sprite_vflip::vera_sprite_vflip_off1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_vflip_off1___4
-    sta.z vera_sprite_vflip_off1___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1434] *VERA_ADDRX_L = vera_sprite_vflip::vera_sprite_vflip_off1_$3 -- _deref_pbuc1=vbuz1 
+    // [1536] *VERA_ADDRX_L = vera_sprite_vflip::vera_sprite_vflip_off1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1435] vera_sprite_vflip::vera_sprite_vflip_off1_$5 = > vera_sprite_vflip::vera_sprite_vflip_off1_$4 -- vbuz1=_hi_vwuz2 
+    // [1537] vera_sprite_vflip::vera_sprite_vflip_off1_$5 = > vera_sprite_vflip::vera_sprite_vflip_off1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_vflip_off1___4+1
-    sta.z vera_sprite_vflip_off1___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1436] *VERA_ADDRX_M = vera_sprite_vflip::vera_sprite_vflip_off1_$5 -- _deref_pbuc1=vbuz1 
+    // [1538] *VERA_ADDRX_M = vera_sprite_vflip::vera_sprite_vflip_off1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1437] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1539] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 & ~VERA_SPRITE_VFLIP
-    // [1438] vera_sprite_vflip::vera_sprite_vflip_off1_$6 = *VERA_DATA0 & ~VERA_SPRITE_VFLIP -- vbuz1=_deref_pbuc1_band_vbuc2 
+    // [1540] vera_sprite_vflip::vera_sprite_vflip_off1_$6 = *VERA_DATA0 & ~VERA_SPRITE_VFLIP -- vbuaa=_deref_pbuc1_band_vbuc2 
     lda #VERA_SPRITE_VFLIP^$ff
     and VERA_DATA0
-    sta.z vera_sprite_vflip_off1___6
     // *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_VFLIP
-    // [1439] *VERA_DATA0 = vera_sprite_vflip::vera_sprite_vflip_off1_$6 -- _deref_pbuc1=vbuz1 
+    // [1541] *VERA_DATA0 = vera_sprite_vflip::vera_sprite_vflip_off1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     // vera_sprite_vflip::@return
     // }
-    // [1440] return 
+    // [1542] return 
     rts
     // vera_sprite_vflip::vera_sprite_vflip_on1
   vera_sprite_vflip_on1:
     // (word)sprite << 3
-    // [1441] vera_sprite_vflip::vera_sprite_vflip_on1_$7 = (word)vera_sprite_vflip::sprite#0 -- vwuz1=_word_vbuz2 
+    // [1543] vera_sprite_vflip::vera_sprite_vflip_on1_$7 = (word)vera_sprite_vflip::sprite#0 -- vwuz1=_word_vbuz2 
     lda.z sprite
     sta.z vera_sprite_vflip_on1___7
     lda #0
     sta.z vera_sprite_vflip_on1___7+1
     // sprite_offset = (<VERA_SPRITE_ATTR)+(word)sprite << 3
-    // [1442] vera_sprite_vflip::vera_sprite_vflip_on1_sprite_offset#0 = vera_sprite_vflip::vera_sprite_vflip_on1_$7 << 3 -- vwuz1=vwuz1_rol_3 
+    // [1544] vera_sprite_vflip::vera_sprite_vflip_on1_sprite_offset#0 = vera_sprite_vflip::vera_sprite_vflip_on1_$7 << 3 -- vwuz1=vwuz1_rol_3 
     asl.z vera_sprite_vflip_on1_sprite_offset
     rol.z vera_sprite_vflip_on1_sprite_offset+1
     asl.z vera_sprite_vflip_on1_sprite_offset
@@ -9785,12 +9931,12 @@ vera_sprite_vflip: {
     asl.z vera_sprite_vflip_on1_sprite_offset
     rol.z vera_sprite_vflip_on1_sprite_offset+1
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1443] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1545] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // sprite_offset+6
-    // [1444] vera_sprite_vflip::vera_sprite_vflip_on1_$4 = vera_sprite_vflip::vera_sprite_vflip_on1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
+    // [1546] vera_sprite_vflip::vera_sprite_vflip_on1_$4 = vera_sprite_vflip::vera_sprite_vflip_on1_sprite_offset#0 + <VERA_SPRITE_ATTR+6 -- vwuz1=vwuz1_plus_vwuc1 
     clc
     lda.z vera_sprite_vflip_on1___4
     adc #<((VERA_SPRITE_ATTR&$ffff))+6
@@ -9799,76 +9945,29 @@ vera_sprite_vflip: {
     adc #>((VERA_SPRITE_ATTR&$ffff))+6
     sta.z vera_sprite_vflip_on1___4+1
     // <sprite_offset+6
-    // [1445] vera_sprite_vflip::vera_sprite_vflip_on1_$3 = < vera_sprite_vflip::vera_sprite_vflip_on1_$4 -- vbuz1=_lo_vwuz2 
+    // [1547] vera_sprite_vflip::vera_sprite_vflip_on1_$3 = < vera_sprite_vflip::vera_sprite_vflip_on1_$4 -- vbuaa=_lo_vwuz1 
     lda.z vera_sprite_vflip_on1___4
-    sta.z vera_sprite_vflip_on1___3
     // *VERA_ADDRX_L = <sprite_offset+6
-    // [1446] *VERA_ADDRX_L = vera_sprite_vflip::vera_sprite_vflip_on1_$3 -- _deref_pbuc1=vbuz1 
+    // [1548] *VERA_ADDRX_L = vera_sprite_vflip::vera_sprite_vflip_on1_$3 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >sprite_offset+6
-    // [1447] vera_sprite_vflip::vera_sprite_vflip_on1_$5 = > vera_sprite_vflip::vera_sprite_vflip_on1_$4 -- vbuz1=_hi_vwuz2 
+    // [1549] vera_sprite_vflip::vera_sprite_vflip_on1_$5 = > vera_sprite_vflip::vera_sprite_vflip_on1_$4 -- vbuaa=_hi_vwuz1 
     lda.z vera_sprite_vflip_on1___4+1
-    sta.z vera_sprite_vflip_on1___5
     // *VERA_ADDRX_M = >sprite_offset+6
-    // [1448] *VERA_ADDRX_M = vera_sprite_vflip::vera_sprite_vflip_on1_$5 -- _deref_pbuc1=vbuz1 
+    // [1550] *VERA_ADDRX_M = vera_sprite_vflip::vera_sprite_vflip_on1_$5 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_0 | <(>VERA_SPRITE_ATTR)
-    // [1449] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
+    // [1551] *VERA_ADDRX_H = <>VERA_SPRITE_ATTR -- _deref_pbuc1=vbuc2 
     lda #<VERA_SPRITE_ATTR>>$10
     sta VERA_ADDRX_H
     // *VERA_DATA0 | VERA_SPRITE_VFLIP
-    // [1450] vera_sprite_vflip::vera_sprite_vflip_on1_$6 = *VERA_DATA0 | VERA_SPRITE_VFLIP -- vbuz1=_deref_pbuc1_bor_vbuc2 
+    // [1552] vera_sprite_vflip::vera_sprite_vflip_on1_$6 = *VERA_DATA0 | VERA_SPRITE_VFLIP -- vbuaa=_deref_pbuc1_bor_vbuc2 
     lda #VERA_SPRITE_VFLIP
     ora VERA_DATA0
-    sta.z vera_sprite_vflip_on1___6
     // *VERA_DATA0 = *VERA_DATA0 | VERA_SPRITE_VFLIP
-    // [1451] *VERA_DATA0 = vera_sprite_vflip::vera_sprite_vflip_on1_$6 -- _deref_pbuc1=vbuz1 
+    // [1553] *VERA_DATA0 = vera_sprite_vflip::vera_sprite_vflip_on1_$6 -- _deref_pbuc1=vbuaa 
     sta VERA_DATA0
     rts
-}
-  // strlen
-// Computes the length of the string str up to but not including the terminating null character.
-// strlen(byte* zp($c3) str)
-strlen: {
-    .label len = $c8
-    .label str = $c3
-    .label return = $c8
-    // [1453] phi from strlen to strlen::@1 [phi:strlen->strlen::@1]
-    // [1453] phi strlen::len#2 = 0 [phi:strlen->strlen::@1#0] -- vwuz1=vwuc1 
-    lda #<0
-    sta.z len
-    sta.z len+1
-    // [1453] phi strlen::str#4 = strlen::str#6 [phi:strlen->strlen::@1#1] -- register_copy 
-    // strlen::@1
-  __b1:
-    // while(*str)
-    // [1454] if(0!=*strlen::str#4) goto strlen::@2 -- 0_neq__deref_pbuz1_then_la1 
-    ldy #0
-    lda (str),y
-    cmp #0
-    bne __b2
-    // strlen::@return
-    // }
-    // [1455] return 
-    rts
-    // strlen::@2
-  __b2:
-    // len++;
-    // [1456] strlen::len#1 = ++ strlen::len#2 -- vwuz1=_inc_vwuz1 
-    inc.z len
-    bne !+
-    inc.z len+1
-  !:
-    // str++;
-    // [1457] strlen::str#0 = ++ strlen::str#4 -- pbuz1=_inc_pbuz1 
-    inc.z str
-    bne !+
-    inc.z str+1
-  !:
-    // [1453] phi from strlen::@2 to strlen::@1 [phi:strlen::@2->strlen::@1]
-    // [1453] phi strlen::len#2 = strlen::len#1 [phi:strlen::@2->strlen::@1#0] -- register_copy 
-    // [1453] phi strlen::str#4 = strlen::str#0 [phi:strlen::@2->strlen::@1#1] -- register_copy 
-    jmp __b1
 }
   // vera_layer_get_color
 // Get the text and back color for text output in 16 color mode.
@@ -9876,77 +9975,61 @@ strlen: {
 // - return: an 8 bit value with bit 7:4 containing the back color and bit 3:0 containing the front color.
 //   This will only work when the VERA is in 16 color mode!
 //   Note that on the VERA, the transparent color has value 0.
-// vera_layer_get_color(byte zp($b9) layer)
+// vera_layer_get_color(byte register(X) layer)
 vera_layer_get_color: {
-    .label __0 = $c7
-    .label __1 = $c7
-    .label __3 = $c7
-    .label addr = $75
-    .label return = $b9
-    .label layer = $b9
+    .label addr = $d2
     // addr = vera_layer_config[layer]
-    // [1459] vera_layer_get_color::$3 = vera_layer_get_color::layer#2 << 1 -- vbuz1=vbuz2_rol_1 
-    lda.z layer
+    // [1555] vera_layer_get_color::$3 = vera_layer_get_color::layer#2 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
     asl
-    sta.z __3
-    // [1460] vera_layer_get_color::addr#0 = vera_layer_config[vera_layer_get_color::$3] -- pbuz1=qbuc1_derefidx_vbuz2 
+    // [1556] vera_layer_get_color::addr#0 = vera_layer_config[vera_layer_get_color::$3] -- pbuz1=qbuc1_derefidx_vbuaa 
     tay
     lda vera_layer_config,y
     sta.z addr
     lda vera_layer_config+1,y
     sta.z addr+1
     // *addr & VERA_LAYER_CONFIG_256C
-    // [1461] vera_layer_get_color::$0 = *vera_layer_get_color::addr#0 & VERA_LAYER_CONFIG_256C -- vbuz1=_deref_pbuz2_band_vbuc1 
+    // [1557] vera_layer_get_color::$0 = *vera_layer_get_color::addr#0 & VERA_LAYER_CONFIG_256C -- vbuaa=_deref_pbuz1_band_vbuc1 
     lda #VERA_LAYER_CONFIG_256C
     ldy #0
     and (addr),y
-    sta.z __0
     // if( *addr & VERA_LAYER_CONFIG_256C )
-    // [1462] if(0!=vera_layer_get_color::$0) goto vera_layer_get_color::@1 -- 0_neq_vbuz1_then_la1 
+    // [1558] if(0!=vera_layer_get_color::$0) goto vera_layer_get_color::@1 -- 0_neq_vbuaa_then_la1 
     cmp #0
     bne __b1
     // vera_layer_get_color::@2
     // vera_layer_backcolor[layer] << 4
-    // [1463] vera_layer_get_color::$1 = vera_layer_backcolor[vera_layer_get_color::layer#2] << 4 -- vbuz1=pbuc1_derefidx_vbuz2_rol_4 
-    ldy.z layer
-    lda vera_layer_backcolor,y
+    // [1559] vera_layer_get_color::$1 = vera_layer_backcolor[vera_layer_get_color::layer#2] << 4 -- vbuaa=pbuc1_derefidx_vbuxx_rol_4 
+    lda vera_layer_backcolor,x
     asl
     asl
     asl
     asl
-    sta.z __1
     // return ((vera_layer_backcolor[layer] << 4) | vera_layer_textcolor[layer]);
-    // [1464] vera_layer_get_color::return#1 = vera_layer_get_color::$1 | vera_layer_textcolor[vera_layer_get_color::layer#2] -- vbuz1=vbuz2_bor_pbuc1_derefidx_vbuz1 
-    ldy.z return
-    ora vera_layer_textcolor,y
-    sta.z return
-    // [1465] phi from vera_layer_get_color::@1 vera_layer_get_color::@2 to vera_layer_get_color::@return [phi:vera_layer_get_color::@1/vera_layer_get_color::@2->vera_layer_get_color::@return]
-    // [1465] phi vera_layer_get_color::return#2 = vera_layer_get_color::return#0 [phi:vera_layer_get_color::@1/vera_layer_get_color::@2->vera_layer_get_color::@return#0] -- register_copy 
+    // [1560] vera_layer_get_color::return#1 = vera_layer_get_color::$1 | vera_layer_textcolor[vera_layer_get_color::layer#2] -- vbuaa=vbuaa_bor_pbuc1_derefidx_vbuxx 
+    ora vera_layer_textcolor,x
+    // [1561] phi from vera_layer_get_color::@1 vera_layer_get_color::@2 to vera_layer_get_color::@return [phi:vera_layer_get_color::@1/vera_layer_get_color::@2->vera_layer_get_color::@return]
+    // [1561] phi vera_layer_get_color::return#2 = vera_layer_get_color::return#0 [phi:vera_layer_get_color::@1/vera_layer_get_color::@2->vera_layer_get_color::@return#0] -- register_copy 
     // vera_layer_get_color::@return
     // }
-    // [1466] return 
+    // [1562] return 
     rts
     // vera_layer_get_color::@1
   __b1:
     // return (vera_layer_textcolor[layer]);
-    // [1467] vera_layer_get_color::return#0 = vera_layer_textcolor[vera_layer_get_color::layer#2] -- vbuz1=pbuc1_derefidx_vbuz1 
-    ldy.z return
-    lda vera_layer_textcolor,y
-    sta.z return
+    // [1563] vera_layer_get_color::return#0 = vera_layer_textcolor[vera_layer_get_color::layer#2] -- vbuaa=pbuc1_derefidx_vbuxx 
+    lda vera_layer_textcolor,x
     rts
 }
   // cputln
 // Print a newline
 cputln: {
-    .label __2 = $b9
-    .label __3 = $b9
-    .label temp = $75
+    .label temp = $ce
     // temp = conio_line_text[cx16_conio.conio_screen_layer]
-    // [1468] cputln::$2 = *((byte*)&cx16_conio) << 1 -- vbuz1=_deref_pbuc1_rol_1 
+    // [1564] cputln::$2 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
     lda cx16_conio
     asl
-    sta.z __2
-    // [1469] cputln::temp#0 = conio_line_text[cputln::$2] -- vwuz1=pwuc1_derefidx_vbuz2 
+    // [1565] cputln::temp#0 = conio_line_text[cputln::$2] -- vwuz1=pwuc1_derefidx_vbuaa 
     // TODO: This needs to be optimized! other variations don't compile because of sections not available!
     tay
     lda conio_line_text,y
@@ -9954,7 +10037,7 @@ cputln: {
     lda conio_line_text+1,y
     sta.z temp+1
     // temp += cx16_conio.conio_rowskip
-    // [1470] cputln::temp#1 = cputln::temp#0 + *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) -- vwuz1=vwuz1_plus__deref_pwuc1 
+    // [1566] cputln::temp#1 = cputln::temp#0 + *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) -- vwuz1=vwuz1_plus__deref_pwuc1 
     clc
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP
     adc.z temp
@@ -9963,494 +10046,32 @@ cputln: {
     adc.z temp+1
     sta.z temp+1
     // conio_line_text[cx16_conio.conio_screen_layer] = temp
-    // [1471] cputln::$3 = *((byte*)&cx16_conio) << 1 -- vbuz1=_deref_pbuc1_rol_1 
+    // [1567] cputln::$3 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
     lda cx16_conio
     asl
-    sta.z __3
-    // [1472] conio_line_text[cputln::$3] = cputln::temp#1 -- pwuc1_derefidx_vbuz1=vwuz2 
+    // [1568] conio_line_text[cputln::$3] = cputln::temp#1 -- pwuc1_derefidx_vbuaa=vwuz1 
     tay
     lda.z temp
     sta conio_line_text,y
     lda.z temp+1
     sta conio_line_text+1,y
     // conio_cursor_x[cx16_conio.conio_screen_layer] = 0
-    // [1473] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
+    // [1569] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
     lda #0
     ldy cx16_conio
     sta conio_cursor_x,y
     // conio_cursor_y[cx16_conio.conio_screen_layer]++;
-    // [1474] conio_cursor_y[*((byte*)&cx16_conio)] = ++ conio_cursor_y[*((byte*)&cx16_conio)] -- pbuc1_derefidx_(_deref_pbuc2)=_inc_pbuc1_derefidx_(_deref_pbuc2) 
+    // [1570] conio_cursor_y[*((byte*)&cx16_conio)] = ++ conio_cursor_y[*((byte*)&cx16_conio)] -- pbuc1_derefidx_(_deref_pbuc2)=_inc_pbuc1_derefidx_(_deref_pbuc2) 
     ldx cx16_conio
     lda conio_cursor_y,x
     inc
     sta conio_cursor_y,y
     // cscroll()
-    // [1475] call cscroll 
+    // [1571] call cscroll 
     jsr cscroll
     // cputln::@return
     // }
-    // [1476] return 
-    rts
-}
-  // uctoa_append
-// Used to convert a single digit of an unsigned number value to a string representation
-// Counts a single digit up from '0' as long as the value is larger than sub.
-// Each time the digit is increased sub is subtracted from value.
-// - buffer : pointer to the char that receives the digit
-// - value : The value where the digit will be derived from
-// - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
-//        (For decimal the subs used are 10000, 1000, 100, 10, 1)
-// returns : the value reduced by sub * digit so that it is less than sub.
-// uctoa_append(byte* zp($c8) buffer, byte zp($f) value, byte zp($a9) sub)
-uctoa_append: {
-    .label buffer = $c8
-    .label value = $f
-    .label sub = $a9
-    .label return = $f
-    .label digit = $b3
-    // [1478] phi from uctoa_append to uctoa_append::@1 [phi:uctoa_append->uctoa_append::@1]
-    // [1478] phi uctoa_append::digit#2 = 0 [phi:uctoa_append->uctoa_append::@1#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z digit
-    // [1478] phi uctoa_append::value#2 = uctoa_append::value#0 [phi:uctoa_append->uctoa_append::@1#1] -- register_copy 
-    // uctoa_append::@1
-  __b1:
-    // while (value >= sub)
-    // [1479] if(uctoa_append::value#2>=uctoa_append::sub#0) goto uctoa_append::@2 -- vbuz1_ge_vbuz2_then_la1 
-    lda.z value
-    cmp.z sub
-    bcs __b2
-    // uctoa_append::@3
-    // *buffer = DIGITS[digit]
-    // [1480] *uctoa_append::buffer#0 = DIGITS[uctoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuz2 
-    ldy.z digit
-    lda DIGITS,y
-    ldy #0
-    sta (buffer),y
-    // uctoa_append::@return
-    // }
-    // [1481] return 
-    rts
-    // uctoa_append::@2
-  __b2:
-    // digit++;
-    // [1482] uctoa_append::digit#1 = ++ uctoa_append::digit#2 -- vbuz1=_inc_vbuz1 
-    inc.z digit
-    // value -= sub
-    // [1483] uctoa_append::value#1 = uctoa_append::value#2 - uctoa_append::sub#0 -- vbuz1=vbuz1_minus_vbuz2 
-    lda.z value
-    sec
-    sbc.z sub
-    sta.z value
-    // [1478] phi from uctoa_append::@2 to uctoa_append::@1 [phi:uctoa_append::@2->uctoa_append::@1]
-    // [1478] phi uctoa_append::digit#2 = uctoa_append::digit#1 [phi:uctoa_append::@2->uctoa_append::@1#0] -- register_copy 
-    // [1478] phi uctoa_append::value#2 = uctoa_append::value#1 [phi:uctoa_append::@2->uctoa_append::@1#1] -- register_copy 
-    jmp __b1
-}
-  // printf_padding
-// Print a padding char a number of times
-// printf_padding(byte zp($b7) pad, byte zp($40) length)
-printf_padding: {
-    .label i = $b8
-    .label length = $40
-    .label pad = $b7
-    // [1485] phi from printf_padding to printf_padding::@1 [phi:printf_padding->printf_padding::@1]
-    // [1485] phi printf_padding::i#2 = 0 [phi:printf_padding->printf_padding::@1#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z i
-    // printf_padding::@1
-  __b1:
-    // for(char i=0;i<length; i++)
-    // [1486] if(printf_padding::i#2<printf_padding::length#6) goto printf_padding::@2 -- vbuz1_lt_vbuz2_then_la1 
-    lda.z i
-    cmp.z length
-    bcc __b2
-    // printf_padding::@return
-    // }
-    // [1487] return 
-    rts
-    // printf_padding::@2
-  __b2:
-    // cputc(pad)
-    // [1488] cputc::c#1 = printf_padding::pad#7 -- vbuz1=vbuz2 
-    lda.z pad
-    sta.z cputc.c
-    // [1489] call cputc 
-    // [1109] phi from printf_padding::@2 to cputc [phi:printf_padding::@2->cputc]
-    // [1109] phi cputc::c#3 = cputc::c#1 [phi:printf_padding::@2->cputc#0] -- register_copy 
-    jsr cputc
-    // printf_padding::@3
-    // for(char i=0;i<length; i++)
-    // [1490] printf_padding::i#1 = ++ printf_padding::i#2 -- vbuz1=_inc_vbuz1 
-    inc.z i
-    // [1485] phi from printf_padding::@3 to printf_padding::@1 [phi:printf_padding::@3->printf_padding::@1]
-    // [1485] phi printf_padding::i#2 = printf_padding::i#1 [phi:printf_padding::@3->printf_padding::@1#0] -- register_copy 
-    jmp __b1
-}
-  // strupr
-// Converts a string to uppercase.
-strupr: {
-    .label str = printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    .label __0 = $b9
-    .label src = $7d
-    // [1492] phi from strupr to strupr::@1 [phi:strupr->strupr::@1]
-    // [1492] phi strupr::src#2 = strupr::str#0 [phi:strupr->strupr::@1#0] -- pbuz1=pbuc1 
-    lda #<str
-    sta.z src
-    lda #>str
-    sta.z src+1
-    // strupr::@1
-  __b1:
-    // while(*src)
-    // [1493] if(0!=*strupr::src#2) goto strupr::@2 -- 0_neq__deref_pbuz1_then_la1 
-    ldy #0
-    lda (src),y
-    cmp #0
-    bne __b2
-    // strupr::@return
-    // }
-    // [1494] return 
-    rts
-    // strupr::@2
-  __b2:
-    // toupper(*src)
-    // [1495] toupper::ch#0 = *strupr::src#2 -- vbuz1=_deref_pbuz2 
-    ldy #0
-    lda (src),y
-    sta.z toupper.ch
-    // [1496] call toupper 
-    jsr toupper
-    // [1497] toupper::return#3 = toupper::return#2
-    // strupr::@3
-    // [1498] strupr::$0 = toupper::return#3
-    // *src = toupper(*src)
-    // [1499] *strupr::src#2 = strupr::$0 -- _deref_pbuz1=vbuz2 
-    lda.z __0
-    ldy #0
-    sta (src),y
-    // src++;
-    // [1500] strupr::src#1 = ++ strupr::src#2 -- pbuz1=_inc_pbuz1 
-    inc.z src
-    bne !+
-    inc.z src+1
-  !:
-    // [1492] phi from strupr::@3 to strupr::@1 [phi:strupr::@3->strupr::@1]
-    // [1492] phi strupr::src#2 = strupr::src#1 [phi:strupr::@3->strupr::@1#0] -- register_copy 
-    jmp __b1
-}
-  // vera_heap_block_is_empty
-// vera_heap_block_is_empty(struct vera_heap* zp($b1) block)
-vera_heap_block_is_empty: {
-    .label sz = $6f
-    .label return = $6f
-    .label block = $b1
-    // sz = block->size
-    // [1501] vera_heap_block_is_empty::sz#0 = ((word*)vera_heap_block_is_empty::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] -- vwuz1=pwuz2_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
-    lda (block),y
-    sta.z sz
-    iny
-    lda (block),y
-    sta.z sz+1
-    // sz & ~VERA_HEAP_EMPTY
-    // [1502] vera_heap_block_is_empty::return#0 = vera_heap_block_is_empty::sz#0 & ~VERA_HEAP_EMPTY -- vwuz1=vwuz1_band_vwuc1 
-    lda.z return
-    and #<VERA_HEAP_EMPTY^$ffff
-    sta.z return
-    lda.z return+1
-    and #>VERA_HEAP_EMPTY^$ffff
-    sta.z return+1
-    // vera_heap_block_is_empty::@return
-    // }
-    // [1503] return 
-    rts
-}
-  // vera_heap_block_size_get
-// vera_heap_block_size_get(struct vera_heap* zp($c8) block)
-vera_heap_block_size_get: {
-    .label __0 = $af
-    .label __2 = $c8
-    .label return = $26
-    .label block = $c8
-    // block->size & ~VERA_HEAP_SIZE_16
-    // [1504] vera_heap_block_size_get::$0 = ((word*)vera_heap_block_size_get::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_SIZE_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
-    ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
-    lda (block),y
-    and #<VERA_HEAP_SIZE_16^$ffff
-    sta.z __0
-    iny
-    lda (block),y
-    and #>VERA_HEAP_SIZE_16^$ffff
-    sta.z __0+1
-    // (block->size & ~VERA_HEAP_SIZE_16)?0x10000:0x00000 | block->size
-    // [1505] if(0!=vera_heap_block_size_get::$0) goto vera_heap_block_size_get::@2 -- 0_neq_vwuz1_then_la1 
-    lda.z __0
-    ora.z __0+1
-    bne __b1
-    // vera_heap_block_size_get::@1
-    // [1506] vera_heap_block_size_get::$2 = ((word*)vera_heap_block_size_get::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] -- vwuz1=pwuz1_derefidx_vbuc1 
-    ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
-    lda (__2),y
-    pha
-    iny
-    lda (__2),y
-    sta.z __2+1
-    pla
-    sta.z __2
-    // [1507] phi from vera_heap_block_size_get::@1 to vera_heap_block_size_get::@2 [phi:vera_heap_block_size_get::@1->vera_heap_block_size_get::@2]
-    // [1507] phi vera_heap_block_size_get::return#0 = vera_heap_block_size_get::$2 [phi:vera_heap_block_size_get::@1->vera_heap_block_size_get::@2#0] -- vduz1=vwuz2 
-    sta.z return
-    lda.z __2+1
-    sta.z return+1
-    lda #0
-    sta.z return+2
-    sta.z return+3
-    rts
-    // [1507] phi from vera_heap_block_size_get to vera_heap_block_size_get::@2 [phi:vera_heap_block_size_get->vera_heap_block_size_get::@2]
-  __b1:
-    // [1507] phi vera_heap_block_size_get::return#0 = $10000 [phi:vera_heap_block_size_get->vera_heap_block_size_get::@2#0] -- vduz1=vduc1 
-    lda #<$10000
-    sta.z return
-    lda #>$10000
-    sta.z return+1
-    lda #<$10000>>$10
-    sta.z return+2
-    lda #>$10000>>$10
-    sta.z return+3
-    // vera_heap_block_size_get::@2
-    // vera_heap_block_size_get::@return
-    // }
-    // [1508] return 
-    rts
-}
-  // ultoa
-// Converts unsigned number value to a string representing it in RADIX format.
-// If the leading digits are zero they are not included in the string.
-// - value : The number to be converted to RADIX
-// - buffer : receives the string representing the number and zero-termination.
-// - radix : The radix to convert the number to (from the enum RADIX)
-// ultoa(dword zp($26) value, byte* zp($7d) buffer)
-ultoa: {
-    .const max_digits = 8
-    .label __10 = $f
-    .label __11 = $f
-    .label digit_value = $ce
-    .label buffer = $7d
-    .label digit = $aa
-    .label value = $26
-    .label started = $b5
-    // [1510] phi from ultoa to ultoa::@1 [phi:ultoa->ultoa::@1]
-    // [1510] phi ultoa::buffer#11 = (byte*)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:ultoa->ultoa::@1#0] -- pbuz1=pbuc1 
-    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    sta.z buffer
-    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
-    sta.z buffer+1
-    // [1510] phi ultoa::started#2 = 0 [phi:ultoa->ultoa::@1#1] -- vbuz1=vbuc1 
-    lda #0
-    sta.z started
-    // [1510] phi ultoa::value#2 = ultoa::value#1 [phi:ultoa->ultoa::@1#2] -- register_copy 
-    // [1510] phi ultoa::digit#2 = 0 [phi:ultoa->ultoa::@1#3] -- vbuz1=vbuc1 
-    sta.z digit
-    // ultoa::@1
-  __b1:
-    // for( char digit=0; digit<max_digits-1; digit++ )
-    // [1511] if(ultoa::digit#2<ultoa::max_digits#2-1) goto ultoa::@2 -- vbuz1_lt_vbuc1_then_la1 
-    lda.z digit
-    cmp #max_digits-1
-    bcc __b2
-    // ultoa::@3
-    // *buffer++ = DIGITS[(char)value]
-    // [1512] ultoa::$11 = (byte)ultoa::value#2 -- vbuz1=_byte_vduz2 
-    lda.z value
-    sta.z __11
-    // [1513] *ultoa::buffer#11 = DIGITS[ultoa::$11] -- _deref_pbuz1=pbuc1_derefidx_vbuz2 
-    tay
-    lda DIGITS,y
-    ldy #0
-    sta (buffer),y
-    // *buffer++ = DIGITS[(char)value];
-    // [1514] ultoa::buffer#3 = ++ ultoa::buffer#11 -- pbuz1=_inc_pbuz1 
-    inc.z buffer
-    bne !+
-    inc.z buffer+1
-  !:
-    // *buffer = 0
-    // [1515] *ultoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
-    lda #0
-    tay
-    sta (buffer),y
-    // ultoa::@return
-    // }
-    // [1516] return 
-    rts
-    // ultoa::@2
-  __b2:
-    // digit_value = digit_values[digit]
-    // [1517] ultoa::$10 = ultoa::digit#2 << 2 -- vbuz1=vbuz2_rol_2 
-    lda.z digit
-    asl
-    asl
-    sta.z __10
-    // [1518] ultoa::digit_value#0 = RADIX_HEXADECIMAL_VALUES_LONG[ultoa::$10] -- vduz1=pduc1_derefidx_vbuz2 
-    tay
-    lda RADIX_HEXADECIMAL_VALUES_LONG,y
-    sta.z digit_value
-    lda RADIX_HEXADECIMAL_VALUES_LONG+1,y
-    sta.z digit_value+1
-    lda RADIX_HEXADECIMAL_VALUES_LONG+2,y
-    sta.z digit_value+2
-    lda RADIX_HEXADECIMAL_VALUES_LONG+3,y
-    sta.z digit_value+3
-    // if (started || value >= digit_value)
-    // [1519] if(0!=ultoa::started#2) goto ultoa::@5 -- 0_neq_vbuz1_then_la1 
-    lda.z started
-    cmp #0
-    bne __b5
-    // ultoa::@7
-    // [1520] if(ultoa::value#2>=ultoa::digit_value#0) goto ultoa::@5 -- vduz1_ge_vduz2_then_la1 
-    lda.z value+3
-    cmp.z digit_value+3
-    bcc !+
-    bne __b5
-    lda.z value+2
-    cmp.z digit_value+2
-    bcc !+
-    bne __b5
-    lda.z value+1
-    cmp.z digit_value+1
-    bcc !+
-    bne __b5
-    lda.z value
-    cmp.z digit_value
-    bcs __b5
-  !:
-    // [1521] phi from ultoa::@7 to ultoa::@4 [phi:ultoa::@7->ultoa::@4]
-    // [1521] phi ultoa::buffer#14 = ultoa::buffer#11 [phi:ultoa::@7->ultoa::@4#0] -- register_copy 
-    // [1521] phi ultoa::started#4 = ultoa::started#2 [phi:ultoa::@7->ultoa::@4#1] -- register_copy 
-    // [1521] phi ultoa::value#6 = ultoa::value#2 [phi:ultoa::@7->ultoa::@4#2] -- register_copy 
-    // ultoa::@4
-  __b4:
-    // for( char digit=0; digit<max_digits-1; digit++ )
-    // [1522] ultoa::digit#1 = ++ ultoa::digit#2 -- vbuz1=_inc_vbuz1 
-    inc.z digit
-    // [1510] phi from ultoa::@4 to ultoa::@1 [phi:ultoa::@4->ultoa::@1]
-    // [1510] phi ultoa::buffer#11 = ultoa::buffer#14 [phi:ultoa::@4->ultoa::@1#0] -- register_copy 
-    // [1510] phi ultoa::started#2 = ultoa::started#4 [phi:ultoa::@4->ultoa::@1#1] -- register_copy 
-    // [1510] phi ultoa::value#2 = ultoa::value#6 [phi:ultoa::@4->ultoa::@1#2] -- register_copy 
-    // [1510] phi ultoa::digit#2 = ultoa::digit#1 [phi:ultoa::@4->ultoa::@1#3] -- register_copy 
-    jmp __b1
-    // ultoa::@5
-  __b5:
-    // ultoa_append(buffer++, value, digit_value)
-    // [1523] ultoa_append::buffer#0 = ultoa::buffer#11 -- pbuz1=pbuz2 
-    lda.z buffer
-    sta.z ultoa_append.buffer
-    lda.z buffer+1
-    sta.z ultoa_append.buffer+1
-    // [1524] ultoa_append::value#0 = ultoa::value#2
-    // [1525] ultoa_append::sub#0 = ultoa::digit_value#0
-    // [1526] call ultoa_append 
-    // [1544] phi from ultoa::@5 to ultoa_append [phi:ultoa::@5->ultoa_append]
-    jsr ultoa_append
-    // ultoa_append(buffer++, value, digit_value)
-    // [1527] ultoa_append::return#0 = ultoa_append::value#2
-    // ultoa::@6
-    // value = ultoa_append(buffer++, value, digit_value)
-    // [1528] ultoa::value#0 = ultoa_append::return#0
-    // value = ultoa_append(buffer++, value, digit_value);
-    // [1529] ultoa::buffer#4 = ++ ultoa::buffer#11 -- pbuz1=_inc_pbuz1 
-    inc.z buffer
-    bne !+
-    inc.z buffer+1
-  !:
-    // [1521] phi from ultoa::@6 to ultoa::@4 [phi:ultoa::@6->ultoa::@4]
-    // [1521] phi ultoa::buffer#14 = ultoa::buffer#4 [phi:ultoa::@6->ultoa::@4#0] -- register_copy 
-    // [1521] phi ultoa::started#4 = 1 [phi:ultoa::@6->ultoa::@4#1] -- vbuz1=vbuc1 
-    lda #1
-    sta.z started
-    // [1521] phi ultoa::value#6 = ultoa::value#0 [phi:ultoa::@6->ultoa::@4#2] -- register_copy 
-    jmp __b4
-}
-  // cscroll
-// Scroll the entire screen if the cursor is beyond the last line
-cscroll: {
-    // if(conio_cursor_y[cx16_conio.conio_screen_layer]>=cx16_conio.conio_screen_height)
-    // [1530] if(conio_cursor_y[*((byte*)&cx16_conio)]<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto cscroll::@return -- pbuc1_derefidx_(_deref_pbuc2)_lt__deref_pbuc3_then_la1 
-    ldy cx16_conio
-    lda conio_cursor_y,y
-    cmp cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
-    bcc __b3
-    // cscroll::@1
-    // if(conio_scroll_enable[cx16_conio.conio_screen_layer])
-    // [1531] if(0!=conio_scroll_enable[*((byte*)&cx16_conio)]) goto cscroll::@4 -- 0_neq_pbuc1_derefidx_(_deref_pbuc2)_then_la1 
-    lda conio_scroll_enable,y
-    cmp #0
-    bne __b4
-    // cscroll::@2
-    // if(conio_cursor_y[cx16_conio.conio_screen_layer]>=cx16_conio.conio_screen_height)
-    // [1532] if(conio_cursor_y[*((byte*)&cx16_conio)]<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto cscroll::@return -- pbuc1_derefidx_(_deref_pbuc2)_lt__deref_pbuc3_then_la1 
-    lda conio_cursor_y,y
-    cmp cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
-    // [1533] phi from cscroll::@2 to cscroll::@3 [phi:cscroll::@2->cscroll::@3]
-    // cscroll::@3
-  __b3:
-    // cscroll::@return
-    // }
-    // [1534] return 
-    rts
-    // [1535] phi from cscroll::@1 to cscroll::@4 [phi:cscroll::@1->cscroll::@4]
-    // cscroll::@4
-  __b4:
-    // insertup()
-    // [1536] call insertup 
-    jsr insertup
-    // cscroll::@5
-    // gotoxy( 0, cx16_conio.conio_screen_height-1)
-    // [1537] gotoxy::y#2 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT) - 1 -- vbuz1=_deref_pbuc1_minus_1 
-    ldx cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
-    dex
-    stx.z gotoxy.y
-    // [1538] call gotoxy 
-    // [406] phi from cscroll::@5 to gotoxy [phi:cscroll::@5->gotoxy]
-    // [406] phi gotoxy::x#4 = 0 [phi:cscroll::@5->gotoxy#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z gotoxy.x
-    // [406] phi gotoxy::y#4 = gotoxy::y#2 [phi:cscroll::@5->gotoxy#1] -- register_copy 
-    jsr gotoxy
-    rts
-}
-  // toupper
-// Convert lowercase alphabet to uppercase
-// Returns uppercase equivalent to c, if such value exists, else c remains unchanged
-// toupper(byte zp($b9) ch)
-toupper: {
-    .label return = $b9
-    .label ch = $b9
-    // if(ch>='a' && ch<='z')
-    // [1539] if(toupper::ch#0<'a') goto toupper::@return -- vbuz1_lt_vbuc1_then_la1 
-    lda.z ch
-    cmp #'a'
-    bcc __breturn
-    // toupper::@2
-    // [1540] if(toupper::ch#0<='z') goto toupper::@1 -- vbuz1_le_vbuc1_then_la1 
-    lda #'z'
-    cmp.z ch
-    bcs __b1
-    // [1542] phi from toupper toupper::@1 toupper::@2 to toupper::@return [phi:toupper/toupper::@1/toupper::@2->toupper::@return]
-    // [1542] phi toupper::return#2 = toupper::ch#0 [phi:toupper/toupper::@1/toupper::@2->toupper::@return#0] -- register_copy 
-    rts
-    // toupper::@1
-  __b1:
-    // return ch + ('A'-'a');
-    // [1541] toupper::return#0 = toupper::ch#0 + 'A'-'a' -- vbuz1=vbuz1_plus_vbuc1 
-    lda #'A'-'a'
-    clc
-    adc.z return
-    sta.z return
-    // toupper::@return
-  __breturn:
-    // }
-    // [1543] return 
+    // [1572] return 
     rts
 }
   // ultoa_append
@@ -10462,22 +10083,20 @@ toupper: {
 // - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
 //        (For decimal the subs used are 10000, 1000, 100, 10, 1)
 // returns : the value reduced by sub * digit so that it is less than sub.
-// ultoa_append(byte* zp($af) buffer, dword zp($26) value, dword zp($ce) sub)
+// ultoa_append(byte* zp($d2) buffer, dword zp(5) value, dword zp($b6) sub)
 ultoa_append: {
-    .label buffer = $af
-    .label value = $26
-    .label sub = $ce
-    .label return = $26
-    .label digit = $ba
-    // [1545] phi from ultoa_append to ultoa_append::@1 [phi:ultoa_append->ultoa_append::@1]
-    // [1545] phi ultoa_append::digit#2 = 0 [phi:ultoa_append->ultoa_append::@1#0] -- vbuz1=vbuc1 
-    lda #0
-    sta.z digit
-    // [1545] phi ultoa_append::value#2 = ultoa_append::value#0 [phi:ultoa_append->ultoa_append::@1#1] -- register_copy 
+    .label buffer = $d2
+    .label value = 5
+    .label sub = $b6
+    .label return = 5
+    // [1574] phi from ultoa_append to ultoa_append::@1 [phi:ultoa_append->ultoa_append::@1]
+    // [1574] phi ultoa_append::digit#2 = 0 [phi:ultoa_append->ultoa_append::@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [1574] phi ultoa_append::value#2 = ultoa_append::value#0 [phi:ultoa_append->ultoa_append::@1#1] -- register_copy 
     // ultoa_append::@1
   __b1:
     // while (value >= sub)
-    // [1546] if(ultoa_append::value#2>=ultoa_append::sub#0) goto ultoa_append::@2 -- vduz1_ge_vduz2_then_la1 
+    // [1575] if(ultoa_append::value#2>=ultoa_append::sub#0) goto ultoa_append::@2 -- vduz1_ge_vduz2_then_la1 
     lda.z value+3
     cmp.z sub+3
     bcc !+
@@ -10496,22 +10115,21 @@ ultoa_append: {
   !:
     // ultoa_append::@3
     // *buffer = DIGITS[digit]
-    // [1547] *ultoa_append::buffer#0 = DIGITS[ultoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuz2 
-    ldy.z digit
-    lda DIGITS,y
+    // [1576] *ultoa_append::buffer#0 = DIGITS[ultoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuxx 
+    lda DIGITS,x
     ldy #0
     sta (buffer),y
     // ultoa_append::@return
     // }
-    // [1548] return 
+    // [1577] return 
     rts
     // ultoa_append::@2
   __b2:
     // digit++;
-    // [1549] ultoa_append::digit#1 = ++ ultoa_append::digit#2 -- vbuz1=_inc_vbuz1 
-    inc.z digit
+    // [1578] ultoa_append::digit#1 = ++ ultoa_append::digit#2 -- vbuxx=_inc_vbuxx 
+    inx
     // value -= sub
-    // [1550] ultoa_append::value#1 = ultoa_append::value#2 - ultoa_append::sub#0 -- vduz1=vduz1_minus_vduz2 
+    // [1579] ultoa_append::value#1 = ultoa_append::value#2 - ultoa_append::sub#0 -- vduz1=vduz1_minus_vduz2 
     lda.z value
     sec
     sbc.z sub
@@ -10525,60 +10143,339 @@ ultoa_append: {
     lda.z value+3
     sbc.z sub+3
     sta.z value+3
-    // [1545] phi from ultoa_append::@2 to ultoa_append::@1 [phi:ultoa_append::@2->ultoa_append::@1]
-    // [1545] phi ultoa_append::digit#2 = ultoa_append::digit#1 [phi:ultoa_append::@2->ultoa_append::@1#0] -- register_copy 
-    // [1545] phi ultoa_append::value#2 = ultoa_append::value#1 [phi:ultoa_append::@2->ultoa_append::@1#1] -- register_copy 
+    // [1574] phi from ultoa_append::@2 to ultoa_append::@1 [phi:ultoa_append::@2->ultoa_append::@1]
+    // [1574] phi ultoa_append::digit#2 = ultoa_append::digit#1 [phi:ultoa_append::@2->ultoa_append::@1#0] -- register_copy 
+    // [1574] phi ultoa_append::value#2 = ultoa_append::value#1 [phi:ultoa_append::@2->ultoa_append::@1#1] -- register_copy 
     jmp __b1
+}
+  // utoa_append
+// Used to convert a single digit of an unsigned number value to a string representation
+// Counts a single digit up from '0' as long as the value is larger than sub.
+// Each time the digit is increased sub is subtracted from value.
+// - buffer : pointer to the char that receives the digit
+// - value : The value where the digit will be derived from
+// - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
+//        (For decimal the subs used are 10000, 1000, 100, 10, 1)
+// returns : the value reduced by sub * digit so that it is less than sub.
+// utoa_append(byte* zp($45) buffer, word zp($34) value, word zp($ba) sub)
+utoa_append: {
+    .label buffer = $45
+    .label value = $34
+    .label sub = $ba
+    .label return = $34
+    // [1581] phi from utoa_append to utoa_append::@1 [phi:utoa_append->utoa_append::@1]
+    // [1581] phi utoa_append::digit#2 = 0 [phi:utoa_append->utoa_append::@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [1581] phi utoa_append::value#2 = utoa_append::value#0 [phi:utoa_append->utoa_append::@1#1] -- register_copy 
+    // utoa_append::@1
+  __b1:
+    // while (value >= sub)
+    // [1582] if(utoa_append::value#2>=utoa_append::sub#0) goto utoa_append::@2 -- vwuz1_ge_vwuz2_then_la1 
+    lda.z sub+1
+    cmp.z value+1
+    bne !+
+    lda.z sub
+    cmp.z value
+    beq __b2
+  !:
+    bcc __b2
+    // utoa_append::@3
+    // *buffer = DIGITS[digit]
+    // [1583] *utoa_append::buffer#0 = DIGITS[utoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuxx 
+    lda DIGITS,x
+    ldy #0
+    sta (buffer),y
+    // utoa_append::@return
+    // }
+    // [1584] return 
+    rts
+    // utoa_append::@2
+  __b2:
+    // digit++;
+    // [1585] utoa_append::digit#1 = ++ utoa_append::digit#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // value -= sub
+    // [1586] utoa_append::value#1 = utoa_append::value#2 - utoa_append::sub#0 -- vwuz1=vwuz1_minus_vwuz2 
+    lda.z value
+    sec
+    sbc.z sub
+    sta.z value
+    lda.z value+1
+    sbc.z sub+1
+    sta.z value+1
+    // [1581] phi from utoa_append::@2 to utoa_append::@1 [phi:utoa_append::@2->utoa_append::@1]
+    // [1581] phi utoa_append::digit#2 = utoa_append::digit#1 [phi:utoa_append::@2->utoa_append::@1#0] -- register_copy 
+    // [1581] phi utoa_append::value#2 = utoa_append::value#1 [phi:utoa_append::@2->utoa_append::@1#1] -- register_copy 
+    jmp __b1
+}
+  // strlen
+// Computes the length of the string str up to but not including the terminating null character.
+// strlen(byte* zp($a9) str)
+strlen: {
+    .label len = $af
+    .label str = $a9
+    .label return = $af
+    // [1588] phi from strlen to strlen::@1 [phi:strlen->strlen::@1]
+    // [1588] phi strlen::len#2 = 0 [phi:strlen->strlen::@1#0] -- vwuz1=vwuc1 
+    lda #<0
+    sta.z len
+    sta.z len+1
+    // [1588] phi strlen::str#4 = strlen::str#1 [phi:strlen->strlen::@1#1] -- register_copy 
+    // strlen::@1
+  __b1:
+    // while(*str)
+    // [1589] if(0!=*strlen::str#4) goto strlen::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (str),y
+    cmp #0
+    bne __b2
+    // strlen::@return
+    // }
+    // [1590] return 
+    rts
+    // strlen::@2
+  __b2:
+    // len++;
+    // [1591] strlen::len#1 = ++ strlen::len#2 -- vwuz1=_inc_vwuz1 
+    inc.z len
+    bne !+
+    inc.z len+1
+  !:
+    // str++;
+    // [1592] strlen::str#0 = ++ strlen::str#4 -- pbuz1=_inc_pbuz1 
+    inc.z str
+    bne !+
+    inc.z str+1
+  !:
+    // [1588] phi from strlen::@2 to strlen::@1 [phi:strlen::@2->strlen::@1]
+    // [1588] phi strlen::len#2 = strlen::len#1 [phi:strlen::@2->strlen::@1#0] -- register_copy 
+    // [1588] phi strlen::str#4 = strlen::str#0 [phi:strlen::@2->strlen::@1#1] -- register_copy 
+    jmp __b1
+}
+  // uctoa_append
+// Used to convert a single digit of an unsigned number value to a string representation
+// Counts a single digit up from '0' as long as the value is larger than sub.
+// Each time the digit is increased sub is subtracted from value.
+// - buffer : pointer to the char that receives the digit
+// - value : The value where the digit will be derived from
+// - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
+//        (For decimal the subs used are 10000, 1000, 100, 10, 1)
+// returns : the value reduced by sub * digit so that it is less than sub.
+// uctoa_append(byte* zp($c2) buffer, byte register(X) value, byte zp($6d) sub)
+uctoa_append: {
+    .label buffer = $c2
+    .label sub = $6d
+    // [1594] phi from uctoa_append to uctoa_append::@1 [phi:uctoa_append->uctoa_append::@1]
+    // [1594] phi uctoa_append::digit#2 = 0 [phi:uctoa_append->uctoa_append::@1#0] -- vbuyy=vbuc1 
+    ldy #0
+    // [1594] phi uctoa_append::value#2 = uctoa_append::value#0 [phi:uctoa_append->uctoa_append::@1#1] -- register_copy 
+    // uctoa_append::@1
+  __b1:
+    // while (value >= sub)
+    // [1595] if(uctoa_append::value#2>=uctoa_append::sub#0) goto uctoa_append::@2 -- vbuxx_ge_vbuz1_then_la1 
+    cpx.z sub
+    bcs __b2
+    // uctoa_append::@3
+    // *buffer = DIGITS[digit]
+    // [1596] *uctoa_append::buffer#0 = DIGITS[uctoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuyy 
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // uctoa_append::@return
+    // }
+    // [1597] return 
+    rts
+    // uctoa_append::@2
+  __b2:
+    // digit++;
+    // [1598] uctoa_append::digit#1 = ++ uctoa_append::digit#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // value -= sub
+    // [1599] uctoa_append::value#1 = uctoa_append::value#2 - uctoa_append::sub#0 -- vbuxx=vbuxx_minus_vbuz1 
+    txa
+    sec
+    sbc.z sub
+    tax
+    // [1594] phi from uctoa_append::@2 to uctoa_append::@1 [phi:uctoa_append::@2->uctoa_append::@1]
+    // [1594] phi uctoa_append::digit#2 = uctoa_append::digit#1 [phi:uctoa_append::@2->uctoa_append::@1#0] -- register_copy 
+    // [1594] phi uctoa_append::value#2 = uctoa_append::value#1 [phi:uctoa_append::@2->uctoa_append::@1#1] -- register_copy 
+    jmp __b1
+}
+  // vera_heap_block_is_empty
+// vera_heap_block_is_empty(struct vera_heap* zp($72) block)
+vera_heap_block_is_empty: {
+    .label sz = $67
+    .label return = $67
+    .label block = $72
+    // sz = block->size
+    // [1600] vera_heap_block_is_empty::sz#0 = ((word*)vera_heap_block_is_empty::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] -- vwuz1=pwuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
+    lda (block),y
+    sta.z sz
+    iny
+    lda (block),y
+    sta.z sz+1
+    // sz & ~VERA_HEAP_EMPTY
+    // [1601] vera_heap_block_is_empty::return#0 = vera_heap_block_is_empty::sz#0 & ~VERA_HEAP_EMPTY -- vwuz1=vwuz1_band_vwuc1 
+    lda.z return
+    and #<VERA_HEAP_EMPTY^$ffff
+    sta.z return
+    lda.z return+1
+    and #>VERA_HEAP_EMPTY^$ffff
+    sta.z return+1
+    // vera_heap_block_is_empty::@return
+    // }
+    // [1602] return 
+    rts
+}
+  // vera_heap_block_size_get
+// vera_heap_block_size_get(struct vera_heap* zp($65) block)
+vera_heap_block_size_get: {
+    .label __0 = $67
+    .label __2 = $65
+    .label return = $c8
+    .label block = $65
+    // block->size & ~VERA_HEAP_SIZE_16
+    // [1603] vera_heap_block_size_get::$0 = ((word*)vera_heap_block_size_get::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] & ~VERA_HEAP_SIZE_16 -- vwuz1=pwuz2_derefidx_vbuc1_band_vwuc2 
+    ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
+    lda (block),y
+    and #<VERA_HEAP_SIZE_16^$ffff
+    sta.z __0
+    iny
+    lda (block),y
+    and #>VERA_HEAP_SIZE_16^$ffff
+    sta.z __0+1
+    // (block->size & ~VERA_HEAP_SIZE_16)?0x10000:0x00000 | block->size
+    // [1604] if(0!=vera_heap_block_size_get::$0) goto vera_heap_block_size_get::@2 -- 0_neq_vwuz1_then_la1 
+    lda.z __0
+    ora.z __0+1
+    bne __b1
+    // vera_heap_block_size_get::@1
+    // [1605] vera_heap_block_size_get::$2 = ((word*)vera_heap_block_size_get::block#0)[OFFSET_STRUCT_VERA_HEAP_SIZE] -- vwuz1=pwuz1_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_VERA_HEAP_SIZE
+    lda (__2),y
+    pha
+    iny
+    lda (__2),y
+    sta.z __2+1
+    pla
+    sta.z __2
+    // [1606] phi from vera_heap_block_size_get::@1 to vera_heap_block_size_get::@2 [phi:vera_heap_block_size_get::@1->vera_heap_block_size_get::@2]
+    // [1606] phi vera_heap_block_size_get::return#0 = vera_heap_block_size_get::$2 [phi:vera_heap_block_size_get::@1->vera_heap_block_size_get::@2#0] -- vduz1=vwuz2 
+    sta.z return
+    lda.z __2+1
+    sta.z return+1
+    lda #0
+    sta.z return+2
+    sta.z return+3
+    rts
+    // [1606] phi from vera_heap_block_size_get to vera_heap_block_size_get::@2 [phi:vera_heap_block_size_get->vera_heap_block_size_get::@2]
+  __b1:
+    // [1606] phi vera_heap_block_size_get::return#0 = $10000 [phi:vera_heap_block_size_get->vera_heap_block_size_get::@2#0] -- vduz1=vduc1 
+    lda #<$10000
+    sta.z return
+    lda #>$10000
+    sta.z return+1
+    lda #<$10000>>$10
+    sta.z return+2
+    lda #>$10000>>$10
+    sta.z return+3
+    // vera_heap_block_size_get::@2
+    // vera_heap_block_size_get::@return
+    // }
+    // [1607] return 
+    rts
+}
+  // cscroll
+// Scroll the entire screen if the cursor is beyond the last line
+cscroll: {
+    // if(conio_cursor_y[cx16_conio.conio_screen_layer]>=cx16_conio.conio_screen_height)
+    // [1608] if(conio_cursor_y[*((byte*)&cx16_conio)]<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto cscroll::@return -- pbuc1_derefidx_(_deref_pbuc2)_lt__deref_pbuc3_then_la1 
+    ldy cx16_conio
+    lda conio_cursor_y,y
+    cmp cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
+    bcc __b3
+    // cscroll::@1
+    // if(conio_scroll_enable[cx16_conio.conio_screen_layer])
+    // [1609] if(0!=conio_scroll_enable[*((byte*)&cx16_conio)]) goto cscroll::@4 -- 0_neq_pbuc1_derefidx_(_deref_pbuc2)_then_la1 
+    lda conio_scroll_enable,y
+    cmp #0
+    bne __b4
+    // cscroll::@2
+    // if(conio_cursor_y[cx16_conio.conio_screen_layer]>=cx16_conio.conio_screen_height)
+    // [1610] if(conio_cursor_y[*((byte*)&cx16_conio)]<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT)) goto cscroll::@return -- pbuc1_derefidx_(_deref_pbuc2)_lt__deref_pbuc3_then_la1 
+    lda conio_cursor_y,y
+    cmp cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
+    // [1611] phi from cscroll::@2 to cscroll::@3 [phi:cscroll::@2->cscroll::@3]
+    // cscroll::@3
+  __b3:
+    // cscroll::@return
+    // }
+    // [1612] return 
+    rts
+    // [1613] phi from cscroll::@1 to cscroll::@4 [phi:cscroll::@1->cscroll::@4]
+    // cscroll::@4
+  __b4:
+    // insertup()
+    // [1614] call insertup 
+    jsr insertup
+    // cscroll::@5
+    // gotoxy( 0, cx16_conio.conio_screen_height-1)
+    // [1615] gotoxy::y#2 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT) - 1 -- vbuxx=_deref_pbuc1_minus_1 
+    ldx cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_HEIGHT
+    dex
+    // [1616] call gotoxy 
+    // [330] phi from cscroll::@5 to gotoxy [phi:cscroll::@5->gotoxy]
+    // [330] phi gotoxy::y#7 = gotoxy::y#2 [phi:cscroll::@5->gotoxy#0] -- register_copy 
+    jsr gotoxy
+    rts
 }
   // insertup
 // Insert a new line, and scroll the upper part of the screen up.
 insertup: {
-    .label __3 = $d2
-    .label cy = $ba
-    .label width = $c7
-    .label line = $75
-    .label start = $75
-    .label i = $b9
+    .label cy = $d0
+    .label width = $d1
+    .label line = $b2
+    .label start = $b2
     // cy = conio_cursor_y[cx16_conio.conio_screen_layer]
-    // [1551] insertup::cy#0 = conio_cursor_y[*((byte*)&cx16_conio)] -- vbuz1=pbuc1_derefidx_(_deref_pbuc2) 
+    // [1617] insertup::cy#0 = conio_cursor_y[*((byte*)&cx16_conio)] -- vbuz1=pbuc1_derefidx_(_deref_pbuc2) 
     ldy cx16_conio
     lda conio_cursor_y,y
     sta.z cy
     // width = cx16_conio.conio_screen_width * 2
-    // [1552] insertup::width#0 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH) << 1 -- vbuz1=_deref_pbuc1_rol_1 
+    // [1618] insertup::width#0 = *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH) << 1 -- vbuz1=_deref_pbuc1_rol_1 
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
     asl
     sta.z width
-    // [1553] phi from insertup to insertup::@1 [phi:insertup->insertup::@1]
-    // [1553] phi insertup::i#2 = 1 [phi:insertup->insertup::@1#0] -- vbuz1=vbuc1 
-    lda #1
-    sta.z i
+    // [1619] phi from insertup to insertup::@1 [phi:insertup->insertup::@1]
+    // [1619] phi insertup::i#2 = 1 [phi:insertup->insertup::@1#0] -- vbuxx=vbuc1 
+    ldx #1
     // insertup::@1
   __b1:
     // for(unsigned byte i=1; i<=cy; i++)
-    // [1554] if(insertup::i#2<=insertup::cy#0) goto insertup::@2 -- vbuz1_le_vbuz2_then_la1 
+    // [1620] if(insertup::i#2<=insertup::cy#0) goto insertup::@2 -- vbuxx_le_vbuz1_then_la1 
     lda.z cy
-    cmp.z i
+    stx.z $ff
+    cmp.z $ff
     bcs __b2
-    // [1555] phi from insertup::@1 to insertup::@3 [phi:insertup::@1->insertup::@3]
+    // [1621] phi from insertup::@1 to insertup::@3 [phi:insertup::@1->insertup::@3]
     // insertup::@3
     // clearline()
-    // [1556] call clearline 
+    // [1622] call clearline 
     jsr clearline
     // insertup::@return
     // }
-    // [1557] return 
+    // [1623] return 
     rts
     // insertup::@2
   __b2:
     // i-1
-    // [1558] insertup::$3 = insertup::i#2 - 1 -- vbuz1=vbuz2_minus_1 
-    ldx.z i
-    dex
-    stx.z __3
-    // line = (i-1) << cx16_conio.conio_rowshift
-    // [1559] insertup::line#0 = insertup::$3 << *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT) -- vwuz1=vbuz2_rol__deref_pbuc1 
+    // [1624] insertup::$3 = insertup::i#2 - 1 -- vbuaa=vbuxx_minus_1 
     txa
+    sec
+    sbc #1
+    // line = (i-1) << cx16_conio.conio_rowshift
+    // [1625] insertup::line#0 = insertup::$3 << *((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT) -- vwuz1=vbuaa_rol__deref_pbuc1 
     ldy cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSHIFT
     sta.z line
     lda #0
@@ -10592,7 +10489,7 @@ insertup: {
     bne !-
   !e:
     // start = cx16_conio.conio_screen_text + line
-    // [1560] insertup::start#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) + insertup::line#0 -- pbuz1=_deref_qbuc1_plus_vwuz1 
+    // [1626] insertup::start#0 = *((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) + insertup::line#0 -- pbuz1=_deref_qbuc1_plus_vwuz1 
     clc
     lda.z start
     adc cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
@@ -10601,7 +10498,7 @@ insertup: {
     adc cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT+1
     sta.z start+1
     // start+cx16_conio.conio_rowskip
-    // [1561] memcpy_in_vram::src#0 = insertup::start#0 + *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) -- pbuz1=pbuz2_plus__deref_pwuc1 
+    // [1627] memcpy_in_vram::src#0 = insertup::start#0 + *((word*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP) -- pbuz1=pbuz2_plus__deref_pwuc1 
     clc
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_ROWSKIP
     adc.z start
@@ -10610,64 +10507,45 @@ insertup: {
     adc.z start+1
     sta.z memcpy_in_vram.src+1
     // memcpy_in_vram(0, start, VERA_INC_1,  0, start+cx16_conio.conio_rowskip, VERA_INC_1, width)
-    // [1562] memcpy_in_vram::dest#0 = (void*)insertup::start#0 -- pvoz1=pvoz2 
-    lda.z start
-    sta.z memcpy_in_vram.dest
-    lda.z start+1
-    sta.z memcpy_in_vram.dest+1
-    // [1563] memcpy_in_vram::num#0 = insertup::width#0 -- vwuz1=vbuz2 
+    // [1628] memcpy_in_vram::dest#0 = (void*)insertup::start#0
+    // [1629] memcpy_in_vram::num#0 = insertup::width#0 -- vwuz1=vbuz2 
     lda.z width
     sta.z memcpy_in_vram.num
     lda #0
     sta.z memcpy_in_vram.num+1
-    // [1564] memcpy_in_vram::src#3 = (void*)memcpy_in_vram::src#0
-    // memcpy_in_vram(0, start, VERA_INC_1,  0, start+cx16_conio.conio_rowskip, VERA_INC_1, width)
-    // [1565] call memcpy_in_vram 
-    // [264] phi from insertup::@2 to memcpy_in_vram [phi:insertup::@2->memcpy_in_vram]
-    // [264] phi memcpy_in_vram::num#3 = memcpy_in_vram::num#0 [phi:insertup::@2->memcpy_in_vram#0] -- register_copy 
-    // [264] phi memcpy_in_vram::dest_bank#2 = 0 [phi:insertup::@2->memcpy_in_vram#1] -- vbuz1=vbuc1 
-    sta.z memcpy_in_vram.dest_bank
-    // [264] phi memcpy_in_vram::dest#2 = memcpy_in_vram::dest#0 [phi:insertup::@2->memcpy_in_vram#2] -- register_copy 
-    // [264] phi memcpy_in_vram::src_bank#2 = 0 [phi:insertup::@2->memcpy_in_vram#3] -- vbuz1=vbuc1 
-    sta.z memcpy_in_vram.src_bank
-    // [264] phi memcpy_in_vram::src#2 = memcpy_in_vram::src#3 [phi:insertup::@2->memcpy_in_vram#4] -- register_copy 
+    // [1630] call memcpy_in_vram 
     jsr memcpy_in_vram
     // insertup::@4
     // for(unsigned byte i=1; i<=cy; i++)
-    // [1566] insertup::i#1 = ++ insertup::i#2 -- vbuz1=_inc_vbuz1 
-    inc.z i
-    // [1553] phi from insertup::@4 to insertup::@1 [phi:insertup::@4->insertup::@1]
-    // [1553] phi insertup::i#2 = insertup::i#1 [phi:insertup::@4->insertup::@1#0] -- register_copy 
+    // [1631] insertup::i#1 = ++ insertup::i#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [1619] phi from insertup::@4 to insertup::@1 [phi:insertup::@4->insertup::@1]
+    // [1619] phi insertup::i#2 = insertup::i#1 [phi:insertup::@4->insertup::@1#0] -- register_copy 
     jmp __b1
 }
   // clearline
 clearline: {
-    .label __1 = $b9
-    .label __2 = $ba
-    .label __5 = $b9
-    .label conio_line = $75
-    .label addr = $75
-    .label color = $b9
-    .label c = $c5
+    .label conio_line = $b4
+    .label addr = $b4
+    .label c = $b2
     // *VERA_CTRL &= ~VERA_ADDRSEL
-    // [1567] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [1632] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     // Select DATA0
     lda #VERA_ADDRSEL^$ff
     and VERA_CTRL
     sta VERA_CTRL
     // conio_line = conio_line_text[cx16_conio.conio_screen_layer]
-    // [1568] clearline::$5 = *((byte*)&cx16_conio) << 1 -- vbuz1=_deref_pbuc1_rol_1 
+    // [1633] clearline::$5 = *((byte*)&cx16_conio) << 1 -- vbuaa=_deref_pbuc1_rol_1 
     lda cx16_conio
     asl
-    sta.z __5
-    // [1569] clearline::conio_line#0 = conio_line_text[clearline::$5] -- vwuz1=pwuc1_derefidx_vbuz2 
+    // [1634] clearline::conio_line#0 = conio_line_text[clearline::$5] -- vwuz1=pwuc1_derefidx_vbuaa 
     tay
     lda conio_line_text,y
     sta.z conio_line
     lda conio_line_text+1,y
     sta.z conio_line+1
     // conio_screen_text + conio_line
-    // [1570] clearline::addr#0 = (word)*((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) + clearline::conio_line#0 -- vwuz1=_deref_pwuc1_plus_vwuz1 
+    // [1635] clearline::addr#0 = (word)*((byte**)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT) + clearline::conio_line#0 -- vwuz1=_deref_pwuc1_plus_vwuz1 
     clc
     lda cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_TEXT
     adc.z addr
@@ -10676,45 +10554,43 @@ clearline: {
     adc.z addr+1
     sta.z addr+1
     // <addr
-    // [1571] clearline::$1 = < (byte*)clearline::addr#0 -- vbuz1=_lo_pbuz2 
+    // [1636] clearline::$1 = < (byte*)clearline::addr#0 -- vbuaa=_lo_pbuz1 
     lda.z addr
-    sta.z __1
     // *VERA_ADDRX_L = <addr
-    // [1572] *VERA_ADDRX_L = clearline::$1 -- _deref_pbuc1=vbuz1 
+    // [1637] *VERA_ADDRX_L = clearline::$1 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_L
     // >addr
-    // [1573] clearline::$2 = > (byte*)clearline::addr#0 -- vbuz1=_hi_pbuz2 
+    // [1638] clearline::$2 = > (byte*)clearline::addr#0 -- vbuaa=_hi_pbuz1 
     lda.z addr+1
-    sta.z __2
     // *VERA_ADDRX_M = >addr
-    // [1574] *VERA_ADDRX_M = clearline::$2 -- _deref_pbuc1=vbuz1 
+    // [1639] *VERA_ADDRX_M = clearline::$2 -- _deref_pbuc1=vbuaa 
     sta VERA_ADDRX_M
     // *VERA_ADDRX_H = VERA_INC_1
-    // [1575] *VERA_ADDRX_H = VERA_INC_1 -- _deref_pbuc1=vbuc2 
+    // [1640] *VERA_ADDRX_H = VERA_INC_1 -- _deref_pbuc1=vbuc2 
     lda #VERA_INC_1
     sta VERA_ADDRX_H
     // vera_layer_get_color(cx16_conio.conio_screen_layer)
-    // [1576] vera_layer_get_color::layer#1 = *((byte*)&cx16_conio) -- vbuz1=_deref_pbuc1 
-    lda cx16_conio
-    sta.z vera_layer_get_color.layer
-    // [1577] call vera_layer_get_color 
-    // [1458] phi from clearline to vera_layer_get_color [phi:clearline->vera_layer_get_color]
-    // [1458] phi vera_layer_get_color::layer#2 = vera_layer_get_color::layer#1 [phi:clearline->vera_layer_get_color#0] -- register_copy 
+    // [1641] vera_layer_get_color::layer#1 = *((byte*)&cx16_conio) -- vbuxx=_deref_pbuc1 
+    ldx cx16_conio
+    // [1642] call vera_layer_get_color 
+    // [1554] phi from clearline to vera_layer_get_color [phi:clearline->vera_layer_get_color]
+    // [1554] phi vera_layer_get_color::layer#2 = vera_layer_get_color::layer#1 [phi:clearline->vera_layer_get_color#0] -- register_copy 
     jsr vera_layer_get_color
     // vera_layer_get_color(cx16_conio.conio_screen_layer)
-    // [1578] vera_layer_get_color::return#4 = vera_layer_get_color::return#2
+    // [1643] vera_layer_get_color::return#4 = vera_layer_get_color::return#2
     // clearline::@4
     // color = vera_layer_get_color(cx16_conio.conio_screen_layer)
-    // [1579] clearline::color#0 = vera_layer_get_color::return#4
-    // [1580] phi from clearline::@4 to clearline::@1 [phi:clearline::@4->clearline::@1]
-    // [1580] phi clearline::c#2 = 0 [phi:clearline::@4->clearline::@1#0] -- vwuz1=vwuc1 
+    // [1644] clearline::color#0 = vera_layer_get_color::return#4 -- vbuxx=vbuaa 
+    tax
+    // [1645] phi from clearline::@4 to clearline::@1 [phi:clearline::@4->clearline::@1]
+    // [1645] phi clearline::c#2 = 0 [phi:clearline::@4->clearline::@1#0] -- vwuz1=vwuc1 
     lda #<0
     sta.z c
     sta.z c+1
     // clearline::@1
   __b1:
     // for( unsigned int c=0;c<cx16_conio.conio_screen_width; c++ )
-    // [1581] if(clearline::c#2<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH)) goto clearline::@2 -- vwuz1_lt__deref_pbuc1_then_la1 
+    // [1646] if(clearline::c#2<*((byte*)&cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH)) goto clearline::@2 -- vwuz1_lt__deref_pbuc1_then_la1 
     ldy cx16_conio+OFFSET_STRUCT_CX16_CONIO_CONIO_SCREEN_WIDTH
     lda.z c+1
     bne !+
@@ -10725,33 +10601,133 @@ clearline: {
   !:
     // clearline::@3
     // conio_cursor_x[cx16_conio.conio_screen_layer] = 0
-    // [1582] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
+    // [1647] conio_cursor_x[*((byte*)&cx16_conio)] = 0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuc3 
     lda #0
     ldy cx16_conio
     sta conio_cursor_x,y
     // clearline::@return
     // }
-    // [1583] return 
+    // [1648] return 
     rts
     // clearline::@2
   __b2:
     // *VERA_DATA0 = ' '
-    // [1584] *VERA_DATA0 = ' ' -- _deref_pbuc1=vbuc2 
+    // [1649] *VERA_DATA0 = ' ' -- _deref_pbuc1=vbuc2 
     // Set data
     lda #' '
     sta VERA_DATA0
     // *VERA_DATA0 = color
-    // [1585] *VERA_DATA0 = clearline::color#0 -- _deref_pbuc1=vbuz1 
-    lda.z color
-    sta VERA_DATA0
+    // [1650] *VERA_DATA0 = clearline::color#0 -- _deref_pbuc1=vbuxx 
+    stx VERA_DATA0
     // for( unsigned int c=0;c<cx16_conio.conio_screen_width; c++ )
-    // [1586] clearline::c#1 = ++ clearline::c#2 -- vwuz1=_inc_vwuz1 
+    // [1651] clearline::c#1 = ++ clearline::c#2 -- vwuz1=_inc_vwuz1 
     inc.z c
     bne !+
     inc.z c+1
   !:
-    // [1580] phi from clearline::@2 to clearline::@1 [phi:clearline::@2->clearline::@1]
-    // [1580] phi clearline::c#2 = clearline::c#1 [phi:clearline::@2->clearline::@1#0] -- register_copy 
+    // [1645] phi from clearline::@2 to clearline::@1 [phi:clearline::@2->clearline::@1]
+    // [1645] phi clearline::c#2 = clearline::c#1 [phi:clearline::@2->clearline::@1#0] -- register_copy 
+    jmp __b1
+}
+  // memcpy_in_vram
+// Copy block of memory (from VRAM to VRAM)
+// Copies the values from the location pointed by src to the location pointed by dest.
+// The method uses the VERA access ports 0 and 1 to copy data from and to in VRAM.
+// - src_bank:  64K VRAM bank number to copy from (0/1).
+// - src: pointer to the location to copy from. Note that the address is a 16 bit value!
+// - src_increment: the increment indicator, VERA needs this because addressing increment is automated by VERA at each access.
+// - dest_bank:  64K VRAM bank number to copy to (0/1).
+// - dest: pointer to the location to copy to. Note that the address is a 16 bit value!
+// - dest_increment: the increment indicator, VERA needs this because addressing increment is automated by VERA at each access.
+// - num: The number of bytes to copy
+// memcpy_in_vram(void* zp($b2) dest, byte* zp($b4) src, word zp($d2) num)
+memcpy_in_vram: {
+    .label i = $b2
+    .label dest = $b2
+    .label src = $b4
+    .label num = $d2
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [1652] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // Select DATA0
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // <src
+    // [1653] memcpy_in_vram::$0 = < (void*)memcpy_in_vram::src#0 -- vbuaa=_lo_pvoz1 
+    lda.z src
+    // *VERA_ADDRX_L = <src
+    // [1654] *VERA_ADDRX_L = memcpy_in_vram::$0 -- _deref_pbuc1=vbuaa 
+    // Set address
+    sta VERA_ADDRX_L
+    // >src
+    // [1655] memcpy_in_vram::$1 = > (void*)memcpy_in_vram::src#0 -- vbuaa=_hi_pvoz1 
+    lda.z src+1
+    // *VERA_ADDRX_M = >src
+    // [1656] *VERA_ADDRX_M = memcpy_in_vram::$1 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // *VERA_ADDRX_H = src_increment | src_bank
+    // [1657] *VERA_ADDRX_H = VERA_INC_1 -- _deref_pbuc1=vbuc2 
+    lda #VERA_INC_1
+    sta VERA_ADDRX_H
+    // *VERA_CTRL |= VERA_ADDRSEL
+    // [1658] *VERA_CTRL = *VERA_CTRL | VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // Select DATA1
+    lda #VERA_ADDRSEL
+    ora VERA_CTRL
+    sta VERA_CTRL
+    // <dest
+    // [1659] memcpy_in_vram::$3 = < memcpy_in_vram::dest#0 -- vbuaa=_lo_pvoz1 
+    lda.z dest
+    // *VERA_ADDRX_L = <dest
+    // [1660] *VERA_ADDRX_L = memcpy_in_vram::$3 -- _deref_pbuc1=vbuaa 
+    // Set address
+    sta VERA_ADDRX_L
+    // >dest
+    // [1661] memcpy_in_vram::$4 = > memcpy_in_vram::dest#0 -- vbuaa=_hi_pvoz1 
+    lda.z dest+1
+    // *VERA_ADDRX_M = >dest
+    // [1662] *VERA_ADDRX_M = memcpy_in_vram::$4 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // *VERA_ADDRX_H = dest_increment | dest_bank
+    // [1663] *VERA_ADDRX_H = VERA_INC_1 -- _deref_pbuc1=vbuc2 
+    lda #VERA_INC_1
+    sta VERA_ADDRX_H
+    // [1664] phi from memcpy_in_vram to memcpy_in_vram::@1 [phi:memcpy_in_vram->memcpy_in_vram::@1]
+    // [1664] phi memcpy_in_vram::i#2 = 0 [phi:memcpy_in_vram->memcpy_in_vram::@1#0] -- vwuz1=vwuc1 
+    lda #<0
+    sta.z i
+    sta.z i+1
+  // Transfer the data
+    // memcpy_in_vram::@1
+  __b1:
+    // for(unsigned int i=0; i<num; i++)
+    // [1665] if(memcpy_in_vram::i#2<memcpy_in_vram::num#0) goto memcpy_in_vram::@2 -- vwuz1_lt_vwuz2_then_la1 
+    lda.z i+1
+    cmp.z num+1
+    bcc __b2
+    bne !+
+    lda.z i
+    cmp.z num
+    bcc __b2
+  !:
+    // memcpy_in_vram::@return
+    // }
+    // [1666] return 
+    rts
+    // memcpy_in_vram::@2
+  __b2:
+    // *VERA_DATA1 = *VERA_DATA0
+    // [1667] *VERA_DATA1 = *VERA_DATA0 -- _deref_pbuc1=_deref_pbuc2 
+    lda VERA_DATA0
+    sta VERA_DATA1
+    // for(unsigned int i=0; i<num; i++)
+    // [1668] memcpy_in_vram::i#1 = ++ memcpy_in_vram::i#2 -- vwuz1=_inc_vwuz1 
+    inc.z i
+    bne !+
+    inc.z i+1
+  !:
+    // [1664] phi from memcpy_in_vram::@2 to memcpy_in_vram::@1 [phi:memcpy_in_vram::@2->memcpy_in_vram::@1]
+    // [1664] phi memcpy_in_vram::i#2 = memcpy_in_vram::i#1 [phi:memcpy_in_vram::@2->memcpy_in_vram::@1#0] -- register_copy 
     jmp __b1
 }
   // File Data
@@ -10796,6 +10772,8 @@ clearline: {
   RADIX_DECIMAL_VALUES_CHAR: .byte $64, $a
   // Values of hexadecimal digits
   RADIX_HEXADECIMAL_VALUES_CHAR: .byte $10
+  // Values of decimal digits
+  RADIX_DECIMAL_VALUES: .word $2710, $3e8, $64, $a
   // Values of hexadecimal digits
   RADIX_HEXADECIMAL_VALUES_LONG: .dword $10000000, $1000000, $100000, $10000, $1000, $100, $10
   SpriteDB: .fill 2*2, 0
@@ -10815,37 +10793,52 @@ clearline: {
   SpritesPlayer: .text "PLAYER"
   .byte 0
   .fill 9, 0
-  .byte 0, 0, $c, $20, $20, 0, 1, 3, 4, 1
+  .byte 0, $c
+  .word $20*$20*$c/2, $200
+  .byte $20, $20, 0, 1, 3, 4, 1
   .dword 0, 0
   .fill 4*$b, 0
   SpritesEnemy2: .text "ENEMY2"
   .byte 0
   .fill 9, 0
-  .byte 0, $c, $c, $20, $20, 0, 0, 3, 4, 2
+  .byte $c, $c
+  .word $20*$20*$c/2, $200
+  .byte $20, $20, 0, 0, 3, 4, 2
   .dword 0, 0
   .fill 4*$b, 0
   SquareMetal: .text "SQUAREMETAL"
   .byte 0
   .fill 4, 0
-  .word 0, $40*$40*4/2
+  .word 0
+  .byte 4
+  .word $40*$40*4/2, $800
   .byte $40, $10, 4, 4, 4
   .dword 0, 0
   .fill 4*$b, 0
   TileMetal: .text "TILEMETAL"
   .byte 0
   .fill 6, 0
-  .word $40, $40*$40*4/2
+  .word $40
+  .byte 4
+  .word $40*$40*4/2, $800
   .byte $40, $10, 4, 4, 5
   .dword 0, 0
   .fill 4*$b, 0
   SquareRaster: .text "SQUARERASTER"
   .byte 0
   .fill 3, 0
-  .word $80, $40*$40*4/2
+  .word $80
+  .byte 4
+  .word $40*$40*4/2, $800
   .byte $40, $10, 4, 4, 6
   .dword 0, 0
   .fill 4*$b, 0
-  .label bram_sprites_ceil = vram_floor_map
-  .label bram_tiles_ceil = vram_floor_map
-  .label bram_palette = vram_floor_map
-  vram_floor_map: .dword 0
+  i: .byte 0
+  j: .byte 0
+  a: .byte 4
+  row: .word 5
+  vscroll: .word $80*5
+  scroll_action: .word 2
+  bram_sprites_ceil: .dword 0
+  .label bram_tiles_ceil = bram_sprites_ceil
+  .label bram_palette = bram_sprites_ceil

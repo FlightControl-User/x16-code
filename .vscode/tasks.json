@@ -9,7 +9,7 @@
                 "-a",
                 "-Sc",
                 "-Si",
-                //"-v",
+                // "-v",
                 "-Ocoalesce",
                 "-Xassembler=-symbolfile",
                 "${fileDirname}/${fileBasename}"
