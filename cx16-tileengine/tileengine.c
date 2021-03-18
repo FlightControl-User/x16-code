@@ -95,8 +95,8 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 volatile byte i = 0;
 volatile byte j = 0;
 volatile byte a = 4;
-volatile word row = 5;
-volatile word vscroll = 128*5;
+volatile word row = 8;
+volatile word vscroll = 8*64;
 volatile word scroll_action = 2;
 volatile byte s = 1;
 
@@ -106,19 +106,19 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     if(scroll_action--) {
         scroll_action = 10;
-        if((<vscroll & 0x80)==<vscroll) {
-            if(row<=4) {
-                dword dest_row = vram_floor_map+((row+4)*8*64*2);
-                dword src_row = vram_floor_map+(row*8*64*2);
-                vera_cpy_vram_vram(src_row, dest_row, (dword)64*8*2);
-                // gotoxy(0, 21);
-                // printf("src_row:%x dest_row:%x vram_floor_map:%x   ",src_row, dest_row, vram_floor_map);
+        gotoxy(0, 21);
+        printf("vscroll:%u row:%u   ",vscroll, row);
+        if((<vscroll & 0x40)==<vscroll || (<vscroll & 0x80)==<vscroll || (<vscroll & 0xC0)==<vscroll ) {
+            if(row<=7) {
+                dword dest_row = vram_floor_map+((row+8)*4*64*2);
+                dword src_row = vram_floor_map+(row*4*64*2);
+                vera_cpy_vram_vram(src_row, dest_row, (dword)64*4*2);
             }
             if(vscroll==0) {
-                vscroll=128*4;
-                row = 4;
+                vscroll=8*64;
+                row = 8;
             }
-            floor_draw((byte)row-1, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
+            floor_draw((byte)row-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
             s++;
             s&=1;
             // for(byte c=0;c<5;c++) {
@@ -251,7 +251,7 @@ void tile_background() {
     vera_tile_clear(0);
     byte y=15;
     floor_init(y, TileFloorNew, TileFloorOld);
-    for( i=0;i<15;i++) {
+    for( i=0;i<8;i++) {
         y--;
         floor_draw(y, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
         s++;
@@ -365,10 +365,11 @@ void main() {
 
     show_memory_map();
 
+    vera_layer_show(0);
+
     // floor_init();
     tile_background();
 
-    vera_layer_show(0);
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
