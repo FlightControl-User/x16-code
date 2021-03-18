@@ -17,7 +17,11 @@
 			"cx16-vera.h": "c",
 			"cx16-veralib.h": "c",
 			"cx16-veraheap.h": "c",
-			"cx16-veramem.h": "c"
+			"cx16-veramem.h": "c",
+			"kernal.h": "c",
+			"stdio.h": "c",
+			"conio.h": "c",
+			"cx16-conio.h": "c"
 		}
 	}
 }
