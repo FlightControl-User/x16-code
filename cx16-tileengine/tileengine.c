@@ -102,13 +102,13 @@ volatile byte s = 1;
 
 //VSYNC Interrupt Routine
 __interrupt(rom_sys_cx16) void irq_vsync() {
-    // Move the sprite around
 
-    if(scroll_action--) {
-        scroll_action = 10;
+    // background scrolling
+    if(!scroll_action--) {
+        scroll_action = 8;
         gotoxy(0, 21);
         printf("vscroll:%u row:%u   ",vscroll, row);
-        if((<vscroll & 0x40)==<vscroll || (<vscroll & 0x80)==<vscroll || (<vscroll & 0xC0)==<vscroll ) {
+        if((<vscroll & 0xC0)==<vscroll ) {
             if(row<=7) {
                 dword dest_row = vram_floor_map+((row+8)*4*64*2);
                 dword src_row = vram_floor_map+(row*4*64*2);
@@ -121,18 +121,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
             floor_draw((byte)row-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
             s++;
             s&=1;
-            // for(byte c=0;c<5;c++) {
-            //     byte rnd = (byte)modr16u(rand(),3,0);
-            //     vera_tile_element( 0, c, (byte)row-1, 3, TileDB[rnd]);
-            // }
             row--;
         } 
         vscroll--;
         vera_layer_set_vertical_scroll(0,vscroll);
     }
-
-    // gotoxy(0, 20);
-    // printf("vscroll:%u row:%u     ",vscroll, row);
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
