@@ -12,12 +12,6 @@ struct Tile {
 };
 
 
-byte const TILE_BORDER = 0;
-byte const TILE_SQUAREMETAL = 1;
-byte const TILE_SQUARERASTER = 2;
-byte const TILE_INSIDEMETAL = 3;
-byte const TILE_INSIDEDARK = 4;
-
 
 byte const TILE_BORDER_COUNT = 24;
 word const TILE_BORDER_OFFSET = 0;
@@ -39,6 +33,8 @@ byte const TILE_INSIDEDARK_COUNT = 1;
 word const TILE_INSIDEDARK_OFFSET = TILE_INSIDEMETAL_OFFSET + TILE_INSIDEMETAL_COUNT * 4;
 struct Tile TileInsideDark =    { "INSIDEDARK", TILE_INSIDEDARK_OFFSET,  TILE_INSIDEDARK_COUNT, 32*32*TILE_INSIDEDARK_COUNT/2, 512, 5, 16, 0x0, {0} };
 
+byte const TILE_TYPES = 5;
+__mem struct Tile *TileDB[5] = { &TileBorder, &TileSquareMetal, &TileSquareRaster, &TileInsideMetal, &TileInsideDark };
 
 
 // Glue the tile segments, in order to do fast selection of possible tile combinations and randomization.
@@ -158,9 +154,6 @@ struct TileSegment TileSegmentDB[26] = {
 // Work variables
 
 byte const TILE_FLOOR_COUNT = TILE_BORDER_COUNT + TILE_SQUAREMETAL_COUNT + TILE_SQUARERASTER_COUNT + TILE_INSIDEMETAL_COUNT + TILE_INSIDEDARK_COUNT; 
-
-// TODO: BUG! This is not compiling correctly! __mem struct Tile *TileDB[3] = {&SquareMetal, &TileMetal, &SquareRaster};
-__mem struct Tile *TileDB[5];
 
 byte const TILES = 10; 
 byte TileFloorNew[TILES];

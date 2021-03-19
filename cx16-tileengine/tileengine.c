@@ -92,44 +92,7 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
     }
 }
 
-volatile byte i = 0;
-volatile byte j = 0;
-volatile byte a = 4;
-volatile word row = 8;
-volatile word vscroll = 8*64;
-volatile word scroll_action = 2;
-volatile byte s = 1;
 
-//VSYNC Interrupt Routine
-__interrupt(rom_sys_cx16) void irq_vsync() {
-
-    // background scrolling
-    if(!scroll_action--) {
-        scroll_action = 8;
-        gotoxy(0, 21);
-        printf("vscroll:%u row:%u   ",vscroll, row);
-        if((<vscroll & 0xC0)==<vscroll ) {
-            if(row<=7) {
-                dword dest_row = vram_floor_map+((row+8)*4*64*2);
-                dword src_row = vram_floor_map+(row*4*64*2);
-                vera_cpy_vram_vram(src_row, dest_row, (dword)64*4*2);
-            }
-            if(vscroll==0) {
-                vscroll=8*64;
-                row = 8;
-            }
-            floor_draw((byte)row-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
-            s++;
-            s&=1;
-            row--;
-        } 
-        vscroll--;
-        vera_layer_set_vertical_scroll(0,vscroll);
-    }
-
-    // Reset the VSYNC interrupt
-    *VERA_ISR = VERA_VSYNC;
-}
 
 void floor_init(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
@@ -286,12 +249,6 @@ dword load_tile( struct Tile *Tile, dword bram_address) {
 
 void main() {
 
-    TileDB[TILE_BORDER] = &TileBorder;
-    TileDB[TILE_SQUAREMETAL] = &TileSquareMetal;
-    TileDB[TILE_SQUARERASTER] = &TileSquareRaster;
-    TileDB[TILE_INSIDEMETAL] = &TileInsideMetal;
-    TileDB[TILE_INSIDEDARK] = &TileInsideDark;
-
 
     // We are going to use only the kernal on the X16.
     cx16_rom_bank(CX16_ROM_KERNAL);
@@ -313,11 +270,9 @@ void main() {
     gotoxy(0, 30);
     // Loading the graphics in main banked memory.
     bram_tiles_ceil = 0x02000;
-    bram_tiles_ceil = load_tile(TileDB[TILE_BORDER], bram_tiles_ceil);
-    bram_tiles_ceil = load_tile(TileDB[TILE_SQUAREMETAL], bram_tiles_ceil);
-    bram_tiles_ceil = load_tile(TileDB[TILE_SQUARERASTER], bram_tiles_ceil);
-    bram_tiles_ceil = load_tile(TileDB[TILE_INSIDEMETAL], bram_tiles_ceil);
-    bram_tiles_ceil = load_tile(TileDB[TILE_INSIDEDARK], bram_tiles_ceil);
+    for(i=0; i<TILE_TYPES;i++) {
+        bram_tiles_ceil = load_tile(TileDB[i], bram_tiles_ceil);
+    }
 
     // Load the palettes in main banked memory.
     bram_palette = 0x16000;
@@ -332,7 +287,7 @@ void main() {
     gotoxy(0,34);
     printf("floor map = %x, tile map = %x\n", vram_segment_floor_map, vram_segment_floor_tile);
     printf("tiledb\n");
-    for(word i=0;i<5;i++) {
+    for(word i=0;i<TILE_TYPES;i++) {
         printf("%x ",(word)TileDB[(byte)i]);
     }
     printf("\n");
@@ -344,12 +299,9 @@ void main() {
     vram_floor_map = vram_segment_floor_map;
 
     // Now we activate the tile mode.
- 
-    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_BORDER]);
-    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUAREMETAL]);
-    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_SQUARERASTER]);
-    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_INSIDEMETAL]);
-    tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[TILE_INSIDEDARK]);
+    for(i=0;i<5;i++) {
+        tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[i]);
+    }
 
     vera_layer_mode_tile(0, vram_segment_floor_map, vram_segment_floor_tile, 64, 64, 16, 16, 4);
 
@@ -376,3 +328,42 @@ void main() {
     cx16_rom_bank(CX16_ROM_BASIC);
 }
 
+//VSYNC Interrupt Routine
+
+volatile byte i = 0;
+volatile byte j = 0;
+volatile byte a = 4;
+volatile word row = 8;
+volatile word vscroll = 8*64;
+volatile word scroll_action = 2;
+volatile byte s = 1;
+
+__interrupt(rom_sys_cx16) void irq_vsync() {
+
+    // background scrolling
+    if(!scroll_action--) {
+        scroll_action = 8;
+        gotoxy(0, 21);
+        printf("vscroll:%u row:%u   ",vscroll, row);
+        if((<vscroll & 0xC0)==<vscroll ) {
+            if(row<=7) {
+                dword dest_row = vram_floor_map+((row+8)*4*64*2);
+                dword src_row = vram_floor_map+(row*4*64*2);
+                vera_cpy_vram_vram(src_row, dest_row, (dword)64*4*2);
+            }
+            if(vscroll==0) {
+                vscroll=8*64;
+                row = 8;
+            }
+            floor_draw((byte)row-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
+            s++;
+            s&=1;
+            row--;
+        } 
+        vera_layer_set_vertical_scroll(0,vscroll);
+        vscroll--;
+    }
+
+    // Reset the VSYNC interrupt
+    *VERA_ISR = VERA_VSYNC;
+}
