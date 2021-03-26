@@ -17,6 +17,13 @@
 
 #include "tileengine.h"
 
+volatile byte i = 0;
+volatile byte j = 0;
+volatile byte a = 4;
+volatile word row = 8;
+volatile word vscroll = 8*64;
+volatile word scroll_action = 2;
+volatile byte s = 1;
 
 
 byte const HEAP_FLOOR_MAP = 1;
@@ -55,14 +62,12 @@ void vera_tile_clear( byte layer ) {
 
 void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 
+    gotoxy(4+x*4,y+12);
+    printf("%02u ",Segment);
 
     byte resolution = 2;
 
     struct TileSegment *TileSegment = &(TileSegmentDB[Segment]);
-    struct Tile *Tile = TileSegment->Tile;
-
-    byte PaletteOffset = Tile->PaletteOffset;
-
 
     x = x << resolution;
     y = y << resolution;
@@ -73,18 +78,19 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
     mapbase += ((word)y << shift);
     mapbase += (x << 1); // 2 bytes per tile (one index + one palette)
 
-    word TileBase = Tile->Offset;
     for(byte sr=0;sr<4;sr+=2) {
         for(byte r=0;r<4;r+=2) {
             vera_vram_address0(mapbase,VERA_INC_1);
             for(byte sc=0;sc<2;sc++) {
                 for(byte c=0;c<2;c++) {
                     byte s = sc + sr;
-                    word TileOffset = (TileSegment->Composition[s]);
+                    struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
+                    struct Tile *Tile = TilePart->Tile; 
+                    word TileOffset = (word)TileSegment->Composition[s];
                     TileOffset *= 4;
-                    word Offset =  TileBase + TileOffset + c + r;
+                    word Offset = TileOffset + c + r;
                     *VERA_DATA0 = <Offset;
-                    *VERA_DATA0 = PaletteOffset << 4 | >Offset;
+                    *VERA_DATA0 = Tile->PaletteOffset << 4 | >Offset;
                 }
             }
         mapbase += rowskip;
@@ -98,7 +104,7 @@ void floor_init(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     printf("\no=%x, n=%x", (word)TileFloorOld, (word)TileFloorNew);
 
-    byte rnd = (byte)modr16u(rand(),26,0);
+    byte rnd = (byte)modr16u(rand(),36,0);
     struct TileSegment *TileSegment = &(TileSegmentDB[(word)rnd]);
     TileFloorNew[0] = rnd;
     for(byte x=1;x<10;x++) {
@@ -129,6 +135,8 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     byte TileResults[20];
 
+    gotoxy(40,y+12);
+    
     for(byte x=0;x<10;x++) {
 
         struct TileGlue *TileGlueNew;
@@ -139,7 +147,6 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
             // Start from the south side ...
             TileGlueNew = floor_get_glue(TileFloorOld[0], 0);
         }
-
 
         // Find the common tile segment(s) ...
         byte TileResultCount = 0;
@@ -168,6 +175,9 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
                     struct TileGlue *TileGlueEast = floor_get_glue(GlueSegmentSouthEast,3);
                     for(byte f=0;f<TileGlueEast->CountGlue;f++) {
                         byte GlueSegmentEast = TileGlueEast->GlueSegment[f];
+                        // if(TileFloorOld[x+1]==9) {
+                        //     printf("g%02u/g%02u/g%02u ", GlueSegmentNew, GlueSegmentEast, GlueSegmentSouthEast  );
+                        // }
                         if( GlueSegmentNew == GlueSegmentEast ) {
                             TileEast = 1;
                         }
@@ -193,6 +203,7 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     for(byte x=0;x<10;x++) {
         word Tile = (word)TileFloorNew[x];
+        gotoxy(0,12+y); printf("y%02u",y);
         vera_tile_element( 0, x, y, Tile);
     }
 }
@@ -207,21 +218,25 @@ void tile_background() {
     vera_tile_clear(0);
     byte y=15;
     floor_init(y, TileFloorNew, TileFloorOld);
-    for( i=0;i<8;i++) {
+    for( i=0;i<15;i++) {
         y--;
         floor_draw(y, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
         s++;
         s&=1;
     }
+    vera_layer_set_vertical_scroll(0,8*64);
+   
 }
 
 void show_memory_map() {
-    for(byte i=0;i<5;i++) {
+    for(byte i=0;i<TILE_TYPES;i++) {
         struct Tile *Tile = TileDB[i];
+        byte offset = Tile->TileOffset;
         gotoxy(0, 10+i);
         printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address);
         for(byte j=0;j<Tile->TileCount;j++) {
-            printf("%x ", Tile->VRAM_Addresses[j]);
+            struct TilePart *TilePart = &TilePartDB[(word)(offset+j)];
+            printf("%x ", TilePart->VRAM_Address);
         }
     }
 }
@@ -230,11 +245,13 @@ void tile_cpy_vram(byte segmentid, struct Tile *Tile) {
     dword bsrc = Tile->BRAM_Address;
     byte num = Tile->TileCount;
     word size = Tile->TileSize;
+    byte offset = Tile->TileOffset;
     for(byte s=0;s<num;s++) {
         dword vaddr = vera_heap_malloc(segmentid, size);
         dword baddr = bsrc+mul16u((word)s,size);
         vera_cpy_bank_vram(baddr, vaddr, size);
-        Tile->VRAM_Addresses[s] = vaddr;
+        struct TilePart *TilePart = &TilePartDB[(word)(offset+s)];
+        TilePart->VRAM_Address = vaddr;
     }
 }
 
@@ -243,6 +260,7 @@ dword load_tile( struct Tile *Tile, dword bram_address) {
     if(status!=$ff) printf("error file %s: %x\n", Tile->File, status);
     Tile->BRAM_Address = bram_address;
     word size = Tile->TotalSize;
+    printf("size = %u", size);
     return bram_address + size;
     // return bram_address + Tile->Size; // TODO: fragment
 }
@@ -275,7 +293,7 @@ void main() {
     }
 
     // Load the palettes in main banked memory.
-    bram_palette = 0x16000;
+    bram_palette = 0x24000;
     byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette);
     if(status!=$ff) printf("error file_palettes = %u",status);
 
@@ -284,29 +302,29 @@ void main() {
     __mem dword vram_segment_floor_map = vera_heap_segment_init(HEAP_FLOOR_MAP, 0x10000, VRAM_FLOOR_MAP_SIZE);
     __mem dword vram_segment_floor_tile = vera_heap_segment_init(HEAP_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_FLOOR_MAP), VRAM_FLOOR_TILE_SIZE);
 
-    gotoxy(0,34);
-    printf("floor map = %x, tile map = %x\n", vram_segment_floor_map, vram_segment_floor_tile);
-    printf("tiledb\n");
-    for(word i=0;i<TILE_TYPES;i++) {
-        printf("%x ",(word)TileDB[(byte)i]);
-    }
-    printf("\n");
-    printf("segmentdb\n");
-    for(word i=0;i<26;i++) {
-        struct TileSegment *TileSegment = &(TileSegmentDB[i]);
-        printf("%x ",(word)TileSegment->Tile);
-    }
+    // gotoxy(0,34);
+    // printf("floor map = %x, tile map = %x\n", vram_segment_floor_map, vram_segment_floor_tile);
+    // printf("tiledb\n");
+    // for(word i=0;i<TILE_TYPES;i++) {
+    //     printf("%x ",(word)TileDB[(byte)i]);
+    // }
+    // printf("\n");
+    // printf("segmentdb\n");
+    // for(word i=0;i<36;i++) {
+    //     struct TileSegment *TileSegment = &(TileSegmentDB[i]);
+        // printf("%x ",(word)TileSegment->Tile);
+    // }
     vram_floor_map = vram_segment_floor_map;
 
     // Now we activate the tile mode.
-    for(i=0;i<5;i++) {
+    for(i=0;i<TILE_TYPES;i++) {
         tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[i]);
     }
 
     vera_layer_mode_tile(0, vram_segment_floor_map, vram_segment_floor_tile, 64, 64, 16, 16, 4);
 
     // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*5);
+    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*4);
 
     show_memory_map();
 
@@ -330,20 +348,12 @@ void main() {
 
 //VSYNC Interrupt Routine
 
-volatile byte i = 0;
-volatile byte j = 0;
-volatile byte a = 4;
-volatile word row = 8;
-volatile word vscroll = 8*64;
-volatile word scroll_action = 2;
-volatile byte s = 1;
-
 __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // background scrolling
     if(!scroll_action--) {
-        scroll_action = 8;
-        gotoxy(0, 21);
+        scroll_action = 1;
+        gotoxy(0, 10);
         printf("vscroll:%u row:%u   ",vscroll, row);
         if((<vscroll & 0xC0)==<vscroll ) {
             if(row<=7) {

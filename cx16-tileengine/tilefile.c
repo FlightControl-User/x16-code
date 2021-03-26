@@ -91,11 +91,11 @@ kickasm {{
 }};
 
 
-#pragma data_seg(Border)
-export char BITMAP_BORDER[] = kickasm {{{
-    .var pallist = GetPalette("Border",24,32,32,16,16)
-    .var tiledata = MakeTile("Border",pallist,24,32,32,16,16)
-    .var pallistdata = MakePalette("Border",pallist,16)
+#pragma data_seg(Floor01)
+export char BITMAP_FLOOR01[] = kickasm {{{
+    .var pallist = GetPalette("Floor_01_White_Border",20,32,32,16,16)
+    .var tiledata = MakeTile("Floor_01_White_Border",pallist,20,32,32,16,16)
+    .var pallistdata = MakePalette("Floor_01_White_Border",pallist,16)
     .for(var i=0;i<tiledata.size();i++) {
         .byte tiledata.get(i)
     }
@@ -105,11 +105,11 @@ export char BITMAP_BORDER[] = kickasm {{{
     }
 };}};
 
-#pragma data_seg(SquareMetal)
-export char BITMAP_SQUAREMETAL[] = kickasm {{{
-    .var pallist = GetPalette("SquareMetal",16,32,32,16,16)
-    .var tiledata = MakeTile("SquareMetal",pallist,16,32,32,16,16)
-    .var pallistdata = MakePalette("SquareMetal",pallist,16)
+#pragma data_seg(Floor02)
+export char BITMAP_FLOOR02[] = kickasm {{{
+    .var pallist = GetPalette("Floor_01_Wall_Concrete",8,32,32,16,16)
+    .var tiledata = MakeTile("Floor_01_Wall_Concrete",pallist,8,32,32,16,16)
+    .var pallistdata = MakePalette("Floor_01_Wall_Concrete",pallist,16)
     .for(var i=0;i<tiledata.size();i++) {
         .byte tiledata.get(i)
     }
@@ -119,11 +119,11 @@ export char BITMAP_SQUAREMETAL[] = kickasm {{{
     }
 };}};
 
-#pragma data_seg(SquareRaster)
-export char BITMAP_SQUARERASTER[] = kickasm {{{
-    .var pallist = GetPalette("SquareRaster",16,32,32,16,16)
-    .var tiledata = MakeTile("SquareRaster",pallist,16,32,32,16,16)
-    .var pallistdata = MakePalette("SquareRaster",pallist,16)
+#pragma data_seg(Floor03)
+export char BITMAP_FLOOR03[] = kickasm {{{
+    .var pallist = GetPalette("Floor_01_Rock_Ground",6,32,32,16,16)
+    .var tiledata = MakeTile("Floor_01_Rock_Ground",pallist,6,32,32,16,16)
+    .var pallistdata = MakePalette("Floor_01_Rock_Ground",pallist,16)
     .for(var i=0;i<tiledata.size();i++) {
         .byte tiledata.get(i)
     }
@@ -133,11 +133,11 @@ export char BITMAP_SQUARERASTER[] = kickasm {{{
     }
 };}};
 
-#pragma data_seg(InsideMetal)
-export char BITMAP_INSIDEMETAL[] = kickasm {{{
-    .var pallist = GetPalette("InsideMetal",1,32,32,16,16)
-    .var tiledata = MakeTile("InsideMetal",pallist,1,32,32,16,16)
-    .var pallistdata = MakePalette("InsideMetal",pallist,16)
+#pragma data_seg(Floor04)
+export char BITMAP_FLOOR04[] = kickasm {{{
+    .var pallist = GetPalette("Floor_01_Grass_Ground",6,32,32,16,16)
+    .var tiledata = MakeTile("Floor_01_Grass_Ground",pallist,6,32,32,16,16)
+    .var pallistdata = MakePalette("Floor_01_Grass_Ground",pallist,16)
     .for(var i=0;i<tiledata.size();i++) {
         .byte tiledata.get(i)
     }
@@ -146,18 +146,3 @@ export char BITMAP_INSIDEMETAL[] = kickasm {{{
         .byte pallistdata.get(i)
     }
 };}};
-
-#pragma data_seg(InsideDark)
-export char BITMAP_INSIDEDARK[] = kickasm {{{
-    .var pallist = GetPalette("InsideDark",1,32,32,16,16)
-    .var tiledata = MakeTile("InsideDark",pallist,1,32,32,16,16)
-    .var pallistdata = MakePalette("InsideDark",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment Palettes
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-    }
-};}};
-
