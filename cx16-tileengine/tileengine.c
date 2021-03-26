@@ -232,7 +232,7 @@ void show_memory_map() {
     for(byte i=0;i<TILE_TYPES;i++) {
         struct Tile *Tile = TileDB[i];
         byte offset = Tile->TileOffset;
-        gotoxy(0, 10+i);
+        gotoxy(0, 30+i);
         printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address);
         for(byte j=0;j<Tile->TileCount;j++) {
             struct TilePart *TilePart = &TilePartDB[(word)(offset+j)];
@@ -260,7 +260,7 @@ dword load_tile( struct Tile *Tile, dword bram_address) {
     if(status!=$ff) printf("error file %s: %x\n", Tile->File, status);
     Tile->BRAM_Address = bram_address;
     word size = Tile->TotalSize;
-    printf("size = %u", size);
+    // printf("size = %u", size);
     return bram_address + size;
     // return bram_address + Tile->Size; // TODO: fragment
 }
