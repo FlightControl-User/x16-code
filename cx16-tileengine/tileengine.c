@@ -134,6 +134,7 @@ struct TileSegment* floor_get_random_gluesegment(struct TileGlue* TileGlue) {
 void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     byte TileResults[20];
+    byte TileResultsWeighted[20];
 
     gotoxy(40,y+12);
     
@@ -193,10 +194,32 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
         }
 
         if( TileResultCount>0) {
-            byte GlueSegment = TileResults[(byte)modr16u(rand(),TileResultCount,0)];
+            // First we check the maximum weight for the weighted selection in the list.
+            byte MaxWeight = 0;
+            byte MinWeight = 255;
+            for(byte i=0;i<TileResultCount;i++) {
+                byte Segment = TileResults[i];
+                byte Weight = TileSegmentDB[(word)Segment].Weight; // TODO: this mandatory case needs to be reported.
+                if( Weight > MaxWeight )
+                    MaxWeight = Weight;
+            }
+            byte Weight = (byte)modr16u(rand(),(word)(MaxWeight),0);
+
+            // Now build list with weighted selection ...
+            byte TileResultsWeightedCount = 0;
+            for(byte i=0;i<TileResultCount;i++) {
+                byte Segment = TileResults[i];
+                byte SegmentWeight = TileSegmentDB[(word)Segment].Weight;
+                if( SegmentWeight >= Weight ) {
+                    TileResultsWeighted[TileResultsWeightedCount] = Segment;
+                    TileResultsWeightedCount++;
+                }
+            }
+            if(TileResultsWeightedCount==0) printf("error");
+            byte GlueSegment = TileResultsWeighted[(byte)modr16u(rand(),(word)(TileResultsWeightedCount),0)];
             TileFloorNew[x] = GlueSegment;
         } else {
-            byte GlueSegment = 24;
+            byte GlueSegment = 255;
             TileFloorNew[x] = GlueSegment;
         }
     }
@@ -218,7 +241,7 @@ void tile_background() {
     vera_tile_clear(0);
     byte y=15;
     floor_init(y, TileFloorNew, TileFloorOld);
-    for( i=0;i<15;i++) {
+    for( i=0;i<8;i++) {
         y--;
         floor_draw(y, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
         s++;
@@ -352,7 +375,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // background scrolling
     if(!scroll_action--) {
-        scroll_action = 1;
+        scroll_action = 4;
         gotoxy(0, 10);
         printf("vscroll:%u row:%u   ",vscroll, row);
         if((<vscroll & 0xC0)==<vscroll ) {

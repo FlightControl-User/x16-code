@@ -11,17 +11,17 @@ struct Tile {
 
 
 
-byte const TILE_FLOOR01_WHITE_WALL_COUNT = 20;
-struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_WHITE_WALL_COUNT, 0, 32*32*TILE_FLOOR01_WHITE_WALL_COUNT/2, 512, 1, 0x0 };
+byte const TILE_FLOOR01_01_COUNT = 20;
+struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_01_COUNT, 0, 32*32*TILE_FLOOR01_01_COUNT/2, 512, 1, 0x0 };
 
-byte const TILE_FLOOR01_WALL_CONCRETE_COUNT = 8;
-struct Tile TileFloor02 =       { "FLOOR02", TILE_FLOOR01_WALL_CONCRETE_COUNT, 20, 32*32*TILE_FLOOR01_WALL_CONCRETE_COUNT/2, 512, 2, 0x0 };
+byte const TILE_FLOOR01_02_COUNT = 4;
+struct Tile TileFloor02 =       { "FLOOR02", TILE_FLOOR01_02_COUNT, 20, 32*32*TILE_FLOOR01_02_COUNT/2, 512, 2, 0x0 };
 
-byte const TILE_FLOOR01_ROCK_GROUND_COUNT = 6;
-struct Tile TileFloor03 =       { "FLOOR03", TILE_FLOOR01_ROCK_GROUND_COUNT, 28, 32*32*TILE_FLOOR01_ROCK_GROUND_COUNT/2, 512, 3, 0x0 };
+byte const TILE_FLOOR01_03_COUNT = 16;
+struct Tile TileFloor03 =       { "FLOOR03", TILE_FLOOR01_03_COUNT, 24, 32*32*TILE_FLOOR01_03_COUNT/2, 512, 3, 0x0 };
 
-byte const TILE_FLOOR01_GRASS_GROUND_COUNT = 6;
-struct Tile TileFloor04 =       { "FLOOR04", TILE_FLOOR01_GRASS_GROUND_COUNT, 34, 32*32*TILE_FLOOR01_GRASS_GROUND_COUNT/2, 512, 4, 0x0 };
+byte const TILE_FLOOR01_04_COUNT = 16;
+struct Tile TileFloor04 =       { "FLOOR04", TILE_FLOOR01_04_COUNT, 40, 32*32*TILE_FLOOR01_04_COUNT/2, 512, 4, 0x0 };
 
 byte const TILE_TYPES = 4;
 __mem struct Tile *TileDB[4] = { &TileFloor01, &TileFloor02, &TileFloor03, &TileFloor04 };
@@ -32,7 +32,7 @@ struct TilePart {
     dword VRAM_Address;
 };
 
-struct TilePart TilePartDB[40] = {
+struct TilePart TilePartDB[56] = {
     { &TileFloor01, 00*4, 0x00 }, // 00
     { &TileFloor01, 01*4, 0x00 }, // 01
     { &TileFloor01, 02*4, 0x00 }, // 02
@@ -57,22 +57,38 @@ struct TilePart TilePartDB[40] = {
     { &TileFloor02, 21*4, 0x00 }, // 21
     { &TileFloor02, 22*4, 0x00 }, // 22
     { &TileFloor02, 23*4, 0x00 }, // 23
-    { &TileFloor02, 24*4, 0x00 }, // 24
-    { &TileFloor02, 25*4, 0x00 }, // 25
-    { &TileFloor02, 26*4, 0x00 }, // 26
-    { &TileFloor02, 27*4, 0x00 }, // 27
+    { &TileFloor03, 24*4, 0x00 }, // 24
+    { &TileFloor03, 25*4, 0x00 }, // 25
+    { &TileFloor03, 26*4, 0x00 }, // 26
+    { &TileFloor03, 27*4, 0x00 }, // 27
     { &TileFloor03, 28*4, 0x00 }, // 28
     { &TileFloor03, 29*4, 0x00 }, // 29
     { &TileFloor03, 30*4, 0x00 }, // 30
     { &TileFloor03, 31*4, 0x00 }, // 31
     { &TileFloor03, 32*4, 0x00 }, // 32
     { &TileFloor03, 33*4, 0x00 }, // 33
-    { &TileFloor04, 34*4, 0x00 }, // 34
-    { &TileFloor04, 35*4, 0x00 }, // 35
-    { &TileFloor04, 36*4, 0x00 }, // 36
-    { &TileFloor04, 37*4, 0x00 }, // 37
-    { &TileFloor04, 38*4, 0x00 }, // 38
-    { &TileFloor04, 39*4, 0x00 } // 39
+    { &TileFloor03, 34*4, 0x00 }, // 34
+    { &TileFloor03, 35*4, 0x00 }, // 35
+    { &TileFloor03, 36*4, 0x00 }, // 36
+    { &TileFloor03, 37*4, 0x00 }, // 37
+    { &TileFloor03, 38*4, 0x00 }, // 38
+    { &TileFloor03, 39*4, 0x00 }, // 39
+    { &TileFloor04, 40*4, 0x00 }, // 40
+    { &TileFloor04, 41*4, 0x00 }, // 41
+    { &TileFloor04, 42*4, 0x00 }, // 42
+    { &TileFloor04, 43*4, 0x00 }, // 43
+    { &TileFloor04, 44*4, 0x00 }, // 44
+    { &TileFloor04, 45*4, 0x00 }, // 45
+    { &TileFloor04, 46*4, 0x00 }, // 46
+    { &TileFloor04, 47*4, 0x00 }, // 47
+    { &TileFloor04, 48*4, 0x00 }, // 48
+    { &TileFloor04, 49*4, 0x00 }, // 49
+    { &TileFloor04, 50*4, 0x00 }, // 50
+    { &TileFloor04, 51*4, 0x00 }, // 51
+    { &TileFloor04, 52*4, 0x00 }, // 52
+    { &TileFloor04, 53*4, 0x00 }, // 53
+    { &TileFloor04, 54*4, 0x00 }, // 54
+    { &TileFloor04, 55*4, 0x00 }  // 55
 };
 
 // Glue the tile segments, in order to do fast selection of possible tile combinations and randomization.
@@ -83,15 +99,15 @@ struct TileGlue {
 };
 
 
-byte const GLN00[] = {09,07,06,05,11,25,24,23,34,33,32}; const struct TileGlue GSN00 = { 11, GLN00 };
-byte const GLE00[] = {09,01,08,07,13,19,26,25,28,35,34}; const struct TileGlue GSE00 = { 11, GLE00 };
-byte const GLS00[] = {09,01,02,03,15,19,20,21,28,29,30}; const struct TileGlue GSS00 = { 11, GLS00 };
-byte const GLW00[] = {09,03,04,05,17,21,22,23,30,31,32}; const struct TileGlue GSW00 = { 11, GLW00 };
+byte const GLN00[] = {09,07,06,05,11,25,24,23}; const struct TileGlue GSN00 = { 8, GLN00 };
+byte const GLE00[] = {09,01,08,07,13,19,26,25}; const struct TileGlue GSE00 = { 8, GLE00 };
+byte const GLS00[] = {09,01,02,03,15,19,20,21}; const struct TileGlue GSS00 = { 8, GLS00 };
+byte const GLW00[] = {09,03,04,05,17,21,22,23}; const struct TileGlue GSW00 = { 8, GLW00 };
 
-byte const GLN01[] = {00,02,16,15,14}; const struct TileGlue GSN01 = { 5, GLN01 };
-byte const GLE01[] = {00,04,10,17,16}; const struct TileGlue GSE01 = { 5, GLE01 };
-byte const GLS01[] = {00,06,10,11,12}; const struct TileGlue GSS01 = { 5, GLS01 };
-byte const GLW01[] = {00,08,12,13,14}; const struct TileGlue GSW01 = { 5, GLW01 };
+byte const GLN01[] = {00,02,16,15,14,34,33,32}; const struct TileGlue GSN01 = { 8, GLN01 };
+byte const GLE01[] = {00,04,10,17,16,28,35,34}; const struct TileGlue GSE01 = { 8, GLE01 };
+byte const GLS01[] = {00,06,10,11,12,28,29,30}; const struct TileGlue GSS01 = { 8, GLS01 };
+byte const GLW01[] = {00,08,12,13,14,30,31,32}; const struct TileGlue GSW01 = { 8, GLW01 };
 
 byte const GLN02[] = {18,20}; const struct TileGlue GSN02 = { 2, GLN02 };
 byte const GLE02[] = {18,22}; const struct TileGlue GSE02 = { 2, GLE02 };
@@ -164,54 +180,54 @@ byte const GLS33[] = {35,34};          const struct TileGlue GSS33 = { 2, GLS33 
 byte const GLW33[] = 0x00;             const struct TileGlue GSW33 = { 0, 0x00 };
 
 struct TileSegment {
-    byte ID;
+    byte Weight;
     byte Composition[4];
     struct TileGlue *Glue[4];
 };
 
 struct TileSegment TileSegmentDB[36] = {
-    { 00, { 07, 08, 11, 12 }, { &GSN01, &GSE01, &GSS01, &GSW01 } }, // 00 - Black rock middle
-    { 01, { 00, 02, 10, 12 }, { &GSN00, &GSE10, &GSS13, &GSW00 } }, // 01 - white outer wall NW
-    { 02, { 01, 02, 11, 12 }, { &GSN00, &GSE10, &GSS01, &GSW10 } }, // 02 - white outer wall N
-    { 03, { 01, 03, 11, 13 }, { &GSN00, &GSE00, &GSS11, &GSW10 } }, // 03 - white outer wall NE
-    { 04, { 07, 09, 11, 13 }, { &GSN11, &GSE00, &GSS11, &GSW01 } }, // 04 - white outer wall E
-    { 05, { 07, 09, 17, 19 }, { &GSN11, &GSE00, &GSS00, &GSW12 } }, // 05 - white outer wall SE
-    { 06, { 07, 08, 17, 18 }, { &GSN01, &GSE12, &GSS00, &GSW12 } }, // 06 - white outer wall S
-    { 07, { 06, 08, 16, 18 }, { &GSN13, &GSE12, &GSS00, &GSW00 } }, // 07 - white outer wall SW
-    { 08, { 06, 08, 10, 12 }, { &GSN13, &GSE01, &GSS13, &GSW00 } }, // 08 - white outer wall W
-    { 09, { 20, 21, 22, 23 }, { &GSN00, &GSE00, &GSS00, &GSW00 } }, // 09 - Concrete inner
-    { 10, { 07, 08, 11, 04 }, { &GSN01, &GSE12, &GSS11, &GSW01 } }, // 10 - white inner wall NW
-    { 11, { 07, 08, 17, 18 }, { &GSN01, &GSE12, &GSS00, &GSW12 } }, // 11 - white inner wall N
-    { 12, { 07, 08, 05, 12 }, { &GSN01, &GSE01, &GSS13, &GSW12 } }, // 12 - white inner wall NE
-    { 13, { 06, 08, 10, 12 }, { &GSN13, &GSE01, &GSS13, &GSW00 } }, // 13 - white inner wall E
-    { 14, { 15, 08, 11, 12 }, { &GSN13, &GSE01, &GSS01, &GSW10 } }, // 14 - white inner wall SE
-    { 15, { 01, 02, 11, 12 }, { &GSN00, &GSE10, &GSS01, &GSW10 } }, // 15 - white inner wall S
-    { 16, { 07, 14, 11, 12 }, { &GSN11, &GSE10, &GSS01, &GSW01 } }, // 16 - white inner wall SW
-    { 17, { 07, 09, 11, 13 }, { &GSN11, &GSE00, &GSS11, &GSW01 } }, // 17 - white inner wall W
-    { 18, { 30, 31, 32, 33 }, { &GSN02, &GSE02, &GSS02, &GSW02 } }, // 18 - brown rock inner
-    { 19, { 24, 24, 27, 29 }, { &GSN00, &GSE20, &GSS23, &GSW00 } }, // 19 - concrete brown rock NW
-    { 20, { 24, 24, 28, 29 }, { &GSN00, &GSE20, &GSS02, &GSW20 } }, // 20 - concrete brown rock N
-    { 21, { 24, 25, 28, 25 }, { &GSN00, &GSE00, &GSS21, &GSW20 } }, // 21 - concrete brown rock NE
-    { 22, { 30, 25, 32, 25 }, { &GSN21, &GSE00, &GSS21, &GSW02 } }, // 22 - concrete brown rock E
-    { 23, { 30, 25, 26, 26 }, { &GSN21, &GSE00, &GSS00, &GSW22 } }, // 23 - concrete brown rock SE
-    { 24, { 30, 31, 26, 26 }, { &GSN02, &GSE22, &GSS00, &GSW22 } }, // 24 - concrete brown rock S
-    { 25, { 27, 31, 27, 26 }, { &GSN23, &GSE22, &GSS00, &GSW00 } }, // 25 - concrete brown rock SW
-    { 26, { 27, 31, 27, 33 }, { &GSN23, &GSE02, &GSS23, &GSW00 } }, // 26 - concrete brown rock W
-    { 27, { 36, 37, 38, 39 }, { &GSN03, &GSE03, &GSS03, &GSW03 } }, // 27 - grass inner
-    { 28, { 24, 24, 27, 35 }, { &GSN00, &GSE30, &GSS33, &GSW00 } }, // 28 - concrete grass NW
-    { 29, { 24, 24, 34, 35 }, { &GSN00, &GSE30, &GSS03, &GSW30 } }, // 29 - concrete grass N
-    { 30, { 24, 25, 34, 25 }, { &GSN00, &GSE00, &GSS31, &GSW30 } }, // 30 - concrete grass NE
-    { 31, { 36, 25, 38, 25 }, { &GSN31, &GSE00, &GSS31, &GSW03 } }, // 31 - concrete grass E
-    { 32, { 36, 25, 26, 26 }, { &GSN31, &GSE00, &GSS00, &GSW32 } }, // 32 - concrete grass SE
-    { 33, { 36, 37, 26, 26 }, { &GSN03, &GSE32, &GSS00, &GSW32 } }, // 33 - concrete grass S
-    { 34, { 27, 37, 27, 26 }, { &GSN33, &GSE32, &GSS00, &GSW00 } }, // 34 - concrete grass SW
-    { 35, { 27, 37, 27, 39 }, { &GSN33, &GSE03, &GSS33, &GSW00 } }  // 35 - concrete grass W
+    { 16, { 07, 08, 11, 12 }, { &GSN01, &GSE01, &GSS01, &GSW01 } }, // 00 - Black rock middle
+    { 8, { 00, 02, 10, 12 }, { &GSN00, &GSE10, &GSS13, &GSW00 } }, // 01 - white outer wall NW
+    { 8, { 01, 02, 11, 12 }, { &GSN00, &GSE10, &GSS01, &GSW10 } }, // 02 - white outer wall N
+    { 8, { 01, 03, 11, 13 }, { &GSN00, &GSE00, &GSS11, &GSW10 } }, // 03 - white outer wall NE
+    { 8, { 07, 09, 11, 13 }, { &GSN11, &GSE00, &GSS11, &GSW01 } }, // 04 - white outer wall E
+    { 8, { 07, 09, 17, 19 }, { &GSN11, &GSE00, &GSS00, &GSW12 } }, // 05 - white outer wall SE
+    { 8, { 07, 08, 17, 18 }, { &GSN01, &GSE12, &GSS00, &GSW12 } }, // 06 - white outer wall S
+    { 8, { 06, 08, 16, 18 }, { &GSN13, &GSE12, &GSS00, &GSW00 } }, // 07 - white outer wall SW
+    { 8, { 06, 08, 10, 12 }, { &GSN13, &GSE01, &GSS13, &GSW00 } }, // 08 - white outer wall W
+    { 32, { 20, 21, 22, 23 }, { &GSN00, &GSE00, &GSS00, &GSW00 } }, // 09 - Concrete inner
+    { 2, { 07, 08, 11, 04 }, { &GSN01, &GSE12, &GSS11, &GSW01 } }, // 10 - white inner wall NW
+    { 4, { 07, 08, 17, 18 }, { &GSN01, &GSE12, &GSS00, &GSW12 } }, // 11 - white inner wall N
+    { 2, { 07, 08, 05, 12 }, { &GSN01, &GSE01, &GSS13, &GSW12 } }, // 12 - white inner wall NE
+    { 4, { 06, 08, 10, 12 }, { &GSN13, &GSE01, &GSS13, &GSW00 } }, // 13 - white inner wall E
+    { 2, { 15, 08, 11, 12 }, { &GSN13, &GSE01, &GSS01, &GSW10 } }, // 14 - white inner wall SE
+    { 4, { 01, 02, 11, 12 }, { &GSN00, &GSE10, &GSS01, &GSW10 } }, // 15 - white inner wall S
+    { 2, { 07, 14, 11, 12 }, { &GSN11, &GSE10, &GSS01, &GSW01 } }, // 16 - white inner wall SW
+    { 4, { 07, 09, 11, 13 }, { &GSN11, &GSE00, &GSS11, &GSW01 } }, // 17 - white inner wall W
+    { 16, { 29, 30, 33, 34 }, { &GSN02, &GSE02, &GSS02, &GSW02 } }, // 18 - brown rock inner
+    { 2, { 24, 26, 32, 34 }, { &GSN00, &GSE20, &GSS23, &GSW00 } }, // 19 - concrete brown rock NW
+    { 4, { 25, 26, 33, 34 }, { &GSN00, &GSE20, &GSS02, &GSW20 } }, // 20 - concrete brown rock N
+    { 2, { 25, 27, 33, 35 }, { &GSN00, &GSE00, &GSS21, &GSW20 } }, // 21 - concrete brown rock NE
+    { 3, { 29, 31, 33, 35 }, { &GSN21, &GSE00, &GSS21, &GSW02 } }, // 22 - concrete brown rock E
+    { 2, { 29, 31, 37, 39 }, { &GSN21, &GSE00, &GSS00, &GSW22 } }, // 23 - concrete brown rock SE
+    { 4, { 29, 30, 37, 38 }, { &GSN02, &GSE22, &GSS00, &GSW22 } }, // 24 - concrete brown rock S
+    { 2, { 28, 30, 36, 38 }, { &GSN23, &GSE22, &GSS00, &GSW00 } }, // 25 - concrete brown rock SW
+    { 3, { 28, 30, 32, 34 }, { &GSN23, &GSE02, &GSS23, &GSW00 } }, // 26 - concrete brown rock W
+    { 16, { 45, 46, 49, 50 }, { &GSN03, &GSE03, &GSS03, &GSW03 } }, // 27 - grass inner
+    { 2, { 40, 42, 48, 50 }, { &GSN01, &GSE30, &GSS33, &GSW01 } }, // 28 - concrete grass NW
+    { 4, { 41, 42, 49, 50 }, { &GSN01, &GSE30, &GSS03, &GSW30 } }, // 29 - concrete grass N
+    { 2, { 41, 43, 49, 51 }, { &GSN01, &GSE01, &GSS31, &GSW30 } }, // 30 - concrete grass NE
+    { 3, { 45, 47, 49, 51 }, { &GSN31, &GSE01, &GSS31, &GSW03 } }, // 31 - concrete grass E
+    { 2, { 45, 47, 53, 55 }, { &GSN31, &GSE01, &GSS01, &GSW32 } }, // 32 - concrete grass SE
+    { 4, { 45, 46, 53, 54 }, { &GSN03, &GSE32, &GSS01, &GSW32 } }, // 33 - concrete grass S
+    { 2, { 44, 46, 52, 54 }, { &GSN33, &GSE32, &GSS01, &GSW01 } }, // 34 - concrete grass SW
+    { 3, { 44, 46, 48, 50 }, { &GSN33, &GSE03, &GSS33, &GSW01 } }  // 35 - concrete grass W
 };
 
 
 // Work variables
 
-byte const TILE_FLOOR_COUNT = TILE_FLOOR01_WHITE_WALL_COUNT + TILE_FLOOR01_WALL_CONCRETE_COUNT + TILE_FLOOR01_ROCK_GROUND_COUNT + TILE_FLOOR01_GRASS_GROUND_COUNT; 
+byte const TILE_FLOOR_COUNT = TILE_FLOOR01_01_COUNT + TILE_FLOOR01_02_COUNT + TILE_FLOOR01_03_COUNT + TILE_FLOOR01_04_COUNT; 
 
 byte const TILES = 10; 
 byte TileFloorNew[TILES];
