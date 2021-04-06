@@ -321,9 +321,6 @@ void main() {
     bgcolor(BLACK);
     clrscr();
 
-    // Set the vera heap parameters.
-    word const VRAM_SPRITES_SIZE = 64*32*32/2;
-    __mem dword vram_segment_sprites = vera_heap_segment_init(HEAP_SPRITES, 0x00000, VRAM_SPRITES_SIZE);
 
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = 12*64*64/2;

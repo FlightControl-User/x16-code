@@ -5,3 +5,4 @@
 *.sym
 *.klog
 *.asm
+.vscode/c_cpp_properties.json

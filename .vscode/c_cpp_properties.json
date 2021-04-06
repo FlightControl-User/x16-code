@@ -4,7 +4,7 @@
             "name": "cx16",
             "includePath": [
                 "${workspaceFolder}/**",
-                "D:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
+                "${workspaceFolder}//Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -18,7 +18,7 @@
                 "__interrupt(rom_sys_cx16)="
             ],
             "windowsSdkVersion": "10.0.17763.0",
-            "compilerPath": "D:/Users/svenv/OneDrive/Documents/6502/bin/kickc_dev.bat",
+            "compilerPath": "C:/Users/svenv/OneDrive/Documents/6502/bin",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-clang-x86",
