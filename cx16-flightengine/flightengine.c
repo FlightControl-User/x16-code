@@ -1,11 +1,12 @@
 // Example program for the Commander X16
 
 
-#pragma zp_reserve(0x01, 0x02, 0x80..0xA8)
+
 
 #include <cx16.h>
 #include <cx16-veralib.h>
 #include <cx16-veramem.h>
+#include <cx16-mouse.h>
 #include <kernal.h>
 #include <6502.h>
 #include <conio.h>
@@ -73,7 +74,7 @@ void sprite_create(byte sprite) {
     // Copy 8* sprite attributes to VRAM
     struct Sprite *Sprite = SpriteDB[sprite];
     for(byte s=0;s<Sprite->SpriteCount;s++) {
-        byte Offset = Sprite->SpriteOffset+s;
+        byte Offset = Sprite->SpriteOffset+s+1;
         vera_sprite_bpp(Offset, Sprite->BPP);
         vera_sprite_address(Offset, Sprite->VRAM_Address[s]);
         vera_sprite_xy(Offset, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
@@ -153,10 +154,16 @@ void main() {
     *VERA_IEN = VERA_VSYNC; 
     CLI();
 
-    while(!kbhit());
+    cx16_mouse_config(1,1);
+    while(1) {
+        char cx16_mouse_status = cx16_mouse_get();
+        gotoxy(0,10);
+        printf("%u %u %u", cx16_mousex, cx16_mousey, cx16_mouse_status);
+    };
 
     // Back to basic.
     cx16_rom_bank(CX16_ROM_BASIC);
+
 }
 
 void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) {
@@ -164,9 +171,10 @@ void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) 
     word SpriteCount = Sprite->SpriteCount;
     for(byte s=0;s<SpriteCount;s++) {
         word i = s+rotate;
+        byte offset = s+SpriteOffset + 1;
         if(i>=SpriteCount) i-=SpriteCount;
-        vera_sprite_address(s+SpriteOffset, Sprite->VRAM_Address[i]);
-        vera_sprite_xy(s+SpriteOffset, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6));
+        vera_sprite_address(offset, Sprite->VRAM_Address[i]);
+        vera_sprite_xy(offset, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6));
     }
 
 }
