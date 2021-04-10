@@ -266,7 +266,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                     bullet->y = (signed word)cx16_mousey;
                     bullet->dx = 0;
                     bullet->dy = -8;
-                    sprite_bullet_pause = 10;
+                    sprite_bullet_pause = 6;
                     bullet->active = 1;
                     sprite_bullet_count++;
                     sprite_bullet_switch = sprite_bullet_switch?0:1;
