@@ -31,6 +31,21 @@ volatile byte sprite_engine_flame = 0;
 volatile byte scroll_action = 4;
 volatile byte sprite_action = 0;
 
+struct sprite_bullet {
+    byte active;
+    signed word x;
+    signed word y;
+    signed byte dx;
+    signed byte dy;
+};
+
+struct sprite_bullet sprite_bullets[11] = {0};
+volatile byte sprite_bullet_count = 0;
+volatile byte sprite_bullet_pause = 0;
+volatile byte sprite_bullet_switch = 0;
+
+
+
 
 byte const HEAP_FLOOR_MAP = 1;
 byte const HEAP_FLOOR_TILE = 2;
@@ -73,23 +88,17 @@ dword sprite_load( struct Sprite *Sprite, dword bram_address) {
     // return bram_address + Sprite->Size; // TODO: fragment
 }
 
-void sprite_create(byte sprite) {
+void sprite_create(byte sprite, byte SpriteOffset) {
 
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
     struct Sprite *Sprite = SpriteDB[sprite];
-    for(byte s=0;s<Sprite->SpriteCount;s++) {
-        byte Offset = Sprite->SpriteOffset+s;
-        vera_sprite_bpp(Offset, Sprite->BPP);
-        vera_sprite_address(Offset, Sprite->VRAM_Address[s]);
-        vera_sprite_xy(Offset, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
-        vera_sprite_height(Offset, Sprite->Height);
-        vera_sprite_width(Offset, Sprite->Width);
-        vera_sprite_zdepth(Offset, Sprite->Zdepth);
-        vera_sprite_hflip(Offset, Sprite->Hflip);
-        vera_sprite_vflip(Offset, Sprite->Vflip);
-        vera_sprite_palette_offset(Offset, Sprite->PaletteOffset);
-    }
+    vera_sprite_bpp(SpriteOffset, Sprite->BPP);
+    vera_sprite_height(SpriteOffset, Sprite->Height);
+    vera_sprite_width(SpriteOffset, Sprite->Width);
+    vera_sprite_hflip(SpriteOffset, Sprite->Hflip);
+    vera_sprite_vflip(SpriteOffset, Sprite->Vflip);
+    vera_sprite_palette_offset(SpriteOffset, Sprite->PaletteOffset);
 }
 
 void show_memory_map() {
@@ -154,12 +163,15 @@ void main() {
     }
 
     // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*2);
+    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*15);
 
-    sprite_create(0);
-    sprite_create(1);
+    sprite_create(0, 1); // Player ship
+    sprite_create(1, 2); // Player thrust
+    for( byte Sprite=3;Sprite<14;Sprite++) {
+        sprite_create(2, Sprite); // Player bullets
+    }
+
     show_memory_map();
-
     vera_sprite_on();
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
@@ -177,13 +189,22 @@ void main() {
 
 }
 
-void sprite_position(struct Sprite *Sprite, byte index, word x, word y) {
-    byte SpriteOffset = Sprite->SpriteOffset;
-    SpriteOffset++;
+void sprite_animate(byte SpriteOffset, struct Sprite *Sprite, byte Index) {
     byte SpriteCount = Sprite->SpriteCount;
-    byte i = (index>=SpriteCount)?index-SpriteCount:index;
-    vera_sprite_address(SpriteOffset, Sprite->VRAM_Address[i]);
+    Index = (Index>=SpriteCount)?Index-SpriteCount:Index;
+    vera_sprite_address(SpriteOffset, Sprite->VRAM_Address[Index]);
+}
+
+void sprite_position(byte SpriteOffset, word x, word y) {
     vera_sprite_xy(SpriteOffset, x, y);
+}
+
+void sprite_enable(byte SpriteOffset, struct Sprite *Sprite) {
+    vera_sprite_zdepth(SpriteOffset, Sprite->Zdepth);
+}
+
+void sprite_disable(byte SpriteOffset) {
+    vera_sprite_disable(SpriteOffset);
 }
 
 //VSYNC Interrupt Routine
@@ -220,11 +241,66 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     }
     sprite_engine_flame++;
     sprite_engine_flame&=0x0F;
-    sprite_position(SpriteDB[0], sprite_player, cx16_mousex, cx16_mousey);
-    sprite_position(SpriteDB[1], sprite_engine_flame, cx16_mousex+8, cx16_mousey+22);
+    sprite_enable(1, SpriteDB[0]);
+    sprite_enable(2, SpriteDB[1]);
+    sprite_animate(1, SpriteDB[0], sprite_player);
+    sprite_position(1, cx16_mousex, cx16_mousey);
+    sprite_animate(2, SpriteDB[1], sprite_engine_flame);
+    sprite_position(2, cx16_mousex+8, cx16_mousey+22);
     gotoxy(0,10);
-    printf("%u %u %u %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)sprite_player);
-    show_sprite_config(8,0,11);
+    printf("mouse: %u %u %u %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)cx16_mouse_status);
+
+    // Player Bullets
+    sprite_bullet_pause = (sprite_bullet_pause>0)?sprite_bullet_pause-1:0;
+    gotoxy(0,11);
+    printf("bullet: %u %u        ", sprite_bullet_pause, sprite_bullet_count);
+    if(cx16_mouse_status==1 && !sprite_bullet_pause) {
+        // the mouse button was pressed
+        if(sprite_bullet_count<10) {
+            for(byte b=0;b<10;b++) {
+                struct sprite_bullet *bullet = &sprite_bullets[b];
+                if(!bullet->active) {
+                    signed word x = (signed word)cx16_mousex;
+                    x += (signed word)(sprite_bullet_switch?16:0);
+                    bullet->x = x; 
+                    bullet->y = (signed word)cx16_mousey;
+                    bullet->dx = 0;
+                    bullet->dy = -8;
+                    sprite_bullet_pause = 10;
+                    bullet->active = 1;
+                    sprite_bullet_count++;
+                    sprite_bullet_switch = sprite_bullet_switch?0:1;
+                    sprite_enable(b+3, SpriteDB[2]);
+                    b=10;
+                    break;
+                }
+            }
+        }
+    }
+    for(byte b=0;b<10;b++) {
+        struct sprite_bullet *bullet = &sprite_bullets[b];
+        // gotoxy(0,12+b);
+        // printf("bullet %u: %u %d %d                           ", b, bullet->active, bullet->x, bullet->y);
+        if(bullet->active) {
+            // TODO: new fragments needed
+            signed byte dx = bullet->dx;
+            signed byte dy = bullet->dy;
+            signed word x = bullet->x;
+            signed word y = bullet->y;
+            x += dx;
+            y += dy;
+            bullet->x = x;
+            bullet->y = y;
+            if(y>0) { 
+                sprite_animate(b+3, SpriteDB[2], 0);
+                sprite_position(b+3, (word)x, (word)y);
+            } else {
+                bullet->active = 0;
+                sprite_bullet_count--;
+                sprite_disable(b+3);
+            }
+        }
+    }
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;

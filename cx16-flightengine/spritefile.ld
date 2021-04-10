@@ -2,6 +2,7 @@
 .file [name="%O", type="prg", segments="Program"]
 .file [name="Target/PLAYER01", type="bin", segments="Player01"]
 .file [name="Target/ENGINE01", type="bin", segments="Engine01"]
+.file [name="Target/BULLET01", type="bin", segments="Bullet01"]
 .file [name="Target/PALETTES", type="bin", segments="Palettes"]
 .segmentdef Program [segments="Basic, Code, Data"]
 .segmentdef Basic [start=$0801]
@@ -11,4 +12,5 @@
 :BasicUpstart(%E)
 .segmentdef Player01 
 .segmentdef Engine01 
+.segmentdef Bullet01 
 .segmentdef Palettes
