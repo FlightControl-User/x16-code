@@ -1,7 +1,7 @@
 <C64debugger version="1.0">
    <Sources values="INDEX,FILE">
       0,KickAss.jar:/include/autoinclude.asm
-      1,C:\Users\svenv\OneDrive\Documents\GitHub\X16_Code\cx16-flightengine\spritefile.asm
+      1,D:\Users\svenv\OneDrive\Documents\GitHub\X16_Code\cx16-flightengine\spritefile.asm
    </Sources>
 
    <Segment name="Default" dest="" values="START,END,FILE_IDX,LINE1,COL1,LINE2,COL2">

@@ -200,14 +200,14 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     }
 
     if(!sprite_action--) {
-        sprite_action = 12;
+        sprite_action = 8;
         if(cx16_mousex<prev_mousex && sprite_player>0) {
             sprite_player -= 1;
-            sprite_player_moved = 3;
+            sprite_player_moved = 2;
         }
         if(cx16_mousex>prev_mousex && sprite_player<6) {
             sprite_player += 1;
-            sprite_player_moved = 3;
+            sprite_player_moved = 2;
         }
         if(sprite_player_moved==1) {
             if(sprite_player<3) sprite_player+=1;

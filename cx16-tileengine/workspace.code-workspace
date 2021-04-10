@@ -21,7 +21,9 @@
 			"kernal.h": "c",
 			"stdio.h": "c",
 			"conio.h": "c",
-			"cx16-conio.h": "c"
+			"cx16-conio.h": "c",
+			"flightengine.h": "c",
+			"cx16-mouse.h": "c"
 		}
 	}
 }

@@ -4,7 +4,8 @@
             "name": "cx16",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
+                "D:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include",
+                // "C:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -15,7 +16,7 @@
                 "dword = unsigned long",
                 "__CX16__ = 1",
                 "__mem=",
-                "__interrupt(rom_sys_cx16)="
+                "__interrupt(rom_sys_cx16)=",
             ],
             "windowsSdkVersion": "10.0.17763.0",
             "compilerPath": "C:/Users/svenv/OneDrive/Documents/6502/bin",
