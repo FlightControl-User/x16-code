@@ -65,7 +65,7 @@ kickasm {{
                                 .error "unknown rgb value!"
                             }
                             .eval tiledata.add( idx1*16+idx2 );
-                            .print "idx1 = " + idx1 + ", idx2 = " + idx2
+                            // .print "idx1 = " + idx1 + ", idx2 = " + idx2
                         }
                     }
                 }
@@ -84,14 +84,14 @@ kickasm {{
             .var rgb = 0
             .if(i<pallist.size())
                 .eval rgb = pallist.get(i)
-            .print "put rgb = " + rgb
-            .var red = floor(rgb / [256*256])
-            .var green = floor((rgb/256)) & 255
-            .var blue = rgb & 255
+            .var red = ceil((rgb / [256*256])/16)
+            .var green = ((ceil((rgb/256)) & 255)&$f0)
+            .var blue = ceil((rgb & 255)/16)
+            .print "put rgb = " + toHexString(rgb) + " green = " + toHexString(green) + " blue = " + toHexString(blue) + " red = " + toHexString(red)
             // bits 4-8: green, bits 0-3 blue
-            .eval palettedata.add(green&$f0 | ceil(blue/16))
+            .eval palettedata.add(green | blue)
             // bits bits 0-3 red
-            .eval palettedata.add(ceil(red/16))
+            .eval palettedata.add(red)
             // .printnow "tile large: rgb = " + rgb + ", i = " + i
         }
         .return palettedata
@@ -111,7 +111,7 @@ export char BITMAP_PLAYER01[] = kickasm {{{
     .print "palette size = " + pallistdata.size()
     .for(var i=0;i<pallistdata.size();i++) {
         .byte pallistdata.get(i)
-        .print "palette " + i + " = " + pallistdata.get(i)
+        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
     }
 };}};
 
@@ -127,6 +127,6 @@ export char BITMAP_ENGINE01[] = kickasm {{{
     .print "palette size = " + pallistdata.size()
     .for(var i=0;i<pallistdata.size();i++) {
         .byte pallistdata.get(i)
-        .print "palette " + i + " = " + pallistdata.get(i)
+        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
     }
 };}};
