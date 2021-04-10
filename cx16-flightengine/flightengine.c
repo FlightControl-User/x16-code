@@ -18,13 +18,18 @@
 
 #include "flightengine.h"
 
-volatile byte i = 0;
 volatile byte j = 0;
 volatile byte a = 4;
 volatile word row = 8;
-volatile word vscroll = 8*64;
-volatile word scroll_action = 2;
 volatile byte s = 1;
+volatile word vscroll = 8*64;
+volatile word prev_mousex = 0;
+volatile word prev_mousey = 0;
+volatile byte sprite_player = 3;
+volatile byte sprite_player_moved = 0;
+volatile byte sprite_engine_flame = 0;
+volatile byte scroll_action = 4;
+volatile byte sprite_action = 0;
 
 
 byte const HEAP_FLOOR_MAP = 1;
@@ -74,7 +79,7 @@ void sprite_create(byte sprite) {
     // Copy 8* sprite attributes to VRAM
     struct Sprite *Sprite = SpriteDB[sprite];
     for(byte s=0;s<Sprite->SpriteCount;s++) {
-        byte Offset = Sprite->SpriteOffset+s+1;
+        byte Offset = Sprite->SpriteOffset+s;
         vera_sprite_bpp(Offset, Sprite->BPP);
         vera_sprite_address(Offset, Sprite->VRAM_Address[s]);
         vera_sprite_xy(Offset, 40+((word)(s&03)<<6), 100+((word)(s>>2)<<6));
@@ -92,11 +97,19 @@ void show_memory_map() {
         struct Sprite *Sprite = SpriteDB[i];
         byte offset = Sprite->SpriteOffset;
         gotoxy(0, 30+i);
-        printf("t:%u bram:%x, vram:", i, Sprite->BRAM_Address);
+        printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address);
         for(byte j=0;j<Sprite->SpriteCount;j++) {
             printf("%x ", Sprite->VRAM_Address[j]);
         }
     }
+}
+
+void show_sprite_config(byte sprite, byte x, byte y) {
+    struct VERA_SPRITE SpriteAttributes;
+    vera_sprite_attributes_get(sprite, &SpriteAttributes);
+    gotoxy(x, y);
+    printf("s:%u ", sprite );
+    printf("%x %x ", SpriteAttributes.CTRL1, SpriteAttributes.CTRL2);
 }
 
 void main() {
@@ -116,13 +129,13 @@ void main() {
 
     screenlayer(1);
     textcolor(WHITE);
-    bgcolor(BLACK);
+    bgcolor(DARK_GREY);
     clrscr();
 
     gotoxy(0, 30);
     // Loading the graphics in main banked memory.
     bram_ceil = 0x02000;
-    for(i=0; i<SPRITE_TYPES;i++) {
+    for(byte i=0; i<SPRITE_TYPES;i++) {
         bram_ceil = sprite_load(SpriteDB[i], bram_ceil);
     }
 
@@ -136,14 +149,15 @@ void main() {
     __mem dword vram_segment_sprites = vera_heap_segment_init(HEAP_SPRITES, 0x00000, VRAM_SPRITES_SIZE);
 
     // Now we activate the tile mode.
-    for(i=0;i<SPRITE_TYPES;i++) {
+    for(byte i=0;i<SPRITE_TYPES;i++) {
         sprite_cpy_vram(HEAP_SPRITES, SpriteDB[i]);
     }
 
     // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*1);
+    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*2);
 
     sprite_create(0);
+    sprite_create(1);
     show_memory_map();
 
     vera_sprite_on();
@@ -154,11 +168,8 @@ void main() {
     *VERA_IEN = VERA_VSYNC; 
     CLI();
 
-    cx16_mouse_config(1,1);
-    while(1) {
-        char cx16_mouse_status = cx16_mouse_get();
-        gotoxy(0,10);
-        printf("%u %u %u", cx16_mousex, cx16_mousey, cx16_mouse_status);
+    cx16_mouse_config(0xFF,1);
+    while(!getin()) {
     };
 
     // Back to basic.
@@ -166,31 +177,54 @@ void main() {
 
 }
 
-void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) {
+void sprite_position(struct Sprite *Sprite, byte index, word x, word y) {
     byte SpriteOffset = Sprite->SpriteOffset;
-    word SpriteCount = Sprite->SpriteCount;
-    for(byte s=0;s<SpriteCount;s++) {
-        word i = s+rotate;
-        byte offset = s+SpriteOffset + 1;
-        if(i>=SpriteCount) i-=SpriteCount;
-        vera_sprite_address(offset, Sprite->VRAM_Address[i]);
-        vera_sprite_xy(offset, basex+((word)(s&03)<<6), basey+((word)(s>>2)<<6));
-    }
-
+    SpriteOffset++;
+    byte SpriteCount = Sprite->SpriteCount;
+    byte i = (index>=SpriteCount)?index-SpriteCount:index;
+    vera_sprite_address(SpriteOffset, Sprite->VRAM_Address[i]);
+    vera_sprite_xy(SpriteOffset, x, y);
 }
 
 //VSYNC Interrupt Routine
 
 __interrupt(rom_sys_cx16) void irq_vsync() {
 
+    char cx16_mouse_status = cx16_mouse_get();
+
     // background scrolling
     if(!scroll_action--) {
         scroll_action = 4;
-        gotoxy(0,2);
-        printf("i:%02u",i);
-        rotate_sprites(i, SpriteDB[0], 40, 100);
-        i=(i<7)?i+1:0;
+        // gotoxy(0,2);
+        // printf("i:%02u",i);
     }
+
+    if(!sprite_action--) {
+        sprite_action = 12;
+        if(cx16_mousex<prev_mousex && sprite_player>0) {
+            sprite_player -= 1;
+            sprite_player_moved = 3;
+        }
+        if(cx16_mousex>prev_mousex && sprite_player<6) {
+            sprite_player += 1;
+            sprite_player_moved = 3;
+        }
+        if(sprite_player_moved==1) {
+            if(sprite_player<3) sprite_player+=1;
+            if(sprite_player>3) sprite_player-=1;
+            if(sprite_player==3) sprite_player_moved=0;
+        } else {
+            sprite_player_moved--;
+        }
+        prev_mousex = cx16_mousex;
+    }
+    sprite_engine_flame++;
+    sprite_engine_flame&=0x0F;
+    sprite_position(SpriteDB[0], sprite_player, cx16_mousex, cx16_mousey);
+    sprite_position(SpriteDB[1], sprite_engine_flame, cx16_mousex+8, cx16_mousey+22);
+    gotoxy(0,10);
+    printf("%u %u %u %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)sprite_player);
+    show_sprite_config(8,0,11);
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
