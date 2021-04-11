@@ -18,6 +18,10 @@
 
 #include "flightengine.h"
 
+
+
+
+
 volatile byte j = 0;
 volatile byte a = 4;
 volatile word row = 8;
@@ -33,10 +37,22 @@ volatile byte sprite_action = 0;
 
 struct sprite_bullet {
     byte active;
-    signed word x;
-    signed word y;
-    signed byte dx;
-    signed byte dy;
+    signed int x;
+    signed int y;
+    signed char dx;
+    signed char dy;
+};
+
+struct sprite_enemy {
+    byte active;
+    byte SpriteType;
+    byte state_behaviour;
+    byte state_animation;
+    byte speed_animation;
+    signed int x;
+    signed int y;
+    signed char dx;
+    signed char dy;
 };
 
 struct sprite_bullet sprite_bullets[11] = {0};
@@ -46,6 +62,18 @@ volatile byte sprite_bullet_switch = 0;
 
 
 
+struct sprite_enemy sprite_enemies[33] = {0};
+volatile byte sprite_enemy_count = 0;
+
+volatile byte sprite_collided = 0;
+
+
+volatile byte state_game = 0;
+
+byte const SPRITE_OFFSET_PLAYER = 1;
+byte const SPRITE_OFFSET_ENGINE = 2;
+byte const SPRITE_OFFSET_ENEMY = 3;
+byte const SPRITE_OFFSET_BULLET = 64;
 
 byte const HEAP_FLOOR_MAP = 1;
 byte const HEAP_FLOOR_TILE = 2;
@@ -167,17 +195,18 @@ void main() {
 
     sprite_create(0, 1); // Player ship
     sprite_create(1, 2); // Player thrust
-    for( byte Sprite=3;Sprite<14;Sprite++) {
-        sprite_create(2, Sprite); // Player bullets
+    for( byte Sprite=64;Sprite<64+10;Sprite++) {
+        sprite_create(3, Sprite); // Player bullets
     }
 
     show_memory_map();
-    vera_sprite_on();
+    vera_sprites_show();
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC; 
+    vera_sprites_collision_on();
     CLI();
 
     cx16_mouse_config(0xFF,1);
@@ -189,7 +218,8 @@ void main() {
 
 }
 
-void sprite_animate(byte SpriteOffset, struct Sprite *Sprite, byte Index) {
+void sprite_animate(byte SpriteOffset, byte SpriteType, byte Index) {
+    struct Sprite *Sprite = SpriteDB[SpriteType];
     byte SpriteCount = Sprite->SpriteCount;
     Index = (Index>=SpriteCount)?Index-SpriteCount:Index;
     vera_sprite_address(SpriteOffset, Sprite->VRAM_Address[Index]);
@@ -199,109 +229,212 @@ void sprite_position(byte SpriteOffset, word x, word y) {
     vera_sprite_xy(SpriteOffset, x, y);
 }
 
-void sprite_enable(byte SpriteOffset, struct Sprite *Sprite) {
+void sprite_enable(byte SpriteOffset, byte SpriteType) {
+    struct Sprite *Sprite = SpriteDB[SpriteType];
     vera_sprite_zdepth(SpriteOffset, Sprite->Zdepth);
+    vera_sprite_bpp(SpriteOffset, Sprite->BPP);
+    vera_sprite_height(SpriteOffset, Sprite->Height);
+    vera_sprite_width(SpriteOffset, Sprite->Width);
+    vera_sprite_hflip(SpriteOffset, Sprite->Hflip);
+    vera_sprite_vflip(SpriteOffset, Sprite->Vflip);
+    vera_sprite_palette_offset(SpriteOffset, Sprite->PaletteOffset);
 }
 
 void sprite_disable(byte SpriteOffset) {
     vera_sprite_disable(SpriteOffset);
 }
 
+void sprite_collision(byte SpriteOffset, byte mask) {
+    vera_sprite_collision_mask(SpriteOffset, mask);
+}
+
 //VSYNC Interrupt Routine
 
 __interrupt(rom_sys_cx16) void irq_vsync() {
 
-    char cx16_mouse_status = cx16_mouse_get();
+    // Check if collision interrupt
+    if(vera_sprite_is_collision()) {
+        gotoxy(0, 20);
+        printf("irq: %x", *VERA_ISR );
+        sprite_collided = 1;
+        vera_sprite_collision_clear();
+    } else {
 
-    // background scrolling
-    if(!scroll_action--) {
-        scroll_action = 4;
-        // gotoxy(0,2);
-        // printf("i:%02u",i);
-    }
 
-    if(!sprite_action--) {
-        sprite_action = 8;
-        if(cx16_mousex<prev_mousex && sprite_player>0) {
-            sprite_player -= 1;
-            sprite_player_moved = 2;
-        }
-        if(cx16_mousex>prev_mousex && sprite_player<6) {
-            sprite_player += 1;
-            sprite_player_moved = 2;
-        }
-        if(sprite_player_moved==1) {
-            if(sprite_player<3) sprite_player+=1;
-            if(sprite_player>3) sprite_player-=1;
-            if(sprite_player==3) sprite_player_moved=0;
-        } else {
-            sprite_player_moved--;
-        }
-        prev_mousex = cx16_mousex;
-    }
-    sprite_engine_flame++;
-    sprite_engine_flame&=0x0F;
-    sprite_enable(1, SpriteDB[0]);
-    sprite_enable(2, SpriteDB[1]);
-    sprite_animate(1, SpriteDB[0], sprite_player);
-    sprite_position(1, cx16_mousex, cx16_mousey);
-    sprite_animate(2, SpriteDB[1], sprite_engine_flame);
-    sprite_position(2, cx16_mousex+8, cx16_mousey+22);
-    gotoxy(0,10);
-    printf("mouse: %u %u %u %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)cx16_mouse_status);
+        char cx16_mouse_status = cx16_mouse_get();
 
-    // Player Bullets
-    sprite_bullet_pause = (sprite_bullet_pause>0)?sprite_bullet_pause-1:0;
-    gotoxy(0,11);
-    printf("bullet: %u %u        ", sprite_bullet_pause, sprite_bullet_count);
-    if(cx16_mouse_status==1 && !sprite_bullet_pause) {
-        // the mouse button was pressed
-        if(sprite_bullet_count<10) {
+        // background scrolling
+        if(!scroll_action--) {
+            scroll_action = 4;
+            // gotoxy(0,2);
+            // printf("i:%02u",i);
+        }
+
+        if(sprite_collided) {
+            // check which bullet collides with which enemy ...
             for(byte b=0;b<10;b++) {
                 struct sprite_bullet *bullet = &sprite_bullets[b];
-                if(!bullet->active) {
-                    signed word x = (signed word)cx16_mousex;
-                    x += (signed word)(sprite_bullet_switch?16:0);
-                    bullet->x = x; 
-                    bullet->y = (signed word)cx16_mousey;
-                    bullet->dx = 0;
-                    bullet->dy = -8;
-                    sprite_bullet_pause = 6;
-                    bullet->active = 1;
-                    sprite_bullet_count++;
-                    sprite_bullet_switch = sprite_bullet_switch?0:1;
-                    sprite_enable(b+3, SpriteDB[2]);
-                    b=10;
-                    break;
+                if(bullet->active) {
+                    signed int bx = bullet->x;
+                    signed int by = bullet->y;
+                    for(byte e=0;e<32;e++) {
+                        struct sprite_enemy *enemy = &sprite_enemies[e];
+                        if(enemy->active) {
+                            signed int ex = enemy->x;
+                            signed int ey = enemy->y;
+                            byte collided = 1;
+                            if(bx<ex || bx+16>ex+32) {
+                                collided = 0;
+                            }
+                            if(by<ey || by+16>ey+32) {
+                                collided = 0;
+                            }
+                            if(collided) {
+                                enemy->active = 0;
+                                bullet->active = 0;
+                                sprite_disable(SPRITE_OFFSET_ENEMY+e);
+                                sprite_disable(SPRITE_OFFSET_BULLET+b);
+                            }
+                        }
+                    }
+                }
+            }
+        sprite_collided = 0;
+        }
+
+        // Handle game state evolution over time ...
+        switch(state_game) {
+            case 0:
+                for(byte e=0; e<8; e++) {
+                    sprite_enable(SPRITE_OFFSET_ENEMY+e, SPRITE_ENEMY01); // Enemy01
+                    struct sprite_enemy *enemy = &sprite_enemies[e];
+                    enemy->x = 20+(signed int)e*36;
+                    enemy->y = 100;
+                    enemy->dx = 0;
+                    enemy->dy = 0;
+                    sprite_position(SPRITE_OFFSET_ENEMY+e, (word)enemy->x, (word)enemy->y);
+                    enemy->state_animation = 0;
+                    enemy->state_behaviour = 0;
+                    enemy->speed_animation = 4;
+                    enemy->active = 1;
+                    enemy->SpriteType = SPRITE_ENEMY01;
+                    sprite_collision(SPRITE_OFFSET_ENEMY+e, 0x03);
+                }
+                state_game = 1;
+                break;
+        }
+
+        if(!sprite_action--) {
+            sprite_action = 8;
+            if(cx16_mousex<prev_mousex && sprite_player>0) {
+                sprite_player -= 1;
+                sprite_player_moved = 2;
+            }
+            if(cx16_mousex>prev_mousex && sprite_player<6) {
+                sprite_player += 1;
+                sprite_player_moved = 2;
+            }
+            if(sprite_player_moved==1) {
+                if(sprite_player<3) sprite_player+=1;
+                if(sprite_player>3) sprite_player-=1;
+                if(sprite_player==3) sprite_player_moved=0;
+            } else {
+                sprite_player_moved--;
+            }
+            prev_mousex = cx16_mousex;
+        }
+        sprite_engine_flame++;
+        sprite_engine_flame&=0x0F;
+        sprite_enable(SPRITE_OFFSET_PLAYER, SPRITE_PLAYER01);
+        sprite_enable(SPRITE_OFFSET_ENGINE, SPRITE_ENGINE01);
+        sprite_animate(SPRITE_OFFSET_PLAYER, SPRITE_PLAYER01, sprite_player);
+        sprite_position(SPRITE_OFFSET_PLAYER, cx16_mousex, cx16_mousey);
+        sprite_animate(SPRITE_OFFSET_ENGINE, SPRITE_ENGINE01, sprite_engine_flame);
+        sprite_position(SPRITE_OFFSET_ENGINE, cx16_mousex+8, cx16_mousey+22);
+        gotoxy(0,10);
+        printf("mouse: %u %u %u %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)cx16_mouse_status);
+
+        // Enemies
+        for(byte e=0;e<32;e++) {
+            struct sprite_enemy *enemy = &sprite_enemies[e];
+            if(enemy->active) {
+                switch(enemy->SpriteType) {
+                    case SPRITE_ENEMY01:
+                        if(!enemy->speed_animation--) {
+                            enemy->state_animation = enemy->state_animation<11?enemy->state_animation+1:0;
+                            enemy->speed_animation = 3;
+                        }
+                        sprite_animate(SPRITE_OFFSET_ENEMY+e, SPRITE_ENEMY01, enemy->state_animation);
+                        signed char dx = enemy->dx;
+                        signed char dy = enemy->dy;
+                        signed int x = enemy->x;
+                        signed int y = enemy->y;
+                        x += dx;
+                        y += dy;
+                        enemy->x = x;
+                        enemy->y = y;
+                        break;
                 }
             }
         }
-    }
-    for(byte b=0;b<10;b++) {
-        struct sprite_bullet *bullet = &sprite_bullets[b];
-        // gotoxy(0,12+b);
-        // printf("bullet %u: %u %d %d                           ", b, bullet->active, bullet->x, bullet->y);
-        if(bullet->active) {
-            // TODO: new fragments needed
-            signed byte dx = bullet->dx;
-            signed byte dy = bullet->dy;
-            signed word x = bullet->x;
-            signed word y = bullet->y;
-            x += dx;
-            y += dy;
-            bullet->x = x;
-            bullet->y = y;
-            if(y>0) { 
-                sprite_animate(b+3, SpriteDB[2], 0);
-                sprite_position(b+3, (word)x, (word)y);
-            } else {
-                bullet->active = 0;
-                sprite_bullet_count--;
-                sprite_disable(b+3);
+
+
+        // Player Bullets
+        sprite_bullet_pause = (sprite_bullet_pause>0)?sprite_bullet_pause-1:0;
+        gotoxy(0,11);
+        printf("bullet: %u %u        ", sprite_bullet_pause, sprite_bullet_count);
+        if(cx16_mouse_status==1 && !sprite_bullet_pause) {
+            // the mouse button was pressed
+            if(sprite_bullet_count<10) {
+                for(byte b=0;b<10;b++) {
+                    struct sprite_bullet *bullet = &sprite_bullets[b];
+                    if(!bullet->active) {
+                        signed word x = (signed word)cx16_mousex;
+                        x += (signed word)(sprite_bullet_switch?16:0);
+                        bullet->x = x; 
+                        bullet->y = (signed word)cx16_mousey;
+                        bullet->dx = 0;
+                        bullet->dy = -8;
+                        sprite_bullet_pause = 6;
+                        bullet->active = 1;
+                        sprite_bullet_count++;
+                        sprite_bullet_switch = sprite_bullet_switch?0:1;
+                        sprite_enable(SPRITE_OFFSET_BULLET+b, SPRITE_BULLET01);
+                        sprite_collision(SPRITE_OFFSET_BULLET+b, 0x03);
+                        b=10;
+                        break;
+                    }
+                }
             }
         }
-    }
+        for(byte b=0;b<10;b++) {
+            struct sprite_bullet *bullet = &sprite_bullets[b];
+            // gotoxy(0,12+b);
+            // printf("bullet %u: %u %d %d                           ", b, bullet->active, bullet->x, bullet->y);
+            if(bullet->active) {
+                // TODO: new fragments needed
+                signed char dx = bullet->dx;
+                signed char dy = bullet->dy;
+                signed int x = bullet->x;
+                signed int y = bullet->y;
+                x += dx;
+                y += dy;
+                bullet->x = x;
+                bullet->y = y;
+                if(y>0) { 
+                    sprite_animate(SPRITE_OFFSET_BULLET+b, SPRITE_BULLET01, 0);
+                    sprite_position(SPRITE_OFFSET_BULLET+b, (word)x, (word)y);
+                } else {
+                    bullet->active = 0;
+                    sprite_bullet_count--;
+                    sprite_disable(SPRITE_OFFSET_BULLET+b);
+                }
+            }
+        }
 
+    }
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
+    vera_sprites_collision_on();
+
 }

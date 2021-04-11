@@ -1,6 +1,7 @@
 // Create CX16 files containing the program and a sprite file
 .file [name="%O", type="prg", segments="Program"]
 .file [name="Target/PLAYER01", type="bin", segments="Player01"]
+.file [name="Target/ENEMY01", type="bin", segments="Enemy01"]
 .file [name="Target/ENGINE01", type="bin", segments="Engine01"]
 .file [name="Target/BULLET01", type="bin", segments="Bullet01"]
 .file [name="Target/PALETTES", type="bin", segments="Palettes"]
@@ -11,6 +12,7 @@
 .segment Basic
 :BasicUpstart(%E)
 .segmentdef Player01 
+.segmentdef Enemy01 
 .segmentdef Engine01 
 .segmentdef Bullet01 
 .segmentdef Palettes
