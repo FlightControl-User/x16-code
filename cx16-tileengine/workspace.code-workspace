@@ -23,7 +23,11 @@
 			"conio.h": "c",
 			"cx16-conio.h": "c",
 			"flightengine.h": "c",
-			"cx16-mouse.h": "c"
+			"cx16-mouse.h": "c",
+			"datatypes.h": "c",
+			"string.h": "c",
+			"cx16-allocator.h": "c",
+			"fault.h": "c"
 		}
 	}
 }

@@ -41,6 +41,7 @@ struct sprite_bullet {
     signed int y;
     signed char dx;
     signed char dy;
+    byte energy;
 };
 
 struct sprite_enemy {
@@ -49,6 +50,8 @@ struct sprite_enemy {
     byte state_behaviour;
     byte state_animation;
     byte speed_animation;
+    byte health;
+    byte stength;
     signed int x;
     signed int y;
     signed char dx;
@@ -294,6 +297,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                 bullet->active = 0;
                                 sprite_disable(SPRITE_OFFSET_ENEMY+e);
                                 sprite_disable(SPRITE_OFFSET_BULLET+b);
+                                sprite_bullet_count--;
                             }
                         }
                     }
@@ -317,6 +321,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                     enemy->state_behaviour = 0;
                     enemy->speed_animation = 4;
                     enemy->active = 1;
+                    enemy->health = 0xff;
+                    enemy->strengh = 0x0f;
                     enemy->SpriteType = SPRITE_ENEMY01;
                     sprite_collision(SPRITE_OFFSET_ENEMY+e, 0x03);
                 }
@@ -397,6 +403,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                         bullet->dy = -8;
                         sprite_bullet_pause = 6;
                         bullet->active = 1;
+                        bullet->energy = 1;
                         sprite_bullet_count++;
                         sprite_bullet_switch = sprite_bullet_switch?0:1;
                         sprite_enable(SPRITE_OFFSET_BULLET+b, SPRITE_BULLET01);

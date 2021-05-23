@@ -1,7 +1,7 @@
 // Example program for the Commander X16
 
 
-#pragma zp_reserve(0x01, 0x02, 0x80..0xA8)
+#pragma zp_reserve(0x01, 0x02, 0x80..0xA8, 0xfe, 0xff)
 
 #include <cx16.h>
 #include <cx16-veralib.h>
