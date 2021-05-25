@@ -26,9 +26,9 @@ volatile word scroll_action = 2;
 volatile byte s = 1;
 
 
-byte const HEAP_FLOOR_MAP = 1;
-byte const HEAP_FLOOR_TILE = 2;
-byte const HEAP_PETSCII = 3;
+byte const HEAP_SEGMENT_VRAM_FLOOR_MAP = 1;
+byte const HEAP_SEGMENT_VRAM_FLOOR_TILE = 2;
+byte const HEAP_SEGMENT_VRAM_PETSCII = 3;
 
 const dword VRAM_PETSCII_MAP = 0x1B000;
 const dword VRAM_PETSCII_TILE = 0x1F000;
@@ -292,14 +292,14 @@ void main() {
 
 
     // We are going to use only the kernal on the X16.
-    cx16_rom_bank(CX16_ROM_KERNAL);
+    cx16_brom_set(CX16_ROM_KERNAL);
 
     // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
     // This frees up the maximum space in VERA VRAM available for graphics.
     const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
-    vera_heap_segment_init(HEAP_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
-    dword vram_petscii_map = vera_heap_malloc(HEAP_PETSCII, VRAM_PETSCII_MAP_SIZE);
-    dword vram_petscii_tile = vera_heap_malloc(HEAP_PETSCII, VERA_PETSCII_TILE_SIZE);
+    vera_heap_segment_init(HEAP_SEGMENT_VRAM_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
+    dword vram_petscii_map = vera_heap_malloc(HEAP_SEGMENT_VRAM_PETSCII, VRAM_PETSCII_MAP_SIZE);
+    dword vram_petscii_tile = vera_heap_malloc(HEAP_SEGMENT_VRAM_PETSCII, VERA_PETSCII_TILE_SIZE);
     vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
     vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
 
@@ -322,8 +322,8 @@ void main() {
 
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
-    __mem dword vram_segment_floor_map = vera_heap_segment_init(HEAP_FLOOR_MAP, 0x10000, VRAM_FLOOR_MAP_SIZE);
-    __mem dword vram_segment_floor_tile = vera_heap_segment_init(HEAP_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_FLOOR_MAP), VRAM_FLOOR_TILE_SIZE);
+    __mem dword vram_segment_floor_map = vera_heap_segment_init(HEAP_SEGMENT_VRAM_FLOOR_MAP, 0x10000, VRAM_FLOOR_MAP_SIZE);
+    __mem dword vram_segment_floor_tile = vera_heap_segment_init(HEAP_SEGMENT_VRAM_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_SEGMENT_VRAM_FLOOR_MAP), VRAM_FLOOR_TILE_SIZE);
 
     // gotoxy(0,34);
     // printf("floor map = %x, tile map = %x\n", vram_segment_floor_map, vram_segment_floor_tile);
@@ -341,7 +341,7 @@ void main() {
 
     // Now we activate the tile mode.
     for(i=0;i<TILE_TYPES;i++) {
-        tile_cpy_vram(HEAP_FLOOR_TILE, TileDB[i]);
+        tile_cpy_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, TileDB[i]);
     }
 
     vera_layer_mode_tile(0, vram_segment_floor_map, vram_segment_floor_tile, 64, 64, 16, 16, 4);
@@ -366,7 +366,7 @@ void main() {
     while(!kbhit());
 
     // Back to basic.
-    cx16_rom_bank(CX16_ROM_BASIC);
+    cx16_brom_set(CX16_ROM_BASIC);
 }
 
 //VSYNC Interrupt Routine

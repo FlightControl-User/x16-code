@@ -5,11 +5,12 @@
 
 #include <cx16.h>
 #include <cx16-veralib.h>
-#include <cx16-veramem.h>
+#include <cx16-heap.h>
 #include <cx16-mouse.h>
 #include <kernal.h>
 #include <6502.h>
 #include <conio.h>
+#include <cx16-conio.h>
 #include <printf.h>
 #include <stdio.h>
 #include <division.h>
@@ -22,18 +23,18 @@
 
 
 
-volatile byte j = 0;
-volatile byte a = 4;
-volatile word row = 8;
-volatile byte s = 1;
-volatile word vscroll = 8*64;
-volatile word prev_mousex = 0;
-volatile word prev_mousey = 0;
-volatile byte sprite_player = 3;
-volatile byte sprite_player_moved = 0;
-volatile byte sprite_engine_flame = 0;
-volatile byte scroll_action = 4;
-volatile byte sprite_action = 0;
+__mem volatile byte j = 0;
+__mem volatile byte a = 4;
+__mem volatile word row = 8;
+__mem volatile byte s = 1;
+__mem volatile word vscroll = 8*64;
+__mem volatile word prev_mousex = 0;
+__mem volatile word prev_mousey = 0;
+__mem volatile byte sprite_player = 3;
+__mem volatile byte sprite_player_moved = 0;
+__mem volatile byte sprite_engine_flame = 0;
+__mem volatile byte scroll_action = 4;
+__mem volatile byte sprite_action = 0;
 
 struct sprite_bullet {
     byte active;
@@ -51,7 +52,7 @@ struct sprite_enemy {
     byte state_animation;
     byte speed_animation;
     byte health;
-    byte stength;
+    byte strength;
     signed int x;
     signed int y;
     signed char dx;
@@ -59,64 +60,70 @@ struct sprite_enemy {
 };
 
 struct sprite_bullet sprite_bullets[11] = {0};
-volatile byte sprite_bullet_count = 0;
-volatile byte sprite_bullet_pause = 0;
-volatile byte sprite_bullet_switch = 0;
+__mem volatile byte sprite_bullet_count = 0;
+__mem volatile byte sprite_bullet_pause = 0;
+__mem volatile byte sprite_bullet_switch = 0;
 
 
 
 struct sprite_enemy sprite_enemies[33] = {0};
-volatile byte sprite_enemy_count = 0;
+__mem volatile byte sprite_enemy_count = 0;
 
-volatile byte sprite_collided = 0;
+__mem volatile byte sprite_collided = 0;
 
 
-volatile byte state_game = 0;
+__mem volatile byte state_game = 0;
 
 byte const SPRITE_OFFSET_PLAYER = 1;
 byte const SPRITE_OFFSET_ENGINE = 2;
 byte const SPRITE_OFFSET_ENEMY = 3;
 byte const SPRITE_OFFSET_BULLET = 64;
 
-byte const HEAP_FLOOR_MAP = 1;
-byte const HEAP_FLOOR_TILE = 2;
-byte const HEAP_PETSCII = 3;
+byte const HEAP_SEGMENT_BRAM_SPRITES = 0;
+byte const HEAP_SEGMENT_BRAM_PALETTES = 1;
+byte const HEAP_SEGMENT_VRAM_PETSCII = 4;
+byte const HEAP_SEGMENT_VRAM_FLOOR_MAP = 5;
+byte const HEAP_SEGMENT_VRAM_FLOOR_TILE = 6;
 
-const dword VRAM_PETSCII_MAP = 0x1B000;
-const dword VRAM_PETSCII_TILE = 0x1F000;
-
-__mem dword bram_sprites_base;
-__mem dword bram_sprites_ceil;
-__mem dword bram_tiles_base;
-__mem dword bram_ceil;
-__mem dword bram_palette;
-
-volatile dword vram_floor_map;
+const unsigned int VRAM_PETSCII_MAP = 0xB000;
+const unsigned int VRAM_PETSCII_TILE = 0xF000;
 
 const char FILE_PALETTES[] = "PALETTES";
 
-
-void sprite_cpy_vram(byte segmentid, struct Sprite *Sprite) {
-    dword bsrc = Sprite->BRAM_Address;
+void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
+    heap_ptr ptr_bram_sprite = heap_data_ptr(Sprite->BRAM_Handle);
     byte SpriteCount = Sprite->SpriteCount;
     word SpriteSize = Sprite->SpriteSize;
     byte SpriteOffset = Sprite->SpriteOffset;
     for(byte s=0;s<SpriteCount;s++) {
-        dword vaddr = vera_heap_malloc(segmentid, SpriteSize);
-        dword baddr = bsrc+mul16u((word)s,SpriteSize);
-        vera_cpy_bank_vram(baddr, vaddr, SpriteSize);
-        Sprite->VRAM_Address[s] = vaddr;
+
+        //dword vaddr = vera_heap_malloc(segmentid, SpriteSize);
+        //dword baddr = bsrc+mul16u((word)s,SpriteSize);
+        //vera_cpy_bank_vram(ptr_sprite, vaddr, SpriteSize);
+
+        heap_handle handle_vram_sprite = heap_alloc(segment_vram_sprite, SpriteSize);
+        heap_bank bank_vram_sprite = heap_data_bank(handle_vram_sprite);
+        heap_ptr ptr_vram_sprite = heap_data_ptr(handle_vram_sprite);
+
+        cx16_cpy_vram_from_bram(bank_vram_sprite, ptr_vram_sprite, ptr_bram_sprite, SpriteSize);
+
+        Sprite->VRAM_Handle[s] = handle_vram_sprite;
+        ptr_bram_sprite = cx16_bram_ptr_inc(ptr_bram_sprite, SpriteSize);
     }
 }
 
-dword sprite_load( struct Sprite *Sprite, dword bram_address) {
-    char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address);
+// Load the sprite into bram using the new cx16 heap manager.
+heap_handle sprite_load( struct Sprite *Sprite, heap_segment segment_bram_sprites) {
+
+    heap_handle handle_bram_sprite = heap_alloc(segment_bram_sprites, Sprite->TotalSize);  // Reserve enough memory on the heap for the sprite loading.
+    heap_ptr ptr_bram_sprite = heap_data_ptr(handle_bram_sprite);
+    printf("sprite handle = %x, sprite ptr = %p\n", handle_bram_sprite, ptr_bram_sprite);
+
+    char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, ptr_bram_sprite);
     if(status!=$ff) printf("error file %s: %x\n", Sprite->File, status);
-    Sprite->BRAM_Address = bram_address;
-    word SpriteSize = Sprite->TotalSize;
-    // printf("SpriteSize = %u", SpriteSize);
-    return bram_address + SpriteSize;
-    // return bram_address + Sprite->Size; // TODO: fragment
+
+    Sprite->BRAM_Handle = handle_bram_sprite;
+    return handle_bram_sprite;
 }
 
 void sprite_create(byte sprite, byte SpriteOffset) {
@@ -137,9 +144,9 @@ void show_memory_map() {
         struct Sprite *Sprite = SpriteDB[i];
         byte offset = Sprite->SpriteOffset;
         gotoxy(0, 30+i);
-        printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address);
+        printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Handle);
         for(byte j=0;j<Sprite->SpriteCount;j++) {
-            printf("%x ", Sprite->VRAM_Address[j]);
+            printf("%x ", Sprite->VRAM_Handle[j]);
         }
     }
 }
@@ -152,49 +159,76 @@ void show_sprite_config(byte sprite, byte x, byte y) {
     printf("%x %x ", SpriteAttributes.CTRL1, SpriteAttributes.CTRL2);
 }
 
-void main() {
-
-
-    // We are going to use only the kernal on the X16.
-    cx16_rom_bank(CX16_ROM_KERNAL);
+void petscii() {
 
     // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
     // This frees up the maximum space in VERA VRAM available for graphics.
     const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
-    vera_heap_segment_init(HEAP_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
-    dword vram_petscii_map = vera_heap_malloc(HEAP_PETSCII, VRAM_PETSCII_MAP_SIZE);
-    dword vram_petscii_tile = vera_heap_malloc(HEAP_PETSCII, VERA_PETSCII_TILE_SIZE);
-    vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
+    
+    // vera_heap_segment_init(HEAP_SEGMENT_VRAM_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
+    heap_segment segment_vram_petscii = heap_segment_vram(HEAP_SEGMENT_VRAM_PETSCII, 1, 0xF800, VRAM_PETSCII_MAP_SIZE+VERA_PETSCII_TILE_SIZE, 1, 0xC000, 16);
+    
+    heap_handle handle_vram_petscii_map = heap_alloc(segment_vram_petscii, VRAM_PETSCII_MAP_SIZE);
+    heap_handle handle_vram_petscii_tile = heap_alloc(segment_vram_petscii, VERA_PETSCII_TILE_SIZE);
+
+    //vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
+    heap_word word_vram_petscii_map = heap_data_word(handle_vram_petscii_map);
+    heap_bank bank_vram_petscii_map = heap_data_bank(handle_vram_petscii_map);
+    heap_word word_vram_petscii_tile = heap_data_word(handle_vram_petscii_tile);
+    heap_bank bank_vram_petscii_tile = heap_data_bank(handle_vram_petscii_tile);
+
+    cx16_cpy_vram_from_vram(bank_vram_petscii_tile, word_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
+
+    dword vram_petscii_map = vera_ptr_to_address(bank_vram_petscii_map, word_vram_petscii_map);
+    dword vram_petscii_tile = vera_ptr_to_address(bank_vram_petscii_tile, word_vram_petscii_tile); 
+
     vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
 
     screenlayer(1);
     textcolor(WHITE);
     bgcolor(DARK_GREY);
     clrscr();
+}
+
+void main() {
+
+
+    // We are going to use only the kernal on the X16.
+    cx16_brom_set(CX16_ROM_KERNAL);
+
+    petscii();
+
+    while(!getin());
+
+    // Initialize the bram heap for sprite loading.
+    __mem heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES,2,32);
 
     gotoxy(0, 30);
+
     // Loading the graphics in main banked memory.
-    bram_ceil = 0x02000;
     for(byte i=0; i<SPRITE_TYPES;i++) {
-        bram_ceil = sprite_load(SpriteDB[i], bram_ceil);
+        sprite_load(SpriteDB[i], segment_bram_sprites);
     }
 
     // Load the palettes in main banked memory.
-    bram_palette = 0x24000;
-    byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette);
+    __mem heap_segment segment_bram_palettes = heap_segment_bram(HEAP_SEGMENT_BRAM_PALETTES,63,63);
+    __mem heap_handle handle_bram_palettes = heap_alloc(segment_bram_palettes, 8192);
+    __mem heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
+
+    __mem byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, ptr_bram_palettes);
     if(status!=$ff) printf("error file_palettes = %u",status);
 
-    // Set the vera heap parameters.
-    word const VRAM_SPRITES_SIZE = 64*32*32/2; // Issue to solve: 128 sprites in heap manager seems not to work correctly, but will 127?
-    __mem dword vram_segment_sprites = vera_heap_segment_init(HEAP_SPRITES, 0x00000, VRAM_SPRITES_SIZE);
+    // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
+    // vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*15);
+    cx16_cpy_vram_from_bram( VERA_PALETTE_BANK, VERA_PALETTE_PTR+32, ptr_bram_palettes, 32*15 );
+ 
+    // Allocate the segment for the sprites in vram.
+    __mem heap_segment segment_vram_sprites = heap_segment_vram(HEAP_VRAM_SPRITES, 1, 0x4000, 0x14000, 1, 0xB000, 256);
 
     // Now we activate the tile mode.
     for(byte i=0;i<SPRITE_TYPES;i++) {
-        sprite_cpy_vram(HEAP_SPRITES, SpriteDB[i]);
+        sprite_cpy_vram(segment_vram_sprites, SpriteDB[i]);
     }
-
-    // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*15);
 
     sprite_create(0, 1); // Player ship
     sprite_create(1, 2); // Player thrust
@@ -217,7 +251,7 @@ void main() {
     };
 
     // Back to basic.
-    cx16_rom_bank(CX16_ROM_BASIC);
+    cx16_brom_set(CX16_ROM_BASIC);
 
 }
 
@@ -225,7 +259,9 @@ void sprite_animate(byte SpriteOffset, byte SpriteType, byte Index) {
     struct Sprite *Sprite = SpriteDB[SpriteType];
     byte SpriteCount = Sprite->SpriteCount;
     Index = (Index>=SpriteCount)?Index-SpriteCount:Index;
-    vera_sprite_address(SpriteOffset, Sprite->VRAM_Address[Index]);
+    heap_bank bank_vram_sprite = heap_data_bank(Sprite->VRAM_Handle[Index]);
+    heap_ptr ptr_vram_sprite = heap_data_ptr(Sprite->VRAM_Handle[Index]);
+    vera_sprite_ptr(SpriteOffset, bank_vram_sprite, ptr_vram_sprite);
 }
 
 void sprite_position(byte SpriteOffset, word x, word y) {
@@ -322,7 +358,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                     enemy->speed_animation = 4;
                     enemy->active = 1;
                     enemy->health = 0xff;
-                    enemy->strengh = 0x0f;
+                    enemy->strength = 0x0f;
                     enemy->SpriteType = SPRITE_ENEMY01;
                     sprite_collision(SPRITE_OFFSET_ENEMY+e, 0x03);
                 }

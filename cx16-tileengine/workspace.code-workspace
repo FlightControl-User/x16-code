@@ -27,7 +27,15 @@
 			"datatypes.h": "c",
 			"string.h": "c",
 			"cx16-allocator.h": "c",
-			"fault.h": "c"
+			"fault.h": "c",
+			"cx16-heap.h": "c",
+			"division.h": "c",
+			"multiply.h": "c",
+			"6502.h": "c",
+			"mos6522.h": "c",
+			"printf.h": "c",
+			"cstddef": "c",
+			"cstdio": "c"
 		}
 	}
 }

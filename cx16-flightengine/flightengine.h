@@ -12,8 +12,8 @@ struct Sprite {
     byte Vflip;
     byte BPP;
     byte PaletteOffset; 
-    dword BRAM_Address;
-    dword VRAM_Address[16];
+    heap_handle BRAM_Handle;
+    heap_handle VRAM_Handle[16];
 };
 
 
@@ -43,5 +43,5 @@ __mem struct Sprite *SpriteDB[4] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEng
 
 byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_ENGINE01_COUNT + SPRITE_BULLET01_COUNT; 
 
-byte const HEAP_SPRITES = 0;
+byte const HEAP_VRAM_SPRITES = 0;
 
