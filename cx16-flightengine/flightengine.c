@@ -1,7 +1,7 @@
 // Example program for the Commander X16
 
 
-
+#pragma var_model(ma_ssa_mem)
 
 #include <cx16.h>
 #include <cx16-veralib.h>
@@ -18,9 +18,6 @@
 #include <multiply.h>
 
 #include "flightengine.h"
-
-
-
 
 
 __mem volatile byte j = 0;

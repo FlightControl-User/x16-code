@@ -7,7 +7,7 @@ void main() {
 	// ===========================================================================
 	// First-fit search
 
-	heap_segment s1 = heap_segment_bram(0, 1, 10); // add a segment of 9 banks * $2000 bytes;
+	heap_segment s1 = heap_segment_bram(0, 1, 10); // add a segment of 10 banks * $2000 bytes;
 
 	printf("\nTC01: First allocation of header 0[8,\"A:8\"] bytes.\n");
 	heap_handle p1 = heap_alloc(s1, 6);
@@ -50,6 +50,12 @@ void main() {
 	strcpy(p8_data, "H:8");
 	heap_dump(s1);
 
+	printf("end of alloc memory, press any key to continue to the free memory without coalescing\n");
+	while(!getin());
+
+	printf("Start Heap position before free memory:\n");
+	heap_dump(s1);
+
 	printf("\nTC05: First free of header 5[8,\"E:8\"] bytes.\n");
 	heap_free(s1, p5);
 	heap_dump(s1);
@@ -60,6 +66,12 @@ void main() {
 
 	printf("\nTC07: Third free of header 6[16,\"G:16\"] bytes.\n");
 	heap_free(s1, p7);
+	heap_dump(s1);
+
+	printf("end of free memory without coalescing, press any key to continue to the free memory with coalescing\n");
+	while(!getin());
+
+	printf("Start Heap position before free memory with coalescing:\n");
 	heap_dump(s1);
 
 	printf("\nTC08: Free of header 1[16,\"B:16\"] bytes,\n");
