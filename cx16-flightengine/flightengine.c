@@ -300,7 +300,6 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // Check if collision interrupt
     if(vera_sprite_is_collision()) {
         gotoxy(0, 20);
-        printf("irq: %x", *VERA_ISR );
         sprite_collided = 1;
         vera_sprite_collision_clear();
     } else {
