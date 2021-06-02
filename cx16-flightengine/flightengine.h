@@ -43,5 +43,4 @@ __mem struct Sprite *SpriteDB[4] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEng
 
 byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_ENGINE01_COUNT + SPRITE_BULLET01_COUNT; 
 
-byte const HEAP_VRAM_SPRITES = 0;
 
