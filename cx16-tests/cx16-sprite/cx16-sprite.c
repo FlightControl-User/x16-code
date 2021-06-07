@@ -36,14 +36,7 @@ struct Sprite Sprite =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRIT
 
 
 
-void petscii() {
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 800);
-    vera_layer_mode_tile(1, 0x1B000, 0x1F000, 128, 64, 8, 8, 1);
-    screenlayer(1);
-    textcolor(WHITE);
-    bgcolor(DARK_GREY);
-    clrscr();
-}
+
 
 int main() {
 

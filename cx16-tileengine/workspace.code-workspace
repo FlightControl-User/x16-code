@@ -36,7 +36,9 @@
 			"printf.h": "c",
 			"cstddef": "c",
 			"cstdio": "c",
-			"cx16-bitmap.h": "c"
+			"cx16-bitmap.h": "c",
+			"equinoxe-flightengine.h": "c",
+			"equinoxe-floorengine.h": "c"
 		}
 	}
 }

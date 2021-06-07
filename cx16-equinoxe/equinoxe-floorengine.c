@@ -16,36 +16,8 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-#include "tileengine.h"
-
-byte const HEAP_SEGMENT_VRAM_FLOOR_MAP = 1;
-byte const HEAP_SEGMENT_VRAM_FLOOR_TILE = 2;
-byte const HEAP_SEGMENT_VRAM_PETSCII = 3;
-
-volatile byte i = 0;
-volatile byte j = 0;
-volatile byte a = 4;
-volatile word row = 8;
-volatile word vscroll = 8*64;
-volatile word scroll_action = 2;
-volatile byte s = 1;
-
-
-
-
-const dword VRAM_PETSCII_MAP = 0x1B000;
-const dword VRAM_PETSCII_TILE = 0x1F000;
-
-__mem dword bram_sprites_base;
-__mem dword bram_sprites_ceil;
-__mem dword bram_tiles_base;
-__mem dword bram_tiles_ceil;
-__mem dword bram_palette;
-
-volatile dword vram_floor_map;
-
-const char FILE_PALETTES[] = "PALETTES";
-
+#include "equinoxe.h"
+#include "equinoxe-floorengine.h"
 
 void vera_tile_clear( byte layer ) {
 
@@ -53,6 +25,8 @@ void vera_tile_clear( byte layer ) {
     byte Offset = 100;
 
     dword mapbase = vera_mapbase_address[layer];
+
+    printf("mapbase: %u, %x\n", layer, mapbase);
 
     vera_vram_address0(mapbase,VERA_INC_1);
 
@@ -257,38 +231,57 @@ void tile_background() {
 void show_memory_map() {
     for(byte i=0;i<TILE_TYPES;i++) {
         struct Tile *Tile = TileDB[i];
-        byte offset = Tile->TileOffset;
+        byte TileOffset = Tile->TileOffset;
         gotoxy(0, 30+i);
-        printf("t:%u bram:%x, vram:", i, Tile->BRAM_Address);
+        printf("t:%u bram:%x:%p, vram:", i, heap_data_bank(Tile->BRAM_Handle), heap_data_ptr(Tile->BRAM_Handle));
         for(byte j=0;j<Tile->TileCount;j++) {
-            struct TilePart *TilePart = &TilePartDB[(word)(offset+j)];
-            printf("%x ", TilePart->VRAM_Address);
+            struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+j)];
+            printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
         }
     }
 }
 
-void tile_cpy_vram(byte segmentid, struct Tile *Tile) {
-    dword bsrc = Tile->BRAM_Address;
-    byte num = Tile->TileCount;
-    word size = Tile->TileSize;
-    byte offset = Tile->TileOffset;
-    for(byte s=0;s<num;s++) {
-        dword vaddr = vera_heap_malloc(segmentid, size);
-        dword baddr = bsrc+mul16u((word)s,size);
-        vera_cpy_bank_vram(baddr, vaddr, size);
-        struct TilePart *TilePart = &TilePartDB[(word)(offset+s)];
-        TilePart->VRAM_Address = vaddr;
+void tile_cpy_vram_from_bram(heap_segment segment_vram_tile, struct Tile *Tile) {
+
+    heap_ptr ptr_bram_tile = heap_data_ptr(Tile->BRAM_Handle);
+    heap_bank bank_bram_tile = heap_data_bank(Tile->BRAM_Handle);
+
+    byte TileCount = Tile->TileCount;
+    word TileSize = Tile->TileSize;
+    byte TileOffset = Tile->TileOffset;
+
+    for(byte t=0;t<TileCount;t++) {
+
+        heap_handle handle_vram_tile = heap_alloc(segment_vram_tile, TileSize);
+        heap_bank bank_vram_tile = heap_data_bank(handle_vram_tile);
+        heap_ptr ptr_vram_tile = heap_data_ptr(handle_vram_tile);
+
+        cx16_cpy_vram_from_bram(bank_vram_tile, (word)ptr_vram_tile, bank_bram_tile, (byte*)ptr_bram_tile, TileSize);
+
+        struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
+        TilePart->VRAM_Handle = handle_vram_tile;
+        ptr_bram_tile = cx16_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
+        bank_bram_tile = cx16_bram_get();
     }
 }
 
-dword load_tile( struct Tile *Tile, dword bram_address) {
-    char status = cx16_load_ram_banked(1, 8, 0, Tile->File, bram_address);
+
+// Load the tile into bram using the new cx16 heap manager.
+heap_handle tile_load( struct Tile *Tile, heap_segment segment_bram_tiles) {
+
+    heap_handle handle_bram_tile = heap_alloc(segment_bram_tiles, Tile->TotalSize);  // Reserve enough memory on the heap for the tile loading.
+    heap_ptr ptr_bram_tile = heap_data_ptr(handle_bram_tile);
+    heap_bank bank_bram_tile = heap_data_bank(handle_bram_tile);
+    heap_handle data_handle_bram_tile = heap_data_handle(handle_bram_tile);
+
+    printf("bram: %x:%p\n", heap_data_bank(handle_bram_tile), heap_data_ptr(handle_bram_tile));
+
+    char status = cx16_load_ram_banked(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
     if(status!=$ff) printf("error file %s: %x\n", Tile->File, status);
-    Tile->BRAM_Address = bram_address;
-    word size = Tile->TotalSize;
-    // printf("size = %u", size);
-    return bram_address + size;
-    // return bram_address + Tile->Size; // TODO: fragment
+
+    Tile->BRAM_Handle = handle_bram_tile;
+    while(!getin());
+    return handle_bram_tile;
 }
 
 void main() {
@@ -297,60 +290,33 @@ void main() {
     // We are going to use only the kernal on the X16.
     cx16_brom_set(CX16_ROM_KERNAL);
 
-    // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
-    // This frees up the maximum space in VERA VRAM available for graphics.
-    const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
-    vera_heap_segment_init(HEAP_SEGMENT_VRAM_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
-    dword vram_petscii_map = vera_heap_malloc(HEAP_SEGMENT_VRAM_PETSCII, VRAM_PETSCII_MAP_SIZE);
-    dword vram_petscii_tile = vera_heap_malloc(HEAP_SEGMENT_VRAM_PETSCII, VERA_PETSCII_TILE_SIZE);
-    vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
-    vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
+    #include "equinoxe-petscii-move.c"
 
-    screenlayer(1);
-    textcolor(WHITE);
-    bgcolor(BLACK);
-    clrscr();
-
-    gotoxy(0, 30);
-    // Loading the graphics in main banked memory.
-    bram_tiles_ceil = 0x02000;
-    for(i=0; i<TILE_TYPES;i++) {
-        bram_tiles_ceil = load_tile(TileDB[i], bram_tiles_ceil);
-    }
-
-    // Load the palettes in main banked memory.
-    bram_palette = 0x24000;
-    byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bram_palette);
-    if(status!=$ff) printf("error file_palettes = %u",status);
-
+    // Allocate the segment for the tiles in vram.
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
-    __mem dword vram_segment_floor_map = vera_heap_segment_init(HEAP_SEGMENT_VRAM_FLOOR_MAP, 0x10000, VRAM_FLOOR_MAP_SIZE);
-    __mem dword vram_segment_floor_tile = vera_heap_segment_init(HEAP_SEGMENT_VRAM_FLOOR_TILE, vera_heap_segment_ceiling(HEAP_SEGMENT_VRAM_FLOOR_MAP), VRAM_FLOOR_TILE_SIZE);
+    heap_segment segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
+    heap_segment segment_vram_floor_tile = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, 1, 0xA000, 1, 0x2000, 1, 0xA400, 0x100);
 
-    // gotoxy(0,34);
-    // printf("floor map = %x, tile map = %x\n", vram_segment_floor_map, vram_segment_floor_tile);
-    // printf("tiledb\n");
-    // for(word i=0;i<TILE_TYPES;i++) {
-    //     printf("%x ",(word)TileDB[(byte)i]);
-    // }
-    // printf("\n");
-    // printf("segmentdb\n");
-    // for(word i=0;i<36;i++) {
-    //     struct TileSegment *TileSegment = &(TileSegmentDB[i]);
-        // printf("%x ",(word)TileSegment->Tile);
-    // }
-    vram_floor_map = vram_segment_floor_map;
+    #include "equinoxe-palettes.c"
+
+    // Initialize the bram heap for tile loading.
+    heap_segment segment_bram_floor_tile = heap_segment_bram(HEAP_SEGMENT_BRAM_TILES, 63, 0xC000, 33, 0xA000);
+
+    gotoxy(0, 10);
+
+    // Loading the graphics in main banked memory.
+    for(i=0; i<TILE_TYPES;i++) {
+        tile_load(TileDB[i], segment_bram_floor_tile);
+    }
 
     // Now we activate the tile mode.
     for(i=0;i<TILE_TYPES;i++) {
-        tile_cpy_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, TileDB[i]);
+        tile_cpy_vram_from_bram(segment_vram_floor_tile, TileDB[i]);
     }
 
-    vera_layer_mode_tile(0, vram_segment_floor_map, vram_segment_floor_tile, 64, 64, 16, 16, 4);
-
-    // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*4);
+    vram_floor_map_ulong = 0x10000;
+    vera_layer_mode_tile(0, vram_floor_map_ulong, 0x12000, 64, 64, 16, 16, 4);
 
     show_memory_map();
 
@@ -358,7 +324,6 @@ void main() {
 
     // floor_init();
     tile_background();
-
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
@@ -383,8 +348,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         printf("vscroll:%u row:%u   ",vscroll, row);
         if((<vscroll & 0xC0)==<vscroll ) {
             if(row<=7) {
-                dword dest_row = vram_floor_map+((row+8)*4*64*2);
-                dword src_row = vram_floor_map+(row*4*64*2);
+                dword dest_row = vram_floor_map_ulong+((row+8)*4*64*2);
+                dword src_row = vram_floor_map_ulong+(row*4*64*2);
                 vera_cpy_vram_vram(src_row, dest_row, (dword)64*4*2);
             }
             if(vscroll==0) {

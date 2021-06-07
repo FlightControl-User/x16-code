@@ -17,81 +17,8 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-#include "flightengine.h"
-#include "heapsegments.h"
-
-const byte HEAP_SEGMENT_BRAM_SPRITES = 0;
-const byte HEAP_SEGMENT_BRAM_PALETTES = 1;
-const byte HEAP_SEGMENT_VRAM_SPRITES = 2;
-const byte HEAP_SEGMENT_VRAM_PETSCII = 4;
-const byte HEAP_SEGMENT_VRAM_FLOOR_MAP = 5;
-const byte HEAP_SEGMENT_VRAM_FLOOR_TILE = 6;
-
-
-// This frees up the maximum space in VERA VRAM available for graphics.
-const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
-
-
-volatile byte j = 0;
-volatile byte a = 4;
-volatile word row = 8;
-volatile byte s = 1;
-volatile word vscroll = 8*64;
-volatile word prev_mousex = 0;
-volatile word prev_mousey = 0;
-volatile byte sprite_player = 3;
-volatile byte sprite_player_moved = 0;
-volatile byte sprite_engine_flame = 0;
-volatile byte scroll_action = 4;
-volatile byte sprite_action = 0;
-
-struct sprite_bullet {
-    byte active;
-    signed int x;
-    signed int y;
-    signed char dx;
-    signed char dy;
-    byte energy;
-};
-
-struct sprite_enemy {
-    byte active;
-    byte SpriteType;
-    byte state_behaviour;
-    byte state_animation;
-    byte speed_animation;
-    byte health;
-    byte strength;
-    signed int x;
-    signed int y;
-    signed char dx;
-    signed char dy;
-};
-
-struct sprite_bullet sprite_bullets[11] = {0};
-__mem volatile byte sprite_bullet_count = 0;
-__mem volatile byte sprite_bullet_pause = 0;
-__mem volatile byte sprite_bullet_switch = 0;
-
-
-
-struct sprite_enemy sprite_enemies[33] = {0};
-__mem volatile byte sprite_enemy_count = 0;
-
-__mem volatile byte sprite_collided = 0;
-
-
-__mem volatile byte state_game = 0;
-
-const byte SPRITE_OFFSET_PLAYER = 1;
-const byte SPRITE_OFFSET_ENGINE = 2;
-const byte SPRITE_OFFSET_ENEMY = 3;
-const byte SPRITE_OFFSET_BULLET = 64;
-
-const unsigned int VRAM_PETSCII_MAP = 0xB000;
-const unsigned int VRAM_PETSCII_TILE = 0xF000;
-
-const char FILE_PALETTES[] = "PALETTES";
+#include "equinoxe.h"
+#include "equinoxe-flightengine.h"
 
 void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
 
@@ -197,31 +124,14 @@ void main() {
     // We are going to use only the kernal on the X16.
     cx16_brom_set(CX16_ROM_KERNAL);
 
-    // Memory is managed as follows:
-    // ------------------------------------------------------------------------
-    //
-    // HEAP SEGMENT                     VRAM                  BRAM
-    // -------------------------        -----------------     -----------------
-    // HEAP_SEGMENT_VRAM_PETSCII        01/B000 - 01/F800     01/A000 - 01/A400
-    // HEAP_SEGMENT_VRAM_SPRITES        00/0000 - 01/B000     01/A400 - 01/C000
-    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
-    // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
-
-
-    // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
-    heap_segment segment_vram_petscii = heap_segment_vram(HEAP_SEGMENT_VRAM_PETSCII, 1, 0xF800, 1, (0xF800-VRAM_PETSCII_MAP_SIZE-VERA_PETSCII_TILE_SIZE), 1, 0xA000, 16);
-    petscii(segment_vram_petscii);
+    #include "equinoxe-petscii-move.c"
 
     // Allocate the segment for the sprites in vram.
     heap_bank heap_vram_ceil_bank = heap_segment_vram_floor_bank(segment_vram_petscii);
     heap_ptr heap_vram_ceil_ptr = heap_segment_vram_floor_ptr(segment_vram_petscii);
     heap_segment segment_vram_sprites = heap_segment_vram(HEAP_SEGMENT_VRAM_SPRITES, heap_vram_ceil_bank, heap_vram_ceil_ptr, 0, 0x0000, 1, 0xA400, 0x02c0);
 
-    // Load the palettes in main banked memory.
-    heap_segment segment_bram_palettes = heap_segment_bram(HEAP_SEGMENT_BRAM_PALETTES, 63, 0xC000, 63, 0xA000);
-    heap_handle handle_bram_palettes = heap_alloc(segment_bram_palettes, 8192);
-    heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
-    heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
+    #include "equinoxe-palettes.c"
 
     // Initialize the bram heap for sprite loading.
     heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES, 32, 0xC000, 2, 0xA000);
@@ -234,16 +144,11 @@ void main() {
         sprite_load(SpriteDB[i], segment_bram_sprites, segment_vram_sprites);
     }
 
-    byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bank_bram_palettes, ptr_bram_palettes);
-    if(status!=$ff) printf("error file_palettes = %u",status);
 
-    // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    // vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*15);
-    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, 32*15);
  
     // Now we activate the tile mode.
     for(byte i=0;i<SPRITE_TYPES;i++) {
-        sprite_cpy_vram(segment_vram_sprites, SpriteDB[i]);
+        sprite_cpy_vram_from_bram(segment_vram_sprites, SpriteDB[i]);
     }
 
     sprite_create(0, 1); // Player ship
