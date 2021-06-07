@@ -195,27 +195,34 @@ void main() {
     // We are going to use only the kernal on the X16.
     cx16_brom_set(CX16_ROM_KERNAL);
 
-    // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
-    
-    // vera_heap_segment_init(HEAP_SEGMENT_VRAM_PETSCII, 0x1B000, VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE);
-    heap_segment segment_vram_petscii = heap_segment_vram(HEAP_SEGMENT_VRAM_PETSCII, 1, 0xF800, 1, (0xF800-VRAM_PETSCII_MAP_SIZE-VERA_PETSCII_TILE_SIZE), 1, heap_bram_ptr_min, 16);
+    // Memory is managed as follows:
+    // ------------------------------------------------------------------------
+    //
+    // HEAP SEGMENT                     VRAM                  BRAM
+    // -------------------------        -----------------     -----------------
+    // HEAP_SEGMENT_VRAM_PETSCII        01/B000 - 01/F800     01/A000 - 01/A400
+    // HEAP_SEGMENT_VRAM_SPRITES        00/0000 - 01/B000     01/A400 - 01/C000
+    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
+    // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
 
+
+    // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
+    heap_segment segment_vram_petscii = heap_segment_vram(HEAP_SEGMENT_VRAM_PETSCII, 1, 0xF800, 1, (0xF800-VRAM_PETSCII_MAP_SIZE-VERA_PETSCII_TILE_SIZE), 1, 0xA000, 16);
     petscii(segment_vram_petscii);
 
     // Allocate the segment for the sprites in vram.
     heap_bank heap_vram_ceil_bank = heap_vram_floor_bank(segment_vram_petscii);
     heap_ptr heap_vram_ceil_ptr = heap_vram_floor_ptr(segment_vram_petscii);
-    heap_segment segment_vram_sprites = heap_segment_vram(HEAP_SEGMENT_VRAM_SPRITES, heap_vram_ceil_bank, heap_vram_ceil_ptr, 0, 0x0000, 1, 0xA400, 0x200);
+    heap_segment segment_vram_sprites = heap_segment_vram(HEAP_SEGMENT_VRAM_SPRITES, heap_vram_ceil_bank, heap_vram_ceil_ptr, 0, 0x0000, 1, 0xA400, 0x02c0);
 
     // Load the palettes in main banked memory.
-    heap_segment segment_bram_palettes = heap_segment_bram(HEAP_SEGMENT_BRAM_PALETTES,63,0xA000, 63, 0xC000);
+    heap_segment segment_bram_palettes = heap_segment_bram(HEAP_SEGMENT_BRAM_PALETTES, 63, 0xC000, 63, 0xA000);
     heap_handle handle_bram_palettes = heap_alloc(segment_bram_palettes, 8192);
     heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
     heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
 
-
     // Initialize the bram heap for sprite loading.
-    heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES, 2, 0xA000, 32, 0xC000);
+    heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES, 32, 0xC000, 2, 0xA000);
 
     gotoxy(0, 10);
     vera_sprites_show();
