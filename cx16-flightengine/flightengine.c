@@ -208,14 +208,14 @@ void main() {
     heap_segment segment_vram_sprites = heap_segment_vram(HEAP_SEGMENT_VRAM_SPRITES, heap_vram_ceil_bank, heap_vram_ceil_ptr, 0, 0x0000, 1, 0xA400, 0x200);
 
     // Load the palettes in main banked memory.
-    heap_segment segment_bram_palettes = heap_segment_bram(HEAP_SEGMENT_BRAM_PALETTES,63,63);
+    heap_segment segment_bram_palettes = heap_segment_bram(HEAP_SEGMENT_BRAM_PALETTES,63,0xA000, 63, 0xC000);
     heap_handle handle_bram_palettes = heap_alloc(segment_bram_palettes, 8192);
     heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
     heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
 
 
     // Initialize the bram heap for sprite loading.
-    heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES,2,32);
+    heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES, 2, 0xA000, 32, 0xC000);
 
     gotoxy(0, 10);
     vera_sprites_show();

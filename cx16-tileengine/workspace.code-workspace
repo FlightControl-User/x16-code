@@ -35,7 +35,8 @@
 			"mos6522.h": "c",
 			"printf.h": "c",
 			"cstddef": "c",
-			"cstdio": "c"
+			"cstdio": "c",
+			"cx16-bitmap.h": "c"
 		}
 	}
 }
