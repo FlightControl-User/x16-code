@@ -112,7 +112,7 @@ void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
 
         Sprite->VRAM_Handle[s] = handle_vram_sprite;
         ptr_bram_sprite = cx16_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
-        bank_bram_sprite = cx16_bram_get();
+        bank_bram_sprite = cx16_bram_bank_get();
     }
 }
 
@@ -195,7 +195,7 @@ void main() {
 
 
     // We are going to use only the kernal on the X16.
-    cx16_brom_set(CX16_ROM_KERNAL);
+    cx16_brom_bank_set(CX16_ROM_KERNAL);
 
     // Memory is managed as follows:
     // ------------------------------------------------------------------------
@@ -266,7 +266,7 @@ void main() {
     };
 
     // Back to basic.
-    cx16_brom_set(CX16_ROM_BASIC);
+    cx16_brom_bank_set(CX16_ROM_BASIC);
 
 }
 

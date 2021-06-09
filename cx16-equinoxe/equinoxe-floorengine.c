@@ -261,7 +261,7 @@ void tile_cpy_vram_from_bram(heap_segment segment_vram_tile, struct Tile *Tile) 
         struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
         TilePart->VRAM_Handle = handle_vram_tile;
         ptr_bram_tile = cx16_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
-        bank_bram_tile = cx16_bram_get();
+        bank_bram_tile = cx16_bram_bank_get();
     }
 }
 
@@ -288,7 +288,7 @@ void main() {
 
 
     // We are going to use only the kernal on the X16.
-    cx16_brom_set(CX16_ROM_KERNAL);
+    cx16_brom_bank_set(CX16_ROM_KERNAL);
 
     #include "equinoxe-petscii-move.c"
 
@@ -334,7 +334,7 @@ void main() {
     while(!kbhit());
 
     // Back to basic.
-    cx16_brom_set(CX16_ROM_BASIC);
+    cx16_brom_bank_set(CX16_ROM_BASIC);
 }
 
 //VSYNC Interrupt Routine

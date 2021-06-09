@@ -305,7 +305,7 @@ void main() {
     if(status!=$ff) printf("error file_palettes = %u",status);
 
     // We are going to use only the kernal on the X16.
-    cx16_brom_set(CX16_ROM_KERNAL);
+    cx16_brom_bank_set(CX16_ROM_KERNAL);
 
     // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
     // This frees up the maximum space in VERA VRAM available for graphics.
@@ -362,7 +362,7 @@ void main() {
     while(!kbhit());
 
     // Back to basic.
-    cx16_brom_set(CX16_ROM_BASIC);
+    cx16_brom_bank_set(CX16_ROM_BASIC);
 }
 
 

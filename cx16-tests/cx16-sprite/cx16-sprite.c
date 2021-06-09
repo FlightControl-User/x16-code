@@ -41,7 +41,7 @@ struct Sprite Sprite =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRIT
 int main() {
 
     // We are going to use only the kernal on the X16.
-    cx16_brom_set(CX16_ROM_KERNAL);
+    cx16_brom_bank_set(CX16_ROM_KERNAL);
 
     // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
     petscii();
@@ -79,7 +79,7 @@ int main() {
         vera_sprite_ptr(s+1, 0, 0x0000);
 
         ptr_bram_sprite = cx16_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
-        bank_bram_sprite = cx16_bram_get();
+        bank_bram_sprite = cx16_bram_bank_get();
         while(!getin());
     }
 
@@ -88,7 +88,7 @@ int main() {
     while(!getin());
 
     // Back to basic.
-    cx16_brom_set(CX16_ROM_BASIC);
+    cx16_brom_bank_set(CX16_ROM_BASIC);
 
 
 }
