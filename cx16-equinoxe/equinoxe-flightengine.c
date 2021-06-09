@@ -1,7 +1,7 @@
 // Space flight engine for a space game written in kickc for the Commander X16.
 
 
-#pragma var_model(local_ssa_mem)
+#pragma var_model(mem)
 
 #include <cx16.h>
 #include <cx16-veralib.h>
@@ -20,7 +20,7 @@
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 
-void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
+void sprite_cpy_vram_from_bram(struct Sprite *Sprite) {
 
     heap_ptr ptr_bram_sprite = heap_data_ptr(Sprite->BRAM_Handle);
     heap_bank bank_bram_sprite = heap_data_bank(Sprite->BRAM_Handle);
@@ -31,7 +31,7 @@ void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
 
     for(byte s=0;s<SpriteCount;s++) {
 
-        heap_handle handle_vram_sprite = heap_alloc(segment_vram_sprite, SpriteSize);
+        heap_handle handle_vram_sprite = heap_alloc(HEAP_SEGMENT_VRAM_SPRITES, SpriteSize);
         heap_bank bank_vram_sprite = heap_data_bank(handle_vram_sprite);
         heap_ptr ptr_vram_sprite = heap_data_ptr(handle_vram_sprite);
 
@@ -44,9 +44,9 @@ void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
-heap_handle sprite_load( struct Sprite *Sprite, heap_segment segment_bram_sprites, heap_segment segment_vram_sprites) {
+heap_handle sprite_load( struct Sprite *Sprite) {
 
-    heap_handle handle_bram_sprite = heap_alloc(segment_bram_sprites, Sprite->TotalSize);  // Reserve enough memory on the heap for the sprite loading.
+    heap_handle handle_bram_sprite = heap_alloc(HEAP_SEGMENT_BRAM_SPRITES, Sprite->TotalSize);  // Reserve enough memory on the heap for the sprite loading.
     heap_ptr ptr_bram_sprite = heap_data_ptr(handle_bram_sprite);
     heap_bank bank_bram_sprite = heap_data_bank(handle_bram_sprite);
     heap_handle data_handle_bram_sprite = heap_data_handle(handle_bram_sprite);
@@ -91,24 +91,44 @@ void show_sprite_config(byte sprite, byte x, byte y) {
     printf("%x %x ", SpriteAttributes.CTRL1, SpriteAttributes.CTRL2);
 }
 
-void petscii(heap_segment segment_vram_petscii) {
-    
+heap_address petscii() {
+
+    heap_address vram_floor_petscii = heap_segment_vram_ceil(
+        HEAP_SEGMENT_VRAM_PETSCII, 
+        cx16_vram_pack_address(1, 0xF800),
+        cx16_size_pack(VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE),
+        cx16_bram_pack_address(1, (cx16_ptr)0xA000), 
+        cx16_size_pack(16*8)
+        );
+
     // Tiles must be aligned to 2048 bytes, to allocate the tile map first. Note that the size parameter does the actual alignment to 2048 bytes.
-    heap_handle handle_vram_petscii_tile = heap_alloc(segment_vram_petscii, VERA_PETSCII_TILE_SIZE);
+    heap_handle handle_vram_petscii_tile = heap_alloc(HEAP_SEGMENT_VRAM_PETSCII, VERA_PETSCII_TILE_SIZE);
 
     // Maps must be aligned to 512 bytes, so allocate the map second.
-    heap_handle handle_vram_petscii_map = heap_alloc(segment_vram_petscii, VRAM_PETSCII_MAP_SIZE);
+    heap_handle handle_vram_petscii_map = heap_alloc(HEAP_SEGMENT_VRAM_PETSCII, VRAM_PETSCII_MAP_SIZE);
 
     //vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
-    heap_ptr ptr_vram_petscii_map = heap_data_ptr(handle_vram_petscii_map);
+    heap_offset ptr_vram_petscii_map = (heap_offset)heap_data_ptr(handle_vram_petscii_map); // TODO: rework to offset API call.
     heap_bank bank_vram_petscii_map = heap_data_bank(handle_vram_petscii_map);
-    heap_ptr ptr_vram_petscii_tile = heap_data_ptr(handle_vram_petscii_tile);
+    heap_offset ptr_vram_petscii_tile = (heap_offset)heap_data_ptr(handle_vram_petscii_tile);
     heap_bank bank_vram_petscii_tile = heap_data_bank(handle_vram_petscii_tile);
 
     cx16_cpy_vram_from_vram(bank_vram_petscii_tile, (word)ptr_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
 
-    dword vram_petscii_map = vera_ptr_to_address(bank_vram_petscii_map, ptr_vram_petscii_map);
-    dword vram_petscii_tile = vera_ptr_to_address(bank_vram_petscii_tile, ptr_vram_petscii_tile); 
+    dword vram_petscii_map = vera_ptr_to_address(bank_vram_petscii_map, (char*)ptr_vram_petscii_map);
+    dword vram_petscii_tile = vera_ptr_to_address(bank_vram_petscii_tile, (char*)ptr_vram_petscii_tile); 
+
+    // printf("vram_floor_petscii = %x:%x\n", cx16_vram_unpack_bank(vram_floor_petscii), cx16_vram_unpack_offset(vram_floor_petscii));
+    // printf("handle_vram_petscii_map = %x\n", handle_vram_petscii_map);
+    // printf("ptr_vram_petscii_map = %x\n", ptr_vram_petscii_map);
+    // printf("bank_vram_petscii_map = %x\n", bank_vram_petscii_map);
+    // printf("handle_vram_petscii_map = %x\n", handle_vram_petscii_tile);
+    // printf("ptr_vram_petscii_tile = %x\n", ptr_vram_petscii_tile);
+    // printf("bank_vram_petscii_tile = %x\n", bank_vram_petscii_tile);
+    // printf("vram_petscii_map = %x\n", vram_petscii_map);
+    // printf("vram_petscii_tile = %x\n", vram_petscii_tile);
+
+    // while(!kbhit());
 
     vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
 
@@ -116,6 +136,8 @@ void petscii(heap_segment segment_vram_petscii) {
     textcolor(WHITE);
     bgcolor(DARK_GREY);
     clrscr();
+
+    return vram_floor_petscii;
 }
 
 void main() {
@@ -124,31 +146,66 @@ void main() {
     // We are going to use only the kernal on the X16.
     cx16_brom_bank_set(CX16_ROM_KERNAL);
 
-    #include "equinoxe-petscii-move.c"
+    // Memory is managed as follows:
+    // ------------------------------------------------------------------------
+    //
+    // HEAP SEGMENT                     VRAM                  BRAM
+    // -------------------------        -----------------     -----------------
+    // HEAP_SEGMENT_VRAM_PETSCII        01/B000 - 01/F800     01/A000 - 01/A400
+    // HEAP_SEGMENT_VRAM_SPRITES        00/0000 - 01/B000     01/A400 - 01/C000
+    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
+    // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
+
+    heap_address vram_petscii = petscii();
+
 
     // Allocate the segment for the sprites in vram.
-    heap_bank heap_vram_ceil_bank = heap_segment_vram_floor_bank(segment_vram_petscii);
-    heap_ptr heap_vram_ceil_ptr = heap_segment_vram_floor_ptr(segment_vram_petscii);
-    heap_segment segment_vram_sprites = heap_segment_vram(HEAP_SEGMENT_VRAM_SPRITES, heap_vram_ceil_bank, heap_vram_ceil_ptr, 0, 0x0000, 1, 0xA400, 0x02c0);
+    cx16_vram_address vram_sprites = heap_segment_vram_ceil(
+        HEAP_SEGMENT_VRAM_SPRITES, 
+        vram_petscii, 
+        vram_petscii, 
+        cx16_bram_pack_address(1, (heap_ptr)0xA200), 
+        0x02c0
+        );
 
-    #include "equinoxe-palettes.c"
+    // Load the palettes in main banked memory.
+    cx16_bram_address bram_palettes = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_PALETTES, 
+        cx16_bram_pack_address(63, (heap_ptr)0xA000), 
+        cx16_size_pack(0x2000)
+        );
+
+    heap_handle handle_bram_palettes = heap_alloc(HEAP_SEGMENT_BRAM_PALETTES, 8192);
+    heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
+    heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
+
+    byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bank_bram_palettes, ptr_bram_palettes);
+    if(status!=$ff) printf("error file_palettes = %u",status);
+
+    // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
+    // vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*15);
+    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, 32*15);
 
     // Initialize the bram heap for sprite loading.
-    heap_segment segment_bram_sprites = heap_segment_bram(HEAP_SEGMENT_BRAM_SPRITES, 32, 0xC000, 2, 0xA000);
+    cx16_bram_address bram_sprites = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_SPRITES, 
+        cx16_bram_pack_address(2, (heap_ptr)0xA000),
+        cx16_size_pack(0x2000*30)
+        );
 
     gotoxy(0, 10);
     vera_sprites_show();
 
     // Loading the graphics in main banked memory.
     for(byte i=0; i<SPRITE_TYPES;i++) {
-        sprite_load(SpriteDB[i], segment_bram_sprites, segment_vram_sprites);
+        sprite_load(SpriteDB[i]);
     }
 
 
  
     // Now we activate the tile mode.
     for(byte i=0;i<SPRITE_TYPES;i++) {
-        sprite_cpy_vram_from_bram(segment_vram_sprites, SpriteDB[i]);
+        sprite_cpy_vram_from_bram(SpriteDB[i]);
     }
 
     sprite_create(0, 1); // Player ship
