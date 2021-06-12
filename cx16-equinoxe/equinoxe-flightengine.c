@@ -51,8 +51,8 @@ heap_handle sprite_load( struct Sprite *Sprite) {
     heap_bank bank_bram_sprite = heap_data_bank(handle_bram_sprite);
     heap_handle data_handle_bram_sprite = heap_data_handle(handle_bram_sprite);
 
-    char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, bank_bram_sprite, ptr_bram_sprite);
-    if(status!=$ff) printf("error file %s: %x\n", Sprite->File, status);
+    cx16_ptr ptr_end = cx16_load_ram_banked(1, 8, 0, Sprite->File, bank_bram_sprite, ptr_bram_sprite);
+    if(!ptr_end) printf("error file %s\n", Sprite->File);
 
     Sprite->BRAM_Handle = handle_bram_sprite;
     return handle_bram_sprite;

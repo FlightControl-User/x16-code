@@ -1,7 +1,7 @@
 // Space tile scrolling engine for a space game written in kickc for the Commander X16.
 
 
-#pragma var_model(local_ssa_mem)
+#pragma var_model(mem)
 
 #include <cx16.h>
 #include <cx16-veralib.h>
@@ -25,8 +25,6 @@ void vera_tile_clear( byte layer ) {
     byte Offset = 100;
 
     dword mapbase = vera_mapbase_address[layer];
-
-    printf("mapbase: %u, %x\n", layer, mapbase);
 
     vera_vram_address0(mapbase,VERA_INC_1);
 
@@ -63,9 +61,10 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
                     byte s = sc + sr;
                     struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
                     struct Tile *Tile = TilePart->Tile; 
-                    word TileOffset = (word)TileSegment->Composition[s];
-                    TileOffset *= 4;
-                    word Offset = TileOffset + c + r;
+                    word TileOffset = TilePart->TileOffset;
+                    // word TileOffset = (word)TileSegment->Composition[s];
+                    // TileOffset *= 4;
+                    word Offset = TileOffset + r + c;
                     *VERA_DATA0 = <Offset;
                     *VERA_DATA0 = Tile->PaletteOffset << 4 | >Offset;
                 }
@@ -259,6 +258,10 @@ void tile_cpy_vram_from_bram(struct Tile *Tile) {
         cx16_cpy_vram_from_bram(bank_vram_tile, (word)ptr_vram_tile, bank_bram_tile, (byte*)ptr_bram_tile, TileSize);
 
         struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
+        word Offset = ((word)ptr_vram_tile - (word)0x2000);
+        Offset = Offset >> 4;
+        Offset = Offset >> 3;
+        TilePart->TileOffset = Offset;
         TilePart->VRAM_Handle = handle_vram_tile;
         ptr_bram_tile = cx16_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
         bank_bram_tile = cx16_bram_bank_get();
@@ -309,20 +312,20 @@ void main() {
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
     
     // Allocate the segment for the floor map in vram.
-    cx16_vram_address vram_floor_map = heap_segment_vram_ceil(
-        HEAP_SEGMENT_VRAM_SPRITES, 
-        cx16_vram_pack_address(1, 0x2000), 
+    cx16_vram_address vram_floor_map = heap_segment_vram_floor(
+        HEAP_SEGMENT_VRAM_FLOOR_MAP, 
         cx16_vram_pack_address(1, 0x0000), 
+        cx16_size_pack(0x2000), 
         cx16_bram_pack_address(1, (heap_ptr)0xA400), 
         0
         );
 
     //heap_segment segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
 
-    cx16_vram_address vram_floor_tile = heap_segment_vram_ceil(
-        HEAP_SEGMENT_VRAM_SPRITES, 
-        cx16_vram_pack_address(1, (cx16_offset)0xA000), 
-        cx16_size_pack(0xA000), 
+    cx16_vram_address vram_floor_tile = heap_segment_vram_floor(
+        HEAP_SEGMENT_VRAM_FLOOR_TILE, 
+        cx16_vram_pack_address(1, (cx16_offset)0x2000), 
+        cx16_size_pack(0x8000), 
         cx16_bram_pack_address(1, (cx16_ptr)0xA400), 
         0x100
         );
@@ -357,7 +360,7 @@ void main() {
 
     vera_layer_show(0);
 
-    // floor_init();
+    //floor_init();
     tile_background();
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)

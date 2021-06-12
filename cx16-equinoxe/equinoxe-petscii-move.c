@@ -41,7 +41,7 @@ heap_address petscii() {
 
     screenlayer(1);
     textcolor(WHITE);
-    bgcolor(DARK_GREY);
+    bgcolor(BLACK);
     clrscr();
 
     return vram_floor_petscii;
