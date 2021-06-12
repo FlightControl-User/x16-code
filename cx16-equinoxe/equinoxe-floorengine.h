@@ -12,16 +12,16 @@ struct Tile {
 
 
 byte const TILE_FLOOR01_01_COUNT = 20;
-struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_01_COUNT, 0, 32*32*TILE_FLOOR01_01_COUNT/2, 512, 1, 0x0 };
+struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_01_COUNT, 0, 32*32*TILE_FLOOR01_01_COUNT/2, 512, 5, 0x0 };
 
 byte const TILE_FLOOR01_02_COUNT = 4;
-struct Tile TileFloor02 =       { "FLOOR02", TILE_FLOOR01_02_COUNT, 20, 32*32*TILE_FLOOR01_02_COUNT/2, 512, 2, 0x0 };
+struct Tile TileFloor02 =       { "FLOOR02", TILE_FLOOR01_02_COUNT, 20, 32*32*TILE_FLOOR01_02_COUNT/2, 512, 6, 0x0 };
 
 byte const TILE_FLOOR01_03_COUNT = 16;
-struct Tile TileFloor03 =       { "FLOOR03", TILE_FLOOR01_03_COUNT, 24, 32*32*TILE_FLOOR01_03_COUNT/2, 512, 3, 0x0 };
+struct Tile TileFloor03 =       { "FLOOR03", TILE_FLOOR01_03_COUNT, 24, 32*32*TILE_FLOOR01_03_COUNT/2, 512, 7, 0x0 };
 
 byte const TILE_FLOOR01_04_COUNT = 16;
-struct Tile TileFloor04 =       { "FLOOR04", TILE_FLOOR01_04_COUNT, 40, 32*32*TILE_FLOOR01_04_COUNT/2, 512, 4, 0x0 };
+struct Tile TileFloor04 =       { "FLOOR04", TILE_FLOOR01_04_COUNT, 40, 32*32*TILE_FLOOR01_04_COUNT/2, 512, 8, 0x0 };
 
 byte const TILE_TYPES = 4;
 __mem struct Tile *TileDB[4] = { &TileFloor01, &TileFloor02, &TileFloor03, &TileFloor04 };
@@ -119,65 +119,65 @@ byte const GLE03[] = {27,31}; const struct TileGlue GSE03 = { 2, GLE03 };
 byte const GLS03[] = {27,33}; const struct TileGlue GSS03 = { 2, GLS03 };
 byte const GLW03[] = {27,35}; const struct TileGlue GSW03 = { 2, GLW03 };
 
-byte const GLN10[] = 0x00;             const struct TileGlue GSN10 = { 0, 0x00 };
+byte const GLN10[] = (byte*)0x00;             const struct TileGlue GSN10 = { 0, 0x00 };
 byte const GLE10[] = {02,03,15,14};    const struct TileGlue GSE10 = { 4, GLE10 };
-byte const GLS10[] = 0x00;             const struct TileGlue GSS10 = { 0, 0x00 };
+byte const GLS10[] = (byte*)0x00;             const struct TileGlue GSS10 = { 0, 0x00 };
 byte const GLW10[] = {01,02,16,15};    const struct TileGlue GSW10 = { 4, GLW10 };
 
 byte const GLN11[] = {03,04,10,17};    const struct TileGlue GSN11 = { 4, GLN11 };
-byte const GLE11[] = 0x00;             const struct TileGlue GSE11 = { 0, 0x00 };
+byte const GLE11[] = (byte*)0x00;             const struct TileGlue GSE11 = { 0, 0x00 };
 byte const GLS11[] = {04,05,17,16};    const struct TileGlue GSS11 = { 4, GLS11 };
-byte const GLW11[] = 0x00;             const struct TileGlue GSW11 = { 0, 0x00 };
+byte const GLW11[] = (byte*)0x00;             const struct TileGlue GSW11 = { 0, 0x00 };
 
-byte const GLN12[] = 0x00;             const struct TileGlue GSN12 = { 0, 0x00 };
+byte const GLN12[] = (byte*)0x00;             const struct TileGlue GSN12 = { 0, 0x00 };
 byte const GLE12[] = {05,06,12,11};    const struct TileGlue GSE12 = { 4, GLE12 };
-byte const GLS12[] = 0x00;             const struct TileGlue GSS12 = { 0, 0x00 };
+byte const GLS12[] = (byte*)0x00;             const struct TileGlue GSS12 = { 0, 0x00 };
 byte const GLW12[] = {07,06,10,11};    const struct TileGlue GSW12 = { 4, GLW12 };
 
 byte const GLN13[] = {01,08,12,13};    const struct TileGlue GSN13 = { 4, GLN13 };
-byte const GLE13[] = 0x00;             const struct TileGlue GSE13 = { 0, 0x00 };
+byte const GLE13[] = (byte*)0x00;             const struct TileGlue GSE13 = { 0, 0x00 };
 byte const GLS13[] = {08,07,13,14};    const struct TileGlue GSS13 = { 4, GLS13 };
-byte const GLW13[] = 0x00;             const struct TileGlue GSW13 = { 0, 0x00 };
+byte const GLW13[] = (byte*)0x00;             const struct TileGlue GSW13 = { 0, 0x00 };
 
-byte const GLN20[] = 0x00;             const struct TileGlue GSN20 = { 0, 0x00 };
+byte const GLN20[] = (byte*)0x00;             const struct TileGlue GSN20 = { 0, 0x00 };
 byte const GLE20[] = {20,21};          const struct TileGlue GSE20 = { 2, GLE20 };
-byte const GLS20[] = 0x00;             const struct TileGlue GSS20 = { 0, 0x00 };
+byte const GLS20[] = (byte*)0x00;             const struct TileGlue GSS20 = { 0, 0x00 };
 byte const GLW20[] = {19,20};          const struct TileGlue GSW20 = { 2, GLW20 };
 
 byte const GLN21[] = {21,22};          const struct TileGlue GSN21 = { 2, GLN21 };
-byte const GLE21[] = 0x00;             const struct TileGlue GSE21 = { 0, 0x00 };
+byte const GLE21[] = (byte*)0x00;             const struct TileGlue GSE21 = { 0, 0x00 };
 byte const GLS21[] = {22,23};          const struct TileGlue GSS21 = { 2, GLS21 };
-byte const GLW21[] = 0x00;             const struct TileGlue GSW21 = { 0, 0x00 };
+byte const GLW21[] = (byte*)0x00;             const struct TileGlue GSW21 = { 0, 0x00 };
 
-byte const GLN22[] = 0x00;             const struct TileGlue GSN22 = { 0, 0x00 };
+byte const GLN22[] = (byte*)0x00;             const struct TileGlue GSN22 = { 0, 0x00 };
 byte const GLE22[] = {24,23};          const struct TileGlue GSE22 = { 2, GLE22 };
-byte const GLS22[] = 0x00;             const struct TileGlue GSS22 = { 0, 0x00 };
+byte const GLS22[] = (byte*)0x00;             const struct TileGlue GSS22 = { 0, 0x00 };
 byte const GLW22[] = {25,24};          const struct TileGlue GSW22 = { 2, GLW22 };
 
 byte const GLN23[] = {19,26};          const struct TileGlue GSN23 = { 2, GLN23 };
-byte const GLE23[] = 0x00;             const struct TileGlue GSE23 = { 0, 0x00 };
+byte const GLE23[] = (byte*)0x00;             const struct TileGlue GSE23 = { 0, 0x00 };
 byte const GLS23[] = {26,25};          const struct TileGlue GSS23 = { 2, GLS23 };
-byte const GLW23[] = 0x00;             const struct TileGlue GSW23 = { 0, 0x00 };
+byte const GLW23[] = (byte*)0x00;             const struct TileGlue GSW23 = { 0, 0x00 };
 
-byte const GLN30[] = 0x00;             const struct TileGlue GSN30 = { 0, 0x00 };
+byte const GLN30[] = (byte*)0x00;             const struct TileGlue GSN30 = { 0, 0x00 };
 byte const GLE30[] = {29,30};          const struct TileGlue GSE30 = { 2, GLE30 };
-byte const GLS30[] = 0x00;             const struct TileGlue GSS30 = { 0, 0x00 };
+byte const GLS30[] = (byte*)0x00;             const struct TileGlue GSS30 = { 0, 0x00 };
 byte const GLW30[] = {28,29};          const struct TileGlue GSW30 = { 2, GLW30 };
 
 byte const GLN31[] = {30,31};          const struct TileGlue GSN31 = { 2, GLN31 };
-byte const GLE31[] = 0x00;             const struct TileGlue GSE31 = { 0, 0x00 };
+byte const GLE31[] = (byte*)0x00;             const struct TileGlue GSE31 = { 0, 0x00 };
 byte const GLS31[] = {31,32};          const struct TileGlue GSS31 = { 2, GLS31 };
-byte const GLW31[] = 0x00;             const struct TileGlue GSW31 = { 0, 0x00 };
+byte const GLW31[] = (byte*)0x00;             const struct TileGlue GSW31 = { 0, 0x00 };
 
-byte const GLN32[] = 0x00;             const struct TileGlue GSN32 = { 0, 0x00 };
+byte const GLN32[] = (byte*)0x00;             const struct TileGlue GSN32 = { 0, 0x00 };
 byte const GLE32[] = {32,33};          const struct TileGlue GSE32 = { 2, GLE32 };
-byte const GLS32[] = 0x00;             const struct TileGlue GSS32 = { 0, 0x00 };
+byte const GLS32[] = (byte*)0x00;             const struct TileGlue GSS32 = { 0, 0x00 };
 byte const GLW32[] = {34,33};          const struct TileGlue GSW32 = { 2, GLW32 };
 
 byte const GLN33[] = {28,35};          const struct TileGlue GSN33 = { 2, GLN33 };
-byte const GLE33[] = 0x00;             const struct TileGlue GSE33 = { 0, 0x00 };
+byte const GLE33[] = (byte*)0x00;             const struct TileGlue GSE33 = { 0, 0x00 };
 byte const GLS33[] = {35,34};          const struct TileGlue GSS33 = { 2, GLS33 };
-byte const GLW33[] = 0x00;             const struct TileGlue GSW33 = { 0, 0x00 };
+byte const GLW33[] = (byte*)0x00;             const struct TileGlue GSW33 = { 0, 0x00 };
 
 struct TileSegment {
     byte Weight;

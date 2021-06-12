@@ -91,54 +91,8 @@ void show_sprite_config(byte sprite, byte x, byte y) {
     printf("%x %x ", SpriteAttributes.CTRL1, SpriteAttributes.CTRL2);
 }
 
-heap_address petscii() {
+#include "equinoxe-petscii-move.c"
 
-    heap_address vram_floor_petscii = heap_segment_vram_ceil(
-        HEAP_SEGMENT_VRAM_PETSCII, 
-        cx16_vram_pack_address(1, 0xF800),
-        cx16_size_pack(VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE),
-        cx16_bram_pack_address(1, (cx16_ptr)0xA000), 
-        cx16_size_pack(16*8)
-        );
-
-    // Tiles must be aligned to 2048 bytes, to allocate the tile map first. Note that the size parameter does the actual alignment to 2048 bytes.
-    heap_handle handle_vram_petscii_tile = heap_alloc(HEAP_SEGMENT_VRAM_PETSCII, VERA_PETSCII_TILE_SIZE);
-
-    // Maps must be aligned to 512 bytes, so allocate the map second.
-    heap_handle handle_vram_petscii_map = heap_alloc(HEAP_SEGMENT_VRAM_PETSCII, VRAM_PETSCII_MAP_SIZE);
-
-    //vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
-    heap_offset ptr_vram_petscii_map = (heap_offset)heap_data_ptr(handle_vram_petscii_map); // TODO: rework to offset API call.
-    heap_bank bank_vram_petscii_map = heap_data_bank(handle_vram_petscii_map);
-    heap_offset ptr_vram_petscii_tile = (heap_offset)heap_data_ptr(handle_vram_petscii_tile);
-    heap_bank bank_vram_petscii_tile = heap_data_bank(handle_vram_petscii_tile);
-
-    cx16_cpy_vram_from_vram(bank_vram_petscii_tile, (word)ptr_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
-
-    dword vram_petscii_map = vera_ptr_to_address(bank_vram_petscii_map, (char*)ptr_vram_petscii_map);
-    dword vram_petscii_tile = vera_ptr_to_address(bank_vram_petscii_tile, (char*)ptr_vram_petscii_tile); 
-
-    // printf("vram_floor_petscii = %x:%x\n", cx16_vram_unpack_bank(vram_floor_petscii), cx16_vram_unpack_offset(vram_floor_petscii));
-    // printf("handle_vram_petscii_map = %x\n", handle_vram_petscii_map);
-    // printf("ptr_vram_petscii_map = %x\n", ptr_vram_petscii_map);
-    // printf("bank_vram_petscii_map = %x\n", bank_vram_petscii_map);
-    // printf("handle_vram_petscii_map = %x\n", handle_vram_petscii_tile);
-    // printf("ptr_vram_petscii_tile = %x\n", ptr_vram_petscii_tile);
-    // printf("bank_vram_petscii_tile = %x\n", bank_vram_petscii_tile);
-    // printf("vram_petscii_map = %x\n", vram_petscii_map);
-    // printf("vram_petscii_tile = %x\n", vram_petscii_tile);
-
-    // while(!kbhit());
-
-    vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
-
-    screenlayer(1);
-    textcolor(WHITE);
-    bgcolor(DARK_GREY);
-    clrscr();
-
-    return vram_floor_petscii;
-}
 
 void main() {
 
@@ -168,23 +122,7 @@ void main() {
         0x02c0
         );
 
-    // Load the palettes in main banked memory.
-    cx16_bram_address bram_palettes = heap_segment_bram(
-        HEAP_SEGMENT_BRAM_PALETTES, 
-        cx16_bram_pack_address(63, (heap_ptr)0xA000), 
-        cx16_size_pack(0x2000)
-        );
-
-    heap_handle handle_bram_palettes = heap_alloc(HEAP_SEGMENT_BRAM_PALETTES, 8192);
-    heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
-    heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
-
-    byte status = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES, bank_bram_palettes, ptr_bram_palettes);
-    if(status!=$ff) printf("error file_palettes = %u",status);
-
-    // Load the palette in VERA palette registers, but keep the first 16 colors untouched.
-    // vera_cpy_bank_vram(bram_palette, VERA_PALETTE+32, (dword)32*15);
-    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, 32*15);
+    #include "equinoxe-palettes.c"
 
     // Initialize the bram heap for sprite loading.
     cx16_bram_address bram_sprites = heap_segment_bram(

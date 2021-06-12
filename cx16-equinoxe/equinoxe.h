@@ -13,7 +13,8 @@ const byte HEAP_SEGMENT_VRAM_FLOOR_TILE = 6;
 
 
 // File declarations
-const char FILE_PALETTES[] = "PALETTES";
+const char FILE_PALETTES_SPRITE01[] = "PALSPRITE01";
+const char FILE_PALETTES_FLOOR01[] = "PALFLOOR01";
 
 // Sprite constants
 const byte SPRITE_OFFSET_PLAYER = 1;

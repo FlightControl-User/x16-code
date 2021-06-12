@@ -103,10 +103,10 @@ struct TileGlue* floor_get_glue(byte GlueSegment, byte GlueDirection ) {
     return TileGlue;
 }
 
-struct TileSegment* floor_get_random_gluesegment(struct TileGlue* TileGlue) {
-    byte GlueSegment = TileGlue->GlueSegment[(byte)modr16u(rand(),TileGlue->CountGlue,0)];
-    return GlueSegment;
-}
+// struct TileSegment* floor_get_random_gluesegment(struct TileGlue* TileGlue) {
+//     byte GlueSegment = TileGlue->GlueSegment[(byte)modr16u(rand(),TileGlue->CountGlue,0)];
+//     return GlueSegment;
+// }
 
 void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
@@ -241,7 +241,7 @@ void show_memory_map() {
     }
 }
 
-void tile_cpy_vram_from_bram(heap_segment segment_vram_tile, struct Tile *Tile) {
+void tile_cpy_vram_from_bram(struct Tile *Tile) {
 
     heap_ptr ptr_bram_tile = heap_data_ptr(Tile->BRAM_Handle);
     heap_bank bank_bram_tile = heap_data_bank(Tile->BRAM_Handle);
@@ -252,7 +252,7 @@ void tile_cpy_vram_from_bram(heap_segment segment_vram_tile, struct Tile *Tile) 
 
     for(byte t=0;t<TileCount;t++) {
 
-        heap_handle handle_vram_tile = heap_alloc(segment_vram_tile, TileSize);
+        heap_handle handle_vram_tile = heap_alloc(HEAP_SEGMENT_VRAM_FLOOR_TILE, TileSize);
         heap_bank bank_vram_tile = heap_data_bank(handle_vram_tile);
         heap_ptr ptr_vram_tile = heap_data_ptr(handle_vram_tile);
 
@@ -267,22 +267,24 @@ void tile_cpy_vram_from_bram(heap_segment segment_vram_tile, struct Tile *Tile) 
 
 
 // Load the tile into bram using the new cx16 heap manager.
-heap_handle tile_load( struct Tile *Tile, heap_segment segment_bram_tiles) {
+heap_handle tile_load( struct Tile *Tile) {
 
-    heap_handle handle_bram_tile = heap_alloc(segment_bram_tiles, Tile->TotalSize);  // Reserve enough memory on the heap for the tile loading.
+    heap_handle handle_bram_tile = heap_alloc(HEAP_SEGMENT_BRAM_TILES, Tile->TotalSize);  // Reserve enough memory on the heap for the tile loading.
     heap_ptr ptr_bram_tile = heap_data_ptr(handle_bram_tile);
     heap_bank bank_bram_tile = heap_data_bank(handle_bram_tile);
     heap_handle data_handle_bram_tile = heap_data_handle(handle_bram_tile);
 
     printf("bram: %x:%p\n", heap_data_bank(handle_bram_tile), heap_data_ptr(handle_bram_tile));
 
-    char status = cx16_load_ram_banked(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
-    if(status!=$ff) printf("error file %s: %x\n", Tile->File, status);
+    cx16_ptr ptr_bram_tile_end = cx16_load_ram_banked(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
+    if(!ptr_bram_tile_end) printf("error file %s\n", Tile->File);
 
     Tile->BRAM_Handle = handle_bram_tile;
     while(!getin());
     return handle_bram_tile;
 }
+
+#include "equinoxe-petscii-move.c"
 
 void main() {
 
@@ -290,29 +292,62 @@ void main() {
     // We are going to use only the kernal on the X16.
     cx16_brom_bank_set(CX16_ROM_KERNAL);
 
-    #include "equinoxe-petscii-move.c"
+    // Memory is managed as follows:
+    // ------------------------------------------------------------------------
+    //
+    // HEAP SEGMENT                     VRAM                  BRAM
+    // -------------------------        -----------------     -----------------
+    // HEAP_SEGMENT_VRAM_PETSCII        01/B000 - 01/F800     01/A000 - 01/A400
+    // HEAP_SEGMENT_VRAM_SPRITES        00/0000 - 01/B000     01/A400 - 01/C000
+    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
+    // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
+
+    heap_address vram_petscii = petscii();
 
     // Allocate the segment for the tiles in vram.
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
-    heap_segment segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
-    heap_segment segment_vram_floor_tile = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, 1, 0xA000, 1, 0x2000, 1, 0xA400, 0x100);
+    
+    // Allocate the segment for the floor map in vram.
+    cx16_vram_address vram_floor_map = heap_segment_vram_ceil(
+        HEAP_SEGMENT_VRAM_SPRITES, 
+        cx16_vram_pack_address(1, 0x2000), 
+        cx16_vram_pack_address(1, 0x0000), 
+        cx16_bram_pack_address(1, (heap_ptr)0xA400), 
+        0
+        );
+
+    //heap_segment segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
+
+    cx16_vram_address vram_floor_tile = heap_segment_vram_ceil(
+        HEAP_SEGMENT_VRAM_SPRITES, 
+        cx16_vram_pack_address(1, (cx16_offset)0xA000), 
+        cx16_size_pack(0xA000), 
+        cx16_bram_pack_address(1, (cx16_ptr)0xA400), 
+        0x100
+        );
+
+    //heap_segment segment_vram_floor_tile = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, 1, 0xA000, 1, 0x2000, 1, 0xA400, 0x100);
 
     #include "equinoxe-palettes.c"
 
     // Initialize the bram heap for tile loading.
-    heap_segment segment_bram_floor_tile = heap_segment_bram(HEAP_SEGMENT_BRAM_TILES, 63, 0xC000, 33, 0xA000);
+    heap_address bram_floor_tile = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_TILES,
+        cx16_bram_pack_address(33,(cx16_ptr)0xA000),
+        cx16_size_pack(0x2000*8)
+        );
 
     gotoxy(0, 10);
 
     // Loading the graphics in main banked memory.
     for(i=0; i<TILE_TYPES;i++) {
-        tile_load(TileDB[i], segment_bram_floor_tile);
+        tile_load(TileDB[i]);
     }
 
     // Now we activate the tile mode.
     for(i=0;i<TILE_TYPES;i++) {
-        tile_cpy_vram_from_bram(segment_vram_floor_tile, TileDB[i]);
+        tile_cpy_vram_from_bram(TileDB[i]);
     }
 
     vram_floor_map_ulong = 0x10000;
