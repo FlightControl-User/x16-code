@@ -114,20 +114,20 @@ void main() {
 
 
     // Allocate the segment for the sprites in vram.
-    cx16_vram_address vram_sprites = heap_segment_vram_ceil(
+    cx16_vram_packed vram_sprites = heap_segment_vram_ceil(
         HEAP_SEGMENT_VRAM_SPRITES, 
         vram_petscii, 
         vram_petscii, 
-        cx16_bram_pack_address(1, (heap_ptr)0xA200), 
+        cx16_bram_pack(1, (heap_ptr)0xA200), 
         0x02c0
         );
 
     #include "equinoxe-palettes.c"
 
     // Initialize the bram heap for sprite loading.
-    cx16_bram_address bram_sprites = heap_segment_bram(
+    cx16_bram_packed bram_sprites = heap_segment_bram(
         HEAP_SEGMENT_BRAM_SPRITES, 
-        cx16_bram_pack_address(2, (heap_ptr)0xA000),
+        cx16_bram_pack(2, (heap_ptr)0xA000),
         cx16_size_pack(0x2000*30)
         );
 

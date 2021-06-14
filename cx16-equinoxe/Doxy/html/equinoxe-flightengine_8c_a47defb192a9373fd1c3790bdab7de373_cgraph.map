@@ -1,0 +1,28 @@
+<map id="sprite_enable" name="sprite_enable">
+<area shape="rect" id="node1" title=" " alt="" coords="5,385,104,412"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8h.html#a6c7d324fb3d066ae7518ce43d727140e" title=" " alt="" coords="161,56,273,83"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8h.html#a9782d14688a0e2ab9f700a9029803bba" title=" " alt="" coords="154,208,281,235"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8h.html#ac57b8368c2c7c8dfa9b6120cddd1771e" title=" " alt="" coords="160,327,275,353"/>
+<area shape="rect" id="node13" href="$cx16-veralib_8h.html#a3fdf4ac309f21690b4e6dcc42c099b85" title=" " alt="" coords="152,378,283,419"/>
+<area shape="rect" id="node14" href="$cx16-veralib_8h.html#a4c7a7af507b922bcd869ad38104bbed4" title=" " alt="" coords="161,444,273,471"/>
+<area shape="rect" id="node17" href="$cx16-veralib_8h.html#a2e0273c34d3426d6be5bf06b8e09f837" title=" " alt="" coords="157,563,278,589"/>
+<area shape="rect" id="node22" href="$cx16-veralib_8h.html#ad84d57deb9efeb92a7f246af1cbcffe9" title=" " alt="" coords="152,780,283,807"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a2da8f06b2945a52191b555e6c723d129" title=" " alt="" coords="347,5,465,32"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#a2ed02c6ce5cc98ddf6c881c50028e1f4" title=" " alt="" coords="347,56,465,83"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a105fedd950aff5352e2b9869fd053e70" title=" " alt="" coords="333,107,479,133"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#a3f0a5988a7791b0e0d70501a8cb0e870" title=" " alt="" coords="333,157,479,184"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#ad1e23a8f91943c407d613df32543011b" title=" " alt="" coords="333,208,479,235"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#a947743d12e6f2aabd611d1b8e3b8cc72" title=" " alt="" coords="336,259,476,285"/>
+<area shape="rect" id="node11" href="$cx16-veralib_8c.html#ab6a9e26766a0ad7f791fce0ada5c6c45" title=" " alt="" coords="339,309,473,336"/>
+<area shape="rect" id="node12" href="$cx16-veralib_8c.html#a4f2187d17fb00a40a47ec44b6c1d341f" title=" " alt="" coords="339,360,473,387"/>
+<area shape="rect" id="node15" href="$cx16-veralib_8c.html#a833436344fa73878e1ab3eafaf96d431" title=" " alt="" coords="340,411,472,437"/>
+<area shape="rect" id="node16" href="$cx16-veralib_8c.html#a2286025c737bcae761a61e2ee8112e7c" title=" " alt="" coords="339,461,473,488"/>
+<area shape="rect" id="node18" href="$cx16-veralib_8c.html#a82967f81f929c3f35ef7378b0378512a" title=" " alt="" coords="335,512,477,539"/>
+<area shape="rect" id="node19" href="$cx16-veralib_8c.html#ae21841beda27c6de095dea7ab727255b" title=" " alt="" coords="335,563,477,589"/>
+<area shape="rect" id="node20" href="$cx16-veralib_8c.html#a2eeb383b12b3ece9d434692b56703a49" title=" " alt="" coords="335,613,477,640"/>
+<area shape="rect" id="node21" href="$cx16-veralib_8c.html#a05282b1e091e584ef101889998e641de" title=" " alt="" coords="339,664,473,691"/>
+<area shape="rect" id="node23" href="$cx16-veralib_8c.html#aece6237f61792fd72739a9759a648fb2" title=" " alt="" coords="340,715,472,741"/>
+<area shape="rect" id="node24" href="$cx16-veralib_8c.html#a9c3a480dd4756ddd233560bd25df6244" title=" " alt="" coords="331,765,481,821"/>
+<area shape="rect" id="node25" href="$cx16-veralib_8c.html#a1d2d5fd9749b5945a232bbdb57713487" title=" " alt="" coords="333,845,479,901"/>
+<area shape="rect" id="node26" href="$cx16-veralib_8c.html#a76920c9886cfa4765f011655e72d1fc2" title=" " alt="" coords="341,926,471,967"/>
+</map>

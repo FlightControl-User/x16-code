@@ -1,0 +1,6 @@
+<map id="cx16_vram_pack" name="cx16_vram_pack">
+<area shape="rect" id="node1" title="Create a packed vera ram pointer from an 8 bit bank and 16 bit offset, which is compressed in a 2 byt..." alt="" coords="212,31,331,57"/>
+<area shape="rect" id="node2" href="$equinoxe-floorengine_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="109,5,159,32"/>
+<area shape="rect" id="node3" href="$equinoxe-petscii-move_8c.html#aadfbc8900059621e51d42a6c06c54938" title=" " alt="" coords="104,56,164,83"/>
+<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,56,56,83"/>
+</map>

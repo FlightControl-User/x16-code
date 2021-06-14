@@ -1,0 +1,6 @@
+<map id="bitmap_clear" name="bitmap_clear">
+<area shape="rect" id="node1" title=" " alt="" coords="5,38,101,65"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9537f4a1e779b03b48443f291b21a6e5" title="Set block of memory in vram to a value. &#160;&#160;Sets num bytes to the destination vram bank/offset to the s..." alt="" coords="149,13,259,39"/>
+<area shape="rect" id="node4" href="$multiply_8h.html#a3580ae58b413fdbebf066746e247be8d" title=" " alt="" coords="172,63,236,90"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="307,5,460,47"/>
+</map>

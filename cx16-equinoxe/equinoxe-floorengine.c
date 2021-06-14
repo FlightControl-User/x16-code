@@ -26,7 +26,7 @@ void vera_tile_clear( byte layer ) {
 
     dword mapbase = vera_mapbase_address[layer];
 
-    vera_vram_address0(mapbase,VERA_INC_1);
+    vera_vram_data0_address(mapbase,VERA_INC_1);
 
     for(word i=0;i<64*20;i++) {
         *VERA_DATA0 = Offset;
@@ -55,15 +55,13 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 
     for(byte sr=0;sr<4;sr+=2) {
         for(byte r=0;r<4;r+=2) {
-            vera_vram_address0(mapbase,VERA_INC_1);
+            vera_vram_data0_address(mapbase,VERA_INC_1);
             for(byte sc=0;sc<2;sc++) {
                 for(byte c=0;c<2;c++) {
                     byte s = sc + sr;
                     struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
                     struct Tile *Tile = TilePart->Tile; 
                     word TileOffset = TilePart->TileOffset;
-                    // word TileOffset = (word)TileSegment->Composition[s];
-                    // TileOffset *= 4;
                     word Offset = TileOffset + r + c;
                     *VERA_DATA0 = <Offset;
                     *VERA_DATA0 = Tile->PaletteOffset << 4 | >Offset;
@@ -258,6 +256,7 @@ void tile_cpy_vram_from_bram(struct Tile *Tile) {
         cx16_cpy_vram_from_bram(bank_vram_tile, (word)ptr_vram_tile, bank_bram_tile, (byte*)ptr_bram_tile, TileSize);
 
         struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
+        // TODO: make shorter, missing fragments.
         word Offset = ((word)ptr_vram_tile - (word)0x2000);
         Offset = Offset >> 4;
         Offset = Offset >> 3;
@@ -312,21 +311,21 @@ void main() {
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
     
     // Allocate the segment for the floor map in vram.
-    cx16_vram_address vram_floor_map = heap_segment_vram_floor(
+    cx16_vram_packed vram_floor_map = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_MAP, 
-        cx16_vram_pack_address(1, 0x0000), 
+        cx16_vram_pack(1, 0x0000), 
         cx16_size_pack(0x2000), 
-        cx16_bram_pack_address(1, (heap_ptr)0xA400), 
+        cx16_bram_pack(1, (heap_ptr)0xA400), 
         0
         );
 
     //heap_segment segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
 
-    cx16_vram_address vram_floor_tile = heap_segment_vram_floor(
+    cx16_vram_packed vram_floor_tile = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
-        cx16_vram_pack_address(1, (cx16_offset)0x2000), 
+        cx16_vram_pack(1, (cx16_offset)0x2000), 
         cx16_size_pack(0x8000), 
-        cx16_bram_pack_address(1, (cx16_ptr)0xA400), 
+        cx16_bram_pack(1, (cx16_ptr)0xA400), 
         0x100
         );
 
@@ -337,7 +336,7 @@ void main() {
     // Initialize the bram heap for tile loading.
     heap_address bram_floor_tile = heap_segment_bram(
         HEAP_SEGMENT_BRAM_TILES,
-        cx16_bram_pack_address(33,(cx16_ptr)0xA000),
+        cx16_bram_pack(33,(cx16_ptr)0xA000),
         cx16_size_pack(0x2000*8)
         );
 

@@ -1,0 +1,52 @@
+<map id="main" name="main">
+<area shape="rect" id="node1" title=" " alt="" coords="5,849,56,876"/>
+<area shape="rect" id="node2" href="$6502_8h.html#a44d1fb770b7cce1d861e1ebd52e7b752" title=" " alt="" coords="175,183,217,209"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a6104d2987de49881a9f854a2ae476d42" title="Create a packed banked ram pointer from an 8 bit bank and 16 bit pointer, which is compressed in a 2 ..." alt="" coords="365,5,487,32"/>
+<area shape="rect" id="node4" href="$cx16_8h.html#a9dd279e9c267836ab6ae9e6bb8837d3d" title=" " alt="" coords="123,824,269,851"/>
+<area shape="rect" id="node5" href="$cx16-mouse_8c.html#a5b1aed66f3bac94f8fdd1135096fad7d" title=" " alt="" coords="127,875,265,901"/>
+<area shape="rect" id="node6" href="$cx16_8h.html#a40caf9ebbdacb8e8e9704d5ac98da6e2" title=" " alt="" coords="368,56,484,83"/>
+<area shape="rect" id="node7" href="$cx16-kernal_8c.html#aa7ea54f8fce4a2dcb42d7b75af378a27" title=" " alt="" coords="171,925,221,952"/>
+<area shape="rect" id="node8" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title=" " alt="" coords="165,976,227,1003"/>
+<area shape="rect" id="node11" href="$cx16-heap_8h.html#ae980db9cce91543e60b9e07f8a95327a" title=" " alt="" coords="125,1027,267,1053"/>
+<area shape="rect" id="node12" href="$cx16-heap_8h.html#ac687f3c62073fd59aa7c4bee1e944602" title=" " alt="" coords="342,107,510,133"/>
+<area shape="rect" id="node13" href="$equinoxe-petscii-move_8c.html#aadfbc8900059621e51d42a6c06c54938" title=" " alt="" coords="166,385,226,412"/>
+<area shape="rect" id="node33" href="$6502_8h.html#af055224f182307b22de270908bdfda18" title=" " alt="" coords="175,1077,217,1104"/>
+<area shape="rect" id="node34" href="$equinoxe-flightengine_8c.html#af7cd2b1f2382947f5d7e67ac61a138aa" title=" " alt="" coords="104,773,288,800"/>
+<area shape="rect" id="node38" href="$equinoxe-flightengine_8c.html#ae9012e73480d9f5d5a400630b10459c7" title=" " alt="" coords="147,1136,245,1163"/>
+<area shape="rect" id="node45" href="$equinoxe-flightengine_8c.html#a05f3b4cb848c72f07c7a853058452aa8" title=" " alt="" coords="153,715,239,741"/>
+<area shape="rect" id="node49" href="$cx16-veralib_8h.html#a555af7ade72c4e7143bc8eada3af6b8a" title=" " alt="" coords="113,1187,279,1213"/>
+<area shape="rect" id="node50" href="$cx16-veralib_8h.html#a3d9bacf1607310975023a2b5923ddcc4" title=" " alt="" coords="132,1237,260,1264"/>
+<area shape="rect" id="node9" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="388,1019,464,1045"/>
+<area shape="rect" id="node10" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="595,1019,701,1045"/>
+<area shape="rect" id="node14" href="$conio_8h.html#a9024259a494ae0917c262d781fac552c" title=" " alt="" coords="394,208,458,235"/>
+<area shape="rect" id="node15" href="$conio_8h.html#a209453284e1e2ed32261e11e00d53760" title=" " alt="" coords="399,259,453,285"/>
+<area shape="rect" id="node21" href="$cx16_8h.html#a67cfc4e830febddc11d957003e55dd2a" title="Copy block of memory from vram to vram. &#160;&#160;Copies num bytes from the source vram bank/offset to the de..." alt="" coords="337,309,515,336"/>
+<area shape="rect" id="node24" href="$cx16_8h.html#ac902874d357e29150c04011f014f3192" title="Create a packed vera ram pointer from an 8 bit bank and 16 bit offset, which is compressed in a 2 byt..." alt="" coords="367,360,485,387"/>
+<area shape="rect" id="node25" href="$cx16-heap_8h.html#a00b33488bca659988e30062e0264af7a" title=" " alt="" coords="384,715,468,741"/>
+<area shape="rect" id="node27" href="$cx16-heap_8h.html#a0a48f10030633b8fe84b4692d145f9c0" title=" " alt="" coords="367,765,485,792"/>
+<area shape="rect" id="node28" href="$cx16-heap_8h.html#a90b8f590de0a80cc643fad5f17e6a719" title=" " alt="" coords="374,816,478,843"/>
+<area shape="rect" id="node29" href="$cx16-conio_8h.html#a32f50ebf4fc429a686b12871b53cfe4a" title=" " alt="" coords="381,411,471,437"/>
+<area shape="rect" id="node30" href="$conio_8h.html#adb732454e410f8bc51c0df2eb693a404" title=" " alt="" coords="390,461,462,488"/>
+<area shape="rect" id="node31" href="$cx16-veralib_8h.html#a42e3df54567861a6019d1fddfa7a6029" title=" " alt="" coords="355,512,497,539"/>
+<area shape="rect" id="node32" href="$cx16-veralib_8h.html#a7e97f184e2178b40811ded4734466828" title=" " alt="" coords="357,157,495,184"/>
+<area shape="rect" id="node16" href="$conio-atarixl_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title=" " alt="" coords="617,107,679,133"/>
+<area shape="rect" id="node17" href="$string_8h.html#a1e75227138c7a39467d90485305b1270" title=" " alt="" coords="613,157,683,184"/>
+<area shape="rect" id="node18" href="$nes_8h.html#a88c823b7fa241570ee0d32817e0a65ef" title=" " alt="" coords="605,208,691,235"/>
+<area shape="rect" id="node19" href="$cx16-veralib_8h.html#a4b6eca37d6603e39538d9f33e262367c" title=" " alt="" coords="564,259,732,285"/>
+<area shape="rect" id="node20" href="$cx16-veralib_8h.html#aa19e97edafbd1f0c2aff155f8c3c5082" title=" " alt="" coords="567,309,729,336"/>
+<area shape="rect" id="node22" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="571,361,725,402"/>
+<area shape="rect" id="node23" href="$cx16-veralib_8h.html#a46829504472507546290d9bf10283d1f" title=" " alt="" coords="571,426,725,467"/>
+<area shape="rect" id="node26" href="$cx16-heap_8c.html#abbfa15cf886d1471303689252dbf1b0a" title=" " alt="" coords="591,715,705,741"/>
+<area shape="rect" id="node35" href="$cx16_8h.html#ade5bb38fc1c5896c6ef3e049fdcd305b" title=" " alt="" coords="353,867,499,893"/>
+<area shape="rect" id="node36" href="$cx16_8h.html#a0138b3d8413f646f2f9b67252fa2fde5" title=" " alt="" coords="360,917,492,944"/>
+<area shape="rect" id="node37" href="$equinoxe-palettes_8c.html#a4cd39404407d5a7b70c1e139e2c70b45" title=" " alt="" coords="336,968,516,995"/>
+<area shape="rect" id="node39" href="$cx16-veralib_8h.html#a6c7d324fb3d066ae7518ce43d727140e" title=" " alt="" coords="370,1237,482,1264"/>
+<area shape="rect" id="node40" href="$cx16-veralib_8h.html#a9782d14688a0e2ab9f700a9029803bba" title=" " alt="" coords="363,1288,489,1315"/>
+<area shape="rect" id="node41" href="$cx16-veralib_8h.html#ac57b8368c2c7c8dfa9b6120cddd1771e" title=" " alt="" coords="369,1339,483,1365"/>
+<area shape="rect" id="node42" href="$cx16-veralib_8h.html#a3fdf4ac309f21690b4e6dcc42c099b85" title=" " alt="" coords="361,1070,491,1111"/>
+<area shape="rect" id="node43" href="$cx16-veralib_8h.html#a4c7a7af507b922bcd869ad38104bbed4" title=" " alt="" coords="370,1136,482,1163"/>
+<area shape="rect" id="node44" href="$cx16-veralib_8h.html#a2e0273c34d3426d6be5bf06b8e09f837" title=" " alt="" coords="365,1187,487,1213"/>
+<area shape="rect" id="node46" href="$cx16_8h.html#af1647e0038ba3f38426da1db251bdb9d" title="Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks." alt="" coords="347,563,505,589"/>
+<area shape="rect" id="node47" href="$cx16-heap_8h.html#a616caae8492296d9cddcc82bfeb170b8" title=" " alt="" coords="363,613,489,640"/>
+<area shape="rect" id="node48" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="401,664,451,691"/>
+</map>

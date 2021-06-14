@@ -54,7 +54,7 @@ void vera_tile_clear( byte layer ) {
 
     dword mapbase = vera_mapbase_address[layer];
 
-    vera_vram_address0(mapbase,VERA_INC_1);
+    vera_vram_data0_address(mapbase,VERA_INC_1);
 
     for(word i=0;i<64*20;i++) {
         *VERA_DATA0 = Offset;
@@ -83,7 +83,7 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 
     for(byte sr=0;sr<4;sr+=2) {
         for(byte r=0;r<4;r+=2) {
-            vera_vram_address0(mapbase,VERA_INC_1);
+            vera_vram_data0_address(mapbase,VERA_INC_1);
             for(byte sc=0;sc<2;sc++) {
                 for(byte c=0;c<2;c++) {
                     byte s = sc + sr;

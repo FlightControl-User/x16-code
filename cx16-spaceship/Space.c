@@ -109,7 +109,7 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile
 
     for(byte j=0;j<TileTotal;j+=(TileTotal>>1)) {
         for(byte i=0;i<TileCount;i+=(TileColumns)) {
-            vera_vram_address0(mapbase,VERA_INC_1);
+            vera_vram_data0_address(mapbase,VERA_INC_1);
             for(byte r=0;r<(TileTotal>>1);r+=TileCount) {
                 for(byte c=0;c<TileColumns;c+=1) {
                     *VERA_DATA0 = (<TileOffset)+c+r+i+j;

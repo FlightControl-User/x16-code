@@ -1,7 +1,7 @@
     // Load the palettes in main banked memory.
     heap_address bram_palettes = heap_segment_bram(
         HEAP_SEGMENT_BRAM_PALETTES, 
-        cx16_bram_pack_address(63, (heap_ptr)0xA000), 
+        cx16_bram_pack(63, (heap_ptr)0xA000), 
         cx16_size_pack(0x2000)
         );
 

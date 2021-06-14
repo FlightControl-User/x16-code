@@ -2,9 +2,9 @@ heap_address petscii() {
 
     heap_address vram_floor_petscii = heap_segment_vram_ceil(
         HEAP_SEGMENT_VRAM_PETSCII, 
-        cx16_vram_pack_address(1, 0xF800),
+        cx16_vram_pack(1, 0xF800),
         cx16_size_pack(VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE),
-        cx16_bram_pack_address(1, (cx16_ptr)0xA000), 
+        cx16_bram_pack(1, (cx16_ptr)0xA000), 
         cx16_size_pack(16*8)
         );
 
