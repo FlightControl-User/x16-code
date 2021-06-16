@@ -38,7 +38,8 @@
 			"cstdio": "c",
 			"cx16-bitmap.h": "c",
 			"equinoxe-flightengine.h": "c",
-			"equinoxe-floorengine.h": "c"
+			"equinoxe-floorengine.h": "c",
+			"equinoxe.h": "c"
 		}
 	}
 }

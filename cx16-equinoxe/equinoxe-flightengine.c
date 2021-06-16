@@ -175,11 +175,11 @@ void sprite_animate(byte SpriteOffset, byte SpriteType, byte Index) {
     byte SpriteCount = Sprite->SpriteCount;
     Index = (Index>=SpriteCount)?Index-SpriteCount:Index;
     heap_bank bank_vram_sprite = heap_data_bank(Sprite->VRAM_Handle[Index]);
-    heap_ptr ptr_vram_sprite = heap_data_ptr(Sprite->VRAM_Handle[Index]);
-    vera_sprite_ptr(SpriteOffset, bank_vram_sprite, ptr_vram_sprite);
+    heap_offset offset_vram_sprite = (heap_offset)heap_data_ptr(Sprite->VRAM_Handle[Index]);
+    vera_sprite_bank_offset(SpriteOffset, bank_vram_sprite, offset_vram_sprite);
 }
 
-void sprite_position(byte SpriteOffset, word x, word y) {
+void sprite_position(byte SpriteOffset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
     vera_sprite_xy(SpriteOffset, x, y);
 }
 
@@ -266,7 +266,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                     enemy->y = 100;
                     enemy->dx = 0;
                     enemy->dy = 0;
-                    sprite_position(SPRITE_OFFSET_ENEMY+e, (word)enemy->x, (word)enemy->y);
+                    sprite_position(SPRITE_OFFSET_ENEMY+e, (int)enemy->x, (int)enemy->y);
                     enemy->state_animation = 0;
                     enemy->state_behaviour = 0;
                     enemy->speed_animation = 4;
@@ -304,11 +304,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         sprite_enable(SPRITE_OFFSET_PLAYER, SPRITE_PLAYER01);
         sprite_enable(SPRITE_OFFSET_ENGINE, SPRITE_ENGINE01);
         sprite_animate(SPRITE_OFFSET_PLAYER, SPRITE_PLAYER01, sprite_player);
-        sprite_position(SPRITE_OFFSET_PLAYER, cx16_mousex, cx16_mousey);
+        sprite_position(SPRITE_OFFSET_PLAYER, (int)cx16_mousex, (int)cx16_mousey);
         sprite_animate(SPRITE_OFFSET_ENGINE, SPRITE_ENGINE01, sprite_engine_flame);
         sprite_position(SPRITE_OFFSET_ENGINE, cx16_mousex+8, cx16_mousey+22);
         gotoxy(0,10);
-        printf("mouse: %u %u %u %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)cx16_mouse_status);
+        printf("mouse: %i %i %i %u       ", cx16_mousex, cx16_mousey, prev_mousex, (unsigned int)cx16_mouse_status);
 
         // Enemies
         for(byte e=0;e<32;e++) {
@@ -380,7 +380,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                 bullet->y = y;
                 if(y>0) { 
                     sprite_animate(SPRITE_OFFSET_BULLET+b, SPRITE_BULLET01, 0);
-                    sprite_position(SPRITE_OFFSET_BULLET+b, (word)x, (word)y);
+                    sprite_position(SPRITE_OFFSET_BULLET+b, (int)x, (int)y);
                 } else {
                     bullet->active = 0;
                     sprite_bullet_count--;
