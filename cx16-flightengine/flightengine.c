@@ -54,7 +54,7 @@ struct sprite_bullet {
     byte energy;
 };
 
-struct sprite_enemy {
+struct entity {
     byte active;
     byte SpriteType;
     byte state_behaviour;
@@ -75,7 +75,7 @@ __mem volatile byte sprite_bullet_switch = 0;
 
 
 
-struct sprite_enemy sprite_enemies[33] = {0};
+struct entity sprite_enemies[33] = {0};
 __mem volatile byte sprite_enemy_count = 0;
 
 __mem volatile byte sprite_collided = 0;
@@ -93,7 +93,7 @@ const unsigned int VRAM_PETSCII_TILE = 0xF000;
 
 const char FILE_PALETTES[] = "PALETTES";
 
-void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
+void sprite_cpy_vram(heap_segment segment_vram_sprite, struct sprite *Sprite) {
 
     heap_ptr ptr_bram_sprite = heap_data_ptr(Sprite->BRAM_Handle);
     heap_bank bank_bram_sprite = heap_data_bank(Sprite->BRAM_Handle);
@@ -117,7 +117,7 @@ void sprite_cpy_vram(heap_segment segment_vram_sprite, struct Sprite *Sprite) {
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
-heap_handle sprite_load( struct Sprite *Sprite, heap_segment segment_bram_sprites, heap_segment segment_vram_sprites) {
+heap_handle sprite_load( struct sprite *Sprite, heap_segment segment_bram_sprites, heap_segment segment_vram_sprites) {
 
     heap_handle handle_bram_sprite = heap_alloc(segment_bram_sprites, Sprite->TotalSize);  // Reserve enough memory on the heap for the sprite loading.
     heap_ptr ptr_bram_sprite = heap_data_ptr(handle_bram_sprite);
@@ -134,7 +134,7 @@ heap_handle sprite_load( struct Sprite *Sprite, heap_segment segment_bram_sprite
 void sprite_create(byte sprite, byte SpriteOffset) {
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
-    struct Sprite *Sprite = SpriteDB[sprite];
+    struct sprite *Sprite = SpriteDB[sprite];
     vera_sprite_bpp(SpriteOffset, Sprite->BPP);
     vera_sprite_height(SpriteOffset, Sprite->Height);
     vera_sprite_width(SpriteOffset, Sprite->Width);
@@ -146,7 +146,7 @@ void sprite_create(byte sprite, byte SpriteOffset) {
 void show_memory_map() {
     gotoxy(0, 30);
     for(byte i=0;i<SPRITE_TYPES;i++) {
-        struct Sprite *Sprite = SpriteDB[i];
+        struct sprite *Sprite = SpriteDB[i];
         byte offset = Sprite->SpriteOffset;
         printf("s:%u bram: %x/%p, vram: ", i, heap_data_bank(Sprite->BRAM_Handle), heap_data_ptr(Sprite->BRAM_Handle));
         for(byte j=0;j<Sprite->SpriteCount;j++) {
@@ -271,7 +271,7 @@ void main() {
 }
 
 void sprite_animate(byte SpriteOffset, byte SpriteType, byte Index) {
-    struct Sprite *Sprite = SpriteDB[SpriteType];
+    struct sprite *Sprite = SpriteDB[SpriteType];
     byte SpriteCount = Sprite->SpriteCount;
     Index = (Index>=SpriteCount)?Index-SpriteCount:Index;
     heap_bank bank_vram_sprite = heap_data_bank(Sprite->VRAM_Handle[Index]);
@@ -284,7 +284,7 @@ void sprite_position(byte SpriteOffset, word x, word y) {
 }
 
 void sprite_enable(byte SpriteOffset, byte SpriteType) {
-    struct Sprite *Sprite = SpriteDB[SpriteType];
+    struct sprite *Sprite = SpriteDB[SpriteType];
     vera_sprite_zdepth(SpriteOffset, Sprite->Zdepth);
     vera_sprite_bpp(SpriteOffset, Sprite->BPP);
     vera_sprite_height(SpriteOffset, Sprite->Height);
@@ -331,7 +331,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                     signed int bx = bullet->x;
                     signed int by = bullet->y;
                     for(byte e=0;e<32;e++) {
-                        struct sprite_enemy *enemy = &sprite_enemies[e];
+                        struct entity *enemy = &sprite_enemies[e];
                         if(enemy->active) {
                             signed int ex = enemy->x;
                             signed int ey = enemy->y;
@@ -361,7 +361,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
             case 0:
                 for(byte e=0; e<8; e++) {
                     sprite_enable(SPRITE_OFFSET_ENEMY+e, SPRITE_ENEMY01); // Enemy01
-                    struct sprite_enemy *enemy = &sprite_enemies[e];
+                    struct entity *enemy = &sprite_enemies[e];
                     enemy->x = 20+(signed int)e*36;
                     enemy->y = 100;
                     enemy->dx = 0;
@@ -412,7 +412,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
         // Enemies
         for(byte e=0;e<32;e++) {
-            struct sprite_enemy *enemy = &sprite_enemies[e];
+            struct entity *enemy = &sprite_enemies[e];
             if(enemy->active) {
                 switch(enemy->SpriteType) {
                     case SPRITE_ENEMY01:

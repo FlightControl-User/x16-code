@@ -13,7 +13,7 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-struct Sprite {
+struct sprite {
     char File[16];
     byte SpriteCount;
     byte SpriteOffset;
@@ -32,7 +32,7 @@ struct Sprite {
 
 
 byte const SPRITE_PLAYER01_COUNT = 7;
-struct Sprite Sprite =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 32, 32, 3, 0, 0, 4, 1, 0x0, { 0x0 } };
+struct sprite sprite =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 32, 32, 3, 0, 0, 4, 1, 0x0, { 0x0 } };
 
 
 
@@ -50,12 +50,12 @@ int main() {
 
     gotoxy(0, 10);
 
-    char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, 1, 0xA000);
-    if(status!=$ff) printf("error file %s: %x\n", Sprite->File, status);
+    char status = cx16_load_ram_banked(1, 8, 0, sprite->File, 1, 0xA000);
+    if(status!=$ff) printf("error file %s: %x\n", sprite->File, status);
 
-    byte SpriteCount = Sprite->SpriteCount;
-    word SpriteSize = Sprite->SpriteSize;
-    byte SpriteOffset = Sprite->SpriteOffset;
+    byte SpriteCount = sprite->SpriteCount;
+    word SpriteSize = sprite->SpriteSize;
+    byte SpriteOffset = sprite->SpriteOffset;
 
     byte bank_vram_sprite = 0;
     word ptr_vram_sprite = 0x0000;
@@ -67,14 +67,14 @@ int main() {
         printf("bram->vram: %x, bank_vram_sprite = %x, ptr_vram_sprite = %p, bank_bram_sprite = %x, ptr_bram_sprite = %p, SpriteSize = %x\n", s, bank_vram_sprite, ptr_vram_sprite, bank_bram_sprite, ptr_bram_sprite, SpriteSize);
         cx16_cpy_vram_from_bram(bank_vram_sprite, (word)ptr_vram_sprite, bank_vram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
 
-        vera_sprite_bpp(s+1, Sprite->BPP);
-        vera_sprite_height(s+1, Sprite->Height);
-        vera_sprite_width(s+1, Sprite->Width);
-        vera_sprite_hflip(s+1, Sprite->Hflip);
-        vera_sprite_vflip(s+1, Sprite->Vflip);
-        vera_sprite_palette_offset(s+1, Sprite->PaletteOffset);
+        vera_sprite_bpp(s+1, sprite->BPP);
+        vera_sprite_height(s+1, sprite->Height);
+        vera_sprite_width(s+1, sprite->Width);
+        vera_sprite_hflip(s+1, sprite->Hflip);
+        vera_sprite_vflip(s+1, sprite->Vflip);
+        vera_sprite_palette_offset(s+1, sprite->PaletteOffset);
         vera_sprite_xy(s+1, s*36, 20);
-        vera_sprite_zdepth(s+1, Sprite->Zdepth);
+        vera_sprite_zdepth(s+1, sprite->Zdepth);
 
         vera_sprite_ptr(s+1, 0, 0x0000);
 
@@ -83,7 +83,7 @@ int main() {
         while(!getin());
     }
 
-    Sprite->BRAM_Handle = handle_bram_sprite;
+    sprite->BRAM_Handle = handle_bram_sprite;
     
     while(!getin());
 

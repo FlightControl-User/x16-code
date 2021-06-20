@@ -1,4 +1,8 @@
 
+#include <cx16.h>
+#include <cx16-heap.h>
+#include "equinoxe-flightengine.h"
+
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
 
@@ -10,7 +14,12 @@ const byte HEAP_SEGMENT_VRAM_PETSCII = 3;
 const byte HEAP_SEGMENT_VRAM_SPRITES = 4;
 const byte HEAP_SEGMENT_VRAM_FLOOR_MAP = 5;
 const byte HEAP_SEGMENT_VRAM_FLOOR_TILE = 6;
+const byte HEAP_SEGMENT_BRAM_ENTITIES = 7;
 
+const byte HEAP_SEGMENT_BRAM_SPRITES_BANK = 4;
+const byte HEAP_SEGMENT_BRAM_SPRITES_BANKS = 28;
+const byte HEAP_SEGMENT_BRAM_ENTITIES_BANK = 2;
+const byte HEAP_SEGMENT_BRAM_ENTITIES_BANKS = 2;
 
 // File declarations
 const char FILE_PALETTES_SPRITE01[] = "PALSPRITE01";
@@ -21,6 +30,10 @@ const byte SPRITE_OFFSET_PLAYER = 1;
 const byte SPRITE_OFFSET_ENGINE = 2;
 const byte SPRITE_OFFSET_ENEMY = 3;
 const byte SPRITE_OFFSET_BULLET = 64;
+
+// Side constants to determine the coalition.
+const byte SIDE_PLAYER = 0;
+const byte SIDE_ENEMY = 1;
 
 // Joint global variables.
 
@@ -38,6 +51,7 @@ volatile byte sprite_engine_flame = 0;
 volatile byte scroll_action = 2;
 volatile byte sprite_action = 0;
 
+
 struct sprite_bullet {
     byte active;
     signed int x;
@@ -47,29 +61,83 @@ struct sprite_bullet {
     byte energy;
 };
 
-struct sprite_enemy {
+typedef struct {
+    void (*Logic)(void);
+    void (*Draw)(void);
+} Delegate;
+
+typedef struct {
     byte active;
     byte SpriteType;
     byte state_behaviour;
     byte state_animation;
+    byte wait_animation;
     byte speed_animation;
     byte health;
     byte strength;
+    byte reload;
+    byte moved;
+    byte side;
+    Sprite* sprite_type;
+    byte sprite_offset;
+
     signed int x;
     signed int y;
     signed char dx;
     signed char dy;
-};
+    heap_handle engine_handle;
+    heap_handle next;
+} Entity;
+
+typedef struct {
+    heap_handle fighter_head;
+    heap_handle fighter_tail;
+    heap_handle bullet_head;
+    heap_handle bullet_tail;
+} Stage;
+
+typedef struct {
+	Delegate delegate;
+    int curr_mousex;
+    int curr_mousey;
+    int prev_mousex;
+    int prev_mousey;
+} Game;
+
+
+
 
 struct sprite_bullet sprite_bullets[11] = {0};
 volatile byte sprite_bullet_count = 0;
 volatile byte sprite_bullet_pause = 0;
 volatile byte sprite_bullet_switch = 0;
 
-struct sprite_enemy sprite_enemies[33] = {0};
+Entity sprite_enemies[33] = {0};
 volatile byte sprite_enemy_count = 0;
 
 volatile byte sprite_collided = 0;
 
 
 volatile byte state_game = 0;
+
+
+volatile heap_handle player_handle;
+volatile heap_handle engine_handle;
+
+volatile Stage stage;
+volatile Game game;
+
+
+void sprite_create(Sprite* sprite, byte sprite_offset);
+void sprite_animate(byte sprite_offset, Sprite* sprite, byte index);
+void sprite_position(byte sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
+void sprite_enable(byte sprite_offset, Sprite* sprite);
+void sprite_disable(byte sprite_offset);
+
+
+void Logic();
+
+
+void Draw();
+
+

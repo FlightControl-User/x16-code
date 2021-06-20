@@ -19,7 +19,7 @@
 #include <multiply.h>
 
 
-struct Sprite {
+struct sprite {
     char File[16];
     byte Offset;
     byte SpriteCount;
@@ -39,9 +39,9 @@ struct Sprite {
 byte const SPRITE_PLAYER = 0;
 byte const SPRITE_ENEMY2 = 1;
 
-__mem struct Sprite SpritesPlayer = {"PLAYER",     0,  12, 32*32*12/2, 512, 32, 32, 0, 1, 3, 4, 1, 0x0, {0}};
-__mem struct Sprite SpritesEnemy2 = {"ENEMY2",    12,  12, 32*32*12/2, 512, 32, 32, 0, 0, 3, 4, 2, 0x0, {0}};
-__mem struct Sprite *SpriteDB[2];
+__mem struct sprite SpritesPlayer = {"PLAYER",     0,  12, 32*32*12/2, 512, 32, 32, 0, 1, 3, 4, 1, 0x0, {0}};
+__mem struct sprite SpritesEnemy2 = {"ENEMY2",    12,  12, 32*32*12/2, 512, 32, 32, 0, 0, 3, 4, 2, 0x0, {0}};
+__mem struct sprite *SpriteDB[2];
 
 
 struct Tile {
@@ -121,7 +121,7 @@ void vera_tile_element( byte layer, byte x, byte y, byte resolution, struct Tile
     }
 }
 
-void rotate_sprites(word rotate, struct Sprite *Sprite, word basex, word basey) {
+void rotate_sprites(word rotate, struct sprite *Sprite, word basex, word basey) {
     byte offset = Sprite->Offset;
     word max = Sprite->SpriteCount;
     for(byte s=0;s<max;s++) {
@@ -193,7 +193,7 @@ void create_sprite(byte sprite) {
 
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
-    struct Sprite *Sprite = SpriteDB[sprite];
+    struct sprite *Sprite = SpriteDB[sprite];
     for(byte s=0;s<Sprite->SpriteCount;s++) {
         byte Offset = Sprite->Offset+s;
         vera_sprite_bpp(Offset, Sprite->BPP);
@@ -221,7 +221,7 @@ void tile_background() {
 
 void show_memory_map() {
     for(byte i=0;i<2;i++) {
-        struct Sprite *Sprite = SpriteDB[i];
+        struct sprite *Sprite = SpriteDB[i];
         gotoxy(0, 1+i);
         printf("s:%u bram:%x, vram:", i, Sprite->BRAM_Address);
         for(byte j=0;j<12;j++) {
@@ -238,7 +238,7 @@ void show_memory_map() {
     }
 }
 
-void sprite_cpy_vram(byte segmentid, struct Sprite *Sprite) {
+void sprite_cpy_vram(byte segmentid, struct sprite *Sprite) {
     dword bsrc = Sprite->BRAM_Address;
     byte num = Sprite->SpriteCount;
     word size = Sprite->SpriteSize;
@@ -263,7 +263,7 @@ void tile_cpy_vram(byte segmentid, struct Tile *Tile) {
     }
 }
 
-dword load_sprite( struct Sprite *Sprite, dword bram_address) {
+dword load_sprite( struct sprite *Sprite, dword bram_address) {
     char status = cx16_load_ram_banked(1, 8, 0, Sprite->File, bram_address);
     if(status!=$ff) printf("error file %s: %x\n", Sprite->File, status);
     Sprite->BRAM_Address = bram_address;
