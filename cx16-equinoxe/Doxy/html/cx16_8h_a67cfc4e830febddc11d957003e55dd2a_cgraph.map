@@ -1,5 +1,0 @@
-<map id="cx16_cpy_vram_from_vram" name="cx16_cpy_vram_from_vram">
-<area shape="rect" id="node1" title="Copy block of memory from vram to vram. &#160;&#160;Copies num bytes from the source vram bank/offset to the de..." alt="" coords="5,46,184,73"/>
-<area shape="rect" id="node2" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="232,5,385,47"/>
-<area shape="rect" id="node3" href="$cx16-veralib_8h.html#a46829504472507546290d9bf10283d1f" title=" " alt="" coords="232,71,385,112"/>
-</map>

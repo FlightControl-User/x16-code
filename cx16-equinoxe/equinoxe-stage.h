@@ -1,2 +1,0 @@
-void StageInit();
-void StageReset();

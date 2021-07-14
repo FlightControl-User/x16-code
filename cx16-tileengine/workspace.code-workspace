@@ -1,45 +1,7 @@
 {
-	"folders": [
-		{
-			"path": ".."
-		},
-		{
-			"path": "..\\..\\kickc"
-		}
-	],
-	"settings": {
-		"files.associations": {
-			"cx16-kernal.h": "c",
-			"cx16.h": "c",
-			"c64.h": "c",
-			"stdlib.h": "c",
-			"veralib.h": "c",
-			"cx16-vera.h": "c",
-			"cx16-veralib.h": "c",
-			"cx16-veraheap.h": "c",
-			"cx16-veramem.h": "c",
-			"kernal.h": "c",
-			"stdio.h": "c",
-			"conio.h": "c",
-			"cx16-conio.h": "c",
-			"flightengine.h": "c",
-			"cx16-mouse.h": "c",
-			"datatypes.h": "c",
-			"string.h": "c",
-			"cx16-allocator.h": "c",
-			"fault.h": "c",
-			"cx16-heap.h": "c",
-			"division.h": "c",
-			"multiply.h": "c",
-			"6502.h": "c",
-			"mos6522.h": "c",
-			"printf.h": "c",
-			"cstddef": "c",
-			"cstdio": "c",
-			"cx16-bitmap.h": "c",
-			"equinoxe-flightengine.h": "c",
-			"equinoxe-floorengine.h": "c",
-			"equinoxe.h": "c"
-		}
-	}
+    "folders": [
+        {
+            "path": "..\\..\\kickc\\src\\main\\kc"
+        }
+    ]
 }
