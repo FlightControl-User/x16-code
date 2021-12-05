@@ -8,6 +8,7 @@
                 "${fileDirname}",
                 "${fileBasenameNoExtension}.c"
             ],
+            
             "type": "shell",
             "presentation": {
                 "echo": true,

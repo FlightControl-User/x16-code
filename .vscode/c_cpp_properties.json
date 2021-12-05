@@ -4,8 +4,8 @@
             "name": "cx16",
             "includePath": [
                 "${workspaceFolder}/**",
-                "D:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
-                // "C:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
+                //"${workspaceFolder}/kickc/src/main/kc/include"
+                "C:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
             ],
             "defines": [
                 "_DEBUG",
