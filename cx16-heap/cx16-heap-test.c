@@ -9,7 +9,7 @@ void main() {
 	printf("\nTC01: First allocation of header 0[8,\"A:8\"] bytes.\n");
 	heap_handle h1 = heap_alloc(s1, 6);
 	char* p1_data = (char*)heap_data_ptr(h1);
-	heap_header_size p1_size = heap_header_size_get(h1);
+	heap_index_size p1_size = heap_header_size_get(h1);
 	strcpy(p1_data, "A:8");
 	heap_dump(s1);
 
@@ -18,14 +18,14 @@ void main() {
 	printf("\nTC02: Second allocation of B:16 bytes.\n");
 	heap_handle h2 = heap_alloc(s1, 12);
 	char* p2_data = (char*)heap_data_ptr(h2);
-	heap_header_size p2_size = heap_header_size_get(h2);
+	heap_index_size p2_size = heap_header_size_get(h2);
 	strcpy(p2_data, "B:16");
 	heap_dump(s1);
 
 	printf("\nTC03: Third allocation of C:8 bytes.\n");
 	heap_handle h3 = heap_alloc(s1,6);
 	char* p3_data = (char*)heap_data_ptr(h3);
-	heap_header_size p3_size = heap_header_size_get(h3);
+	heap_index_size p3_size = heap_header_size_get(h3);
 	strcpy(p3_data, "C:8");
 	heap_dump(s1);
 
