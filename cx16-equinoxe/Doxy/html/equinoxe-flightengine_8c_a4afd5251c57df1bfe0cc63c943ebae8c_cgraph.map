@@ -1,0 +1,12 @@
+<map id="sprite_animate" name="sprite_animate">
+<area shape="rect" id="node1" title=" " alt="" coords="5,157,112,184"/>
+<area shape="rect" id="node2" href="$cx16-heap_8h.html#a0a48f10030633b8fe84b4692d145f9c0" title=" " alt="" coords="160,81,277,108"/>
+<area shape="rect" id="node8" href="$cx16-heap_8h.html#a90b8f590de0a80cc643fad5f17e6a719" title=" " alt="" coords="167,157,271,184"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8h.html#a05bff18279d9b1a60070d376f0b71586" title=" " alt="" coords="165,208,272,235"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a969a7c774293cd48e76d3959662a1a96" title="Return from a packed banked ram pointer the embedded bank in an 8&#45;bit byte." alt="" coords="325,5,496,32"/>
+<area shape="rect" id="node4" href="$cx16_8h.html#adafc2960cafd670f4d4d2a5693ef0fc3" title="Return from a packed vera ram address the embedded bank in an 8&#45;bit byte." alt="" coords="327,56,495,83"/>
+<area shape="rect" id="node5" href="$cx16-heap_8c.html#ae3d7183871d4c4ded3135b7f69ced18a" title=" " alt="" coords="350,107,471,133"/>
+<area shape="rect" id="node6" href="$cx16_8h.html#ab606f05fde21248c2bbaba72de907ed3" title=" " alt="" coords="549,132,696,159"/>
+<area shape="rect" id="node7" href="$cx16_8h.html#ae5a8885c1c7e8b3ac215274211401d33" title="Return from a packed banked ram pointer the 16 bit address, but is now aligned to 8 bytes in memory s..." alt="" coords="544,183,701,209"/>
+<area shape="rect" id="node9" href="$cx16_8h.html#ae7775332be17fc18c96e8f35a2410802" title="Return from a packed vera ram address the 16 bit offset, but is now aligned to 2 bytes in vera ram!..." alt="" coords="325,259,496,285"/>
+</map>

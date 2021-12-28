@@ -1,0 +1,8 @@
+<map id="vera_sprite_8bpp" name="vera_sprite_8bpp">
+<area shape="rect" id="node1" title=" " alt="" coords="443,31,561,57"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8h.html#a6c7d324fb3d066ae7518ce43d727140e" title=" " alt="" coords="283,31,395,57"/>
+<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#ae9012e73480d9f5d5a400630b10459c7" title=" " alt="" coords="137,5,234,32"/>
+<area shape="rect" id="node5" href="$equinoxe-flightengine_8c.html#a47defb192a9373fd1c3790bdab7de373" title=" " alt="" coords="136,56,235,83"/>
+<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="21,5,72,32"/>
+<area shape="rect" id="node6" href="$equinoxe-flightengine_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,56,88,83"/>
+</map>

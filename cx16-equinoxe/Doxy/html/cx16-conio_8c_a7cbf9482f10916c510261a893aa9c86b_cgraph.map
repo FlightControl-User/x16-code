@@ -1,0 +1,8 @@
+<map id="insertdown" name="insertdown">
+<area shape="rect" id="node1" title=" " alt="" coords="5,35,89,61"/>
+<area shape="rect" id="node2" href="$cx16-conio_8c.html#ab078246aecda8d4b0b3235597292412d" title=" " alt="" coords="174,5,245,32"/>
+<area shape="rect" id="node4" href="$cx16_8h.html#ae302ed11ecaad0539cdfce00749240ae" title="Copy block of memory from vram to vram with specified vera increments/decrements. &#160;&#160;Copies num bytes ..." alt="" coords="137,57,281,98"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8h.html#ab7c5703bfe8d1e3c54f7ac7acc476932" title=" " alt="" coords="336,5,476,32"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="329,57,483,98"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8h.html#a46829504472507546290d9bf10283d1f" title=" " alt="" coords="329,122,483,163"/>
+</map>

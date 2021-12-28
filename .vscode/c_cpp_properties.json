@@ -19,7 +19,7 @@
                 "__interrupt(rom_sys_cx16)="
             ],
             "windowsSdkVersion": "10.0.17763.0",
-            "compilerPath": "D:\\Users\\svenv\\OneDrive\\Documents\\6502\\kickc\\bin\\kickc_dev.bat",
+            // "compilerPath": "D:\\Users\\svenv\\OneDrive\\Documents\\6502\\kickc\\bin\\kickc_dev.bat",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-clang-x86",

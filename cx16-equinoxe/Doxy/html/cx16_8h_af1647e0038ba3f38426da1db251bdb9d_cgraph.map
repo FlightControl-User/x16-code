@@ -1,0 +1,12 @@
+<map id="cx16_load_ram_banked" name="cx16_load_ram_banked">
+<area shape="rect" id="node1" title="Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks." alt="" coords="5,208,164,235"/>
+<area shape="rect" id="node2" href="$cbm_8h.html#a8a639edfd94dcab6a10a102e3e9b271d" title=" " alt="" coords="236,5,335,32"/>
+<area shape="rect" id="node3" href="$cx16-kernal_8h.html#aad9a5b675614ab8582a64258c9c2068f" title=" " alt="" coords="237,56,333,83"/>
+<area shape="rect" id="node4" href="$cbm_8h.html#aa621e242f26ad10b109b7ff3c3e927ef" title=" " alt="" coords="236,107,335,133"/>
+<area shape="rect" id="node5" href="$cx16-kernal_8h.html#a9d30e58a70e7b00d74522d0a578126dd" title=" " alt="" coords="234,157,337,184"/>
+<area shape="rect" id="node6" href="$cbm_8h.html#a449137036c297699f84131449badb846" title=" " alt="" coords="237,208,333,235"/>
+<area shape="rect" id="node7" href="$cbm_8h.html#a11ca4276b87f487149adbc3b2a63c51d" title=" " alt="" coords="233,259,337,285"/>
+<area shape="rect" id="node8" href="$cbm_8h.html#a145805fd273ebdd44041e327a7e0708e" title=" " alt="" coords="236,309,335,336"/>
+<area shape="rect" id="node9" href="$cbm_8h.html#a6cfd19301121a64abcbbe79a3cef9fce" title=" " alt="" coords="230,360,341,387"/>
+<area shape="rect" id="node10" href="$cx16_8c.html#a24907d890886df0414c9076093100f0b" title=" " alt="" coords="212,411,359,437"/>
+</map>

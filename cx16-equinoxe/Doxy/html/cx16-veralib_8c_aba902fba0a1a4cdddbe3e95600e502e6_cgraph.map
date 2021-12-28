@@ -1,0 +1,5 @@
+<map id="vera_sprite_attributes_get" name="vera_sprite_attributes_get">
+<area shape="rect" id="node1" title=" " alt="" coords="5,13,176,39"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#acff08bb37dee1658ae7e88a4f175b029" title="Copy block of memory from vram to ram. &#160;&#160;Copies num bytes from the source vram bank/offset to the ram..." alt="" coords="224,13,397,39"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="445,5,599,47"/>
+</map>

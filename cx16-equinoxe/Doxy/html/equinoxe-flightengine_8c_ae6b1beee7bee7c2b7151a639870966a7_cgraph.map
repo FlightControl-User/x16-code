@@ -1,0 +1,10 @@
+<map id="show_sprite_config" name="show_sprite_config">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,137,83"/>
+<area shape="rect" id="node2" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title=" " alt="" coords="240,5,301,32"/>
+<area shape="rect" id="node5" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="245,56,296,83"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8h.html#aba902fba0a1a4cdddbe3e95600e502e6" title=" " alt="" coords="185,107,356,133"/>
+<area shape="rect" id="node3" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="453,5,529,32"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="649,5,755,32"/>
+<area shape="rect" id="node7" href="$cx16_8h.html#acff08bb37dee1658ae7e88a4f175b029" title="Copy block of memory from vram to ram. &#160;&#160;Copies num bytes from the source vram bank/offset to the ram..." alt="" coords="404,107,577,133"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="625,99,779,141"/>
+</map>
