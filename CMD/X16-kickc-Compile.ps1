@@ -1,7 +1,6 @@
 echo $args[0] $args[1]
 $filedir=$args[0]
 $filename=$args[1]
-#$filedir="C:\Users\svenv\OneDrive\Documents\GitHub\X16_Code"
 
 $user_dev = (Get-Location).Path
 $kickc_dev = Get-Content Env:KICKC # Returns the environment variable of KICKC defined on the system.
