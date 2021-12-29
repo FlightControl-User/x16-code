@@ -23,7 +23,7 @@ void handles() {
 	printf("\n");
 }
 
-heap_handle heapalloc(heap_segment s1, word i) {
+heap_handle heapalloc(heap_segment_id s1, word i) {
 	heap_size size = heap_sizes[i];
 	heap_handle h = heap_alloc(s1, size);
 	printf("\nAllocate %u:%04x - ", i, h);
@@ -33,7 +33,7 @@ heap_handle heapalloc(heap_segment s1, word i) {
 
 }
 
-void heapfree(heap_segment s1, word i) {
+void heapfree(heap_segment_id s1, word i) {
 	printf("\nFree %u:%04x - ", i, heap_handles[i]);
 	heap_free(s1, heap_handles[i]);
 	heap_handles[i] = 0;
@@ -48,12 +48,9 @@ void main() {
 
 	heap_address ha1 = heap_segment_bram(
 		s1,
-		cx16_bram_pack(1, (cx16_ptr)0xA000),
+		cx16_bram_pack(1, (cx16_bram_ptr)0xA000),
 		cx16_size_pack((dword)0x8000)
 	); // add a segment of 8 banks * $2000 bytes + 1 bank of $1000 bytes;
-
-	struct HEAP_SEGMENT* s = &heap_segments[0];
-
 
 	printf("Allocate heap blockswith random sizes.\n");
 

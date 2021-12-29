@@ -1,7 +1,8 @@
 // Space flight engine for a space game written in kickc for the Commander X16.
 
-
-#pragma var_model(mem)
+#ifndef __CC65__
+    #pragma var_model(mem)
+#endif
 
 #include <cx16.h>
 #include <cx16-veralib.h>
@@ -55,7 +56,7 @@ heap_handle sprite_load(struct sprite* sprite) {
     heap_bank bank_bram_sprite = heap_data_bank(handle_bram_sprite);
     heap_handle data_handle_bram_sprite = heap_data_get(handle_bram_sprite);
 
-    cx16_ptr ptr_end = cx16_load_ram_banked(1, 8, 0, sprite->File, bank_bram_sprite, ptr_bram_sprite);
+    cx16_bram_ptr ptr_end = cx16_load_ram_banked(1, 8, 0, sprite->File, bank_bram_sprite, ptr_bram_sprite);
     if (!ptr_end) printf("error file %s\n", sprite->File);
 
     sprite->BRAM_Handle = handle_bram_sprite;
@@ -97,94 +98,6 @@ void show_sprite_config(byte sprite, byte x, byte y) {
 #include "equinoxe-petscii-move.c"
 
 
-void main() {
-
-
-    // We are going to use only the kernal on the X16.
-    cx16_brom_bank_set(CX16_ROM_KERNAL);
-
-    // Memory is managed as follows:
-    // ------------------------------------------------------------------------
-    //
-    // HEAP SEGMENT                     VRAM                  BRAM
-    // -------------------------        -----------------     -----------------
-    // HEAP_SEGMENT_VRAM_PETSCII        01/B000 - 01/F800     01/A000 - 01/A400
-    // HEAP_SEGMENT_VRAM_SPRITES        00/0000 - 01/B000     01/A400 - 01/C000
-    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
-    // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
-
-    heap_address vram_petscii = petscii();
-
-
-    // Allocate the segment for the sprites in vram.
-    heap_vram_packed vram_sprites = heap_segment_vram_ceil(
-        HEAP_SEGMENT_VRAM_SPRITES,
-        vram_petscii,
-        vram_petscii,
-        heap_bram_pack(2, (heap_ptr)0xA000),
-        heap_size_pack(0x2000)
-    );
-
-#include "equinoxe-palettes.c"
-
-    // Initialize the bram heap for sprite loading.
-    heap_bram_packed bram_sprites = heap_segment_bram(
-        HEAP_SEGMENT_BRAM_SPRITES,
-        heap_bram_pack(HEAP_SEGMENT_BRAM_SPRITES_BANK, (heap_ptr)0xA000),
-        heap_size_pack(0x2000 * HEAP_SEGMENT_BRAM_SPRITES_BANKS)
-    );
-
-    // Initialize the bram heap for dynamic allocation of the entities.
-    heap_bram_packed bram_entities = heap_segment_bram(
-        HEAP_SEGMENT_BRAM_ENTITIES,
-        heap_bram_pack(HEAP_SEGMENT_BRAM_ENTITIES_BANK, (heap_ptr)0xA000),
-        heap_size_pack(0x2000 * HEAP_SEGMENT_BRAM_ENTITIES_BANKS)
-    );
-
-    // gotoxy(0, 0);
-    // printf("bram_entities = %x, ", bram_entities);
-    // printf("bram_sprites = %x, ", bram_sprites);
-    // while (!getin());
-    vera_sprites_show();
-
-    // Loading the graphics in main banked memory.
-    for (byte i = 0; i < SPRITE_TYPES;i++) {
-        sprite_load(SpriteDB[i]);
-    }
-
-
-
-    // Now we activate the tile mode.
-    for (byte i = 0;i < SPRITE_TYPES;i++) {
-        sprite_cpy_vram_from_bram(SpriteDB[i]);
-    }
-
-    for (byte sprite = 64;sprite < 64 + 10;sprite++) {
-        sprite_create(SpriteDB[3], sprite); // Player bullets
-    }
-
-    //show_memory_map();
-
-    // Initialize stage
-
-    StageInit();
-
-    // Enable VSYNC IRQ (also set line bit 8 to 0)
-    SEI();
-    *KERNEL_IRQ = &irq_vsync;
-    *VERA_IEN = VERA_VSYNC;
-    // vera_sprites_collision_on();
-    CLI();
-
-    cx16_mouse_config(0xFF, 1);
-    while (!getin()) {
-        // gotoxy(0,0);    
-    }; 
-
-    // Back to basic.
-    cx16_brom_bank_set(CX16_ROM_BASIC);
-
-}
 
 void sprite_animate(byte sprite_offset, Sprite* sprite, byte index) {
     cx16_bank old = cx16_bram_bank_get();
@@ -419,5 +332,94 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     cx16_bram_bank_set(oldbank);
     // gotoxy(curx, cury);
+
+}
+
+void main() {
+
+
+    // We are going to use only the kernal on the X16.
+    cx16_brom_bank_set(CX16_ROM_KERNAL);
+
+    // Memory is managed as follows:
+    // ------------------------------------------------------------------------
+    //
+    // HEAP SEGMENT                     VRAM                  BRAM
+    // -------------------------        -----------------     -----------------
+    // HEAP_SEGMENT_VRAM_PETSCII        01/B000 - 01/F800     01/A000 - 01/A400
+    // HEAP_SEGMENT_VRAM_SPRITES        00/0000 - 01/B000     01/A400 - 01/C000
+    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
+    // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
+
+    heap_address vram_petscii = petscii();
+
+
+    // Allocate the segment for the sprites in vram.
+    heap_vram_packed vram_sprites = heap_segment_vram_ceil(
+        HEAP_SEGMENT_VRAM_SPRITES,
+        vram_petscii,
+        vram_petscii,
+        heap_bram_pack(2, (heap_ptr)0xA000),
+        heap_size_pack(0x2000)
+    );
+
+#include "equinoxe-palettes.c"
+
+    // Initialize the bram heap for sprite loading.
+    heap_bram_packed bram_sprites = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_SPRITES,
+        heap_bram_pack(HEAP_SEGMENT_BRAM_SPRITES_BANK, (heap_ptr)0xA000),
+        heap_size_pack(0x2000 * HEAP_SEGMENT_BRAM_SPRITES_BANKS)
+    );
+
+    // Initialize the bram heap for dynamic allocation of the entities.
+    heap_bram_packed bram_entities = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_ENTITIES,
+        heap_bram_pack(HEAP_SEGMENT_BRAM_ENTITIES_BANK, (heap_ptr)0xA000),
+        heap_size_pack(0x2000 * HEAP_SEGMENT_BRAM_ENTITIES_BANKS)
+    );
+
+    // gotoxy(0, 0);
+    // printf("bram_entities = %x, ", bram_entities);
+    // printf("bram_sprites = %x, ", bram_sprites);
+    // while (!getin());
+    vera_sprites_show();
+
+    // Loading the graphics in main banked memory.
+    for (byte i = 0; i < SPRITE_TYPES;i++) {
+        sprite_load(SpriteDB[i]);
+    }
+
+
+
+    // Now we activate the tile mode.
+    for (byte i = 0;i < SPRITE_TYPES;i++) {
+        sprite_cpy_vram_from_bram(SpriteDB[i]);
+    }
+
+    for (byte sprite = 64;sprite < 64 + 10;sprite++) {
+        sprite_create(SpriteDB[3], sprite); // Player bullets
+    }
+
+    //show_memory_map();
+
+    // Initialize stage
+
+    StageInit();
+
+    // Enable VSYNC IRQ (also set line bit 8 to 0)
+    SEI();
+    *KERNEL_IRQ = &irq_vsync;
+    *VERA_IEN = VERA_VSYNC;
+    // vera_sprites_collision_on();
+    CLI();
+
+    cx16_mouse_config(0xFF, 1);
+    while (!getin()) {
+        // gotoxy(0,0);    
+    }; 
+
+    // Back to basic.
+    cx16_brom_bank_set(CX16_ROM_BASIC);
 
 }

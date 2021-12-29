@@ -24,7 +24,7 @@ void vera_tile_clear( byte layer ) {
     byte PaletteOffset = 1;
     byte Offset = 100;
 
-    dword mapbase = vera_mapbase_address[layer];
+    dword mapbase = vera_layer_get_mapbase_address(layer);
 
     vera_vram_data0_address(mapbase,VERA_INC_1);
 
@@ -278,7 +278,7 @@ heap_handle tile_load( struct Tile *Tile) {
 
     printf("bram: %x:%p\n", heap_data_bank(handle_bram_tile), heap_data_ptr(handle_bram_tile));
 
-    cx16_ptr ptr_bram_tile_end = cx16_load_ram_banked(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
+    cx16_bram_ptr ptr_bram_tile_end = cx16_load_ram_banked(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
     if(!ptr_bram_tile_end) printf("error file %s\n", Tile->File);
 
     Tile->BRAM_Handle = handle_bram_tile;
@@ -319,24 +319,24 @@ void main() {
         0
         );
 
-    //heap_segment segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
+    //heap_segment_id segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
 
     cx16_vram_packed vram_floor_tile = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
-        cx16_vram_pack(1, (cx16_offset)0x2000), 
+        cx16_vram_pack(1, (cx16_vram_offset)0x2000), 
         cx16_size_pack(0x8000), 
-        cx16_bram_pack(1, (cx16_ptr)0xA400), 
+        cx16_bram_pack(1, (cx16_bram_ptr)0xA400), 
         0x100
         );
 
-    //heap_segment segment_vram_floor_tile = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, 1, 0xA000, 1, 0x2000, 1, 0xA400, 0x100);
+    //heap_segment_id segment_vram_floor_tile = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, 1, 0xA000, 1, 0x2000, 1, 0xA400, 0x100);
 
     #include "equinoxe-palettes.c"
 
     // Initialize the bram heap for tile loading.
     heap_address bram_floor_tile = heap_segment_bram(
         HEAP_SEGMENT_BRAM_TILES,
-        cx16_bram_pack(33,(cx16_ptr)0xA000),
+        cx16_bram_pack(33,(cx16_bram_ptr)0xA000),
         cx16_size_pack(0x2000*8)
         );
 

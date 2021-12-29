@@ -2,8 +2,8 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "x16-kickc-Compile",
-            "command": "cmd/X16-kickc-Compile.ps1",            
+            "label": "cx16-kickc-compile",
+            "command": "cmd/cx16-kickc-compile.ps1",            
             "args": [
                 "${fileDirname}",
                 "${fileBasenameNoExtension}.c"
@@ -35,8 +35,8 @@
             }
         },
         {
-            "label": "x16-65cl-Compile",
-            "command": "cmd/X16-65cl-Compile.ps1",
+            "label": "cx16-cl65-compile",
+            "command": "cmd/cx16-cl65-compile.ps1",
             "args": [
                 "${fileDirname}",
                 "${fileBasenameNoExtension}.c"

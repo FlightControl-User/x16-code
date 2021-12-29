@@ -1,7 +1,0 @@
-<map id="heap_data_ptr" name="heap_data_ptr">
-<area shape="rect" id="node1" title=" " alt="" coords="5,57,109,84"/>
-<area shape="rect" id="node2" href="$cx16_8h.html#ab606f05fde21248c2bbaba72de907ed3" title=" " alt="" coords="381,6,528,33"/>
-<area shape="rect" id="node3" href="$cx16_8h.html#ae5a8885c1c7e8b3ac215274211401d33" title="Return from a packed banked ram pointer the 16 bit address, but is now aligned to 8 bytes in memory s..." alt="" coords="376,82,533,109"/>
-<area shape="rect" id="node4" href="$cx16_8h.html#ae7775332be17fc18c96e8f35a2410802" title="Return from a packed vera ram address the 16 bit offset, but is now aligned to 2 bytes in vera ram!..." alt="" coords="157,82,328,109"/>
-<area shape="rect" id="node5" href="$cx16-heap_8c.html#ae3d7183871d4c4ded3135b7f69ced18a" title=" " alt="" coords="182,32,303,58"/>
-</map>

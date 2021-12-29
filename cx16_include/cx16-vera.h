@@ -75,9 +75,9 @@ byte const VERA_DECR_160 = 0xd8;
 byte const VERA_DECR_320 = 0xe8;
 byte const VERA_DECR_640 = 0xf8;
 // $9F23	DATA0	VRAM Data port 0
-const byte* VERA_DATA0 = (byte*)0x9f23;
+byte* VERA_DATA0 = (byte*)0x9f23;
 // $9F24	DATA1	VRAM Data port 1
-const byte* VERA_DATA1 = (byte*)0x9f24;
+byte* VERA_DATA1 = (byte*)0x9f24;
 // $9F25	CTRL Control
 // Bit 7: Reset
 // Bit 1: DCSEL
@@ -178,7 +178,7 @@ byte const VERA_LAYER_CONFIG_MODE_BITMAP = 0x04;
 byte const VERA_LAYER_CONFIG_16C = 0x00;
 byte const VERA_LAYER_CONFIG_256C = 0x08;
 // $9F2E	L0_MAPBASE	    Layer 0 Map Base Address (16:9)
-byte* const const VERA_L0_MAPBASE = (byte*)0x9f2e;
+byte* const VERA_L0_MAPBASE = (byte*)0x9f2e;
 // $9F2F	L0_TILEBASE	    Layer 0 Tile Base
 // Bit 2-7: Tile Base Address (16:11)
 // Bit 1:   Tile Height (0:8 pixels, 1:16 pixels)

@@ -17,23 +17,12 @@
 
 struct HEAP_SEGMENT heap_segments[16];
 
-inline heap_bram_packed  cx16_bram_pack(cx16_bank bank, cx16_ptr ptr);
-inline cx16_vram_packed  cx16_vram_pack(cx16_bank bank, cx16_offset offset);
-inline cx16_bank         cx16_bram_unpack_bank(cx16_bram_packed bram_packed);
-inline cx16_ptr          cx16_bram_unpack_ptr(cx16_bram_packed bram_packed);
-inline cx16_bank         cx16_vram_unpack_bank(cx16_vram_packed vram_packed);
-inline cx16_offset       cx16_vram_unpack_offset(cx16_vram_packed vram_packed);
+inline void heap_bram_bank_set(heap_bank bank) {
+	cx16_bram_bank_set(bank);
+}
 
-
-/**
- * Get vram floor unsigned long defined for a segment.
- */
- dword heap_segment_vram_floor_ulong(struct HEAP_SEGMENT* segment) {
-	heap_bank bank = cx16_vram_unpack_bank(segment->HeapFloor);
-	dword ulong = ((dword)bank)*0x10000;
-	heap_offset offset = cx16_vram_unpack_offset(segment->HeapFloor);
-	ulong = ulong + (word)offset;
-	return ulong;
+inline heap_bank heap_bram_bank_get() {
+	return cx16_bram_bank_get();
 }
 
 /**
@@ -48,7 +37,7 @@ inline cx16_offset       cx16_vram_unpack_offset(cx16_vram_packed vram_packed);
  * @return heap_bram_packed 
  */
 inline heap_bram_packed heap_bram_pack(heap_bank bank, heap_ptr ptr) {
-    return cx16_bram_pack(bank, ptr);
+	return (heap_bram_packed)bank << 10 + ((heap_bram_packed)(ptr-0xA000) >> 3);
 }
 
 /**
@@ -58,7 +47,7 @@ inline heap_bram_packed heap_bram_pack(heap_bank bank, heap_ptr ptr) {
  * @return heap_bank The 8 bit bank.
  */
 inline heap_bank heap_bram_unpack_bank(heap_bram_packed bram_packed) {
-    return (heap_bank)cx16_bram_unpack_bank(bram_packed);
+    return (heap_bank)BYTE1(bram_packed) >> 2;
 }
 
 /**
@@ -68,7 +57,7 @@ inline heap_bank heap_bram_unpack_bank(heap_bram_packed bram_packed) {
  * @return heap_ptr The 16 bit pointer, pointing to a location in banked ram between 0xA000 and 0xBFFF.
  */
 inline heap_ptr heap_bram_unpack_ptr(heap_bram_packed bram_packed) {
-    return (heap_ptr)cx16_bram_unpack_ptr(bram_packed);
+    return (heap_ptr)((bram_packed << 3 ) & 0x1FFF ) + 0xA000;
 }
 
 /**
@@ -83,7 +72,7 @@ inline heap_ptr heap_bram_unpack_ptr(heap_bram_packed bram_packed) {
  * @return heap_vram_packed The packed vera ram address.
  */
 inline heap_vram_packed heap_vram_pack(heap_bank bank, heap_offset offset) {
-    return (heap_vram_packed)cx16_vram_pack(bank, offset);
+    return (heap_vram_packed)bank << 13 + (heap_vram_packed)(offset) >> 3;
 }
 
 /**
@@ -93,7 +82,7 @@ inline heap_vram_packed heap_vram_pack(heap_bank bank, heap_offset offset) {
  * @return heap_bank The 8 bit bank.
  */
 inline heap_bank heap_vram_unpack_bank(heap_vram_packed vram_packed) {
-    return (heap_bank)cx16_vram_unpack_bank(vram_packed);
+    return (heap_bank)BYTE1(vram_packed) >> 5;
 }
 
 /**
@@ -103,7 +92,7 @@ inline heap_bank heap_vram_unpack_bank(heap_vram_packed vram_packed) {
  * @return heap_offset The 16 bit offset, pointing to a location in vera ram between 0x0000 and 0xFFFF in a bank.
  */
 inline heap_offset  heap_vram_unpack_offset(heap_vram_packed vram_packed) {
-    return (heap_offset)cx16_vram_unpack_offset(vram_packed);
+    return (heap_offset)vram_packed << 3;
 }
 
 /**
@@ -113,7 +102,7 @@ inline heap_offset  heap_vram_unpack_offset(heap_vram_packed vram_packed) {
  * @return heap_size_packed 
  */
 inline heap_size_packed heap_size_pack(heap_size_large size) {
-    return (heap_size_packed)cx16_size_pack(size);
+    return (heap_size_packed)(size >> 3);
 }
 
 /**
@@ -123,7 +112,7 @@ inline heap_size_packed heap_size_pack(heap_size_large size) {
  * @return heap_size 
  */
 inline heap_size heap_size_unpack(heap_size_packed size_packed) {
-    return (heap_size)cx16_size_unpack(size_packed);
+    return (heap_size)size_packed << 3;
 }
 
 /**
@@ -131,9 +120,9 @@ inline heap_size heap_size_unpack(heap_size_packed size_packed) {
 */
 inline heap_index_ptr heap_get(heap_handle handle) {
 
-	byte bank = cx16_bram_unpack_bank(handle);
-	cx16_bram_bank_set(bank);
-	return (heap_index_ptr)cx16_bram_unpack_ptr(handle);
+	byte bank = heap_bram_unpack_bank(handle);
+	heap_bram_bank_set(bank);
+	return (heap_index_ptr)heap_bram_unpack_ptr(handle);
 }
 
 /**
@@ -158,9 +147,9 @@ inline void heap_data_packed_set(heap_handle heapIndex, heap_handle data) {
 */
 heap_handle heap_data_get(heap_handle heapIndex) {
 
-	cx16_bank old_bank = cx16_bram_bank_get();
+	heap_bank old_bank = heap_bram_bank_get();
 	heap_handle data_handle = heap_data_packed_get(heapIndex);
-	cx16_bram_bank_set(old_bank);
+	heap_bram_bank_set(old_bank);
 	return data_handle;
 }
 
@@ -171,22 +160,22 @@ heap_handle heap_data_get(heap_handle heapIndex) {
 */
 heap_bank heap_data_bank(heap_handle handle) {
 
-	cx16_bank old_bank = cx16_bram_bank_get();
+	heap_bank old_bank = heap_bram_bank_get();
 	// printf("handle = %x\n", handle);
 	heap_handle data_handle = heap_data_packed_get(handle);
 	heap_index_info header_info = heap_get(handle)->size;
 	header_info &= heap_type_mask;
-	cx16_bram_bank_set(old_bank);
+	heap_bram_bank_set(old_bank);
 
 	// Data blocks in bram or in vram are handled differently.
 	// We only need to bank if the data is in bram, otherwise the programmer will handle it.
 	//printf("heap_data_bank: header info = %x\n", header_info);
 	if(header_info == heap_type_bram) {
 		// return the bank of the data handle, which is expressed in bram format.
-		return cx16_bram_unpack_bank(data_handle);
+		return heap_bram_unpack_bank(data_handle);
 	} else {
 		// return the bank of the data handle, which is expressed in vram format.
-		return cx16_vram_unpack_bank(data_handle);
+		return heap_vram_unpack_bank(data_handle);
 	}
 
 }
@@ -203,12 +192,12 @@ heap_ptr heap_data_ptr(heap_handle handle) {
 	// Data blocks in bram or in vram are handled differently.
 	// We only need to bank if the data is in bram, otherwise the programmer will handle it.
 	if(header_info == heap_type_bram) {
-		// cx16_bram_bank_set((heap_bank)(>data_handle) >> 2);
-		byte bank = cx16_bram_unpack_bank(data_handle);
-		cx16_bram_bank_set(bank);
-		return (heap_ptr)cx16_bram_unpack_ptr(data_handle);
+		// heap_bram_bank_set((heap_bank)(>data_handle) >> 2);
+		byte bank = heap_bram_unpack_bank(data_handle);
+		heap_bram_bank_set(bank);
+		return (heap_ptr)heap_bram_unpack_ptr(data_handle);
 	} else {
-		return (heap_ptr)cx16_vram_unpack_offset(data_handle);
+		return (heap_ptr)heap_vram_unpack_offset(data_handle);
 	}
 }
 
@@ -271,9 +260,9 @@ inline heap_size_packed heap_size_packed_get(heap_handle heapIndex) {
 * Get the size of a heap memory block.
 */
 heap_size_packed heap_size_get(heap_handle heapIndex) {
-	char oldbank = cx16_bram_bank_get();
+	char oldbank = heap_bram_bank_get();
 	heap_size_packed size = heap_size_packed_get(heapIndex) << 3;
-	cx16_bram_bank_set(oldbank);
+	heap_bram_bank_set(oldbank);
 	return size;
 }
 
@@ -726,7 +715,7 @@ void heap_segment_init(struct HEAP_SEGMENT* s) {
  * @return heap_address 
  */
 heap_address heap_segment_bram(
-	heap_segment segment, 
+	heap_segment_id segment, 
 	heap_bram_packed heapFloorBram,
 	heap_size_packed heapSizeBram
 	) {
@@ -791,7 +780,7 @@ heap_address heap_segment_bram(
  * @return heap_address 
  */
 heap_address heap_segment_vram_ceil(
-	heap_segment segment, 
+	heap_segment_id segment, 
 	heap_vram_packed heapCeilVram,
 	heap_size_packed heapSizeVram,
 	heap_bram_packed indexFloorBram,
@@ -854,7 +843,7 @@ heap_address heap_segment_vram_ceil(
  * @return heap_address 
  */
 heap_address heap_segment_vram_floor(
-	heap_segment segment, 
+	heap_segment_id segment, 
 	heap_vram_packed heapFloorVram,
 	heap_size_packed heapSizeVram,
 	heap_bram_packed indexFloorBram,
@@ -888,10 +877,10 @@ heap_address heap_segment_vram_floor(
  * When the size of the memory block is enquired, an 8 byte aligned value will be returned.
  * @return heap_handle The handle referring to the free record in the index.
  */
-heap_handle heap_alloc(heap_segment segment, heap_size size) {
+heap_handle heap_alloc(heap_segment_id segment, heap_size size) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
-	heap_bank bank_old = cx16_bram_bank_get();
+	heap_bank bank_old = heap_bram_bank_get();
 
 	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
 	heap_size_packed sizePacked = heap_alloc_size_get(size);
@@ -911,7 +900,7 @@ heap_handle heap_alloc(heap_segment segment, heap_size size) {
 	heap_handle heapIndex = heap_header_add(s, sizePacked);
 	s->heapSize += sizePacked;
 
-	cx16_bram_bank_set(bank_old);
+	heap_bram_bank_set(bank_old);
 
 	return (heap_handle)heapIndex;
 }
@@ -923,10 +912,10 @@ heap_handle heap_alloc(heap_segment segment, heap_size size) {
  * @param handle The handle referring to the heap memory block.
  * @return heap_handle 
  */
-heap_handle heap_free(heap_segment segment, heap_handle handle) {
+heap_handle heap_free(heap_segment_id segment, heap_handle handle) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
-	heap_bank bank_old = cx16_bram_bank_get();
+	heap_bank bank_old = heap_bram_bank_get();
 	heap_size_packed freeSize = heap_size_packed_get(handle);
 	s->freeSize += freeSize;
 
@@ -951,7 +940,7 @@ heap_handle heap_free(heap_segment segment, heap_handle handle) {
 
 	*(char*)heap_data_ptr(heap_data_packed_get(handle)) = 0;
 
-	cx16_bram_bank_set(bank_old);
+	heap_bram_bank_set(bank_old);
 
 	return freeIndex;
 }
@@ -1005,7 +994,7 @@ void heap_dump_index_print(char prefix, heap_handle list) {
  * 
  * @param segment The segment identifier, a value between 0 and 15.
  */
-void heap_dump_stats(heap_segment segment) {
+void heap_dump_stats(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
 	printf("size  alloc:%7u free:%7u\n", heap_alloc_size(segment), heap_free_size(segment));
@@ -1017,7 +1006,7 @@ void heap_dump_stats(heap_segment segment) {
  * 
  * @param segment The segment identifier, a value between 0 and 15.
  */
-void heap_dump_index(heap_segment segment) {
+void heap_dump_index(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
 	printf("list  heap:%05x free:%05x idle:%05x\n", s->heapList, s->freeList, s->idleList);
@@ -1031,7 +1020,7 @@ void heap_dump_index(heap_segment segment) {
  * 
  * @param segment The segment identifier, a value between 0 and 15.
  */
-void heap_dump(heap_segment segment) {
+void heap_dump(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
 	heap_dump_stats(segment);
@@ -1044,7 +1033,7 @@ void heap_dump(heap_segment segment) {
  * @param segment The segment identifier, a value between 0 and 15.
  * @return heap_size_large
  */
-heap_size_large heap_free_size(heap_segment segment) {
+heap_size_large heap_free_size(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 	heap_size_packed freeSize = s->freeSize;
 	return (heap_size_large)freeSize<<3;
@@ -1056,7 +1045,7 @@ heap_size_large heap_free_size(heap_segment segment) {
  * @param segment The segment identifier, a value between 0 and 15.
  * @return heap_size_large 
  */
-heap_size_large heap_alloc_size(heap_segment segment) {
+heap_size_large heap_alloc_size(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 	heap_size_packed freeSize = s->freeSize;
 	heap_size_packed heapSize = s->heapSize;
@@ -1069,7 +1058,7 @@ heap_size_large heap_alloc_size(heap_segment segment) {
  * @param segment The segment identifier, a value between 0 and 15.
  * @return heap_count 
  */
-heap_count heap_alloc_count(heap_segment segment) {
+heap_count heap_alloc_count(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 	return s->heapCount - s->freeCount;
 }
@@ -1080,7 +1069,7 @@ heap_count heap_alloc_count(heap_segment segment) {
  * @param segment The segment identifier, a value between 0 and 15.
  * @return heap_count 
  */
-heap_count heap_free_count(heap_segment segment) {
+heap_count heap_free_count(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 	return s->freeCount;
 }
@@ -1091,7 +1080,7 @@ heap_count heap_free_count(heap_segment segment) {
  * @param segment The segment identifier, a value between 0 and 15.
  * @return heap_count 
  */
-heap_count heap_idle_count(heap_segment segment) {
+heap_count heap_idle_count(heap_segment_id segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 	return s->idleCount;
 }

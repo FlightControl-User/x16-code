@@ -1,4 +1,6 @@
-#pragma var_model(mem)
+//#pragma var_model(mem)
+
+#define inline 
 
 #include <stdio.h>
 #include <string.h>
@@ -7,16 +9,19 @@
 
 void main() {
 
-	byte s1 = 0;
+	heap_segment_id s1 = 0;
 
 	heap_address ha1 = heap_segment_bram(
 		s1,
-		cx16_bram_pack(1, (cx16_ptr)0xA000),
-		cx16_size_pack((dword)0x8000)
+		heap_bram_pack(1, (heap_ptr)0xA000),
+		heap_size_pack((heap_size_large)0x8000)
 	); // add a segment of 8 banks * $2000 bytes + 1 bank of $1000 bytes;
 
 
-	for(int i=0;i<2;i++) {
+	int i = 0;
+
+	for(i=0; i<2; i++) {
+
 		printf("\nAllocation:\n");
 
 		heap_handle h0 = heap_alloc(s1, 16);

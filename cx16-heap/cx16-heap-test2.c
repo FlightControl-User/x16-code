@@ -13,11 +13,9 @@ void main() {
 
 	heap_address ha1 = heap_segment_bram(
 		s1,
-		cx16_bram_pack(1, (cx16_ptr)0xA000),
+		cx16_bram_pack(1, (cx16_bram_ptr)0xA000),
 		cx16_size_pack((dword)0x8000)
 	); // add a segment of 8 banks * $2000 bytes + 1 bank of $1000 bytes;
-
-	struct HEAP_SEGMENT* s = &heap_segments[0];
 
 	unsigned int c = 2;
 	heap_handle heap_handles[2048] = {0};

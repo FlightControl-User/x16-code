@@ -19,7 +19,7 @@ void main() {
 
 	heap_address ha1 = heap_segment_bram(
 		s1,
-		cx16_bram_pack(1, (cx16_ptr)0xA000),
+		cx16_bram_pack(1, (cx16_bram_ptr)0xA000),
 		cx16_size_pack((dword)0x44000)
 	); // add a segment of 8 banks * $2000 bytes + 1 bank of $1000 bytes;
 

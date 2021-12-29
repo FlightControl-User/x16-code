@@ -30,7 +30,7 @@ const byte vera_layer_hflip[2] = {0,0x04};
 const byte vera_layer_vflip[2] = {0,0x08};
 
 
-const byte* vera_layer_config[2] = {VERA_L0_CONFIG, VERA_L1_CONFIG};
+const byte* vera_layer_config[2] = {(byte*)VERA_L0_CONFIG, (byte*)VERA_L1_CONFIG};
 const byte vera_layer_enable[2] = { VERA_LAYER0_ENABLE, VERA_LAYER1_ENABLE };
 
 const byte* vera_layer_mapbase[2] = {VERA_L0_MAPBASE, VERA_L1_MAPBASE};
@@ -74,7 +74,7 @@ char vera_address_to_bank( dword address ) {
  * @param offset The 16 bit offset of the vera to set.
  * @param inc_dec The vera increment/decrement enum.
  */
-inline void vera_vram_data0_bank_offset(cx16_bank bank, cx16_offset offset, enum vera_inc_dec inc_dec) {
+inline void vera_vram_data0_bank_offset(cx16_bank bank, cx16_vram_offset offset, enum vera_inc_dec inc_dec) {
     *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
     *VERA_ADDRX_L = BYTE0(offset); 
     *VERA_ADDRX_M = BYTE1(offset);
@@ -88,7 +88,7 @@ inline void vera_vram_data0_bank_offset(cx16_bank bank, cx16_offset offset, enum
  * @param offset The 16 bit offset of the vera to set.
  * @param inc_dec The vera increment/decrement enum.
  */
-inline void vera_vram_data1_bank_offset(cx16_bank bank, cx16_offset offset, enum vera_inc_dec inc_dec) {
+inline void vera_vram_data1_bank_offset(cx16_bank bank, cx16_vram_offset offset, enum vera_inc_dec inc_dec) {
     *VERA_CTRL |= VERA_ADDRSEL;     // Select DATA1
     *VERA_ADDRX_L = BYTE0(offset); 
     *VERA_ADDRX_M = BYTE1(offset);

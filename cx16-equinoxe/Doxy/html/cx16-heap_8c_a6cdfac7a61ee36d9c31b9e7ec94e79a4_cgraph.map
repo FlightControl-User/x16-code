@@ -1,5 +1,0 @@
-<map id="heap_segment_vram_floor_ulong" name="heap_segment_vram_floor_ulong">
-<area shape="rect" id="node1" title=" " alt="" coords="5,23,177,65"/>
-<area shape="rect" id="node2" href="$cx16_8h.html#adafc2960cafd670f4d4d2a5693ef0fc3" title="Return from a packed vera ram address the embedded bank in an 8&#45;bit byte." alt="" coords="227,5,395,32"/>
-<area shape="rect" id="node3" href="$cx16_8h.html#ae7775332be17fc18c96e8f35a2410802" title="Return from a packed vera ram address the 16 bit offset, but is now aligned to 2 bytes in vera ram!..." alt="" coords="225,56,396,83"/>
-</map>

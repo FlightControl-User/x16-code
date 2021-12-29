@@ -1,9 +1,0 @@
-<map id="mul16u" name="mul16u">
-<area shape="rect" id="node1" title=" " alt="" coords="400,56,464,83"/>
-<area shape="rect" id="node2" href="$cx16-bitmap_8h.html#a8f458383d871a98b3aff19845329109a" title=" " alt="" coords="256,5,352,32"/>
-<area shape="rect" id="node3" href="$multiply_8c.html#a0cbab43b7b87bfcc1dc62d0ef86e6d77" title=" " alt="" coords="272,56,336,83"/>
-<area shape="rect" id="node4" href="$sine_8h.html#a68f7f42dbf7e8d3764e157c13078bcbf" title=" " alt="" coords="260,107,348,133"/>
-<area shape="rect" id="node5" href="$sine_8h.html#a4692bdf8529122b6ae3fde3c71df2dc3" title=" " alt="" coords="148,107,208,133"/>
-<area shape="rect" id="node6" href="$sine_8c.html#a0c85c6276cc665439c22ee38af99231c" title=" " alt="" coords="9,81,97,108"/>
-<area shape="rect" id="node7" href="$sine_8c.html#a762d7c02268f356bad7cc47a18a79a4c" title=" " alt="" coords="5,132,100,159"/>
-</map>

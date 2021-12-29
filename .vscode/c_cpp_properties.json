@@ -1,30 +1,51 @@
 {
     "configurations": [
         {
-            "name": "cx16",
+            "name": "kickc",
             "includePath": [
-                "${workspaceFolder}/**",
-                //"${workspaceFolder}/kickc/src/main/kc/include"
-                "C:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include"
+                "${workspaceFolder}/cx16_include",
+                //"D:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include",
+                "${env:KICKCDEV}/src/main/kc/include"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
-                "byte = unsigned char",
-                "word = unsigned int",
-                "dword = unsigned long",
-                "__CX16__ = 1",
+                "byte=unsigned char",
+                "word=unsigned int",
+                "dword=unsigned long",
                 "__mem=",
+                "__ssa=",
+                "__ma=",
+                "__address(size)=",
                 "__interrupt(rom_sys_cx16)="
             ],
             "windowsSdkVersion": "10.0.17763.0",
-            // "compilerPath": "D:\\Users\\svenv\\OneDrive\\Documents\\6502\\kickc\\bin\\kickc_dev.bat",
+            //"compilerPath": "D:/Users/svenv/OneDrive/Documents/6502/bin/kickc_dev.bat",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-clang-x86",
-            "forcedInclude": [
-            ]
+            "forcedInclude": []
+        },
+        {
+            "name": "build",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/main/kc/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "byte=unsigned char",
+                "word=unsigned int",
+                "dword=unsigned long"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4

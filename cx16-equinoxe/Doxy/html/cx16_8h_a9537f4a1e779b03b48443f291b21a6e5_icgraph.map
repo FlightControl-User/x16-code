@@ -1,4 +1,0 @@
-<map id="cx16_set_vram" name="cx16_set_vram">
-<area shape="rect" id="node1" title="Set block of memory in vram to a value. &#160;&#160;Sets num bytes to the destination vram bank/offset to the s..." alt="" coords="149,5,259,32"/>
-<area shape="rect" id="node2" href="$cx16-bitmap_8h.html#a8f458383d871a98b3aff19845329109a" title=" " alt="" coords="5,5,101,32"/>
-</map>

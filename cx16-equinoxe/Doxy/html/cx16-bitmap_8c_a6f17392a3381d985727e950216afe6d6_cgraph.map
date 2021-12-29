@@ -1,5 +1,0 @@
-<map id="bitmap_plot" name="bitmap_plot">
-<area shape="rect" id="node1" title=" " alt="" coords="5,13,95,39"/>
-<area shape="rect" id="node2" href="$cx16-veralib_8h.html#a86d4a5524eee5d68241683d2cc7a9a22" title="Configure data port 0 of the vera using an address structure." alt="" coords="143,13,313,39"/>
-<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a42fa4984cc1f3d6a2fa4a680d85565b3" title="Configure data port 0 of the vera using bank and offset." alt="" coords="361,5,515,47"/>
-</map>

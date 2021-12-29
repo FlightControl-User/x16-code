@@ -1,6 +1,6 @@
 /**
  * @file cx16-heap.h
- * @author Sven VAn de Velde (sven.van.de.velde@outlook.com)
+ * @author Sven Van de Velde (sven.van.de.velde@outlook.com)
  * @brief Commander x16 memory manager.
  * @version 0.1
  * @date 2021-12-26
@@ -25,26 +25,26 @@ typedef unsigned char* 	heap_ptr;
 typedef unsigned int 	heap_offset;
 typedef unsigned int 	heap_word;
 
-const unsigned int heap_type_bram = 0x0000;
-const unsigned int heap_type_vram = 0x8000;
-const unsigned int heap_type_mask = 0x8000;
+const unsigned int 		heap_type_bram = 0x0000;
+const unsigned int 		heap_type_vram = 0x8000;
+const unsigned int 		heap_type_mask = 0x8000;
 
-const unsigned int heap_bram_bank_min = 0;
-const unsigned int heap_bram_ptr_min = 0xA000;
-const unsigned int heap_bram_bank_max = 64;
-const unsigned int heap_bram_ptr_max = 0xC000;
-const unsigned int heap_bram_ptr_mask = 0x1FFF;
-const unsigned int heap_bram_ptr_base = 0xA000;
+const unsigned int 		heap_bram_bank_min = 0;
+const unsigned int 		heap_bram_ptr_min = 0xA000;
+const unsigned int 		heap_bram_bank_max = 64;
+const unsigned int 		heap_bram_ptr_max = 0xC000;
+const unsigned int 		heap_bram_ptr_mask = 0x1FFF;
+const unsigned int 		heap_bram_ptr_base = 0xA000;
 
-const unsigned int heap_vram_bank_min = 0;
-const unsigned int heap_vram_ptr_min = 0x0000;
-const unsigned int heap_vram_bank_max = 1;
-const unsigned int heap_vram_ptr_max = 0xF800;
-const unsigned int heap_vram_ptr_mask = 0xFFFF;
-const unsigned int heap_vram_ptr_base = 0x0000;
+const unsigned int 		heap_vram_bank_min = 0;
+const unsigned int 		heap_vram_ptr_min = 0x0000;
+const unsigned int 		heap_vram_bank_max = 1;
+const unsigned int 		heap_vram_ptr_max = 0xF800;
+const unsigned int 		heap_vram_ptr_mask = 0xFFFF;
+const unsigned int 		heap_vram_ptr_base = 0x0000;
 
 
-const unsigned int heap_size_mask = 0x7FFF;
+const unsigned int 		heap_size_mask = 0x7FFF;
 
 struct HEAP_SEGMENT {
 
@@ -71,7 +71,11 @@ struct HEAP_SEGMENT {
 	unsigned int freeSize;
 };
 
-typedef unsigned char heap_segment;
+typedef struct HEAP_SEGMENT heap_segment_struct;
+typedef struct HEAP_SEGMENT* heap_segment_ptr;
+
+typedef unsigned char heap_segment_id;
+
 
 /**
  * Header Block layout.
@@ -89,38 +93,41 @@ struct HEAP_INDEX {
 typedef struct HEAP_INDEX heap_index;
 typedef struct HEAP_INDEX* heap_index_ptr;
 
-inline heap_bram_packed  heap_bram_pack(cx16_bank bank, cx16_ptr ptr);
-inline heap_vram_packed  heap_vram_pack(cx16_bank bank, cx16_offset offset);
-inline heap_bank         heap_bram_unpack_bank(cx16_bram_packed bram_packed);
-inline heap_ptr          heap_bram_unpack_ptr(cx16_bram_packed bram_packed);
-inline heap_bank         heap_vram_unpack_bank(cx16_vram_packed vram_packed);
-inline heap_offset       heap_vram_unpack_offset(cx16_vram_packed vram_packed);
+inline heap_bram_packed  heap_bram_pack(heap_bank bank, heap_ptr ptr);
+inline heap_vram_packed  heap_vram_pack(heap_bank bank, heap_offset offset);
+inline heap_bank         heap_bram_unpack_bank(heap_bram_packed bram_packed);
+inline heap_ptr          heap_bram_unpack_ptr(heap_bram_packed bram_packed);
+inline heap_bank         heap_vram_unpack_bank(heap_vram_packed vram_packed);
+inline heap_offset       heap_vram_unpack_offset(heap_vram_packed vram_packed);
+
+inline heap_size_packed  heap_size_pack(heap_size_large size);
+inline heap_size         heap_size_unpack(heap_size_packed size_packed);
 
 
 heap_address heap_segment_bram(
-	heap_segment Segment, 
-	cx16_vram_packed HeapFloorBram,
-	heap_size_packed HeapSizeBram
+	heap_segment_id segment, 
+	heap_vram_packed heapFloorBram,
+	heap_size_packed heapSizeBram
 	);
 
 heap_address heap_segment_vram_floor(
-	heap_segment Segment, 
-	cx16_vram_packed HeapFloorVram,
-	heap_size_packed HeapSizeVram,
-	cx16_bram_packed HeaderFloorBram,
-	heap_size_packed HeaderSizeBram
+	heap_segment_id segment, 
+	heap_vram_packed heapFloorVram,
+	heap_size_packed heapSizeVram,
+	heap_bram_packed indexFloorBram,
+	heap_size_packed indexSizeBram
 	);
 
 heap_address heap_segment_vram_ceil(
-	heap_segment Segment, 
-	cx16_vram_packed HeapCeilVram,
-	heap_size_packed HeapSizeVram,
-	cx16_bram_packed HeaderFloorBram,
-	heap_size_packed HeaderSizeBram
+	heap_segment_id segment, 
+	heap_vram_packed heapCeilVram,
+	heap_size_packed heapSizeVram,
+	heap_bram_packed indexFloorBram,
+	heap_size_packed indexSizeBram
 	);
 
-heap_handle heap_alloc(heap_segment segment, heap_size size);
-heap_handle heap_free(heap_segment segment, heap_handle handle);
+heap_handle heap_alloc(heap_segment_id segment, heap_size size);
+heap_handle heap_free(heap_segment_id segment, heap_handle handle);
 
 heap_ptr heap_data_ptr(
 	heap_handle handle
@@ -129,22 +136,15 @@ heap_ptr heap_data_ptr(
 heap_handle heap_data_get(heap_handle indexHeap);
 heap_size_packed heap_size_get(heap_handle indexHeap);
 
-heap_bank heap_data_bank(
-	heap_handle handle
-	);
+heap_bank heap_data_bank(heap_handle handle);
+heap_handle heap_data_get(heap_handle handle);
 
-heap_handle heap_data_get(
-	heap_handle handle
-	);
+void heap_dump(heap_segment_id segment);
+void heap_dump_stats(heap_segment_id segment);
+void heap_dump_index(heap_segment_id segment);
 
-dword heap_segment_vram_floor_ulong(struct HEAP_SEGMENT* Segment);
-
-void heap_dump(heap_segment Segment);
-void heap_dump_stats(heap_segment Segment);
-void heap_dump_index(heap_segment Segment);
-
-heap_size_large heap_alloc_size(heap_segment Segment);
-heap_size_large heap_free_size(heap_segment Segment);
-unsigned int heap_alloc_count(heap_segment Segment);
-unsigned int heap_free_count(heap_segment Segment);
-unsigned int heap_idle_count(heap_segment Segment);
+heap_size_large heap_alloc_size(heap_segment_id segment);
+heap_size_large heap_free_size(heap_segment_id segment);
+unsigned int heap_alloc_count(heap_segment_id segment);
+unsigned int heap_free_count(heap_segment_id segment);
+unsigned int heap_idle_count(heap_segment_id segment);
