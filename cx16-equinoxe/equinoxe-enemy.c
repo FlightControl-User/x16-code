@@ -7,12 +7,13 @@ void InitEnemies() {
 	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Enemy)); ///< Global
 	// printf("init - ph = %x, *p = %x, b = %u\n", enemy_handle, (word)enemy, cx16_bram_bank_get());
 
-    heap_handle fighter_list = stage.fighter_head;
+    heap_handle enemy_list = stage.fighter_head;
     stage.fighter_head = enemy_handle;
 
 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
 	memset(enemy, 0, sizeof(Enemy));
 
+	enemy->next = enemy_list;
 	enemy->health = 1;
 	enemy->x = 20;
 	enemy->y = 100;
@@ -20,7 +21,7 @@ void InitEnemies() {
 	enemy->sprite_offset = 1;
 	enemy->speed_animation = 8;
 	enemy->wait_animation = enemy->speed_animation;
-	enemy->state_animation = 1;
+	enemy->state_animation = 12;
 	enemy->moved = 2;
 	enemy->firegun = 0;
 
@@ -44,7 +45,8 @@ void LogicEnemies() {
 
 		if (!enemy->wait_animation--) {
 			enemy->wait_animation = enemy->speed_animation;
-			enemy->state_animation += 1;
+			if(!enemy->state_animation--)
+			enemy->state_animation += 12;
 		}
 
 		// Added fragment
