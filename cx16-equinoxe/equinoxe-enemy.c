@@ -18,7 +18,7 @@ void InitEnemies() {
 	enemy->x = 20;
 	enemy->y = 100;
 	enemy->sprite_type = &SpriteEnemy01;
-	enemy->sprite_offset = 1;
+	enemy->sprite_offset = 3;
 	enemy->speed_animation = 8;
 	enemy->wait_animation = enemy->speed_animation;
 	enemy->state_animation = 12;
