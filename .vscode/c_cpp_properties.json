@@ -18,7 +18,8 @@
                 "__ssa=",
                 "__ma=",
                 "__address(size)=",
-                "__interrupt(rom_sys_cx16)="
+                "__interrupt(rom_sys_cx16)=",
+                "export="
             ],
             "windowsSdkVersion": "10.0.17763.0",
             //"compilerPath": "D:/Users/svenv/OneDrive/Documents/6502/bin/kickc_dev.bat",

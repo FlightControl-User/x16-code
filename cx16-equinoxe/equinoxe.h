@@ -93,6 +93,8 @@ typedef struct {
     heap_handle next;
 } Entity;
 
+typedef Entity Enemy;
+
 typedef struct {
     heap_handle fighter_head;
     heap_handle fighter_tail;
@@ -111,13 +113,6 @@ typedef struct {
 } Game;
 
 
-
-
-struct sprite_bullet sprite_bullets[11] = {0};
-volatile byte sprite_bullet_count = 0;
-volatile byte sprite_bullet_pause = 0;
-volatile byte sprite_bullet_switch = 0;
-
 Entity sprite_enemies[33] = {0};
 volatile byte sprite_enemy_count = 0;
 
@@ -128,6 +123,7 @@ volatile byte state_game = 0;
 
 
 volatile heap_handle player_handle;
+volatile heap_handle enemy_handle;
 volatile heap_handle engine_handle;
 
 volatile Stage stage;

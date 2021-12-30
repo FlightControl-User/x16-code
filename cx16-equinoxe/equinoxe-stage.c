@@ -54,6 +54,7 @@ static void StageReset(void) {
 	stage.bullet_sprite = 0;
 	
 	InitPlayer();
+	InitEnemies();
 
 	// initStarfield();
 

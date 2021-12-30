@@ -50,7 +50,7 @@ int main() {
 
     gotoxy(0, 10);
 
-    char status = cx16_load_ram_banked(1, 8, 0, sprite->File, 1, 0xA000);
+    unsigned int status = cx16_bram_load(1, 8, 0, sprite->File, 1, 0xA000);
     if(status!=$ff) printf("error file %s: %x\n", sprite->File, status);
 
     byte SpriteCount = sprite->SpriteCount;

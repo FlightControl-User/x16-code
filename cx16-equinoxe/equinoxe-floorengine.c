@@ -47,8 +47,8 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
     x = x << resolution;
     y = y << resolution;
 
-    dword mapbase = vera_mapbase_address[layer];
-    byte shift = vera_layer_rowshift[layer];
+    dword mapbase = vera_layer_get_mapbase_address(layer);
+    byte shift = vera_layer_get_rowshift(layer);
     word rowskip = (word)1 << shift;
     mapbase += ((word)y << shift);
     mapbase += (x << 1); // 2 bytes per tile (one index + one palette)
@@ -63,8 +63,8 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
                     struct Tile *Tile = TilePart->Tile; 
                     word TileOffset = TilePart->TileOffset;
                     word Offset = TileOffset + r + c;
-                    *VERA_DATA0 = <Offset;
-                    *VERA_DATA0 = Tile->PaletteOffset << 4 | >Offset;
+                    *VERA_DATA0 = BYTE1(Offset);
+                    *VERA_DATA0 = Tile->PaletteOffset << 4 | BYTE2(Offset);
                 }
             }
         mapbase += rowskip;
@@ -278,8 +278,8 @@ heap_handle tile_load( struct Tile *Tile) {
 
     printf("bram: %x:%p\n", heap_data_bank(handle_bram_tile), heap_data_ptr(handle_bram_tile));
 
-    cx16_bram_ptr ptr_bram_tile_end = cx16_load_ram_banked(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
-    if(!ptr_bram_tile_end) printf("error file %s\n", Tile->File);
+    unsigned int tiles_loaded = cx16_bram_load(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
+    if(!tiles_loaded) printf("error file %s\n", Tile->File);
 
     Tile->BRAM_Handle = handle_bram_tile;
     while(!getin());
@@ -311,21 +311,21 @@ void main() {
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
     
     // Allocate the segment for the floor map in vram.
-    cx16_vram_packed vram_floor_map = heap_segment_vram_floor(
+    heap_vram_packed vram_floor_map = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_MAP, 
-        cx16_vram_pack(1, 0x0000), 
-        cx16_size_pack(0x2000), 
-        cx16_bram_pack(1, (heap_ptr)0xA400), 
+        heap_vram_pack(1, 0x0000), 
+        heap_size_pack(0x2000), 
+        heap_bram_pack(1, (heap_ptr)0xA400), 
         0
         );
 
     //heap_segment_id segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
 
-    cx16_vram_packed vram_floor_tile = heap_segment_vram_floor(
+    heap_vram_packed vram_floor_tile = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
-        cx16_vram_pack(1, (cx16_vram_offset)0x2000), 
-        cx16_size_pack(0x8000), 
-        cx16_bram_pack(1, (cx16_bram_ptr)0xA400), 
+        heap_vram_pack(1, (cx16_vram_offset)0x2000), 
+        heap_size_pack(0x8000), 
+        heap_bram_pack(1, (cx16_bram_ptr)0xA400), 
         0x100
         );
 
@@ -383,7 +383,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         scroll_action = 4;
         gotoxy(0, 10);
         printf("vscroll:%u row:%u   ",vscroll, row);
-        if((<vscroll & 0xC0)==<vscroll ) {
+        if((BYTE1(vscroll) & 0xC0)==BYTE1(vscroll) ) {
             if(row<=7) {
                 dword dest_row = vram_floor_map_ulong+((row+8)*4*64*2);
                 dword src_row = vram_floor_map_ulong+(row*4*64*2);

@@ -9,16 +9,15 @@
     heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
     heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
 
-    cx16_bram_ptr ptr_bram_end = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes);
-    if(!ptr_bram_end) printf("error file_palettes");
+    unsigned int palette_loaded = 0;
+
+    unsigned int floor_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes);
+    if(!floor_palette_loaded) printf("error file_palettes");
+    palette_loaded += floor_palette_loaded;
     
-    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, ((char*)ptr_bram_end-ptr_bram_palettes));
+    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    if(!sprite_palette_loaded) printf("error file_palettes");
+    palette_loaded += sprite_palette_loaded;
 
-    ptr_bram_palettes = ptr_bram_end;
-    ptr_bram_end = cx16_load_ram_banked(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes);
-    if(!ptr_bram_end) printf("error file_palettes");
-    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)(VERA_PALETTE_PTR+((word)ptr_bram_end-(word)0xa000))+32, bank_bram_palettes, ptr_bram_palettes, ((char*)ptr_bram_end-ptr_bram_palettes));
-
-    ptr_bram_palettes = ptr_bram_end;
-
+    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, ptr_bram_palettes+palette_loaded);
 

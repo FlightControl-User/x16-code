@@ -1,7 +1,7 @@
 
-#pragma link("spritefile.ld")
+#pragma link("equinoxe-target-sprites.ld")
 
-#include "../cx16-include/bitmapfile.h"
+#include "equinoxe-target-routines.h"
 
 
 #pragma data_seg(Player01)

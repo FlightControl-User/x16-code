@@ -22,6 +22,7 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-player.h"
+#include "equinoxe-enemy.h"
 #include "equinoxe-fighters.h"
 #include "equinoxe-bullet.h"
 
@@ -56,8 +57,8 @@ heap_handle sprite_load(struct sprite* sprite) {
     heap_bank bank_bram_sprite = heap_data_bank(handle_bram_sprite);
     heap_handle data_handle_bram_sprite = heap_data_get(handle_bram_sprite);
 
-    cx16_bram_ptr ptr_end = cx16_load_ram_banked(1, 8, 0, sprite->File, bank_bram_sprite, ptr_bram_sprite);
-    if (!ptr_end) printf("error file %s\n", sprite->File);
+    unsigned int bytes_loaded = cx16_bram_load(1, 8, 0, sprite->File, bank_bram_sprite, ptr_bram_sprite);
+    if (!bytes_loaded) printf("error file %s\n", sprite->File);
 
     sprite->BRAM_Handle = handle_bram_sprite;
     return handle_bram_sprite;
@@ -133,7 +134,7 @@ void sprite_collision(byte sprite_offset, byte mask) {
 
 void Logic(void) {
     LogicPlayer();
-    // LogicEnemies();
+    LogicEnemies();
     // LogicFighters();
     LogicBullets();
     // SpawnEnemies();
@@ -363,7 +364,34 @@ void main() {
         heap_size_pack(0x2000)
     );
 
-#include "equinoxe-palettes.c"
+    //#include "equinoxe-palettes.c"
+
+    // Load the palettes in main banked memory.
+    heap_address bram_palettes = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_PALETTES, 
+        heap_bram_pack(63, (heap_ptr)0xA000), 
+        heap_size_pack(0x2000)
+        );
+
+    // Tested
+    heap_handle handle_bram_palettes = heap_alloc(HEAP_SEGMENT_BRAM_PALETTES, 8192);
+    heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
+    heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
+
+    unsigned int palette_loaded = 0;
+
+    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    if(!sprite_palette_loaded) printf("error file_palettes");
+    palette_loaded += sprite_palette_loaded;
+    heap_ptr ptr_bram_palettes_sprite = heap_data_ptr(handle_bram_palettes)+palette_loaded;
+
+    unsigned int floor_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    if(!floor_palette_loaded) printf("error file_palettes");
+    palette_loaded += floor_palette_loaded;
+    heap_ptr ptr_bram_palettes_floor = heap_data_ptr(handle_bram_palettes)+palette_loaded;
+
+    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
+    // Tested
 
     // Initialize the bram heap for sprite loading.
     heap_bram_packed bram_sprites = heap_segment_bram(
