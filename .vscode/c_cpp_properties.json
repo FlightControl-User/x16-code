@@ -4,7 +4,6 @@
             "name": "kickc",
             "includePath": [
                 "${workspaceFolder}/cx16_include",
-                //"D:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include",
                 "${env:KICKCDEV}/src/main/kc/include"
             ],
             "defines": [
@@ -22,10 +21,10 @@
                 "export="
             ],
             "windowsSdkVersion": "10.0.17763.0",
-            //"compilerPath": "D:/Users/svenv/OneDrive/Documents/6502/bin/kickc_dev.bat",
+            "compilerPath": "",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-clang-x86",
+            "intelliSenseMode": "windows-msvc-x64",
             "forcedInclude": []
         },
         {

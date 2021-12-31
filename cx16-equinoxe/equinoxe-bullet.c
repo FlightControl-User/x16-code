@@ -26,8 +26,8 @@ void FireBullet()
     signed int y = game.curr_mousey;
     if (player->firegun)
         x += (signed char)16;
-    bullet->x = x;
-    bullet->y = y;
+    bullet->x = (unsigned int)x;
+    bullet->y = (unsigned int)y;
     bullet->dx = 0;
     bullet->dy = -8;
     bullet->health = 1;
@@ -60,8 +60,8 @@ void LogicBullets()
 
         Entity *bullet = (Entity *)heap_data_ptr(bullet_handle);
 
-        signed int x = bullet->x;
-        signed int y = bullet->y;
+        unsigned int x = bullet->x;
+        unsigned int y = bullet->y;
         x += bullet->dx;
         y += bullet->dy;
         bullet->x = x;
@@ -117,7 +117,7 @@ void DrawBullets()
         Entity *bullet = (Entity *)heap_data_ptr(bullet_handle);
         sprite_enable(bullet->sprite_offset, bullet->sprite_type);
         sprite_animate(bullet->sprite_offset, bullet->sprite_type, 0);
-        sprite_position(bullet->sprite_offset, bullet->x, bullet->y);
+        sprite_position(bullet->sprite_offset, (int)(bullet->x-32), (int)(bullet->y-32));
         // gotoxy(40, 39 + l++);
         // printf("db: bullet = %p ", bullet);
         bullet_handle = ((Entity *)heap_data_ptr(bullet_handle))->next;

@@ -2,6 +2,7 @@
 #include <cx16-mouse.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
+#include "equinoxe-stage.h"
 
 void InitPlayer() {
 	player_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity)); ///< Global
@@ -12,13 +13,13 @@ void InitPlayer() {
 
 	stage.fighter_tail = 0;
 	stage.fighter_tail = 0;
-	stage.fighter_head = player_handle;
+	stage.fighter_list = player_handle;
 
 	player->health = 1;
 	player->x = 320;
 	player->y = 200;
 	player->sprite_type = &SpritePlayer01;
-	player->sprite_offset = 1;
+	player->sprite_offset = NextOffset();
 	player->speed_animation = 8;
 	player->wait_animation = player->speed_animation;
 	player->state_animation = 3;
@@ -37,7 +38,7 @@ void InitPlayer() {
 	engine->x = 0;
 	engine->y = 0;
 	engine->sprite_type = &SpriteEngine01;
-	engine->sprite_offset = 2;
+	engine->sprite_offset = NextOffset();
 	engine->speed_animation = 1;
 	engine->wait_animation = engine->speed_animation;
 	engine->state_animation = 0;
@@ -88,13 +89,13 @@ void LogicPlayer() {
 
 
 		// Added fragment
-		player->x = game.curr_mousex;
-		player->y = game.curr_mousey;
+		player->x = (unsigned int)game.curr_mousex << 4;
+		player->y = (unsigned int)game.curr_mousey << 4;
 
 		// We need to use the x and y coordinate of the player for the engine position.
 		// Remember that this is banked memory, so we need to keep these variables in local memory!
-        int playerx = player->x;
-        int playery = player->y;
+        unsigned int playerx = player->x;
+        unsigned int playery = player->y;
 
 		// gotoxy(0, 3);
 		// printf("pl x=%i,y=%i, m=%u, s=%x      ", player->x, player->y, player->moved, player->state_animation);
@@ -111,8 +112,8 @@ void LogicPlayer() {
 			engine->wait_animation = engine->speed_animation;
 		}
 
-		engine->x = playerx + 8;
-		engine->y = playery + 22;
+		engine->x = playerx + 8 << 4;
+		engine->y = playery + 22 << 4;
 
 		// gotoxy(40, 3);
 		// printf("engine logic x = %i, y = %i       ", ((Entity*)heap_data_ptr(engine_handle))->x, ((Entity*)heap_data_ptr(engine_handle))->y);

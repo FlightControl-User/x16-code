@@ -1,0 +1,1 @@
+void AddEnemy(byte enemy_type, unsigned int x, unsigned int y);

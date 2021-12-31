@@ -1,5 +1,6 @@
 #include "equinoxe.h"
 #include "equinoxe-player.h"
+#include "equinoxe-enemy.h"
 
 void StageInit(void) {
 	game.delegate.Logic = &Logic;
@@ -8,6 +9,21 @@ void StageInit(void) {
 	memset(&stage, 0, sizeof(Stage));
 
 	StageReset();
+}
+
+char NextOffset() {
+	char i = 0;
+	for(i=1;i<127;i++) {
+		if(!stage.offsets[i]) {
+			stage.offsets[i] = 1;
+			return i;
+		}
+	}
+	return 0;
+}
+
+void FreeOffset(char i) {
+	stage.offsets[i] = 0;
 }
 
 static void StageReset(void) {
@@ -49,12 +65,14 @@ static void StageReset(void) {
 	// stage.explosionTail = &stage.explosionHead;
 	// stage.debrisTail = &stage.debrisHead;
 
-	stage.fighter_head = 0;
+	stage.fighter_list = 0;
 	stage.bullet_list = 0;
 	stage.bullet_sprite = 0;
 	
 	InitPlayer();
-	InitEnemies();
+	AddEnemy(1, 20, 100);
+	AddEnemy(1, 50, 100);
+	AddEnemy(1, 80, 100);
 
 	// initStarfield();
 

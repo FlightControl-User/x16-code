@@ -85,8 +85,8 @@ typedef struct {
     Sprite* sprite_type;
     byte sprite_offset;
 
-    signed int x;
-    signed int y;
+    unsigned int x;
+    unsigned int y;
     signed char dx;
     signed char dy;
     heap_handle engine_handle;
@@ -96,11 +96,12 @@ typedef struct {
 typedef Entity Enemy;
 
 typedef struct {
-    heap_handle fighter_head;
+    heap_handle fighter_list;
     heap_handle fighter_tail;
     heap_handle bullet_tail;
     heap_handle bullet_list;
     char bullet_sprite;
+    char offsets[127];
 } Stage;
 
 typedef struct {
