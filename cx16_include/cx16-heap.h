@@ -159,5 +159,5 @@ unsigned int heap_idle_count(heap_segment_id segment);
 
 // heap_handle heap_data_list_insert_at(heap_handle *list, heap_handle index, heap_handle at);
 heap_handle heap_data_list_insert(heap_handle *list, heap_handle index);
-// heap_handle heap_data_list_remove(heap_handle *list, heap_handle index);
+char heap_data_list_remove(heap_handle *list, heap_handle index);
 

@@ -397,10 +397,6 @@ heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
 }
 
 /**
-* Insert data in data list.
-*/
-
-/**
  * @brief Insert data of index in data list maintained by programmer.
  * Note that the first elements of the data must be a 2 byte next handle and a 2 byte prev handle.
  * 
@@ -417,6 +413,7 @@ heap_handle heap_data_list_insert(heap_handle *list, heap_handle index) {
 		*list = index;
 		heap_data_list_get(*list)->prev = *list;
 		heap_data_list_get(*list)->next = *list;
+		heap_bram_bank_set(old_bank);
 		return index;
 	}
 
@@ -438,6 +435,44 @@ heap_handle heap_data_list_insert(heap_handle *list, heap_handle index) {
 	heap_bram_bank_set(old_bank);
 
 	return index;
+}
+
+char heap_data_list_remove(heap_handle *list, heap_handle index) {
+
+	heap_bank old_bank = heap_bram_bank_get();
+
+	if (!*list) {
+		// empty list
+		heap_bram_bank_set(old_bank);
+		return -1;
+	}
+
+	// The free makes the list empty!
+	heap_handle next = heap_data_list_get(*list)->next;
+	heap_handle curr = *list;
+	if (next == curr) {
+		*list = 0; // We initialize the start of the list to null.
+		heap_bram_bank_set(old_bank);
+		return 0; 
+	}
+
+	// The free changes the first header of the list!
+	if (index == curr) { 
+		*list = next;
+	}
+
+
+	{
+	heap_handle next = heap_data_list_get(index)->next;
+	heap_handle prev = heap_data_list_get(index)->prev;
+
+	heap_data_list_get(prev)->next = heap_data_list_get(index)->next;
+	heap_data_list_get(next)->prev = heap_data_list_get(index)->prev;
+	}
+
+	heap_bram_bank_set(old_bank);
+	return 0;
+
 }
 
 

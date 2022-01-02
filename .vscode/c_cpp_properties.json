@@ -31,7 +31,7 @@
             "name": "build",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/src/main/kc/include"
+                "${env:KICKCDEV}/src/main/kc/include"
             ],
             "defines": [
                 "_DEBUG",

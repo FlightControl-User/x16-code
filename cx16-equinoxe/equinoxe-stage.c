@@ -70,14 +70,14 @@ static void StageReset(void) {
 	stage.bullet_sprite = 0;
 	
 	InitPlayer();
-	AddEnemy(1, 20, 100);
-	AddEnemy(1, 50, 100);
-	AddEnemy(1, 80, 100);
+	AddEnemy(1, 20, 10);
+	AddEnemy(1, 50, 40);
+	AddEnemy(1, 80, 70);
 	AddEnemy(1, 110, 100);
-	AddEnemy(1, 140, 100);
-	AddEnemy(1, 170, 100);
-	AddEnemy(1, 200, 100);
-	AddEnemy(1, 230, 100);
+	AddEnemy(1, 140, 130);
+	AddEnemy(1, 170, 160);
+	AddEnemy(1, 200, 190);
+	AddEnemy(1, 230, 220);
 
 	// initStarfield();
 

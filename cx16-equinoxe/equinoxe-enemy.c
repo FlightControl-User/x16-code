@@ -17,10 +17,10 @@ void AddEnemy(byte enemy_type, int x, int y) {
 	enemy->x = x;
 	enemy->y = y;
 	enemy->dx = -16;
-	enemy->dy = 0;
+	enemy->dy = 32;
 	enemy->sprite_type = &SpriteEnemy01;
 	enemy->sprite_offset = NextOffset();
-	enemy->speed_animation = 8;
+	enemy->speed_animation = 4;
 	enemy->wait_animation = enemy->speed_animation;
 	enemy->state_animation = 12;
 	enemy->moved = 2;
@@ -29,6 +29,38 @@ void AddEnemy(byte enemy_type, int x, int y) {
 	enemy->side = SIDE_ENEMY;
 
 	sprite_create(enemy->sprite_type, enemy->sprite_offset);
+}
+
+void RemoveEnemy(heap_handle handle) {
+
+	{
+	gotoxy(0,0);
+    heap_handle enemy_handle = stage.fighter_list;
+    heap_handle last_handle = stage.fighter_list;
+	do {
+
+		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+		printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+		enemy_handle = enemy->next;
+		while(!kbhit());
+	} while (enemy_handle != last_handle);
+	}
+
+	heap_data_list_remove(&stage.fighter_list, handle);
+	{
+	gotoxy(0,20);
+	printf("after:\n");
+    heap_handle enemy_handle = stage.fighter_list;
+    heap_handle last_handle = stage.fighter_list;
+	do {
+
+		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+		printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+		enemy_handle = enemy->next;
+		while(!kbhit());
+	} while (enemy_handle != last_handle);
+	}
+	//heap_free(HEAP_SEGMENT_BRAM_ENTITIES, enemy_handle); 
 }
 
 
@@ -49,11 +81,11 @@ void LogicEnemies() {
 
 
 			if(enemy->x <= 0) {
-				enemy->dx = 16;
+				enemy->dx = 32;
 			}
 
 			if(enemy->x >= 640) {
-				enemy->dx = -16;
+				enemy->dx = -32;
 			}
 
 			if(enemy->y <= 0) {
@@ -61,7 +93,9 @@ void LogicEnemies() {
 			}
 
 			if(enemy->y >= 480) {
-				enemy->dy = -2;
+				enemy_handle = enemy->next;
+				RemoveEnemy(enemy_handle);
+				continue;
 			}
 
 			signed char fx = enemy->fx;
