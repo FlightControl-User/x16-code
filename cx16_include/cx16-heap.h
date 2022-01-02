@@ -93,6 +93,14 @@ struct HEAP_INDEX {
 typedef struct HEAP_INDEX heap_index;
 typedef struct HEAP_INDEX* heap_index_ptr;
 
+struct HEAP_DATA_LIST {
+	heap_handle next;
+	heap_handle prev;
+};
+
+typedef struct HEAP_DATA_LIST heap_data_list;
+typedef struct HEAP_DATA_LIST* heap_data_list_ptr;
+
 inline heap_bram_packed  heap_bram_pack(heap_bank bank, heap_ptr ptr);
 inline heap_vram_packed  heap_vram_pack(heap_bank bank, heap_offset offset);
 inline heap_bank         heap_bram_unpack_bank(heap_bram_packed bram_packed);
@@ -148,3 +156,8 @@ heap_size_large heap_free_size(heap_segment_id segment);
 unsigned int heap_alloc_count(heap_segment_id segment);
 unsigned int heap_free_count(heap_segment_id segment);
 unsigned int heap_idle_count(heap_segment_id segment);
+
+// heap_handle heap_data_list_insert_at(heap_handle *list, heap_handle index, heap_handle at);
+heap_handle heap_data_list_insert(heap_handle *list, heap_handle index);
+// heap_handle heap_data_list_remove(heap_handle *list, heap_handle index);
+

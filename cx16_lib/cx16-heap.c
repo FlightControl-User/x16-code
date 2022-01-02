@@ -201,6 +201,17 @@ heap_ptr heap_data_ptr(heap_handle handle) {
 	}
 }
 
+/**
+ * @brief Get data list pointer.
+ * Bank and return pointer to data list structure.
+ * The first 2 elements of the data struct are a next and prev heap_handle.
+ * 
+ * @param handle The handle of the memory block. 
+ * @return heap_data_list_ptr 
+ */
+heap_data_list_ptr heap_data_list_get(heap_handle handle) {
+	return (heap_data_list_ptr)heap_data_ptr(handle);
+}
 
 /**
 * Set the next handle in the index block to the next header block.
@@ -314,11 +325,11 @@ heap_handle heap_list_insert_at(heap_handle *list, heap_handle index, heap_handl
 	heap_get(index)->next = curr;
 	heap_get(curr)->prev = index;
 
-	heap_handle dataList = heap_data_packed_get(*list);
-	heap_handle dataIndex = heap_data_packed_get(index);
-	if(dataIndex>dataList) {
-		*list = index;
-	}
+	// heap_handle dataList = heap_data_packed_get(*list);
+	// heap_handle dataIndex = heap_data_packed_get(index);
+	// if(dataIndex>dataList) {
+	// 	*list = index;
+	// }
 
 	return index;
 }
@@ -337,8 +348,6 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index) {
 		heap_get(*list)->next = *list;
 	}
 
-
-
 	heap_handle last = heap_get(*list)->prev;
 	heap_handle first = *list;
 
@@ -348,14 +357,15 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index) {
 	heap_get(index)->next = first;
 	heap_get(first)->prev = index;
 
-	heap_handle dataList = heap_data_packed_get(*list);
-	heap_handle dataIndex = heap_data_packed_get(index);
-	if(dataIndex>dataList) {
-		*list = index;
-	}
+	// heap_handle dataList = heap_data_packed_get(*list);
+	// heap_handle dataIndex = heap_data_packed_get(index);
+	// if(dataIndex>dataList) {
+	// 	*list = index;
+	// }
 
 	return index;
 }
+
 
 
 
@@ -385,6 +395,51 @@ heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
 	return 0;
 
 }
+
+/**
+* Insert data in data list.
+*/
+
+/**
+ * @brief Insert data of index in data list maintained by programmer.
+ * Note that the first elements of the data must be a 2 byte next handle and a 2 byte prev handle.
+ * 
+ * @param list A list anchor defined and maintained by the programmer.
+ * @param index The handle of the item to be inserted.
+ * @return heap_handle 
+ */
+heap_handle heap_data_list_insert(heap_handle *list, heap_handle index) {
+
+	heap_bank old_bank = heap_bram_bank_get();
+
+	if (!(*list)) {
+		// empty list
+		*list = index;
+		heap_data_list_get(*list)->prev = *list;
+		heap_data_list_get(*list)->next = *list;
+		return index;
+	}
+
+	heap_handle last = heap_data_list_get(*list)->prev;
+	heap_handle first = *list;
+
+	// Add index to list at last position.
+	heap_data_list_get(index)->prev = last;
+	heap_data_list_get(last)->next = index;
+	heap_data_list_get(index)->next = first;
+	heap_data_list_get(first)->prev = index;
+
+	// heap_handle dataList = heap_data_packed_get(*list);
+	// heap_handle dataIndex = heap_data_packed_get(index);
+	// if(dataIndex>dataList) {
+	// 	*list = index;
+	// }
+
+	heap_bram_bank_set(old_bank);
+
+	return index;
+}
+
 
 heap_handle heap_heap_insert(struct HEAP_SEGMENT* s, heap_handle heapIndex, heap_size_packed size) {
 	heap_list_insert(&s->heapList, heapIndex);

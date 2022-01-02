@@ -68,32 +68,6 @@ typedef struct {
     void (*Draw)(void);
 } Delegate;
 
-typedef struct {
-    byte active;
-    byte SpriteType;
-    byte state_behaviour;
-    byte state_animation;
-    byte wait_animation;
-    byte speed_animation;
-    byte health;
-    byte gun;
-    byte strength;
-    byte reload;
-    byte moved;
-    byte side;
-    byte firegun;
-    Sprite* sprite_type;
-    byte sprite_offset;
-
-    unsigned int x;
-    unsigned int y;
-    signed char dx;
-    signed char dy;
-    heap_handle engine_handle;
-    heap_handle next;
-} Entity;
-
-typedef Entity Enemy;
 
 typedef struct {
     heap_handle fighter_list;
@@ -112,6 +86,36 @@ typedef struct {
     int prev_mousey;
     char status_mouse;
 } Game;
+
+typedef struct {
+    heap_handle next;
+    heap_handle prev;
+
+    signed int x;
+    signed int y;
+    signed char fx;
+    signed char fy;
+    signed char dx;
+    signed char dy;
+
+    byte active;
+    byte SpriteType;
+    byte state_behaviour;
+    byte state_animation;
+    byte wait_animation;
+    byte speed_animation;
+    byte health;
+    byte gun;
+    byte strength;
+    byte reload;
+    byte moved;
+    byte side;
+    byte firegun;
+    Sprite* sprite_type;
+    byte sprite_offset;
+
+    heap_handle engine_handle;
+} Entity;
 
 
 Entity sprite_enemies[33] = {0};
