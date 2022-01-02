@@ -73,11 +73,11 @@ static void StageReset(void) {
 	AddEnemy(1, 20, 10);
 	AddEnemy(1, 50, 40);
 	AddEnemy(1, 80, 70);
-	AddEnemy(1, 110, 100);
-	AddEnemy(1, 140, 130);
-	AddEnemy(1, 170, 160);
-	AddEnemy(1, 200, 190);
-	AddEnemy(1, 230, 220);
+	// AddEnemy(1, 110, 100);
+	// AddEnemy(1, 140, 130);
+	// AddEnemy(1, 170, 160);
+	// AddEnemy(1, 200, 190);
+	// AddEnemy(1, 230, 220);
 
 	// initStarfield();
 

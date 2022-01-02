@@ -42,24 +42,22 @@ void RemoveEnemy(heap_handle handle) {
 		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
 		printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
 		enemy_handle = enemy->next;
-		while(!kbhit());
 	} while (enemy_handle != last_handle);
 	}
 
 	heap_data_list_remove(&stage.fighter_list, handle);
-	{
-	gotoxy(0,20);
-	printf("after:\n");
-    heap_handle enemy_handle = stage.fighter_list;
-    heap_handle last_handle = stage.fighter_list;
-	do {
+	// {
+	// gotoxy(0,20);
+	// printf("after:\n");
+    // heap_handle enemy_handle = stage.fighter_list;
+    // heap_handle last_handle = stage.fighter_list;
+	// do {
 
-		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
-		printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
-		enemy_handle = enemy->next;
-		while(!kbhit());
-	} while (enemy_handle != last_handle);
-	}
+	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+	// 	enemy_handle = enemy->next;
+	// } while (enemy_handle != last_handle);
+	// }
 	//heap_free(HEAP_SEGMENT_BRAM_ENTITIES, enemy_handle); 
 }
 

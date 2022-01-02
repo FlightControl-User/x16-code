@@ -422,8 +422,8 @@ heap_handle heap_data_list_insert(heap_handle *list, heap_handle index) {
 
 	// Add index to list at last position.
 	heap_data_list_get(index)->prev = last;
-	heap_data_list_get(last)->next = index;
 	heap_data_list_get(index)->next = first;
+	heap_data_list_get(last)->next = index;
 	heap_data_list_get(first)->prev = index;
 
 	// heap_handle dataList = heap_data_packed_get(*list);
@@ -463,11 +463,11 @@ char heap_data_list_remove(heap_handle *list, heap_handle index) {
 
 
 	{
-	heap_handle next = heap_data_list_get(index)->next;
-	heap_handle prev = heap_data_list_get(index)->prev;
+	heap_handle next_index = heap_data_list_get(index)->next;
+	heap_handle prev_index = heap_data_list_get(index)->prev;
 
-	heap_data_list_get(prev)->next = heap_data_list_get(index)->next;
-	heap_data_list_get(next)->prev = heap_data_list_get(index)->prev;
+	heap_data_list_get(prev_index)->next = next_index;
+	heap_data_list_get(next_index)->prev = prev_index;
 	}
 
 	heap_bram_bank_set(old_bank);
