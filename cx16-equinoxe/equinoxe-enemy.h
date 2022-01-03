@@ -4,4 +4,4 @@
 
 typedef Entity Enemy;
 
-void AddEnemy(byte enemy_type, int x, int y);
+void AddEnemy(char t, signed int x, signed int y, signed char dx, signed char dy);

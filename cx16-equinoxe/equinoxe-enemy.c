@@ -5,7 +5,7 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-enemy.h"
 
-void AddEnemy(byte enemy_type, int x, int y) {
+void AddEnemy(char t, signed int x, signed int y, signed char dx, signed char dy) {
 
 	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Enemy)); 
 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
@@ -16,8 +16,8 @@ void AddEnemy(byte enemy_type, int x, int y) {
 	enemy->health = 1;
 	enemy->x = x;
 	enemy->y = y;
-	enemy->dx = -16;
-	enemy->dy = 32;
+	enemy->dx = dx;
+	enemy->dy = dy;
 	enemy->sprite_type = &SpriteEnemy01;
 	enemy->sprite_offset = NextOffset();
 	enemy->speed_animation = 4;
@@ -25,31 +25,36 @@ void AddEnemy(byte enemy_type, int x, int y) {
 	enemy->state_animation = 12;
 	enemy->moved = 2;
 	enemy->firegun = 0;
+	enemy->flight = 0;
 
 	enemy->side = SIDE_ENEMY;
 
 	sprite_create(enemy->sprite_type, enemy->sprite_offset);
 }
 
-void RemoveEnemy(heap_handle handle_remove) {
+heap_handle RemoveEnemy(heap_handle handle_remove) {
 
-	clrscr();
-	gotoxy(0,0);
+	heap_handle handle_next = ((Enemy*)heap_data_ptr(handle_remove))->next;
+
+	// clrscr();
+	// gotoxy(0,0);
 	heap_data_list_remove(&stage.fighter_list, handle_remove);
-	heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
+	// heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
 	heap_free(HEAP_SEGMENT_BRAM_ENTITIES, handle_remove); 
-	heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
+	// heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
 
-	{
-    heap_handle enemy_handle = stage.fighter_list;
-	printf("stage fighter list = %x\n", stage.fighter_list);
-	do {
+	// {
+    // heap_handle enemy_handle = stage.fighter_list;
+	// printf("stage fighter list = %x\n", stage.fighter_list);
+	// do {
 
-		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
-		printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
-		enemy_handle = enemy->next;
-	} while (enemy_handle != stage.fighter_list);
-	}
+	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+	// 	enemy_handle = enemy->next;
+	// } while (enemy_handle != stage.fighter_list);
+	// }
+
+	return handle_next;
 }
 
 
@@ -63,9 +68,6 @@ void LogicEnemies() {
     	
 	do {
 
-        gotoxy(0,10);
-        printf("enemies               ...");
-
 		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
 
 		if(enemy->side == SIDE_ENEMY) {
@@ -73,22 +75,24 @@ void LogicEnemies() {
 			// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)enemy, bank);
 
 
-			if(enemy->x <= 0) {
+			if(enemy->flight == 320 ) {
+				enemy->dx = 16;
+			}
+
+			if(enemy->flight == 320+80 ) {
+				enemy->dx = 8;
+			}
+
+			if(enemy->flight == 320+80+80) {
+				enemy->dx = 16;
+			}
+
+			if(enemy->flight == 320+80+80+80) {
 				enemy->dx = 32;
 			}
 
-			if(enemy->x >= 640) {
-				enemy->dx = -32;
-			}
-
-			if(enemy->y <= 0) {
-				enemy->dx = 2;
-			}
-
-			if(enemy->y >= 480) {
-				heap_handle enemy_handle_remove = enemy_handle;
-				enemy_handle = enemy->next;
-				RemoveEnemy(enemy_handle_remove);
+			if(enemy->flight == 320+80+80+80+80+160) {
+				enemy_handle = RemoveEnemy(enemy_handle);
 				continue;
 			}
 
@@ -100,24 +104,28 @@ void LogicEnemies() {
 			if(fx>=16) {
 				signed char x = fx >> 4;
 				enemy->x += x;
+				enemy->flight++;
 				fx &= 0x0F;
 			}
 
 			if(fx<=-16) {
 				signed char x = fx >> 4;
 				enemy->x += x;
+				enemy->flight++;
 				fx = -(-fx & 0x0F);
 			}
 
 			if(fy>=16) {
 				signed char y = fy >> 4;
 				enemy->y += y;
+				enemy->flight++;
 				fy &= 0x0F;
 			}
 
 			if(fy<=-16) {
 				signed char y = fy >> 4;
 				enemy->y += y;
+				enemy->flight++;
 				fy = -(-fy & 0x0F);
 			}
 

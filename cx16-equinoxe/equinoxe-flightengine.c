@@ -135,7 +135,6 @@ void sprite_collision(byte sprite_offset, byte mask) {
 void Logic(void) {
     LogicPlayer();
     LogicEnemies();
-    // LogicFighters();
     LogicBullets();
     // SpawnEnemies();
 }

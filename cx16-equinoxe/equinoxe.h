@@ -76,6 +76,8 @@ typedef struct {
     heap_handle bullet_list;
     char bullet_sprite;
     char offsets[127];
+    unsigned char level;
+    unsigned char phase;
 } Stage;
 
 typedef struct {
@@ -111,6 +113,7 @@ typedef struct {
     byte moved;
     byte side;
     byte firegun;
+    unsigned int flight;
     Sprite* sprite_type;
     byte sprite_offset;
 
