@@ -71,8 +71,43 @@ static void StageReset(void) {
 	
 	InitPlayer();
 	AddEnemy(1, 20, 10);
+	// {
+	// gotoxy(0,0);
+	// printf("1\n");
+    // heap_handle enemy_handle = stage.fighter_list;
+    // heap_handle last_handle = stage.fighter_list;
+	// do {
+
+	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+	// 	enemy_handle = enemy->next;
+	// } while (enemy_handle != last_handle);
+	// }
+
 	AddEnemy(1, 50, 40);
+	// {
+	// printf("2\n");
+    // heap_handle enemy_handle = stage.fighter_list;
+    // heap_handle last_handle = stage.fighter_list;
+	// do {
+
+	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+	// 	enemy_handle = enemy->next;
+	// } while (enemy_handle != last_handle);
+	// }
 	AddEnemy(1, 80, 70);
+	// {
+	// printf("3\n");
+    // heap_handle enemy_handle = stage.fighter_list;
+    // heap_handle last_handle = stage.fighter_list;
+	// do {
+
+	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
+	// 	enemy_handle = enemy->next;
+	// } while (enemy_handle != last_handle);
+	// }
 	// AddEnemy(1, 110, 100);
 	// AddEnemy(1, 140, 130);
 	// AddEnemy(1, 170, 160);

@@ -31,34 +31,25 @@ void AddEnemy(byte enemy_type, int x, int y) {
 	sprite_create(enemy->sprite_type, enemy->sprite_offset);
 }
 
-void RemoveEnemy(heap_handle handle) {
+void RemoveEnemy(heap_handle handle_remove) {
+
+	clrscr();
+	gotoxy(0,0);
+	heap_data_list_remove(&stage.fighter_list, handle_remove);
+	heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
+	heap_free(HEAP_SEGMENT_BRAM_ENTITIES, handle_remove); 
+	heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
 
 	{
-	gotoxy(0,0);
     heap_handle enemy_handle = stage.fighter_list;
-    heap_handle last_handle = stage.fighter_list;
+	printf("stage fighter list = %x\n", stage.fighter_list);
 	do {
 
 		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
 		printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
 		enemy_handle = enemy->next;
-	} while (enemy_handle != last_handle);
+	} while (enemy_handle != stage.fighter_list);
 	}
-
-	heap_data_list_remove(&stage.fighter_list, handle);
-	// {
-	// gotoxy(0,20);
-	// printf("after:\n");
-    // heap_handle enemy_handle = stage.fighter_list;
-    // heap_handle last_handle = stage.fighter_list;
-	// do {
-
-	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
-	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
-	// 	enemy_handle = enemy->next;
-	// } while (enemy_handle != last_handle);
-	// }
-	//heap_free(HEAP_SEGMENT_BRAM_ENTITIES, enemy_handle); 
 }
 
 
@@ -68,8 +59,12 @@ void LogicEnemies() {
 
     heap_handle enemy_handle = stage.fighter_list;
     heap_handle last_handle = stage.fighter_list;
+	unsigned int loop = 0;
     	
 	do {
+
+        gotoxy(0,10);
+        printf("enemies               ...");
 
 		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
 
@@ -91,8 +86,9 @@ void LogicEnemies() {
 			}
 
 			if(enemy->y >= 480) {
+				heap_handle enemy_handle_remove = enemy_handle;
 				enemy_handle = enemy->next;
-				RemoveEnemy(enemy_handle);
+				RemoveEnemy(enemy_handle_remove);
 				continue;
 			}
 
@@ -142,6 +138,6 @@ void LogicEnemies() {
 			// printf("pl x=%i,y=%i, m=%u, s=%x      ", enemy->x, enemy->y, enemy->moved, enemy->state_animation);
 		}
 		enemy_handle = enemy->next;
-	} while (enemy_handle != last_handle);
+	} while (enemy_handle != stage.fighter_list);
 
 }

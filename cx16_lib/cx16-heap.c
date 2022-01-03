@@ -325,11 +325,11 @@ heap_handle heap_list_insert_at(heap_handle *list, heap_handle index, heap_handl
 	heap_get(index)->next = curr;
 	heap_get(curr)->prev = index;
 
-	// heap_handle dataList = heap_data_packed_get(*list);
-	// heap_handle dataIndex = heap_data_packed_get(index);
-	// if(dataIndex>dataList) {
-	// 	*list = index;
-	// }
+	heap_handle dataList = heap_data_packed_get(*list);
+	heap_handle dataIndex = heap_data_packed_get(index);
+	if(dataIndex>dataList) {
+		*list = index;
+	}
 
 	return index;
 }
@@ -357,11 +357,11 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index) {
 	heap_get(index)->next = first;
 	heap_get(first)->prev = index;
 
-	// heap_handle dataList = heap_data_packed_get(*list);
-	// heap_handle dataIndex = heap_data_packed_get(index);
-	// if(dataIndex>dataList) {
-	// 	*list = index;
-	// }
+	heap_handle dataList = heap_data_packed_get(*list);
+	heap_handle dataIndex = heap_data_packed_get(index);
+	if(dataIndex>dataList) {
+		*list = index;
+	}
 
 	return index;
 }
@@ -1028,7 +1028,7 @@ heap_handle heap_free(heap_segment_id segment, heap_handle handle) {
 	heap_handle freeIndex = heap_index_add(s);
 	heap_free_insert(s, freeIndex, handle, heap_size_packed_get(handle));
 
-	*(char*)heap_data_ptr(heap_data_packed_get(handle)) = 0;
+	// *(char*)heap_data_ptr(heap_data_packed_get(handle)) = 0;
 
 	heap_bram_bank_set(bank_old);
 
@@ -1074,6 +1074,11 @@ void heap_dump_index_print(char prefix, heap_handle list) {
 		printf("%c:", prefix);
 		printf("%05x[%05x,%06u", anchor_index, heap_data_packed_get(anchor_index), heap_size_get(anchor_index) );
 		printf(",%05x,%05x", heap_get(anchor_index)->next, heap_get(anchor_index)->prev );
+		printf("]");
+		heap_ptr data = heap_data_ptr(anchor_index);
+		for(unsigned int p=0; p<4;p++) {
+			printf(" %02x", *((char*)data+p));
+		}
 		printf("]\n");
 		anchor_index = heap_get(anchor_index)->next;
 	} while (anchor_index != end_index);

@@ -7,9 +7,11 @@ void DrawFighters()
     if(!stage.fighter_list) return;
 
     heap_handle fighter_handle = stage.fighter_list;
-    heap_handle last_handle = stage.fighter_list;
 
     do {
+
+        gotoxy(0,10);
+        printf("draw                   ...");
 
         // gotoxy(0,11); printf("debug = %u, handle = %x, next = %x", debug_count++, fighter_handle, ((Entity*)heap_data_ptr(fighter_handle))->next);
         Entity* fighter = (Entity*)heap_data_ptr(fighter_handle);
@@ -27,6 +29,6 @@ void DrawFighters()
 
         fighter_handle = ((Entity*)heap_data_ptr(fighter_handle))->next;
 
-	} while(fighter_handle != last_handle);
+	} while(fighter_handle != stage.fighter_list);
 
 }
