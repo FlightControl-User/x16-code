@@ -78,6 +78,9 @@ typedef struct {
     char offsets[127];
     unsigned char level;
     unsigned char phase;
+    unsigned char tick;
+    unsigned char spawnenemycount;
+    unsigned char spawnenemytype;
 } Stage;
 
 typedef struct {
@@ -87,6 +90,7 @@ typedef struct {
     int prev_mousex;
     int prev_mousey;
     char status_mouse;
+    unsigned char tick;
 } Game;
 
 typedef struct {

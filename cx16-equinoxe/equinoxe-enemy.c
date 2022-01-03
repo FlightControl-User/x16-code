@@ -149,3 +149,16 @@ void LogicEnemies() {
 	} while (enemy_handle != stage.fighter_list);
 
 }
+
+unsigned char SpawnEnemies(unsigned char t, signed int x, signed int y, signed char dx, signed char dy) {
+
+	switch(t) {
+		case 1:
+			AddEnemy(1, x, y, dx, dy);
+			return 1;
+			break;
+	}
+
+	return 0;
+}
+

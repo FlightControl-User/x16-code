@@ -136,7 +136,7 @@ void Logic(void) {
     LogicPlayer();
     LogicEnemies();
     LogicBullets();
-    // SpawnEnemies();
+    LogicStage();
 }
 
 void Draw(void) {
@@ -234,6 +234,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         game.curr_mousex = cx16_mousex;
         game.curr_mousey = cx16_mousey;
         game.status_mouse = cx16_mouse_status;
+        game.tick++;
 
         // gotoxy(0, 18);
         // printf("mouse: %i %i %u       ", game.curr_mousex, game.curr_mousey, game.status_mouse);

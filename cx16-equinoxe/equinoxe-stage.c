@@ -83,19 +83,19 @@ static void StageReset(void) {
 	// stageResetTimer = FPS * 3;
 }
 
-void StageSpawnEnemies(unsigned char t, unsigned char n, signed int x, signed int gx, signed int y, signed int gy, signed char dx, signed char dy) {
-
-	for(unsigned char e=0; e<n; e++) {
-		AddEnemy(t, x, y, dx, dy);
-		x+=gx;
-		y+=gy;
-	}
-}
-
 void StageProgress() {
 	switch(stage.level) {
 		case 1:
-			StageSpawnEnemies(1, 8, -640, 40, 70, 0, 32, 0);
+			stage.spawnenemycount = 8;
+			stage.spawnenemytype = 1;
 			break;
 	}
+}
+
+void LogicStage() {
+	if(!stage.spawnenemycount) {
+		if(game.tick & 192) {
+        	stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 0, 70, 32, 0);
+		}
+    };
 }
