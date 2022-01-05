@@ -1,7 +1,7 @@
-#include "equinoxe.h"
-#include "equinoxe-flightengine.h"
 #include <cx16-heap.h>
+#include "equinoxe-flightengine.h"
 
-typedef Entity Enemy;
 
-void AddEnemy(char t, signed int x, signed int y, signed char dx, signed char dy);
+void AddEnemy(char t, signed int x, signed int y);
+
+unsigned char SpawnEnemies(unsigned char t, signed int x, signed int y);

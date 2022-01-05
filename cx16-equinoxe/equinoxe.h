@@ -69,19 +69,6 @@ typedef struct {
 } Delegate;
 
 
-typedef struct {
-    heap_handle fighter_list;
-    heap_handle fighter_tail;
-    heap_handle bullet_tail;
-    heap_handle bullet_list;
-    char bullet_sprite;
-    char offsets[127];
-    unsigned char level;
-    unsigned char phase;
-    unsigned char tick;
-    unsigned char spawnenemycount;
-    unsigned char spawnenemytype;
-} Stage;
 
 typedef struct {
 	Delegate delegate;
@@ -90,20 +77,19 @@ typedef struct {
     int prev_mousex;
     int prev_mousey;
     char status_mouse;
-    unsigned char tick;
+    unsigned char ticksync;
+    unsigned char tickstage;
 } Game;
 
 typedef struct {
     heap_handle next;
     heap_handle prev;
-
     signed int x;
     signed int y;
     signed char fx;
     signed char fy;
     signed char dx;
     signed char dy;
-
     byte active;
     byte SpriteType;
     byte state_behaviour;
@@ -117,12 +103,35 @@ typedef struct {
     byte moved;
     byte side;
     byte firegun;
+    unsigned int distance;
     unsigned int flight;
+    unsigned char move;
+    unsigned char step;
+    unsigned char angle;
+    unsigned char turn;
+    signed char speed;
     Sprite* sprite_type;
     byte sprite_offset;
 
     heap_handle engine_handle;
 } Entity;
+
+typedef Entity Enemy;
+
+typedef struct {
+    heap_handle fighter_list;
+    heap_handle fighter_tail;
+    heap_handle bullet_tail;
+    heap_handle bullet_list;
+    char bullet_sprite;
+    char offsets[127];
+    unsigned char level;
+    unsigned char phase;
+    unsigned char spawnenemycount;
+    unsigned char spawnenemytype;
+} Stage;
+
+volatile Stage stage;
 
 
 Entity sprite_enemies[33] = {0};
@@ -138,7 +147,6 @@ volatile heap_handle player_handle;
 volatile heap_handle enemy_handle;
 volatile heap_handle engine_handle;
 
-volatile Stage stage;
 volatile Game game;
 
 

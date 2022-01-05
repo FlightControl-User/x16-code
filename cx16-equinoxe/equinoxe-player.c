@@ -1,5 +1,3 @@
-#include <cx16-heap.h>
-#include <cx16-mouse.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-stage.h"

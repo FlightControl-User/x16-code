@@ -20,7 +20,6 @@
 
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
-#include "equinoxe-stage.h"
 #include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-fighters.h"
@@ -128,16 +127,18 @@ void sprite_disable(byte sprite_offset) {
     vera_sprite_disable(sprite_offset);
 }
 
+
 void sprite_collision(byte sprite_offset, byte mask) {
     vera_sprite_collision_mask(sprite_offset, mask);
 }
+
 
 void Logic(void) {
     LogicPlayer();
     LogicEnemies();
     LogicBullets();
-    LogicStage();
 }
+
 
 void Draw(void) {
     DrawFighters();
@@ -204,40 +205,19 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         //     sprite_collided = 0;
         // }
 
-        // Handle game state evolution over time ...
-        // switch (state_game) {
-        // case 0:
-        //     for (byte e = 0; e < 8; e++) {
-        //         sprite_enable(SPRITE_OFFSET_ENEMY + e, SpriteDB[SPRITE_ENEMY01]); // Enemy01
-        //         Entity* enemy = &sprite_enemies[e];
-        //         enemy->x = 20 + (signed int)e * 36;
-        //         enemy->y = 160;
-        //         enemy->dx = 0;
-        //         enemy->dy = 0;
-        //         sprite_position(SPRITE_OFFSET_ENEMY + e, (int)enemy->x, (int)enemy->y);
-        //         enemy->state_animation = 0;
-        //         enemy->state_behaviour = 0;
-        //         enemy->speed_animation = 4;
-        //         enemy->active = 1;
-        //         enemy->health = 0xff;
-        //         enemy->strength = 0x0f;
-        //         enemy->SpriteType = SPRITE_ENEMY01;
-        //         sprite_collision(SPRITE_OFFSET_ENEMY + e, 0x03);
-        //     }
-        //     state_game = 1;
-        //     break;
-        // }
-
-
         game.prev_mousex = game.curr_mousex;
         game.prev_mousey = game.curr_mousey;
         game.curr_mousex = cx16_mousex;
         game.curr_mousey = cx16_mousey;
         game.status_mouse = cx16_mouse_status;
-        game.tick++;
+        if(!(game.ticksync & 0x01)) {
+            LogicStage();
+            game.tickstage++;
+        }
+        game.ticksync++;
 
-        // gotoxy(0, 18);
-        // printf("mouse: %i %i %u       ", game.curr_mousex, game.curr_mousey, game.status_mouse);
+        gotoxy(0,0);
+        printf("ticksync = %x, tickstage = %x", game.ticksync, game.tickstage);
 
         volatile void (*fn)();
         fn = game.delegate.Logic;
@@ -245,86 +225,6 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         fn = game.delegate.Draw;
         (*fn)();
 
-        // Enemies
-        // for (byte e = 0;e < 32;e++) {
-        //     Entity* enemy = &sprite_enemies[e];
-        //     if (enemy->active) {
-        //         switch (enemy->SpriteType) {
-        //         case SPRITE_ENEMY01:
-        //             if (!enemy->speed_animation--) {
-        //                 enemy->state_animation = enemy->state_animation < 11 ? enemy->state_animation + 1 : 0;
-        //                 enemy->speed_animation = 3;
-        //             }
-        //             sprite_animate(SPRITE_OFFSET_ENEMY + e, SpriteDB[SPRITE_ENEMY01], enemy->state_animation);
-        //             signed char dx = enemy->dx;
-        //             signed char dy = enemy->dy;
-        //             signed int x = enemy->x;
-        //             signed int y = enemy->y;
-        //             x += dx;
-        //             y += dy;
-        //             enemy->x = x;
-        //             enemy->y = y;
-        //             break;
-        //         }
-        //     }
-        // }
-
-
-        // // Player Bullets
-        // sprite_bullet_pause = (sprite_bullet_pause > 0) ? sprite_bullet_pause - 1 : 0;
-        // // gotoxy(0, 11);
-        // // printf("bullet: %u %u        ", sprite_bullet_pause, sprite_bullet_count);
-        // if (cx16_mouse_status == 1 && !sprite_bullet_pause) {
-        //     // the mouse button was pressed
-        //     if (sprite_bullet_count < 10) {
-        //         for (byte b = 0;b < 10;b++) {
-        //             struct sprite_bullet* bullet = &sprite_bullets[b];
-        //             if (!bullet->active) {
-        //                 signed word x = (signed word)cx16_mousex;
-        //                 x += (signed word)(sprite_bullet_switch ? 16 : 0);
-        //                 bullet->x = x;
-        //                 bullet->y = (signed word)cx16_mousey;
-        //                 bullet->dx = 0;
-        //                 bullet->dy = -8;
-        //                 sprite_bullet_pause = 6;
-        //                 bullet->active = 1;
-        //                 bullet->energy = 1;
-        //                 sprite_bullet_count++;
-        //                 sprite_bullet_switch = sprite_bullet_switch ? 0 : 1;
-        //                 sprite_enable(SPRITE_OFFSET_BULLET + b, SpriteDB[SPRITE_BULLET01]);
-        //                 sprite_collision(SPRITE_OFFSET_BULLET + b, 0x03);
-        //                 b = 10;
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
-        // for (byte b = 0;b < 10;b++) {
-        //     struct sprite_bullet* bullet = &sprite_bullets[b];
-        //     // gotoxy(0,12+b);
-        //     // printf("bullet %u: %u %d %d                           ", b, bullet->active, bullet->x, bullet->y);
-        //     if (bullet->active) {
-        //         // TODO: new fragments needed
-        //         signed char dx = bullet->dx;
-        //         signed char dy = bullet->dy;
-        //         signed int x = bullet->x;
-        //         signed int y = bullet->y;
-        //         x += dx;
-        //         y += dy;
-        //         bullet->x = x;
-        //         bullet->y = y;
-        //         if (y > 0) {
-        //             sprite_animate(SPRITE_OFFSET_BULLET + b, SpriteDB[SPRITE_BULLET01], 0);
-        //             sprite_position(SPRITE_OFFSET_BULLET + b, (int)x, (int)y);
-        //         } else {
-        //             bullet->active = 0;
-        //             sprite_bullet_count--;
-        //             sprite_disable(SPRITE_OFFSET_BULLET + b);
-        //         }
-        //     }
-        // }
-
-    // }
 
 
     // Reset the VSYNC interrupt

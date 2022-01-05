@@ -86,16 +86,16 @@ static void StageReset(void) {
 void StageProgress() {
 	switch(stage.level) {
 		case 1:
-			stage.spawnenemycount = 8;
+			stage.spawnenemycount = 1;
 			stage.spawnenemytype = 1;
 			break;
 	}
 }
 
 void LogicStage() {
-	if(!stage.spawnenemycount) {
-		if(game.tick & 192) {
-        	stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 0, 70, 32, 0);
+	if(stage.spawnenemycount) {
+		if(!(game.tickstage & 0x0F)) {
+        	stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 0, 240);
 		}
-    };
+    }
 }
