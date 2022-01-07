@@ -103,13 +103,15 @@ typedef struct {
     byte moved;
     byte side;
     byte firegun;
-    unsigned int distance;
     unsigned int flight;
     unsigned char move;
     unsigned char step;
     unsigned char angle;
-    unsigned char turn;
-    signed char speed;
+    unsigned char baseangle;
+    unsigned char radius;
+    unsigned char delay;
+    signed char turn;
+    unsigned char speed;
     Sprite* sprite_type;
     byte sprite_offset;
 

@@ -58,18 +58,30 @@ heap_handle RemoveEnemy(heap_handle handle_remove) {
 	return handle_next;
 }
 
-void MoveEnemy( Enemy* enemy, unsigned int distance, unsigned char angle) {
+void MoveEnemy( Enemy* enemy, unsigned int flight, signed char turn, unsigned char speed) {
 	enemy->move = 1;
-	enemy->distance = distance;
-	enemy->flight = distance;
-	enemy->angle = angle;
+	if(speed==4) {
+		enemy->flight = flight;
+	} else {
+		if(speed>4) {
+			enemy->flight = div16u(flight, (unsigned int)speed-3);
+		} else {
+			unsigned int flight = (unsigned int)mul16u(flight, (unsigned int)4-speed);
+			enemy->flight = flight;
+		}
+	}
+	enemy->angle = enemy->angle + turn;
+	enemy->speed = speed;
 }
 
-void ArcEnemy( Enemy* enemy, unsigned int distance, unsigned char angle) {
+void ArcEnemy( Enemy* enemy, signed char turn, unsigned char radius, unsigned char speed) {
 	enemy->move = 2;
-	enemy->distance = distance;
-	enemy->flight = distance;
-	enemy->turn = angle - enemy->angle;
+	enemy->turn = turn;
+	enemy->radius = radius;
+	enemy->delay = 0;
+	enemy->flight = mul8u(abs_u8((unsigned char)turn), radius);
+	enemy->baseangle = enemy->angle;
+	enemy->speed = speed;
 }
 
 
@@ -92,11 +104,11 @@ void LogicEnemies() {
 			unsigned char move = enemy->move;
 			unsigned char step = enemy->step;
 
-			unsigned int distance = enemy->distance;
+			unsigned int radius = enemy->radius;
 			unsigned int flight = enemy->flight;
 			unsigned char angle = enemy->angle;
-			unsigned char turn = enemy->turn;
-			signed char speed = enemy->speed;
+			signed char turn = enemy->turn;
+			unsigned char speed = enemy->speed;
 			signed char dx = enemy->dx;
 			signed char dy = enemy->dy;
 			signed char fx = enemy->fx;
@@ -107,18 +119,46 @@ void LogicEnemies() {
 			if(!flight) {
 				switch(step) {
 				case 0:
-					MoveEnemy(enemy, 320, 16);
+					MoveEnemy(enemy, 320, 16, 5);
 					step++;
 					break;
 				case 1:
-					ArcEnemy(enemy, 180, 32);
+					ArcEnemy(enemy, -64, 12, 5);
 					step++;
 					break;
 				case 2:
-					MoveEnemy(enemy, 180, 48);
+					MoveEnemy(enemy, 80, 0, 5);
 					step++;
 					break;
 				case 3:
+					ArcEnemy(enemy, 64, 12, 5);
+					step++;
+					break;
+				case 4:
+					ArcEnemy(enemy, 8, 12, 3);
+					step++;
+					break;
+				case 5:
+					MoveEnemy(enemy, 80, 0, 3);
+					step++;
+					break;
+				case 6:
+					ArcEnemy(enemy, 32, 12, 3);
+					step++;
+					break;
+				case 7:
+					MoveEnemy(enemy, 80, 0, 3);
+					step++;
+					break;
+				case 8:
+					ArcEnemy(enemy, 24, 12, 3);
+					step++;
+					break;
+				case 9:
+					MoveEnemy(enemy, 160, 0, 5);
+					step++;
+					break;
+				case 10:
 					enemy_handle = RemoveEnemy(enemy_handle);
 					continue;
 				}
@@ -126,26 +166,29 @@ void LogicEnemies() {
 
 			move = enemy->move;
 
-			distance = enemy->distance;
+			radius = enemy->radius;
 			flight = enemy->flight;
 			angle = enemy->angle;
 			turn = enemy->turn;
 
 			if(flight) {
+				flight--;
 				if(move == 1) {
-					dx = vecx(angle, 1);
-					dy = vecy(angle, 1);
+					dx = vecx(angle, enemy->speed);
+					dy = vecy(angle, enemy->speed);
 				}
 
 				if(move == 2) {
-					// Calculate current angle based on distance flown from x,y and angle startpoint.
-					unsigned long t1 = mul16u((unsigned int)turn, flight);
-					unsigned int t2 = div16u((unsigned int)t1, distance);
-					angle = (unsigned char)t2;
-					dx = vecx(angle, 1);
-					dy = vecy(angle, 1);
+					// Calculate current angle based on flight from x,y and angle startpoint.
+					if(!enemy->delay) {
+						angle += sgn_u8((unsigned char)turn);
+						angle %= 64;
+						enemy->delay = enemy->radius;
+						dx = vecx(angle, enemy->speed);
+						dy = vecy(angle, enemy->speed);
+					}
+					enemy->delay--;
 				}
-				flight--;
 			} else {
 				move = 0;
 			}
@@ -160,9 +203,11 @@ void LogicEnemies() {
 			}
 
 			if(fx<=-16) {
+				fx = -fx;
 				signed char vx = fx >> 4;
-				x += vx;
-				fx = -(-fx & 0x0F);
+				x -= vx;
+				fx = fx & 0x0F;
+				fx = -fx;
 			}
 
 			if(fy>=16) {
@@ -172,9 +217,11 @@ void LogicEnemies() {
 			}
 
 			if(fy<=-16) {
+				fy = -fy;
 				signed char vy = fy >> 4;
-				y += vy;
-				fy = -(-fy & 0x0F);
+				y -= vy;
+				fy = fy & 0x0F;
+				fy = -fy;
 			}
 	
 
@@ -198,10 +245,11 @@ void LogicEnemies() {
 				enemy->state_animation += 12;
 			}
 
-			gotoxy(0, 24);
-			printf("a=%u, x=%i, y=%i, s=%u, m=%u, f=%u      ", 
-				enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
-			);
+			gotoxy(0, 32);
+			printf("a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", angle, enemy->x, enemy->y, enemy->dx, enemy->dy);
+			// printf("a=%u, x=%i, y=%i, s=%u, m=%u, f=%u      ", 
+			// 	enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
+			// );
 		}
 		enemy_handle = enemy->next;
 	} while (enemy_handle != stage.fighter_list);

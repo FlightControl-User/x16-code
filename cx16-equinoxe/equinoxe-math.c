@@ -22,7 +22,7 @@
  */
 
 signed char sx[4] = {1, 1, -1, -1};
-signed char sy[4] = {-1, -1, 1, 1};
+signed char sy[4] = {1, -1, -1, 1};
 
 
 signed char vecx(char angle, char speed) {
@@ -30,17 +30,55 @@ signed char vecx(char angle, char speed) {
     char i = angle % 32;
     char s = angle / 16;
     unsigned char dx = math_sin[i];
-    dx >>= (4-speed);
+    dx >>= (7-speed);
     signed char sdx = (signed char)((sx[s]==1)?dx:-dx);
     return sdx;
 }
 
 signed char vecy(char angle, char speed) {
     angle = angle % 64;
-    char i = angle % 32;
+    char i = (angle) % 32;
     char s = angle / 16;
     unsigned char dy = math_cos[i];
-    dy >>= (4-speed);
+    dy >>= (7-speed);
     signed char sdy = (signed char)((sy[s]==1)?dy:-dy);
     return sdy;
+}
+
+// Get the absolute value of an 8-bit unsigned number treated as a signed number.
+unsigned char abs_u8(unsigned char b) {
+    if(b&0x80) {
+        return -b;
+    } else {
+        return b;
+    }
+}
+
+// Get the absolute value of a 16-bit unsigned number treated as a signed number.
+unsigned int abs_u16(unsigned int w) {
+    if(BYTE1(w)&0x80) {
+        return -w;
+    } else {
+        return w;
+    }
+}
+
+// Get the sign of a 8-bit unsigned number treated as a signed number.
+// Returns unsigned -1 if the number is <0.
+unsigned char sgn_u8(unsigned char b) {
+    if(b&0x80) {
+        return -1;
+    } else {
+        return 1;
+    }
+}
+
+// Get the sign of a 16-bit unsigned number treated as a signed number.
+// Returns unsigned -1 if the number is <0.
+unsigned int sgn_u16(unsigned int w) {
+    if(BYTE1(w)&0x80) {
+        return -1;
+    } else {
+        return 1;
+    }
 }

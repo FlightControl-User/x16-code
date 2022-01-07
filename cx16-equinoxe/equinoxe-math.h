@@ -3,3 +3,8 @@ const char math_cos[32] = {128,	127,	125,	122,	118,	112,	106,	98,	90,	81,	71,	60
 
 signed char vecx(char angle, char speed);
 signed char vecy(char angle, char speed);
+
+unsigned char abs_u8(unsigned char b);
+unsigned int abs_u16(unsigned int w);
+unsigned char sgn_u8(unsigned char b);
+unsigned int sgn_u16(unsigned int w);

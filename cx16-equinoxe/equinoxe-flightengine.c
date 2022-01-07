@@ -216,8 +216,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         }
         game.ticksync++;
 
-        gotoxy(0,0);
-        printf("ticksync = %x, tickstage = %x", game.ticksync, game.tickstage);
+        // gotoxy(0,0);
+        // printf("ticksync = %x, tickstage = %x", game.ticksync, game.tickstage);
 
         volatile void (*fn)();
         fn = game.delegate.Logic;
@@ -334,6 +334,8 @@ void main() {
     // Initialize stage
 
     StageInit();
+
+    gotoxy(0,0);
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
