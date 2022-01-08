@@ -131,7 +131,7 @@ inline heap_index_ptr heap_get(heap_handle handle) {
 inline heap_handle heap_data_packed_get(heap_handle heapIndex) {
 
 	// printf("handle = %x\n", handle);
-	return heap_get(heapIndex)->data;
+	return ((heap_index_ptr)heap_get(heapIndex))->data;
 }
 
 /**
@@ -139,7 +139,7 @@ inline heap_handle heap_data_packed_get(heap_handle heapIndex) {
 */
 inline void heap_data_packed_set(heap_handle heapIndex, heap_handle data) {
 
-	heap_get(heapIndex)->data = data;
+	((heap_index_ptr)heap_get(heapIndex))->data = data;
 }
 
 /**
@@ -163,7 +163,7 @@ heap_bank heap_data_bank(heap_handle handle) {
 	heap_bank old_bank = heap_bram_bank_get();
 	// printf("handle = %x\n", handle);
 	heap_handle data_handle = heap_data_packed_get(handle);
-	heap_index_info header_info = heap_get(handle)->size;
+	heap_index_info header_info = ((heap_index_ptr)heap_get(handle))->size;
 	header_info &= heap_type_mask;
 	heap_bram_bank_set(old_bank);
 
@@ -186,7 +186,7 @@ heap_bank heap_data_bank(heap_handle handle) {
 heap_ptr heap_data_ptr(heap_handle handle) {
 
 	heap_handle data_handle = heap_data_packed_get(handle);
-	heap_index_info header_info = heap_get(handle)->size;
+	heap_index_info header_info = ((heap_index_ptr)heap_get(handle))->size;
 	header_info &= heap_type_mask;
 
 	// Data blocks in bram or in vram are handled differently.
@@ -218,7 +218,7 @@ heap_data_list_ptr heap_data_list_get(heap_handle handle) {
 */
 void heap_next_set(heap_handle handle, heap_handle next) {
 
-		heap_index_ptr header_ptr = heap_get(handle);
+		heap_index_ptr header_ptr = ((heap_index_ptr)heap_get(handle));
 		header_ptr->next = next;
 }
 
@@ -227,7 +227,7 @@ void heap_next_set(heap_handle handle, heap_handle next) {
 */
 void heap_prev_set(heap_handle handle, heap_handle prev) {
 
-		heap_index_ptr header_ptr = heap_get(handle);
+		heap_index_ptr header_ptr = ((heap_index_ptr)heap_get(handle));
 		header_ptr->prev = prev;
 }
 
@@ -237,7 +237,7 @@ void heap_prev_set(heap_handle handle, heap_handle prev) {
 */
 heap_handle heap_next_get(heap_handle handle) {
 
-		return heap_get(handle)->next;
+		return ((heap_index_ptr)heap_get(handle))->next;
 }
 
 /**
@@ -245,14 +245,14 @@ heap_handle heap_next_get(heap_handle handle) {
 */
 heap_handle heap_prev_get(heap_handle handle) {
 
-		return heap_get(handle)->prev;
+		return ((heap_index_ptr)heap_get(handle))->prev;
 }
 
 /**
 * Set the packed size of a heap memory block.
 */
 inline void heap_size_packed_set(heap_handle heapIndex, heap_size_packed size) {
-	heap_index_ptr index_ptr = heap_get(heapIndex);
+	heap_index_ptr index_ptr = ((heap_index_ptr)heap_get(heapIndex));
 	heap_index_info header_info = index_ptr->size;
 	header_info &= ~heap_size_mask;
 	size |= header_info;
@@ -263,7 +263,7 @@ inline void heap_size_packed_set(heap_handle heapIndex, heap_size_packed size) {
 * Get the packed size of a heap memory block.
 */
 inline heap_size_packed heap_size_packed_get(heap_handle heapIndex) {
-	return (heap_size_packed)(heap_get(heapIndex)->size) & heap_size_mask;
+	return (heap_size_packed)(((heap_index_ptr)heap_get(heapIndex))->size) & heap_size_mask;
 }
 
 
@@ -289,7 +289,7 @@ heap_handle heap_index_find(heap_handle list, heap_handle index) {
 		// O(n) search.
 		heap_handle data = heap_data_packed_get(anchor); 
 		if (index != data) {
-			anchor = heap_get(anchor)->next;
+			anchor = ((heap_index_ptr)heap_get(anchor))->next;
 			continue;
 		}
 
@@ -310,20 +310,20 @@ heap_handle heap_list_insert_at(heap_handle *list, heap_handle index, heap_handl
 	if (!(*list)) {
 		// empty list
 		*list = index;
-		heap_get(*list)->prev = index;
-		heap_get(*list)->next = index;
+		((heap_index_ptr)heap_get(*list))->prev = index;
+		((heap_index_ptr)heap_get(*list))->next = index;
 	}
 
 
 
-	heap_handle prev = heap_get(at)->prev;
+	heap_handle prev = ((heap_index_ptr)heap_get(at))->prev;
 	heap_handle curr = at;
 
 	// Add index to list at last position.
-	heap_get(index)->prev = prev;
-	heap_get(prev)->next = index;
-	heap_get(index)->next = curr;
-	heap_get(curr)->prev = index;
+	((heap_index_ptr)heap_get(index))->prev = prev;
+	((heap_index_ptr)heap_get(prev))->next = index;
+	((heap_index_ptr)heap_get(index))->next = curr;
+	((heap_index_ptr)heap_get(curr))->prev = index;
 
 	heap_handle dataList = heap_data_packed_get(*list);
 	heap_handle dataIndex = heap_data_packed_get(index);
@@ -344,18 +344,18 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index) {
 	if (!(*list)) {
 		// empty list
 		*list = index;
-		heap_get(*list)->prev = *list;
-		heap_get(*list)->next = *list;
+		((heap_index_ptr)heap_get(*list))->prev = *list;
+		((heap_index_ptr)heap_get(*list))->next = *list;
 	}
 
-	heap_handle last = heap_get(*list)->prev;
+	heap_handle last = ((heap_index_ptr)heap_get(*list))->prev;
 	heap_handle first = *list;
 
 	// Add index to list at last position.
-	heap_get(index)->prev = last;
-	heap_get(last)->next = index;
-	heap_get(index)->next = first;
-	heap_get(first)->prev = index;
+	((heap_index_ptr)heap_get(index))->prev = last;
+	((heap_index_ptr)heap_get(last))->next = index;
+	((heap_index_ptr)heap_get(index))->next = first;
+	((heap_index_ptr)heap_get(first))->prev = index;
 
 	heap_handle dataList = heap_data_packed_get(*list);
 	heap_handle dataIndex = heap_data_packed_get(index);
@@ -380,18 +380,18 @@ heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
 	}
 
 	// The free makes the list empty!
-	if (*list == heap_get(*list)->next) {
+	if (*list == ((heap_index_ptr)heap_get(*list))->next) {
 		*list = 0; // We initialize the start of the list to null.
 		return 0; 
 	}
 
 	// The free changes the first header of the list!
 	if (index == *list) { 
-		*list = heap_get(*list)->next;
+		*list = ((heap_index_ptr)heap_get(*list))->next;
 	}
 
-	heap_get(heap_get(index)->prev)->next = heap_get(index)->next;
-	heap_get(heap_get(index)->next)->prev = heap_get(index)->prev;
+	((heap_index_ptr)heap_get(((heap_index_ptr)heap_get(index))->prev))->next = ((heap_index_ptr)heap_get(index))->next;
+	((heap_index_ptr)heap_get(((heap_index_ptr)heap_get(index))->next))->prev = ((heap_index_ptr)heap_get(index))->prev;
 	return 0;
 
 }
@@ -411,20 +411,20 @@ heap_handle heap_data_list_insert(heap_handle *list, heap_handle index) {
 	if (!(*list)) {
 		// empty list
 		*list = index;
-		heap_data_list_get(*list)->prev = *list;
-		heap_data_list_get(*list)->next = *list;
+		((heap_data_list_ptr)heap_data_list_get(*list))->prev = *list;
+		((heap_data_list_ptr)heap_data_list_get(*list))->next = *list;
 		heap_bram_bank_set(old_bank);
 		return index;
 	}
 
-	heap_handle last = heap_data_list_get(*list)->prev;
+	heap_handle last = ((heap_data_list_ptr)heap_data_list_get(*list))->prev;
 	heap_handle first = *list;
 
 	// Add index to list at last position.
-	heap_data_list_get(index)->prev = last;
-	heap_data_list_get(index)->next = first;
-	heap_data_list_get(last)->next = index;
-	heap_data_list_get(first)->prev = index;
+	((heap_data_list_ptr)heap_data_list_get(index))->prev = last;
+	((heap_data_list_ptr)heap_data_list_get(index))->next = first;
+	((heap_data_list_ptr)heap_data_list_get(last))->next = index;
+	((heap_data_list_ptr)heap_data_list_get(first))->prev = index;
 
 	// heap_handle dataList = heap_data_packed_get(*list);
 	// heap_handle dataIndex = heap_data_packed_get(index);
@@ -448,7 +448,7 @@ char heap_data_list_remove(heap_handle *list, heap_handle index) {
 	}
 
 	// The free makes the list empty!
-	heap_handle next = heap_data_list_get(*list)->next;
+	heap_handle next = ((heap_data_list_ptr)heap_data_list_get(*list))->next;
 	heap_handle curr = *list;
 	if (next == curr) {
 		*list = 0; // We initialize the start of the list to null.
@@ -463,11 +463,11 @@ char heap_data_list_remove(heap_handle *list, heap_handle index) {
 
 
 	{
-	heap_handle next_index = heap_data_list_get(index)->next;
-	heap_handle prev_index = heap_data_list_get(index)->prev;
+	heap_handle next_index = ((heap_data_list_ptr)heap_data_list_get(index))->next;
+	heap_handle prev_index = ((heap_data_list_ptr)heap_data_list_get(index))->prev;
 
-	heap_data_list_get(prev_index)->next = next_index;
-	heap_data_list_get(next_index)->prev = prev_index;
+	((heap_data_list_ptr)heap_data_list_get(prev_index))->next = next_index;
+	((heap_data_list_ptr)heap_data_list_get(next_index))->prev = prev_index;
 	}
 
 	heap_bram_bank_set(old_bank);
@@ -577,7 +577,7 @@ heap_handle heap_header_add(struct HEAP_SEGMENT* s, heap_size_packed size) {
 	// We fill out the header info with the type of heap, and the size information of the heap data.
 	heap_index_info header_info = s->HeapType; // We add the heaptype to validate at each header block move the type of heap we are dealing with.
 	header_info |= size;
-	heap_get(index)->size = header_info;
+	((heap_index_ptr)heap_get(index))->size = header_info;
 
 	return index;
 }
@@ -595,7 +595,7 @@ heap_handle heap_header_split(struct HEAP_SEGMENT* s, heap_handle freeHeap, heap
 	heap_handle dataIndex = heap_data_packed_get(freeHeap);
 	heap_size_packed sizeHeap = heap_size_packed_get(freeHeap);
 	heap_data_packed_set(heapIndex, dataIndex);
-	heap_heap_insert_at(s, heapIndex, heap_get(freeHeap)->next, size);
+	heap_heap_insert_at(s, heapIndex, ((heap_index_ptr)heap_get(freeHeap))->next, size);
 
 	heap_data_packed_set(freeHeap, dataIndex + size);
 
@@ -651,7 +651,7 @@ heap_handle heap_header_find_free(struct HEAP_SEGMENT* s, heap_size_packed sizeR
 		// O(n) search.
 		heap_size_packed freeSize = heap_size_packed_get(freeIndex);
 		if (freeSize < sizeRequired) {
-			freeIndex = heap_get(freeIndex)->next;
+			freeIndex = ((heap_index_ptr)heap_get(freeIndex))->next;
 			continue;
 		}
 
@@ -726,7 +726,7 @@ heap_handle heap_coalesce_high(struct HEAP_SEGMENT* s, heap_handle index, heap_h
  */
 heap_handle heap_can_coalesce_low(struct HEAP_SEGMENT* s, heap_handle index) {
 
-	heap_handle next = heap_get(index)->next;
+	heap_handle next = ((heap_index_ptr)heap_get(index))->next;
 	heap_handle free = heap_index_find(s->freeList, next);
 
 
@@ -746,7 +746,7 @@ heap_handle heap_can_coalesce_low(struct HEAP_SEGMENT* s, heap_handle index) {
  */
 heap_handle heap_can_coalesce_high(struct HEAP_SEGMENT* s, heap_handle index) {
 
-	heap_handle prev = heap_get(index)->prev;
+	heap_handle prev = ((heap_index_ptr)heap_get(index))->prev;
 	heap_handle free = heap_index_find(s->freeList, prev);
 
 	if(free) {
@@ -1054,7 +1054,7 @@ void heap_print_bram(char prefix, heap_handle list) {
 			gotoxy(63-x,15-y);
 			printf("%c", prefix);
 		}
-		header = heap_get(header)->next;
+		header = ((heap_index_ptr)heap_get(header))->next;
 	} while (header != end);
 }
 
@@ -1073,14 +1073,14 @@ void heap_dump_index_print(char prefix, heap_handle list) {
 	do {
 		printf("%c:", prefix);
 		printf("%05x[%05x,%06u", anchor_index, heap_data_packed_get(anchor_index), heap_size_get(anchor_index) );
-		printf(",%05x,%05x", heap_get(anchor_index)->next, heap_get(anchor_index)->prev );
+		printf(",%05x,%05x", ((heap_index_ptr)heap_get(anchor_index))->next, ((heap_index_ptr)heap_get(anchor_index))->prev );
 		printf("]");
 		heap_ptr data = heap_data_ptr(anchor_index);
 		for(unsigned int p=0; p<4;p++) {
 			printf(" %02x", *((char*)data+p));
 		}
 		printf("]\n");
-		anchor_index = heap_get(anchor_index)->next;
+		anchor_index = ((heap_index_ptr)heap_get(anchor_index))->next;
 	} while (anchor_index != end_index);
 }
 
