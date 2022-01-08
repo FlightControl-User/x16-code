@@ -4,7 +4,8 @@
 void StageInit();
 void StageReset();
 
-char NextOffset();
-void FreeOffset(char i);
+vera_sprite_offset NextOffset();
+void FreeOffset(vera_sprite_offset sprite_offset);
+
 void LogicStage();
 

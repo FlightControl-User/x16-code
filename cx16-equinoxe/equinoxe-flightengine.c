@@ -63,7 +63,7 @@ heap_handle sprite_load(struct sprite* sprite) {
     return handle_bram_sprite;
 }
 
-void sprite_create(Sprite* sprite, byte sprite_offset) {
+void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
     vera_sprite_bpp(sprite_offset, sprite->BPP);
@@ -87,19 +87,11 @@ void show_memory_map() {
     }
 }
 
-void show_sprite_config(byte sprite, byte x, byte y) {
-    struct VERA_SPRITE SpriteAttributes;
-    vera_sprite_attributes_get(sprite, &SpriteAttributes);
-    gotoxy(x, y);
-    printf("s:%u ", sprite);
-    printf("%x %x ", SpriteAttributes.CTRL1, SpriteAttributes.CTRL2);
-}
-
 #include "equinoxe-petscii-move.c"
 
 
 
-void sprite_animate(byte sprite_offset, Sprite* sprite, byte index) {
+void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index) {
     cx16_bank old = cx16_bram_bank_get();
     byte SpriteCount = sprite->SpriteCount;
     index = (index >= SpriteCount) ? index - SpriteCount : index;
@@ -109,12 +101,11 @@ void sprite_animate(byte sprite_offset, Sprite* sprite, byte index) {
     cx16_bram_bank_set(old);
 }
 
-void sprite_position(byte sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
+void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
     vera_sprite_xy(sprite_offset, x, y);
 }
 
-void sprite_enable(byte sprite_offset, Sprite* sprite) {
-    vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
+void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_bpp(sprite_offset, sprite->BPP);
     vera_sprite_height(sprite_offset, sprite->Height);
     vera_sprite_width(sprite_offset, sprite->Width);
@@ -123,12 +114,16 @@ void sprite_enable(byte sprite_offset, Sprite* sprite) {
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
 }
 
-void sprite_disable(byte sprite_offset) {
+void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
+    vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
+}
+
+void sprite_disable(vera_sprite_offset sprite_offset) {
     vera_sprite_disable(sprite_offset);
 }
 
 
-void sprite_collision(byte sprite_offset, byte mask) {
+void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
     vera_sprite_collision_mask(sprite_offset, mask);
 }
 
@@ -136,19 +131,21 @@ void sprite_collision(byte sprite_offset, byte mask) {
 void Logic(void) {
     LogicPlayer();
     LogicEnemies();
-    LogicBullets();
+    // LogicBullets();
 }
 
 
 void Draw(void) {
     DrawFighters();
-    DrawBullets();
+    // DrawBullets();
 }
 
 
 //VSYNC Interrupt Routine
 
 __interrupt(rom_sys_cx16) void irq_vsync() {
+
+    vera_display_set_border_color(1);
 
     cx16_bank oldbank = cx16_bram_bank_get();
     // byte curx = wherex();
@@ -234,6 +231,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     cx16_bram_bank_set(oldbank);
     // gotoxy(curx, cury);
 
+    vera_display_set_border_color(0);
 }
 
 void main() {
@@ -336,6 +334,11 @@ void main() {
     StageInit();
 
     gotoxy(0,0);
+
+    vera_display_set_hstart(2);
+    vera_display_set_hstop(158);
+    vera_display_set_vstart(2);
+    vera_display_set_vstop(236);
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();

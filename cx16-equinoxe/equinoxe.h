@@ -115,12 +115,13 @@ typedef struct {
     signed char turn;
     unsigned char speed;
     Sprite* sprite_type;
-    byte sprite_offset;
+    vera_sprite_offset sprite_offset;
 
     heap_handle engine_handle;
 } Entity;
 
 typedef Entity Enemy;
+typedef Entity Bullet;
 
 typedef struct {
     heap_handle fighter_list;
@@ -128,7 +129,6 @@ typedef struct {
     heap_handle bullet_tail;
     heap_handle bullet_list;
     char bullet_sprite;
-    char offsets[127];
     unsigned char level;
     unsigned char phase;
     unsigned char spawnenemycount;
@@ -136,6 +136,7 @@ typedef struct {
 } Stage;
 
 volatile Stage stage;
+volatile vera_sprite_offset sprite_offsets[127] = {0};
 
 
 Entity sprite_enemies[33] = {0};
@@ -154,11 +155,12 @@ volatile heap_handle engine_handle;
 volatile Game game;
 
 
-void sprite_create(Sprite* sprite, byte sprite_offset);
-void sprite_animate(byte sprite_offset, Sprite* sprite, byte index);
-void sprite_position(byte sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
-void sprite_enable(byte sprite_offset, Sprite* sprite);
-void sprite_disable(byte sprite_offset);
+void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
+void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index);
+void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
+void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
+void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
+void sprite_disable(vera_sprite_offset sprite_offset);
 
 
 void Logic();
