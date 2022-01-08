@@ -1,11 +1,18 @@
-//#pragma var_model(mem)
-
-#define inline 
+#pragma var_model(mem)
 
 #include <stdio.h>
 #include <string.h>
 #include <cx16.h>
 #include <cx16-heap.h>
+
+typedef struct {
+
+	int x;
+	int y;
+	int z;
+
+} TEST;
+
 
 void main() {
 
@@ -18,28 +25,24 @@ void main() {
 	); // add a segment of 8 banks * $2000 bytes + 1 bank of $1000 bytes;
 
 
-	int i = 0;
+	printf("\nAllocation:\n");
 
-	for(i=0; i<2; i++) {
+	heap_handle h0 = heap_alloc(s1, sizeof(TEST));
+	strcpy((char*)heap_data_ptr(h0), "feel");
 
-		printf("\nAllocation:\n");
+	TEST* p = (TEST*)heap_data_ptr(h0);
 
-		heap_handle h0 = heap_alloc(s1, 16);
-		strcpy((char*)heap_data_ptr(h0), "feel");
+	p->x = 5;
+	p->y = 10;
+	p->z = 50;
 
-		heap_handle h2 = heap_alloc(s1, 64);
-		strcpy((char*)heap_data_ptr(h2), "again");
-		heap_dump(s1);
+	heap_dump(s1);
 
-		printf("\nFree:\n");
+	printf("\nVector: x=%i, y=%i,z= %i\n", p->x, p->y, p->z);
 
-		heap_free(s1, h2);
-		heap_free(s1, h0);
-		// heap_handle h1 = heap_alloc(s1, 32);
-		// strcpy((char*)heap_data_ptr(h1), "good");
-		// heap_free(s1, h1);
-		heap_dump(s1);
-	}
+	printf("\nFree:\n");
+
+	heap_free(s1, h0);
 
 	printf("\nDone.\n");
 
