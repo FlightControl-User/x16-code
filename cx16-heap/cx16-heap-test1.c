@@ -1,7 +1,5 @@
-#pragma var_model(mem)
+//#pragma var_model(mem)
 
-#include <stdio.h>
-#include <string.h>
 #include <cx16.h>
 #include <cx16-heap.h>
 
@@ -25,10 +23,7 @@ void main() {
 	); // add a segment of 8 banks * $2000 bytes + 1 bank of $1000 bytes;
 
 
-	printf("\nAllocation:\n");
-
 	heap_handle h0 = heap_alloc(s1, sizeof(TEST));
-	strcpy((char*)heap_data_ptr(h0), "feel");
 
 	TEST* p = (TEST*)heap_data_ptr(h0);
 
@@ -36,14 +31,6 @@ void main() {
 	p->y = 10;
 	p->z = 50;
 
-	heap_dump(s1);
-
-	printf("\nVector: x=%i, y=%i,z= %i\n", p->x, p->y, p->z);
-
-	printf("\nFree:\n");
-
 	heap_free(s1, h0);
-
-	printf("\nDone.\n");
 
 }
