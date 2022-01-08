@@ -1,5 +1,7 @@
 
+
 #include <cx16.h>
+#include <string.h>
 #include <cx16-heap.h>
 #include "equinoxe-flightengine.h"
 

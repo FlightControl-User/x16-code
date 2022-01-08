@@ -1,14 +1,13 @@
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-stage.h"
+#include "equinoxe-bullet.h"
 
 void InitPlayer() {
-	player_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity)); ///< Global
-	Entity* player = (Entity*)heap_data_ptr(player_handle);
-	memset(player, 0, sizeof(Entity));
-	// printf("init - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, cx16_bram_bank_get());
 
-	heap_data_list_insert(&stage.fighter_list, player_handle);
+	Entity player_ram;
+	Entity* player = &player_ram;
+	memset_fast(player, 0, sizeof(Entity));
 
 	player->health = 1;
 	player->x = 320;
@@ -20,15 +19,13 @@ void InitPlayer() {
 	player->state_animation = 3;
 	player->moved = 2;
 	player->firegun = 0;
-
 	player->side = SIDE_PLAYER;
-
 	sprite_create(player->sprite_type, player->sprite_offset);
 
-	heap_handle engine_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity)); ///< Global
-	((Entity*)heap_data_ptr(player_handle))->engine_handle = engine_handle;
-	Entity* engine = (Entity*)heap_data_ptr(engine_handle);
-	// printf("init - engine_handle = %x, *engine = %p\n", engine_handle, engine);
+	Entity engine_ram;
+	Entity* engine = &engine_ram;
+	memset_fast(engine, 0, sizeof(Entity));
+
 	engine->health = 1;
 	engine->x = 0;
 	engine->y = 0;
@@ -38,13 +35,29 @@ void InitPlayer() {
 	engine->wait_animation = engine->speed_animation;
 	engine->state_animation = 0;
 	engine->side = SIDE_PLAYER;
+
+	player_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity)); 
+	Entity* player_bram = (Entity*)heap_data_ptr(player_handle);
+	memcpy_fast(player_bram, player, sizeof(Entity));
+
+	heap_handle engine_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity));
+	((Entity*)heap_data_ptr(player_handle))->engine_handle = engine_handle;
+	Entity* engine_bram = (Entity*)heap_data_ptr(engine_handle);
+	memcpy_fast(engine_bram, engine, sizeof(Entity));
+
+	heap_data_list_insert(&stage.fighter_list, player_handle);
+	
 }
 
 void LogicPlayer() {
 
 	if (player_handle) {
-		
-		Entity* player = (Entity*)heap_data_ptr(player_handle);
+
+		Entity* player_bram = (Entity*)heap_data_ptr(player_handle);
+		Entity player_ram;
+		Entity* player = &player_ram;
+		memcpy_fast(player, player_bram, sizeof(Entity));
+
 		byte bank = cx16_bram_bank_get();
 		// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, bank);
 		player->dx = player->dy = 0;
@@ -87,19 +100,11 @@ void LogicPlayer() {
 		player->x = game.curr_mousex;
 		player->y = game.curr_mousey;
 
-		// We need to use the x and y coordinate of the player for the engine position.
-		// Remember that this is banked memory, so we need to keep these variables in local memory!
-        int playerx = player->x;
-        int playery = player->y;
-
-		// gotoxy(0, 3);
-		// printf("pl x=%i,y=%i, m=%u, s=%x      ", player->x, player->y, player->moved, player->state_animation);
-
 		heap_handle engine_handle = player->engine_handle;
-
-		Entity* engine = (Entity*)heap_data_ptr(engine_handle);
-
-		// printf("logic - engine_handle = %x, *engine = %p\n", engine_handle, engine);
+		Entity* engine_bram = (Entity*)heap_data_ptr(engine_handle);
+		Entity engine_ram;
+		Entity* engine = &engine_ram;
+		memcpy_fast(engine, engine_bram, sizeof(Entity));
 
 		if (engine->wait_animation--) {
 			engine->state_animation++;
@@ -107,15 +112,19 @@ void LogicPlayer() {
 			engine->wait_animation = engine->speed_animation;
 		}
 
-		engine->x = playerx + 8;
-		engine->y = playery + 22;
-
-		// gotoxy(40, 3);
-		// printf("engine logic x = %i, y = %i       ", ((Entity*)heap_data_ptr(engine_handle))->x, ((Entity*)heap_data_ptr(engine_handle))->y);
+		engine->x = player->x + 8;
+		engine->y = player->y + 22;
 
 		if (game.status_mouse == 1 && player->reload <= 0)
 		{
-			FireBullet();
+			FireBullet(player, 4);
 		}
+
+		player_bram = (Entity*)heap_data_ptr(player_handle);
+		memcpy_fast(player_bram, player, sizeof(Entity));
+
+		engine_bram = (Entity*)heap_data_ptr(engine_handle);
+		memcpy_fast(engine_bram, engine, sizeof(Entity));
+
 	}
 }

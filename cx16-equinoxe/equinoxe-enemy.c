@@ -6,11 +6,9 @@
 
 void AddEnemy(char t, signed int x, signed int y) {
 
-	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Enemy)); 
-	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
-	memset(enemy, 0, sizeof(Enemy));
-
-	heap_data_list_insert(&stage.fighter_list, enemy_handle);
+	Enemy enemy_ram;
+	Enemy* enemy = &enemy_ram;
+	memset_fast(enemy, 0, sizeof(Enemy));
 
 	enemy->health = 1;
 	enemy->x = x;
@@ -27,10 +25,13 @@ void AddEnemy(char t, signed int x, signed int y) {
 	enemy->flight = 0;
 	enemy->step = 0;
 	enemy->move = 0;
-
 	enemy->side = SIDE_ENEMY;
-
 	sprite_create(enemy->sprite_type, enemy->sprite_offset);
+
+	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Enemy));
+	Enemy* enemy_bram = (Enemy*)heap_data_ptr(enemy_handle);
+	memcpy_fast(enemy_bram, enemy, sizeof(Enemy));
+	heap_data_list_insert(&stage.fighter_list, enemy_handle);
 }
 
 heap_handle RemoveEnemy(heap_handle handle_remove) {
@@ -95,68 +96,57 @@ void LogicEnemies() {
     	
 	do {
 
-		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+		Enemy enemy_ram;
+		Enemy* enemy = &enemy_ram;
+		Enemy* enemy_bram = (Enemy*)heap_data_ptr(enemy_handle);
+		memcpy_fast(enemy, enemy_bram, sizeof(Enemy));
 
 		if(enemy->side == SIDE_ENEMY) {
 
 			// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)enemy, bank);
 
-			unsigned char move = enemy->move;
-			unsigned char step = enemy->step;
 
-			unsigned int radius = enemy->radius;
-			unsigned int flight = enemy->flight;
-			unsigned char angle = enemy->angle;
-			signed char turn = enemy->turn;
-			unsigned char speed = enemy->speed;
-			signed char dx = enemy->dx;
-			signed char dy = enemy->dy;
-			signed char fx = enemy->fx;
-			signed char fy = enemy->fy;
-			signed int x = enemy->x;
-			signed int y = enemy->y;
-
-			if(!flight) {
-				switch(step) {
+			if(!enemy->flight) {
+				switch(enemy->step) {
 				case 0:
 					MoveEnemy(enemy, 320, 16, 5);
-					step++;
+					enemy->step++;
 					break;
 				case 1:
 					ArcEnemy(enemy, -64, 12, 5);
-					step++;
+					enemy->step++;
 					break;
 				case 2:
 					MoveEnemy(enemy, 80, 0, 5);
-					step++;
+					enemy->step++;
 					break;
 				case 3:
 					ArcEnemy(enemy, 64, 12, 5);
-					step++;
+					enemy->step++;
 					break;
 				case 4:
 					ArcEnemy(enemy, 8, 12, 3);
-					step++;
+					enemy->step++;
 					break;
 				case 5:
 					MoveEnemy(enemy, 80, 0, 3);
-					step++;
+					enemy->step++;
 					break;
 				case 6:
 					ArcEnemy(enemy, 32, 12, 3);
-					step++;
+					enemy->step++;
 					break;
 				case 7:
 					MoveEnemy(enemy, 80, 0, 3);
-					step++;
+					enemy->step++;
 					break;
 				case 8:
 					ArcEnemy(enemy, 24, 12, 3);
-					step++;
+					enemy->step++;
 					break;
 				case 9:
 					MoveEnemy(enemy, 160, 0, 5);
-					step++;
+					enemy->step++;
 					break;
 				case 10:
 					enemy_handle = RemoveEnemy(enemy_handle);
@@ -164,76 +154,60 @@ void LogicEnemies() {
 				}
 			}
 
-			move = enemy->move;
-
-			radius = enemy->radius;
-			flight = enemy->flight;
-			angle = enemy->angle;
-			turn = enemy->turn;
-
-			if(flight) {
-				flight--;
-				if(move == 1) {
-					dx = vecx(angle, enemy->speed);
-					dy = vecy(angle, enemy->speed);
+			if(enemy->flight) {
+				enemy->flight--;
+				if(enemy->move == 1) {
+					enemy->dx = vecx(enemy->angle, enemy->speed);
+					enemy->dy = vecy(enemy->angle, enemy->speed);
 				}
 
-				if(move == 2) {
+				if(enemy->move == 2) {
 					// Calculate current angle based on flight from x,y and angle startpoint.
 					if(!enemy->delay) {
-						angle += sgn_u8((unsigned char)turn);
-						angle %= 64;
+						enemy->angle += sgn_u8((unsigned char)enemy->turn);
+						enemy->angle %= 64;
 						enemy->delay = enemy->radius;
-						dx = vecx(angle, enemy->speed);
-						dy = vecy(angle, enemy->speed);
+						enemy->dx = vecx(enemy->angle, enemy->speed);
+						enemy->dy = vecy(enemy->angle, enemy->speed);
 					}
 					enemy->delay--;
 				}
 			} else {
-				move = 0;
+				enemy->move = 0;
 			}
 
-			fx += dx;
-			fy += dy;
+			enemy->fx += enemy->dx;
+			enemy->fy += enemy->dy;
 
-			if(fx>=16) {
-				signed char vx = fx >> 4;
-				x += vx;
-				fx &= 0x0F;
+			if(enemy->fx>=16) {
+				signed char vx = enemy->fx >> 4;
+				enemy->x += vx;
+				enemy->fx &= 0x0F;
 			}
 
-			if(fx<=-16) {
-				fx = -fx;
-				signed char vx = fx >> 4;
-				x -= vx;
-				fx = fx & 0x0F;
-				fx = -fx;
+			if(enemy->fx<=-16) {
+				enemy->fx = -enemy->fx;
+				signed char vx = enemy->fx >> 4;
+				enemy->x -= vx;
+				enemy->fx = enemy->fx & 0x0F;
+				enemy->fx = -enemy->fx;
 			}
 
-			if(fy>=16) {
-				signed char vy = fy >> 4;
-				y += vy;
-				fy &= 0x0F;
+			if(enemy->fy>=16) {
+				signed char vy = enemy->fy >> 4;
+				enemy->y += vy;
+				enemy->fy &= 0x0F;
 			}
 
-			if(fy<=-16) {
-				fy = -fy;
-				signed char vy = fy >> 4;
-				y -= vy;
-				fy = fy & 0x0F;
-				fy = -fy;
+			if(enemy->fy<=-16) {
+				enemy->fy = -enemy->fy;
+				signed char vy = enemy->fy >> 4;
+				enemy->y -= vy;
+				enemy->fy = enemy->fy & 0x0F;
+				enemy->fy = -enemy->fy;
 			}
 	
 
-			enemy->flight = flight;
-			enemy->step = step;
-			enemy->angle = angle;
-			enemy->x = x;
-			enemy->y = y;
-			enemy->fx = fx;
-			enemy->fy = fy;
-			enemy->dx = dx;
-			enemy->dy = dy;
 
 			if (enemy->reload > 0) {
 				enemy->reload--;
@@ -246,12 +220,17 @@ void LogicEnemies() {
 			}
 
 			gotoxy(0, 32);
-			printf("a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", angle, enemy->x, enemy->y, enemy->dx, enemy->dy);
+			printf("a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", enemy->angle, enemy->x, enemy->y, enemy->dx, enemy->dy);
 			// printf("a=%u, x=%i, y=%i, s=%u, m=%u, f=%u      ", 
 			// 	enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
 			// );
 		}
+
+		enemy_bram = (Enemy*)heap_data_ptr(enemy_handle);
+		memcpy_fast(enemy_bram, enemy, sizeof(Enemy));
+
 		enemy_handle = enemy->next;
+
 	} while (enemy_handle != stage.fighter_list);
 
 }

@@ -2,14 +2,12 @@
 #include <cx16-mouse.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
+#include "equinoxe-bullet.h"
 
-void FireBullet()
+void FireBullet(Entity* entity, char reload)
 {
 
-    // To fire bullets, we need the player entity to control the bullets and the reloading of bullets.
-	Entity* player = (Entity*)heap_data_ptr(player_handle);
-
-    heap_handle bullet_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity)); ///< Global
+    heap_handle bullet_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity));
     // TODO fragment
     heap_handle bullet_list = stage.bullet_list;
 
@@ -24,7 +22,7 @@ void FireBullet()
     bullet->sprite_type = &SpriteBullet01;
     signed int x = game.curr_mousex;
     signed int y = game.curr_mousey;
-    if (player->firegun)
+    if (entity->firegun)
         x += (signed char)16;
     bullet->x = x;
     bullet->y = y;
@@ -32,7 +30,7 @@ void FireBullet()
     bullet->dy = -8;
     bullet->health = 1;
     bullet->side = SIDE_PLAYER;
-    player->firegun = player->firegun^1;
+    entity->firegun = entity->firegun^1;
 
     stage.bullet_sprite = (stage.bullet_sprite<15)?stage.bullet_sprite++:0;
     bullet->sprite_offset = BULLET_SPRITE_OFFSET + stage.bullet_sprite;
@@ -41,7 +39,7 @@ void FireBullet()
     // printf("fb: list = %x, count = %u - ", stage.bullet_list, stage.bullet_count);
     // printf("%u %i %i   ", bullet->sprite_offset, bullet->x, bullet->y);
 
-    player->reload = 4;
+    entity->reload = reload;
 }
 
 void LogicBullets()
