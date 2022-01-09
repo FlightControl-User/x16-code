@@ -77,7 +77,7 @@ inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
 
 #include "equinoxe-petscii-move.c"
 
-inline void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
+void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_bpp(sprite_offset, sprite->BPP);
     vera_sprite_height(sprite_offset, sprite->Height);
     vera_sprite_width(sprite_offset, sprite->Width);
@@ -92,20 +92,20 @@ void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index
     vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
 }
 
-inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
+void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
     vera_sprite_xy(sprite_offset, x, y);
 }
 
-inline void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
+void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
 }
 
-inline void sprite_disable(vera_sprite_offset sprite_offset) {
+void sprite_disable(vera_sprite_offset sprite_offset) {
     vera_sprite_disable(sprite_offset);
 }
 
 
-inline void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
+void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
     vera_sprite_collision_mask(sprite_offset, mask);
 }
 

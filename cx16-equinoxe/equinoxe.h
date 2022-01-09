@@ -159,12 +159,12 @@ volatile heap_handle engine_handle;
 volatile Game game;
 
 
-inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
+void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
 void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index);
-inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
-inline void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
-inline void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
-inline void sprite_disable(vera_sprite_offset sprite_offset);
+void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
+void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
+void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
+void sprite_disable(vera_sprite_offset sprite_offset);
 
 
 void Logic();
