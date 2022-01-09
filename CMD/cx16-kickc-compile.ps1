@@ -25,8 +25,5 @@ Write-Output ("user_lib = " + $user_lib)
 Write-Output ("user_include = " + $user_include)
 
 
+#java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -vasmout -Xassembler=-symbolfile "$filedir/$filename"
 java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -Onouplift -vasmout -Xassembler=-symbolfile "$filedir/$filename"
-#kickc_dev -t=cx16 -a -Sc -Si -Onouplift -vasmout -Xassembler=-symbolfile "${filedir}/${filename}" 
-# kickc_dev -t=cx16 -fragment pbuz1_derefidx_vbuc1_eq_vbuc2_then_la1
-# kickc_dev -t=cx16 -v -vfragment -a -Sc -Si -Onouplift -Xassembler=-symbolfile "d:/Users/svenv/OneDrive/Documents/GitHub/X16_Code/cx16-equinoxe/equinoxe-flightengine.c"
-# kickc_dev -t=cx16 -a -Sc -Si -Onouplift -Xassembler=-symbolfile "d:/Users/svenv/OneDrive/Documents/GitHub/X16_Code/cx16-equinoxe/equinoxe-flightengine.c"

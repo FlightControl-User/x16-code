@@ -71,7 +71,7 @@ inline heap_ptr heap_bram_unpack_ptr(heap_bram_packed bram_packed) {
  * @param offset The 16 bit offset in vram.
  * @return heap_vram_packed The packed vera ram address.
  */
-inline heap_vram_packed heap_vram_pack(heap_bank bank, heap_offset offset) {
+inline heap_vram_packed heap_vram_pack(heap_bank bank, heap_vram_offset offset) {
     return (heap_vram_packed)bank << 13 + (heap_vram_packed)(offset) >> 3;
 }
 
@@ -89,10 +89,10 @@ inline heap_bank heap_vram_unpack_bank(heap_vram_packed vram_packed) {
  * @brief Return from a packed vera ram address the 16 bit offset, but is now aligned to 2 bytes in vera ram! (due to the loss of precision).
  * 
  * @param bram_packed The packed vera ram address.
- * @return heap_offset The 16 bit offset, pointing to a location in vera ram between 0x0000 and 0xFFFF in a bank.
+ * @return heap_vram_offset The 16 bit offset, pointing to a location in vera ram between 0x0000 and 0xFFFF in a bank.
  */
-inline heap_offset  heap_vram_unpack_offset(heap_vram_packed vram_packed) {
-    return (heap_offset)vram_packed << 3;
+inline heap_vram_offset  heap_vram_unpack_offset(heap_vram_packed vram_packed) {
+    return (heap_vram_offset)vram_packed << 3;
 }
 
 /**
@@ -437,14 +437,14 @@ heap_handle heap_data_list_insert(heap_handle *list, heap_handle index) {
 	return index;
 }
 
-char heap_data_list_remove(heap_handle *list, heap_handle index) {
+heap_handle heap_data_list_remove(heap_handle *list, heap_handle index) {
 
 	heap_bank old_bank = heap_bram_bank_get();
 
 	if (!*list) {
 		// empty list
 		heap_bram_bank_set(old_bank);
-		return -1;
+		return 0;
 	}
 
 	// The free makes the list empty!
@@ -462,17 +462,15 @@ char heap_data_list_remove(heap_handle *list, heap_handle index) {
 	}
 
 
-	{
 	heap_handle next_index = ((heap_data_list_ptr)heap_data_list_get(index))->next;
 	heap_handle prev_index = ((heap_data_list_ptr)heap_data_list_get(index))->prev;
 
 	((heap_data_list_ptr)heap_data_list_get(prev_index))->next = next_index;
 	((heap_data_list_ptr)heap_data_list_get(next_index))->prev = prev_index;
-	}
 
 	heap_bram_bank_set(old_bank);
-	return 0;
 
+	return next_index;
 }
 
 

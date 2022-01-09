@@ -1,6 +1,7 @@
 #include "equinoxe.h"
 #include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
+#include "equinoxe-stage.h"
 
 void StageInit(void) {
 	game.delegate.Logic = &Logic;
@@ -16,19 +17,24 @@ void StageInit(void) {
 	StageProgress();
 }
 
-char NextOffset() {
-	char i = 0;
-	for(i=1;i<127;i++) {
-		if(!stage.offsets[i]) {
-			stage.offsets[i] = 1;
-			return i;
+vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id) {
+	vera_sprite_id count = sprite_end-sprite_start;
+	while(count) {
+		vera_sprite_offset sprite_offset = sprite_offsets[*sprite_id];
+		if(!sprite_offset) {
+			sprite_offset =  vera_sprite_get_offset(*sprite_id); 
+			sprite_offsets[*sprite_id] = sprite_offset;
+			return sprite_offset;
 		}
+		count--;
+		*sprite_id = (*sprite_id==sprite_end) ? sprite_start : (*sprite_id)++;
 	}
 	return 0;
 }
 
-void FreeOffset(char i) {
-	stage.offsets[i] = 0;
+void FreeOffset(vera_sprite_offset sprite_offset) {
+	vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
+	sprite_offsets[sprite_id] = 0;
 }
 
 static void StageReset(void) {
@@ -69,10 +75,6 @@ static void StageReset(void) {
 	// stage.bulletTail = &stage.bulletHead;
 	// stage.explosionTail = &stage.explosionHead;
 	// stage.debrisTail = &stage.debrisHead;
-
-	stage.fighter_list = 0;
-	stage.bullet_list = 0;
-	stage.bullet_sprite = 0;
 	
 	InitPlayer();
 
@@ -86,7 +88,7 @@ static void StageReset(void) {
 void StageProgress() {
 	switch(stage.level) {
 		case 1:
-			stage.spawnenemycount = 1;
+			stage.spawnenemycount = 20;
 			stage.spawnenemytype = 1;
 			break;
 	}

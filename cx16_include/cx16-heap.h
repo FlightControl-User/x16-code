@@ -22,7 +22,7 @@ typedef unsigned long 	heap_size_large;    ///< The size in real buytes, max dwo
 typedef unsigned int 	heap_count;         ///< Counters.
 typedef unsigned int 	heap_index_info;
 typedef unsigned char* 	heap_ptr;
-typedef unsigned int 	heap_offset;
+typedef unsigned int 	heap_vram_offset;
 typedef unsigned int 	heap_word;
 
 const unsigned int 		heap_type_bram = 0x0000;
@@ -102,11 +102,11 @@ typedef struct HEAP_DATA_LIST heap_data_list;
 typedef struct HEAP_DATA_LIST* heap_data_list_ptr;
 
 inline heap_bram_packed  heap_bram_pack(heap_bank bank, heap_ptr ptr);
-inline heap_vram_packed  heap_vram_pack(heap_bank bank, heap_offset offset);
+inline heap_vram_packed  heap_vram_pack(heap_bank bank, heap_vram_offset offset);
 inline heap_bank         heap_bram_unpack_bank(heap_bram_packed bram_packed);
 inline heap_ptr          heap_bram_unpack_ptr(heap_bram_packed bram_packed);
 inline heap_bank         heap_vram_unpack_bank(heap_vram_packed vram_packed);
-inline heap_offset       heap_vram_unpack_offset(heap_vram_packed vram_packed);
+inline heap_vram_offset       heap_vram_unpack_offset(heap_vram_packed vram_packed);
 
 inline heap_size_packed  heap_size_pack(heap_size_large size);
 inline heap_size         heap_size_unpack(heap_size_packed size_packed);
@@ -159,5 +159,5 @@ unsigned int heap_idle_count(heap_segment_id segment);
 
 // heap_handle heap_data_list_insert_at(heap_handle *list, heap_handle index, heap_handle at);
 heap_handle heap_data_list_insert(heap_handle *list, heap_handle index);
-char heap_data_list_remove(heap_handle *list, heap_handle index);
+heap_handle heap_data_list_remove(heap_handle *list, heap_handle index);
 
