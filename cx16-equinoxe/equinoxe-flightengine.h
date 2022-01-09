@@ -25,8 +25,7 @@ struct sprite {
     unsigned char BPP;
     unsigned char PaletteOffset; 
     heap_handle BRAM_Handle;
-    heap_vram_offset offset_vram[16];
-    heap_bank bank_vram[16];
+    vera_sprite_image_offset offset_image[16];
 };
 
 typedef struct sprite Sprite;
@@ -35,16 +34,16 @@ typedef struct sprite Sprite;
 
 
 #define SPRITE_PLAYER01_COUNT 7
-Sprite SpritePlayer01 =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 32, 32, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 1, 0x0, { 0x0 }, { 0x0 } };
+Sprite SpritePlayer01 =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 32, 32, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 1, 0x0, { 0x0 } };
 
 #define SPRITE_ENEMY01_COUNT 12
-Sprite SpriteEnemy01 =       { "ENEMY01", SPRITE_ENEMY01_COUNT, 7, 32*32*SPRITE_ENEMY01_COUNT/2, 512, 32, 32, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 2, 0x0, { 0x0 }, { 0x0 } };
+Sprite SpriteEnemy01 =       { "ENEMY01", SPRITE_ENEMY01_COUNT, 7, 32*32*SPRITE_ENEMY01_COUNT/2, 512, 32, 32, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 2, 0x0, { 0x0 } };
 
 #define SPRITE_ENGINE01_COUNT 16
-Sprite SpriteEngine01 =       { "ENGINE01", SPRITE_ENGINE01_COUNT, 7+12, 16*16*SPRITE_ENGINE01_COUNT/2, 128, 16, 16, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 3, 0x0, { 0x0 }, { 0x0 } };
+Sprite SpriteEngine01 =       { "ENGINE01", SPRITE_ENGINE01_COUNT, 7+12, 16*16*SPRITE_ENGINE01_COUNT/2, 128, 16, 16, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 3, 0x0, { 0x0 } };
 
 #define SPRITE_BULLET01_COUNT 1
-Sprite SpriteBullet01 =       { "BULLET01", SPRITE_BULLET01_COUNT, 7+12+16, 16*16*SPRITE_BULLET01_COUNT/2, 128, 16, 16, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 4, 0x0, { 0x0 }, { 0x0 } };
+Sprite SpriteBullet01 =       { "BULLET01", SPRITE_BULLET01_COUNT, 7+12+16, 16*16*SPRITE_BULLET01_COUNT/2, 128, 16, 16, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 4, 0x0, { 0x0 } };
 
 byte const SPRITE_TYPES = 4;
 byte const SPRITE_PLAYER01 = 0;

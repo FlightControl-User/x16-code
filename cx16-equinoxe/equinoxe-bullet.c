@@ -75,28 +75,9 @@ void LogicBullets()
             sprite_disable(bullet->sprite_offset);
             bullet_handle = RemoveBullet(bullet_handle);
             continue;
-
-            // heap_handle next_handle = bullet->next;
-            // if (prev_handle==bullet_handle)
-            // {
-            //     // when it is the first element in the list.
-            //     stage.bullet_list = 0;
-            //     prev_handle = 0;
-            // }
-            // else
-            // {
-            //     ((Bullet *)heap_data_ptr(prev_handle))->next = 0;
-            // }
-            // // gotoxy(20, 39 + (l - 1));
-            // // printf("free = %x, prev = %x ", bullet_handle, prev_handle);
-            // heap_free(HEAP_SEGMENT_BRAM_ENTITIES, bullet_handle);
-            // bullet_handle = prev_handle;
         }
 
-        // bullet = (Bullet*)heap_data_ptr(bullet_handle);
         bullet_handle = bullet->next;
-
-        l++;
         
     } while (bullet_handle != stage.bullet_list);
 }

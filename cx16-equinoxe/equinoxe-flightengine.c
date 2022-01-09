@@ -42,8 +42,7 @@ void sprite_cpy_vram_from_bram(struct sprite* sprite) {
 
         cx16_cpy_vram_from_bram(bank_vram_sprite, (word)offset_vram_sprite, bank_bram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
 
-        sprite->offset_vram[s] = offset_vram_sprite;
-        sprite->bank_vram[s] = bank_vram_sprite;
+        sprite->offset_image[s] = vera_sprite_get_image_offset(bank_vram_sprite, offset_vram_sprite);
         ptr_bram_sprite = cx16_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
         bank_bram_sprite = cx16_bram_bank_get();
     }
@@ -90,9 +89,7 @@ inline void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
 void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index) {
     byte SpriteCount = sprite->SpriteCount;
     index = (index >= SpriteCount) ? index - SpriteCount : index;
-    heap_bank bank_vram_sprite = sprite->bank_vram[index];
-    heap_vram_offset offset_vram_sprite = sprite->offset_vram[index];
-    vera_sprite_bank_offset(sprite_offset, bank_vram_sprite, offset_vram_sprite);
+    vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
 }
 
 inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
