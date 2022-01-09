@@ -28,10 +28,12 @@ const char FILE_PALETTES_SPRITE01[] = "PALSPRITE01";
 const char FILE_PALETTES_FLOOR01[] = "PALFLOOR01";
 
 // Sprite constants
-const byte SPRITE_OFFSET_PLAYER = 1;
-const byte SPRITE_OFFSET_ENGINE = 2;
-const byte SPRITE_OFFSET_ENEMY = 3;
-const byte BULLET_SPRITE_OFFSET = 64;
+const unsigned char SPRITE_OFFSET_PLAYER_START = 1;
+const unsigned char SPRITE_OFFSET_PLAYER_END = 4;
+const unsigned char SPRITE_OFFSET_ENEMY_START = 5;
+const unsigned char SPRITE_OFFSET_ENEMY_END = 63;
+const unsigned char SPRITE_OFFSET_BULLET_START = 64;
+const unsigned char SPRITE_OFFSET_BULLET_END = 95;
 
 // Side constants to determine the coalition.
 const byte SIDE_PLAYER = 0;
@@ -128,7 +130,9 @@ typedef struct {
     heap_handle fighter_tail;
     heap_handle bullet_tail;
     heap_handle bullet_list;
-    char bullet_sprite;
+    vera_sprite_id sprite_player; // Keep track of the last player sprite allocated.
+    vera_sprite_id sprite_bullet; // Keep track of the last bullet sprite allocated.
+    vera_sprite_id sprite_enemy;  // Keep track of the last enemy sprite allocated.
     unsigned char level;
     unsigned char phase;
     unsigned char spawnenemycount;
@@ -155,12 +159,12 @@ volatile heap_handle engine_handle;
 volatile Game game;
 
 
-void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
+inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
 void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index);
-void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
-void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
-void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
-void sprite_disable(vera_sprite_offset sprite_offset);
+inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
+inline void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
+inline void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
+inline void sprite_disable(vera_sprite_offset sprite_offset);
 
 
 void Logic();

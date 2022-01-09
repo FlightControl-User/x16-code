@@ -15,9 +15,9 @@ heap_address petscii() {
     heap_handle handle_vram_petscii_map = heap_alloc(HEAP_SEGMENT_VRAM_PETSCII, VRAM_PETSCII_MAP_SIZE);
 
     //vera_cpy_vram_vram(VERA_PETSCII_TILE, VRAM_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
-    heap_offset ptr_vram_petscii_map = (heap_offset)heap_data_ptr(handle_vram_petscii_map); // TODO: rework to offset API call.
+    heap_vram_offset ptr_vram_petscii_map = (heap_vram_offset)heap_data_ptr(handle_vram_petscii_map); // TODO: rework to offset API call.
     heap_bank bank_vram_petscii_map = heap_data_bank(handle_vram_petscii_map);
-    heap_offset ptr_vram_petscii_tile = (heap_offset)heap_data_ptr(handle_vram_petscii_tile);
+    heap_vram_offset ptr_vram_petscii_tile = (heap_vram_offset)heap_data_ptr(handle_vram_petscii_tile);
     heap_bank bank_vram_petscii_tile = heap_data_bank(handle_vram_petscii_tile);
 
     cx16_cpy_vram_from_vram(bank_vram_petscii_tile, (word)ptr_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);

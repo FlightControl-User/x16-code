@@ -13,20 +13,14 @@ void AddEnemy(char t, signed int x, signed int y) {
 	enemy->health = 1;
 	enemy->x = x;
 	enemy->y = y;
-	enemy->dx = 0;
-	enemy->dy = 0;
-	enemy->sprite_type = &SpriteEnemy01;
-	enemy->sprite_offset = NextOffset();
 	enemy->speed_animation = 4;
 	enemy->wait_animation = enemy->speed_animation;
 	enemy->state_animation = 12;
 	enemy->moved = 2;
-	enemy->firegun = 0;
-	enemy->flight = 0;
-	enemy->step = 0;
-	enemy->move = 0;
 	enemy->side = SIDE_ENEMY;
-	sprite_create(enemy->sprite_type, enemy->sprite_offset);
+
+	enemy->sprite_type = &SpriteEnemy01;
+	enemy->sprite_offset = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
 	sprite_configure(enemy->sprite_offset, enemy->sprite_type);
 
 	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Enemy));

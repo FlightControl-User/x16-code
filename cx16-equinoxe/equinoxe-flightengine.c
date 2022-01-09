@@ -38,11 +38,12 @@ void sprite_cpy_vram_from_bram(struct sprite* sprite) {
 
         heap_handle handle_vram_sprite = heap_alloc(HEAP_SEGMENT_VRAM_SPRITES, SpriteSize);
         heap_bank bank_vram_sprite = heap_data_bank(handle_vram_sprite);
-        heap_ptr ptr_vram_sprite = heap_data_ptr(handle_vram_sprite);
+        heap_vram_offset offset_vram_sprite = (heap_vram_offset)heap_data_ptr(handle_vram_sprite);
 
-        cx16_cpy_vram_from_bram(bank_vram_sprite, (word)ptr_vram_sprite, bank_bram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
+        cx16_cpy_vram_from_bram(bank_vram_sprite, (word)offset_vram_sprite, bank_bram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
 
-        sprite->VRAM_Handle[s] = handle_vram_sprite;
+        sprite->offset_vram[s] = offset_vram_sprite;
+        sprite->bank_vram[s] = bank_vram_sprite;
         ptr_bram_sprite = cx16_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
         bank_bram_sprite = cx16_bram_bank_get();
     }
@@ -63,7 +64,7 @@ heap_handle sprite_load(struct sprite* sprite) {
     return handle_bram_sprite;
 }
 
-void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
+inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
     vera_sprite_bpp(sprite_offset, sprite->BPP);
@@ -74,38 +75,10 @@ void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
 }
 
-void show_memory_map() {
-    gotoxy(0, 30);
-    for (byte i = 0;i < SPRITE_TYPES;i++) {
-        Sprite* sprite = SpriteDB[i];
-        byte offset = sprite->SpriteOffset;
-        printf("s:%u bram: %x/%p, vram: ", i, heap_data_bank(sprite->BRAM_Handle), heap_data_ptr(sprite->BRAM_Handle));
-        for (byte j = 0;j < sprite->SpriteCount;j++) {
-            printf("%x/%p ", heap_data_bank(sprite->VRAM_Handle[j]), heap_data_ptr(sprite->VRAM_Handle[j]));
-        }
-        printf("\n");
-    }
-}
 
 #include "equinoxe-petscii-move.c"
 
-
-
-void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index) {
-    cx16_bank old = cx16_bram_bank_get();
-    byte SpriteCount = sprite->SpriteCount;
-    index = (index >= SpriteCount) ? index - SpriteCount : index;
-    heap_bank bank_vram_sprite = heap_data_bank(sprite->VRAM_Handle[index]);
-    heap_offset offset_vram_sprite = (heap_offset)heap_data_ptr(sprite->VRAM_Handle[index]);
-    vera_sprite_bank_offset(sprite_offset, bank_vram_sprite, offset_vram_sprite);
-    cx16_bram_bank_set(old);
-}
-
-void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
-    vera_sprite_xy(sprite_offset, x, y);
-}
-
-void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
+inline void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_bpp(sprite_offset, sprite->BPP);
     vera_sprite_height(sprite_offset, sprite->Height);
     vera_sprite_width(sprite_offset, sprite->Width);
@@ -114,30 +87,42 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
 }
 
-void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
+void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index) {
+    byte SpriteCount = sprite->SpriteCount;
+    index = (index >= SpriteCount) ? index - SpriteCount : index;
+    heap_bank bank_vram_sprite = sprite->bank_vram[index];
+    heap_vram_offset offset_vram_sprite = sprite->offset_vram[index];
+    vera_sprite_bank_offset(sprite_offset, bank_vram_sprite, offset_vram_sprite);
+}
+
+inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
+    vera_sprite_xy(sprite_offset, x, y);
+}
+
+inline void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
 }
 
-void sprite_disable(vera_sprite_offset sprite_offset) {
+inline void sprite_disable(vera_sprite_offset sprite_offset) {
     vera_sprite_disable(sprite_offset);
 }
 
 
-void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
+inline void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
     vera_sprite_collision_mask(sprite_offset, mask);
 }
 
 
-void Logic(void) {
+inline void Logic(void) {
     LogicPlayer();
     LogicEnemies();
-    // LogicBullets();
+    LogicBullets();
 }
 
 
-void Draw(void) {
+inline void Draw(void) {
     DrawFighters();
-    // DrawBullets();
+    DrawBullets();
 }
 
 
@@ -216,11 +201,14 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         // gotoxy(0,0);
         // printf("ticksync = %x, tickstage = %x", game.ticksync, game.tickstage);
 
-        volatile void (*fn)();
-        fn = game.delegate.Logic;
-        (*fn)();
-        fn = game.delegate.Draw;
-        (*fn)();
+        // volatile void (*fn)();
+        // fn = game.delegate.Logic;
+        // (*fn)();
+        // fn = game.delegate.Draw;
+        // (*fn)();
+
+        Logic();
+        Draw();
 
 
 
@@ -316,16 +304,14 @@ void main() {
         sprite_load(SpriteDB[i]);
     }
 
-
-
     // Now we activate the tile mode.
     for (byte i = 0;i < SPRITE_TYPES;i++) {
         sprite_cpy_vram_from_bram(SpriteDB[i]);
     }
 
-    for (byte sprite = 64;sprite < 64 + 10;sprite++) {
-        sprite_create(SpriteDB[3], sprite); // Player bullets
-    }
+    // for (byte sprite = 64;sprite < 64 + 10;sprite++) {
+    //     sprite_create(SpriteDB[3], sprite); // Player bullets
+    // }
 
     //show_memory_map();
 

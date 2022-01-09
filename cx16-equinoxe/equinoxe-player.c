@@ -12,15 +12,15 @@ void InitPlayer() {
 	player->health = 1;
 	player->x = 320;
 	player->y = 200;
-	player->sprite_type = &SpritePlayer01;
-	player->sprite_offset = NextOffset();
 	player->speed_animation = 8;
 	player->wait_animation = player->speed_animation;
 	player->state_animation = 3;
 	player->moved = 2;
 	player->firegun = 0;
 	player->side = SIDE_PLAYER;
-	sprite_create(player->sprite_type, player->sprite_offset);
+
+	player->sprite_type = &SpritePlayer01;
+	player->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
 	sprite_configure(player->sprite_offset, player->sprite_type);
 
 
@@ -29,14 +29,12 @@ void InitPlayer() {
 	memset_fast(engine, 0, sizeof(Entity));
 
 	engine->health = 1;
-	engine->x = 0;
-	engine->y = 0;
-	engine->sprite_type = &SpriteEngine01;
-	engine->sprite_offset = NextOffset();
 	engine->speed_animation = 1;
 	engine->wait_animation = engine->speed_animation;
-	engine->state_animation = 0;
 	engine->side = SIDE_PLAYER;
+
+	engine->sprite_type = &SpriteEngine01;
+	engine->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
 	sprite_configure(engine->sprite_offset, engine->sprite_type);
 
 	heap_handle engine_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Entity));

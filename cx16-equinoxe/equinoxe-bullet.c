@@ -3,15 +3,18 @@
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-bullet.h"
+#include "equinoxe-stage.h"
 
 void FireBullet(Bullet* entity, char reload)
 {
 
-	Bullet bullet_ram;
-	Bullet* bullet = &bullet_ram;
-	memset_fast(bullet, 0, sizeof(Bullet));
+	heap_handle bullet_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Bullet));
 
-    bullet->sprite_type = &SpriteBullet01;
+	Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
+    memset(bullet, 0, sizeof(Bullet));
+
+	heap_data_list_insert(&stage.bullet_list, bullet_handle);
+
     signed int x = game.curr_mousex;
     signed int y = game.curr_mousey;
     if (entity->firegun)
@@ -19,29 +22,26 @@ void FireBullet(Bullet* entity, char reload)
     bullet->x = x;
     bullet->y = y;
     bullet->dx = 0;
-    bullet->dy = -8;
+    bullet->dy = -1;
     bullet->health = 1;
     bullet->side = SIDE_PLAYER;
     entity->firegun = entity->firegun^1;
 
-    stage.bullet_sprite = (stage.bullet_sprite<15)?stage.bullet_sprite++:0;
-    bullet->sprite_offset = BULLET_SPRITE_OFFSET + stage.bullet_sprite;
+    bullet->sprite_offset = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet);
+    bullet->sprite_type = &SpriteBullet01;
+	sprite_configure(bullet->sprite_offset, bullet->sprite_type);
 
-    // gotoxy(0, 37);
-    // printf("fb: list = %x, count = %u - ", stage.bullet_list, stage.bullet_count);
+    // gotoxy(0, 20);
+    // printf("list = %x - ", stage.bullet_list);
     // printf("%u %i %i   ", bullet->sprite_offset, bullet->x, bullet->y);
 
     entity->reload = reload;
 
-	heap_handle bullet_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Bullet));
-	Bullet* bullet_bram = (Bullet*)heap_data_ptr(bullet_handle);
-	memcpy_fast(bullet_bram, bullet, sizeof(Bullet));
-	heap_data_list_insert(&stage.bullet_list, bullet_handle);
 }
 
+
 heap_handle RemoveBullet(heap_handle handle_remove) {
-	heap_handle handle_next = ((Bullet*)heap_data_ptr(handle_remove))->next;
-	heap_data_list_remove(&stage.bullet_list, handle_remove);
+	heap_handle handle_next = heap_data_list_remove(&stage.bullet_list, handle_remove);
 	heap_free(HEAP_SEGMENT_BRAM_ENTITIES, handle_remove); 
 	return handle_next;
 }
@@ -54,19 +54,21 @@ void LogicBullets()
     char l = 0;
 
     heap_handle bullet_handle = stage.bullet_list;
-    heap_handle prev_handle = stage.bullet_list;
+    // gotoxy(40, 0);
+    // printf("bullet_list = %x", stage.bullet_list);
+
     do {
 
-        Bullet *bullet_bram = (Bullet*)heap_data_ptr(bullet_handle);
-        Bullet bullet_ram;
-        Bullet* bullet = &bullet_ram;
-        memcpy_fast(bullet, bullet_bram, sizeof(Bullet));
+        Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
 
-        bullet->x += bullet->dx;
-        bullet->y += bullet->dy;
+        signed char dx = bullet->dx;
+        signed char dy = bullet->dy;
 
-        gotoxy(0, 39 + l++);
-        printf("b : %p %u %i %i ", bullet, bullet->sprite_offset, bullet->x, bullet->y);
+        bullet->x += dx;
+        bullet->y += dy;
+
+        // gotoxy(0, l+1);
+        // printf("bullet : l=%03u, p=%04p o=%04x x=%04i y=%04i ", l, bullet, bullet->sprite_offset, bullet->x, bullet->y);
 
         if (bullet->y <= -32)
         {
@@ -91,10 +93,10 @@ void LogicBullets()
             // bullet_handle = prev_handle;
         }
 
-        bullet_bram = (Bullet*)heap_data_ptr(bullet_handle);
-        memcpy_fast(bullet_bram, bullet, sizeof(Bullet));
-
+        // bullet = (Bullet*)heap_data_ptr(bullet_handle);
         bullet_handle = bullet->next;
+
+        l++;
         
     } while (bullet_handle != stage.bullet_list);
 }
@@ -113,6 +115,6 @@ void DrawBullets()
         sprite_position(bullet->sprite_offset, bullet->x, bullet->y);
         // gotoxy(40, 39 + l++);
         // printf("db: bullet = %p ", bullet);
-        bullet_handle = ((Bullet *)heap_data_ptr(bullet_handle))->next;
+        bullet_handle = bullet->next;
     } while (bullet_handle != stage.bullet_list);
 }
