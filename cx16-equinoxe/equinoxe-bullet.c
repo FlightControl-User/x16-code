@@ -22,7 +22,7 @@ void FireBullet(Bullet* entity, char reload)
     bullet->x = x;
     bullet->y = y;
     bullet->dx = 0;
-    bullet->dy = -1;
+    bullet->dy = -8;
     bullet->health = 1;
     bullet->side = SIDE_PLAYER;
     entity->firegun = entity->firegun^1;

@@ -1,9 +1,6 @@
-
-
 #include <cx16.h>
 #include <string.h>
 #include <cx16-heap.h>
-#include "equinoxe-flightengine.h"
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
@@ -85,45 +82,7 @@ typedef struct {
     unsigned char tickstage;
 } Game;
 
-typedef struct {
-    heap_handle next;
-    heap_handle prev;
-    signed int x;
-    signed int y;
-    signed char fx;
-    signed char fy;
-    signed char dx;
-    signed char dy;
-    byte active;
-    byte SpriteType;
-    byte state_behaviour;
-    byte state_animation;
-    byte wait_animation;
-    byte speed_animation;
-    byte health;
-    byte gun;
-    byte strength;
-    byte reload;
-    byte moved;
-    byte side;
-    byte firegun;
-    unsigned int flight;
-    unsigned char move;
-    unsigned char step;
-    unsigned char angle;
-    unsigned char baseangle;
-    unsigned char radius;
-    unsigned char delay;
-    signed char turn;
-    unsigned char speed;
-    Sprite* sprite_type;
-    vera_sprite_offset sprite_offset;
 
-    heap_handle engine_handle;
-} Entity;
-
-typedef Entity Enemy;
-typedef Entity Bullet;
 
 typedef struct {
     heap_handle fighter_list;
@@ -143,9 +102,6 @@ volatile Stage stage;
 volatile vera_sprite_offset sprite_offsets[127] = {0};
 
 
-Entity sprite_enemies[33] = {0};
-volatile byte sprite_enemy_count = 0;
-
 volatile byte sprite_collided = 0;
 
 
@@ -159,17 +115,7 @@ volatile heap_handle engine_handle;
 volatile Game game;
 
 
-void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
-void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index);
-void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
-void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
-void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
-void sprite_disable(vera_sprite_offset sprite_offset);
 
 
-void Logic();
-
-
-void Draw();
 
 

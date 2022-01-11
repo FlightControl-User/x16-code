@@ -2,6 +2,7 @@
 #include <multiply.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
+#include "equinoxe-enemy.h"
 #include "equinoxe-math.h"
 
 void AddEnemy(char t, signed int x, signed int y) {

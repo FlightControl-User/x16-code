@@ -20,12 +20,15 @@
 
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
+#include "equinoxe-floorengine.h"
 #include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-fighters.h"
 #include "equinoxe-bullet.h"
 
-void sprite_cpy_vram_from_bram(struct sprite* sprite) {
+
+
+void sprite_cpy_vram_from_bram(Sprite* sprite) {
 
     heap_ptr ptr_bram_sprite = heap_data_ptr(sprite->BRAM_Handle);
     heap_bank bank_bram_sprite = heap_data_bank(sprite->BRAM_Handle);
@@ -49,7 +52,7 @@ void sprite_cpy_vram_from_bram(struct sprite* sprite) {
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
-heap_handle sprite_load(struct sprite* sprite) {
+heap_handle sprite_load(Sprite* sprite) {
 
     heap_handle handle_bram_sprite = heap_alloc(HEAP_SEGMENT_BRAM_SPRITES, sprite->TotalSize);  // Reserve enough memory on the heap for the sprite loading.
     heap_ptr ptr_bram_sprite = heap_data_ptr(handle_bram_sprite);
@@ -207,6 +210,30 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         Logic();
         Draw();
 
+    // background scrolling
+    if(!scroll_action--) {
+        scroll_action = 2;
+        gotoxy(0, 10);
+        // printf("vscroll:%u row:%u   ",vscroll, row);
+        if((BYTE0(vscroll) & 0xC0)==BYTE0(vscroll) ) {
+            if(row<=7) {
+                dword dest_row = vram_floor_map_ulong+((row+8)*4*64*2);
+                dword src_row = vram_floor_map_ulong+(row*4*64*2);
+                vera_cpy_vram_vram(src_row, dest_row, (dword)64*4*2);
+            }
+            if(vscroll==0) {
+                vscroll=8*64;
+                row = 8;
+            }
+            floor_draw((byte)row-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
+            s++;
+            s&=1;
+            row--;
+        } 
+        vera_layer_set_vertical_scroll(0,vscroll);
+        vscroll--;
+    }
+
 
 
     // Reset the VSYNC interrupt
@@ -237,6 +264,39 @@ void main() {
 
     heap_address vram_petscii = petscii();
 
+    // Allocate the segment for the tiles in vram.
+    const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
+    const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
+
+    // *** TILE MEMORY ALLOCATION ***
+
+    // Allocate the segment for the floor map in vram.
+    heap_vram_packed vram_floor_map = heap_segment_vram_floor(
+        HEAP_SEGMENT_VRAM_FLOOR_MAP, 
+        heap_vram_pack(0, 0x0000), 
+        heap_size_pack(0x2000), 
+        heap_bram_pack(1, (heap_ptr)0xA400), 
+        0
+        );
+
+    //heap_segment_id segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
+
+    heap_vram_packed vram_floor_tile = heap_segment_vram_floor(
+        HEAP_SEGMENT_VRAM_FLOOR_TILE, 
+        heap_vram_pack(0, (cx16_vram_offset)0x2000), 
+        heap_size_pack(0x8000), 
+        heap_bram_pack(1, (cx16_bram_ptr)0xA400), 
+        0x100
+        );
+
+    //heap_segment_id segment_vram_floor_tile = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_TILE, 1, 0xA000, 1, 0x2000, 1, 0xA400, 0x100);
+
+    // Load the palettes in main banked memory.
+    heap_address bram_palettes = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_PALETTES, 
+        heap_bram_pack(63, (heap_ptr)0xA000), 
+        heap_size_pack(0x2000)
+        );
 
     // Allocate the segment for the sprites in vram.
     heap_vram_packed vram_sprites = heap_segment_vram_ceil(
@@ -249,32 +309,58 @@ void main() {
 
     //#include "equinoxe-palettes.c"
 
-    // Load the palettes in main banked memory.
-    heap_address bram_palettes = heap_segment_bram(
-        HEAP_SEGMENT_BRAM_PALETTES, 
-        heap_bram_pack(63, (heap_ptr)0xA000), 
-        heap_size_pack(0x2000)
-        );
-
-    // Tested
     heap_handle handle_bram_palettes = heap_alloc(HEAP_SEGMENT_BRAM_PALETTES, 8192);
     heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
     heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
 
     unsigned int palette_loaded = 0;
 
-    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes);
     if(!sprite_palette_loaded) printf("error file_palettes");
     palette_loaded += sprite_palette_loaded;
     heap_ptr ptr_bram_palettes_sprite = heap_data_ptr(handle_bram_palettes)+palette_loaded;
+
 
     unsigned int floor_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
     if(!floor_palette_loaded) printf("error file_palettes");
     palette_loaded += floor_palette_loaded;
     heap_ptr ptr_bram_palettes_floor = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
+
     cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
     // Tested
+
+    // TILE INITIALIZATION 
+
+    // Initialize the bram heap for tile loading.
+    heap_address bram_floor_tile = heap_segment_bram(
+        HEAP_SEGMENT_BRAM_TILES,
+        heap_bram_pack(33,(heap_ptr)0xA000),
+        heap_size_pack(0x2000*8)
+        );
+
+    gotoxy(0, 10);
+
+    // Loading the graphics in main banked memory.
+    for(i=0; i<TILE_TYPES;i++) {
+        tile_load(TileDB[i]);
+    }
+
+    // Now we activate the tile mode.
+    for(i=0;i<TILE_TYPES;i++) {
+        tile_cpy_vram_from_bram(TileDB[i]);
+    }
+
+    // show_memory_map();
+
+    vram_floor_map_ulong = 0x00000;
+    vera_layer_mode_tile(0, vram_floor_map_ulong, 0x02000, 64, 64, 16, 16, 4);
+
+    vera_layer_show(0);
+
+    //floor_init();
+    tile_background();
+
 
     // Initialize the bram heap for sprite loading.
     heap_bram_packed bram_sprites = heap_segment_bram(
@@ -339,3 +425,4 @@ void main() {
     cx16_brom_bank_set(CX16_ROM_BASIC);
 
 }
+

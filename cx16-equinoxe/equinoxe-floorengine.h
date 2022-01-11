@@ -12,16 +12,16 @@ struct Tile {
 
 
 byte const TILE_FLOOR01_01_COUNT = 20;
-struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_01_COUNT, 0, 32*32*TILE_FLOOR01_01_COUNT/2, 512, 1, 0x0 };
+struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_01_COUNT, 0, 32*32*TILE_FLOOR01_01_COUNT/2, 512, 5, 0x0 };
 
 byte const TILE_FLOOR01_02_COUNT = 4;
-struct Tile TileFloor02 =       { "FLOOR02", TILE_FLOOR01_02_COUNT, 20, 32*32*TILE_FLOOR01_02_COUNT/2, 512, 2, 0x0 };
+struct Tile TileFloor02 =       { "FLOOR02", TILE_FLOOR01_02_COUNT, 20, 32*32*TILE_FLOOR01_02_COUNT/2, 512, 6, 0x0 };
 
 byte const TILE_FLOOR01_03_COUNT = 16;
-struct Tile TileFloor03 =       { "FLOOR03", TILE_FLOOR01_03_COUNT, 24, 32*32*TILE_FLOOR01_03_COUNT/2, 512, 3, 0x0 };
+struct Tile TileFloor03 =       { "FLOOR03", TILE_FLOOR01_03_COUNT, 24, 32*32*TILE_FLOOR01_03_COUNT/2, 512, 7, 0x0 };
 
 byte const TILE_FLOOR01_04_COUNT = 16;
-struct Tile TileFloor04 =       { "FLOOR04", TILE_FLOOR01_04_COUNT, 40, 32*32*TILE_FLOOR01_04_COUNT/2, 512, 4, 0x0 };
+struct Tile TileFloor04 =       { "FLOOR04", TILE_FLOOR01_04_COUNT, 40, 32*32*TILE_FLOOR01_04_COUNT/2, 512, 8, 0x0 };
 
 byte const TILE_TYPES = 4;
 __mem struct Tile *TileDB[4] = { &TileFloor01, &TileFloor02, &TileFloor03, &TileFloor04 };
