@@ -213,13 +213,13 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // background scrolling
     if(!scroll_action--) {
         scroll_action = 2;
-        gotoxy(0, 10);
+        // gotoxy(0, 10);
         // printf("vscroll:%u row:%u   ",vscroll, row);
         if((BYTE0(vscroll) & 0xC0)==BYTE0(vscroll) ) {
             if(row<=7) {
-                dword dest_row = vram_floor_map_ulong+((row+8)*4*64*2);
-                dword src_row = vram_floor_map_ulong+(row*4*64*2);
-                vera_cpy_vram_vram(src_row, dest_row, (dword)64*4*2);
+                unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+((row+8)*4*64*2);
+                unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+(row*4*64*2);
+                cx16_cpy16_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*4*2);
             }
             if(vscroll==0) {
                 vscroll=8*64;
@@ -273,7 +273,7 @@ void main() {
     // Allocate the segment for the floor map in vram.
     heap_vram_packed vram_floor_map = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_MAP, 
-        heap_vram_pack(0, 0x0000), 
+        heap_vram_pack(FLOOR_MAP_BANK_VRAM, FLOOR_MAP_OFFSET_VRAM), 
         heap_size_pack(0x2000), 
         heap_bram_pack(1, (heap_ptr)0xA400), 
         0
@@ -283,7 +283,7 @@ void main() {
 
     heap_vram_packed vram_floor_tile = heap_segment_vram_floor(
         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
-        heap_vram_pack(0, (cx16_vram_offset)0x2000), 
+        heap_vram_pack(FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM), 
         heap_size_pack(0x8000), 
         heap_bram_pack(1, (cx16_bram_ptr)0xA400), 
         0x100
@@ -353,8 +353,7 @@ void main() {
 
     // show_memory_map();
 
-    vram_floor_map_ulong = 0x00000;
-    vera_layer_mode_tile(0, vram_floor_map_ulong, 0x02000, 64, 64, 16, 16, 4);
+    vera_layer_mode_tile(0, FLOOR_MAP_ADDRESS_VRAM, 0x02000, 64, 64, 16, 16, 4);
 
     vera_layer_show(0);
 

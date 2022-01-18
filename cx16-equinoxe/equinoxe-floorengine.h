@@ -1,4 +1,13 @@
 
+unsigned char const FLOOR_MAP_BANK_VRAM = 0;
+unsigned int const  FLOOR_MAP_OFFSET_VRAM = 0x0000;
+unsigned long const FLOOR_MAP_ADDRESS_VRAM = 0x00000;
+
+unsigned char const FLOOR_TILE_BANK_VRAM = 0;
+unsigned int const  FLOOR_TILE_OFFSET_VRAM = 0x2000;
+unsigned long const FLOOR_TILE_ADDRESS_VRAM = 0x02000;
+
+
 struct Tile {
     char File[16];
     byte TileCount;
@@ -232,5 +241,3 @@ byte const TILE_FLOOR_COUNT = TILE_FLOOR01_01_COUNT + TILE_FLOOR01_02_COUNT + TI
 byte const TILES = 10; 
 byte TileFloorNew[TILES];
 byte TileFloorOld[TILES];
-
-volatile unsigned long vram_floor_map_ulong;
