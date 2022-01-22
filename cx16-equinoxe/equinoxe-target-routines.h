@@ -1,7 +1,7 @@
 void main() {}
 
 #pragma data_seg(Palettes)
-export char PALETTES[] = 
+__export char PALETTES[] = 
 
 kickasm {{
     .function GetPalette(tile,count,start,width,height,hstep,vstep,hinc,vinc) {
@@ -55,14 +55,18 @@ kickasm {{
                             .if(idx1==null) {   
                                 .error "unknown rgb value!"
                             }
-                            // Find palette index (add if not known)
-                            .eval rgb = pic.getPixel(x+1,y);
-                            .var idx2 = palette.get(rgb)
-                            .if(idx2==null) {
-                                .error "unknown rgb value!"
+                            .if(hinc>1) {
+                                // Find palette index (add if not known)
+                                .eval rgb = pic.getPixel(x+1,y);
+                                .var idx2 = palette.get(rgb)
+                                .if(idx2==null) {
+                                    .error "unknown rgb value!"
+                                }
+                                .eval tiledata.add( idx1*16+idx2 );
+                                // .print "idx1 = " + idx1 + ", idx2 = " + idx2
+                            } else {
+                                .eval tiledata.add(idx1+16);
                             }
-                            .eval tiledata.add( idx1*16+idx2 );
-                            // .print "idx1 = " + idx1 + ", idx2 = " + idx2
                         }
                     }
                 }

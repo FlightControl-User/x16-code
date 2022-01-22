@@ -24,7 +24,7 @@ void vera_tile_clear( byte layer ) {
     byte PaletteOffset = 1;
     byte Offset = 100;
 
-    dword mapbase = vera_mapbase_address[layer];
+    dword mapbase = vera_layer_get_mapbase_address(layer);
 
     vera_vram_data0_address(mapbase,VERA_INC_1);
 
@@ -37,8 +37,7 @@ void vera_tile_clear( byte layer ) {
 
 void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 
-    gotoxy(4+x*4,y+12);
-    // printf("%02u ",Segment);
+
 
     byte resolution = 2;
 
@@ -47,8 +46,8 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
     x = x << resolution;
     y = y << resolution;
 
-    dword mapbase = vera_mapbase_address[layer];
-    byte shift = vera_layer_rowshift[layer];
+    dword mapbase = vera_layer_get_mapbase_address(layer);
+    byte shift = vera_layer_get_rowshift(layer);
     word rowskip = (word)1 << shift;
     mapbase += ((word)y << shift);
     mapbase += (x << 1); // 2 bytes per tile (one index + one palette)
@@ -78,17 +77,17 @@ void floor_init(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     // printf("\no=%x, n=%x", (word)TileFloorOld, (word)TileFloorNew);
 
-    byte rnd = (byte)modr16u(rand(),36,0);
-    struct TileSegment *TileSegment = &(TileSegmentDB[(word)rnd]);
-    TileFloorNew[0] = rnd;
-    for(byte x=1;x<10;x++) {
-        struct TileGlue *TileGlue = TileSegment->Glue[1];
-        byte RndGlue = (byte)modr16u(rand(),TileGlue->CountGlue,0);
-        byte GlueSegment = TileGlue->GlueSegment[RndGlue];
-        TileSegment = &(TileSegmentDB[(word)GlueSegment]);
-        TileFloorNew[x] = GlueSegment;
+    byte TileLeft = (byte)modr16u(rand(),16,0);
+    TileFloorNew[0] = TileLeft;
+    for(byte x=1;x<TILES;x++) {
+        unsigned char Tile = (byte)modr16u(rand(),16,0);
+        byte TileMask = ((TileLeft << 1) & 0b1000) | ((TileLeft >> 1) & 0b0001);
+        Tile = Tile & 0b0110;
+        Tile = Tile | TileMask;
+        TileFloorNew[x] = Tile;
+        TileLeft = Tile;
     }
-    for(byte x=0;x<10;x++) {
+    for(byte x=0;x<TILES;x++) {
         word Tile = (word)TileFloorNew[x];
         vera_tile_element( 0, x, y, Tile);
     }
@@ -107,98 +106,77 @@ struct TileGlue* floor_get_glue(byte GlueSegment, byte GlueDirection ) {
 
 void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
-    byte TileResults[20];
-    byte TileResultsWeighted[20];
+    // gotoxy(0,y*3+2);
+    // printf("rnd: %02u", y);
+    // gotoxy(0,y*3+2+1);
+    // printf("val: %02u", y);
 
-    gotoxy(40,y+12);
-    
-    for(byte x=0;x<10;x++) {
+    for(byte x=0;x<TILES;x++) {
 
-        struct TileGlue *TileGlueNew;
+        byte Tile = (byte)modr16u(rand(),16,0);
+        // byte TileDown = TileFloorOld[x];
+        // Tile = (Tile & 0b1100) | ((TileDown >> 2) & 0b0011 );
+
+    // {
+    // gotoxy(6+x*6,y*3+2);
+    // byte i = 4; /* however many bits are in a byte on your platform */
+    // while(i--) {
+    //     printf("%c", '0' + (((byte)Tile >> i) & 1)); /* loop through and print the bits */
+    // }
+    // }
+
+        byte TileDown = TileFloorOld[x];
+        byte TileMask = ((TileDown >> 2) & 0b0011);
+        Tile = Tile & 0b1100;
+        Tile = Tile | TileMask;
+
         if(x>0) {
-            // Start from the west side ...
-            TileGlueNew = floor_get_glue(TileFloorNew[x-1], 1);
-        } else {
-            // Start from the south side ...
-            TileGlueNew = floor_get_glue(TileFloorOld[0], 0);
+            byte TileLeft = TileFloorNew[x-1];
+            byte TileMask = ((TileLeft << 1) & 0b1000) | ((TileLeft >> 1) & 0b0001);
+            Tile = Tile & 0b0110;
+            Tile = Tile | TileMask;
         }
+        TileFloorNew[x] = Tile;
 
-        // Find the common tile segment(s) ...
-        byte TileResultCount = 0;
-        for(byte i=0; i<TileGlueNew->CountGlue; i++) {
-            byte GlueSegmentNew = TileGlueNew->GlueSegment[i];
+    // {
+    // gotoxy(6+x*6,y*3+2+1);
+    // byte i = 4; /* however many bits are in a byte on your platform */
+    // while(i--) {
+    //     printf("%c", '0' + (((byte)Tile >> i) & 1)); /* loop through and print the bits */
+    // }
+    // }
 
-            byte TileSouth = 0;
-            byte TileEast = 0;
-            if(x>0) {
-                // Get the south side ...
-                struct TileGlue *TileGlueSouth = floor_get_glue(TileFloorOld[x], 0);
-                for(byte j=0;j<TileGlueSouth->CountGlue;j++) {
-                    byte GlueSegmentSouth = TileGlueSouth->GlueSegment[j];
-                    if( GlueSegmentNew == GlueSegmentSouth ) {
-                        TileSouth = 1;
-                    }
-                }
-            } else {
-                TileSouth = 1;
-            }
-            if(x<9) {
-                // Get the southeast side ...
-                struct TileGlue *TileGlueSouthEast = floor_get_glue(TileFloorOld[x+1], 0);
-                for(byte j=0;j<TileGlueSouthEast->CountGlue;j++) {
-                    byte GlueSegmentSouthEast = TileGlueSouthEast->GlueSegment[j];
-                    struct TileGlue *TileGlueEast = floor_get_glue(GlueSegmentSouthEast,3);
-                    for(byte f=0;f<TileGlueEast->CountGlue;f++) {
-                        byte GlueSegmentEast = TileGlueEast->GlueSegment[f];
-                        // if(TileFloorOld[x+1]==9) {
-                        //     printf("g%02u/g%02u/g%02u ", GlueSegmentNew, GlueSegmentEast, GlueSegmentSouthEast  );
-                        // }
-                        if( GlueSegmentNew == GlueSegmentEast ) {
-                            TileEast = 1;
-                        }
-                    }
-                }
-            } else {
-                TileEast = 1;
-            }
-            if(TileSouth == 1 && TileEast == 1) {
-                TileResults[TileResultCount] = GlueSegmentNew;
-                TileResultCount++;
-            }
-        }
+        // First we check the maximum weight for the weighted selection in the list.
+        // byte MaxWeight = 0;
+        // byte MinWeight = 255;
+        // for(byte i=0;i<TileResultCount;i++) {
+        //     byte Segment = TileResults[i];
+        //     byte Weight = TileSegmentDB[(word)Segment].Weight; // TODO: this mandatory case needs to be reported.
+        //     if( Weight > MaxWeight )
+        //         MaxWeight = Weight;
+        // }
+        // byte Weight = (byte)modr16u(rand(),(word)(MaxWeight),0);
 
-        if( TileResultCount>0) {
-            // First we check the maximum weight for the weighted selection in the list.
-            byte MaxWeight = 0;
-            byte MinWeight = 255;
-            for(byte i=0;i<TileResultCount;i++) {
-                byte Segment = TileResults[i];
-                byte Weight = TileSegmentDB[(word)Segment].Weight; // TODO: this mandatory case needs to be reported.
-                if( Weight > MaxWeight )
-                    MaxWeight = Weight;
-            }
-            byte Weight = (byte)modr16u(rand(),(word)(MaxWeight),0);
-
-            // Now build list with weighted selection ...
-            byte TileResultsWeightedCount = 0;
-            for(byte i=0;i<TileResultCount;i++) {
-                byte Segment = TileResults[i];
-                byte SegmentWeight = TileSegmentDB[(word)Segment].Weight;
-                if( SegmentWeight >= Weight ) {
-                    TileResultsWeighted[TileResultsWeightedCount] = Segment;
-                    TileResultsWeightedCount++;
-                }
-            }
-            if(TileResultsWeightedCount==0) printf("error");
-            byte GlueSegment = TileResultsWeighted[(byte)modr16u(rand(),(word)(TileResultsWeightedCount),0)];
-            TileFloorNew[x] = GlueSegment;
-        } else {
-            byte GlueSegment = 255;
-            TileFloorNew[x] = GlueSegment;
-        }
+            // // Now build list with weighted selection ...
+            // byte TileResultsWeightedCount = 0;
+            // for(byte i=0;i<TileResultCount;i++) {
+            //     byte Segment = TileResults[i];
+            //     byte SegmentWeight = TileSegmentDB[(word)Segment].Weight;
+            //     if( SegmentWeight >= Weight ) {
+            //         TileResultsWeighted[TileResultsWeightedCount] = Segment;
+            //         TileResultsWeightedCount++;
+            //     }
+            // }
+            // if(TileResultsWeightedCount==0) printf("error");
+            // byte GlueSegment = TileResultsWeighted[(byte)modr16u(rand(),(word)(TileResultsWeightedCount),0)];
+            // TileFloorNew[x] = GlueSegment;
+        // } else {
+        //     byte GlueSegment = 255;
+        //     TileFloorNew[x] = GlueSegment;
+        // }
     }
 
-    for(byte x=0;x<10;x++) {
+    for(byte x=0;x<TILES;x++) {
         word Tile = (word)TileFloorNew[x];
         // gotoxy(0,12+y); printf("y%02u",y);
         vera_tile_element( 0, x, y, Tile);
@@ -229,11 +207,11 @@ void show_memory_map() {
     for(byte i=0;i<TILE_TYPES;i++) {
         struct Tile *Tile = TileDB[i];
         byte TileOffset = Tile->TileOffset;
-        gotoxy(0, 30+i);
-        // printf("t:%u bram:%x:%p, vram:", i, heap_data_bank(Tile->BRAM_Handle), heap_data_ptr(Tile->BRAM_Handle));
+        // gotoxy(0, 30+i);
+        printf("t:%u bram:%x:%p, vram:", i, heap_data_bank(Tile->BRAM_Handle), heap_data_ptr(Tile->BRAM_Handle));
         for(byte j=0;j<Tile->TileCount;j++) {
             struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+j)];
-            // printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
+            printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
         }
     }
 }
@@ -258,9 +236,9 @@ void tile_cpy_vram_from_bram(struct Tile *Tile) {
         struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
         // TODO: make shorter, missing fragments.
         word Offset = ((word)ptr_vram_tile - (word)0x2000);
-        Offset = Offset >> 4;
-        Offset = Offset >> 3;
-        TilePart->TileOffset = Offset;
+        // Offset = Offset >> 4;
+        // Offset = Offset >> 4;
+        TilePart->TileOffset = BYTE1(Offset);
         TilePart->VRAM_Handle = handle_vram_tile;
         ptr_bram_tile = cx16_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
         bank_bram_tile = cx16_bram_bank_get();

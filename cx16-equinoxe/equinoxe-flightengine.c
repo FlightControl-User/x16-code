@@ -315,19 +315,19 @@ void main() {
 
     unsigned int palette_loaded = 0;
 
-    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes);
-    if(!sprite_palette_loaded) printf("error file_palettes");
-    palette_loaded += sprite_palette_loaded;
-    heap_ptr ptr_bram_palettes_sprite = heap_data_ptr(handle_bram_palettes)+palette_loaded;
-
 
     unsigned int floor_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
     if(!floor_palette_loaded) printf("error file_palettes");
     palette_loaded += floor_palette_loaded;
     heap_ptr ptr_bram_palettes_floor = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
+    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    if(!sprite_palette_loaded) printf("error file_palettes");
+    palette_loaded += sprite_palette_loaded;
+    heap_ptr ptr_bram_palettes_sprite = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
-    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
+
+    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
     // Tested
 
     // TILE INITIALIZATION 
@@ -339,7 +339,7 @@ void main() {
         heap_size_pack(0x2000*8)
         );
 
-    gotoxy(0, 10);
+    // gotoxy(0, 10);
 
     // Loading the graphics in main banked memory.
     for(i=0; i<TILE_TYPES;i++) {
@@ -351,11 +351,13 @@ void main() {
         tile_cpy_vram_from_bram(TileDB[i]);
     }
 
-    // show_memory_map();
+    //show_memory_map();
+    // while(!kbhit());
 
-    vera_layer_mode_tile(0, FLOOR_MAP_ADDRESS_VRAM, 0x02000, 64, 64, 16, 16, 4);
+    vera_layer_mode_tile(0, FLOOR_MAP_ADDRESS_VRAM, 0x02000, 64, 64, 16, 16, 8);
 
     vera_layer_show(0);
+    vera_layer_show(1);
 
     //floor_init();
     tile_background();
@@ -401,7 +403,7 @@ void main() {
 
     StageInit();
 
-    gotoxy(0,0);
+    // gotoxy(0,0);
 
     vera_display_set_hstart(2);
     vera_display_set_hstop(158);
