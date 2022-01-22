@@ -232,9 +232,10 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         } 
         vera_layer_set_vertical_scroll(0,vscroll);
         vscroll--;
+       
     }
 
-
+    // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
