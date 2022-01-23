@@ -209,16 +209,15 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
 
             if(row%4==3) {
-                s++; s&=1;
-                floor_draw((byte)row/4, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
+                floor_draw();
             }
 
-            vera_tile_row(0, row, s?TileFloorOld:TileFloorNew);
+            vera_tile_row(0, row);
 
             if(row<=31) {
                 unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
                 unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
-                cx16_cpy16_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*2); // Copy one row.
+                cx16_cpy8_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*2); // Copy one row.
             }
 
             if(vscroll==0) {
@@ -227,10 +226,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
             if(row==0) {
                 row=32;
+                tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_64+64*2;
+                tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_32+64*2;
             }
 
             row--;
-
         }
 
         vera_layer_set_vertical_scroll(0,vscroll);

@@ -20,7 +20,7 @@ struct Tile {
 
 
 
-byte const TILE_FLOOR01_COUNT = 30;
+const byte TILE_FLOOR01_COUNT = 30;
 struct Tile TileFloor01 =       { "FLOOR01", TILE_FLOOR01_COUNT, 0, 32*32*TILE_FLOOR01_COUNT, 1024, 0, 0x0 };
 
 byte const TILE_TYPES = 1;
@@ -110,5 +110,15 @@ struct TileWeight TileWeightDB[5] = {
 byte const TILE_FLOOR_COUNT = TILE_FLOOR01_COUNT; 
 
 byte const TILES = 16; 
-byte TileFloorNew[TILES];
-byte TileFloorOld[TILES];
+volatile unsigned char TileFloorBufferNew[TILES];
+volatile unsigned char TileFloorBufferOld[TILES];
+volatile unsigned char* TileFloor;
+volatile unsigned char* TileFloorNew = TileFloorBufferNew;
+volatile unsigned char* TileFloorOld = TileFloorBufferOld;
+
+// This is a performance improvement tactic.
+#define FLOOR_MAP_OFFSET_VRAM_SRC_64 FLOOR_MAP_OFFSET_VRAM+(31+32)*64*2
+#define FLOOR_MAP_OFFSET_VRAM_DST_32 FLOOR_MAP_OFFSET_VRAM+31*64*2
+volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_64;
+volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_32;
+

@@ -34,7 +34,7 @@ void vera_tile_clear( byte layer ) {
     }
 }
 
-void vera_tile_row( byte layer, byte row, byte *TileFloor ) {
+void vera_tile_row( byte layer, byte row) {
 
     dword mapbase = vera_layer_get_mapbase_address(layer);
     byte shift = vera_layer_get_rowshift(layer);
@@ -52,10 +52,11 @@ void vera_tile_row( byte layer, byte row, byte *TileFloor ) {
             struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
             struct Tile *Tile = TilePart->Tile; 
             word TileOffset = TilePart->TileOffset;
+            byte TilePaletteOffset = Tile->PaletteOffset << 4; 
             for(byte c=0;c<2;c++) {
                 word Offset = TileOffset + r + c;
                 *VERA_DATA0 = BYTE0(Offset);
-                *VERA_DATA0 = Tile->PaletteOffset << 4 | BYTE1(Offset);
+                *VERA_DATA0 = TilePaletteOffset | BYTE1(Offset);
             }
         }
     }
@@ -98,20 +99,27 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 
 
 
-void floor_init(byte y, byte *TileFloorNew, byte *TileFloorOld) {
+void floor_init() {
 
     // Initialize the first new floor was blank tiles.
+
+    TileFloor = TileFloorOld;
+
     for(byte x=0;x<TILES;x++) {
-        TileFloorNew[x] = 0;
+        TileFloor[x] = 0;
     }
 }
 
-void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
+void floor_draw() {
 
     // gotoxy(0,y*3+2);
     // printf("rnd: %02u", y);
     // gotoxy(0,y*3+2+1);
     // printf("val: %02u", y);
+
+    TileFloorOld = TileFloor;
+    TileFloorNew = TileFloorOld;
+    TileFloor = TileFloorNew;
 
     for(byte x=0;x<TILES;x++) {
 
@@ -145,7 +153,7 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
         Tile = Tile & 0b1100;
         Tile = Tile | TileMask;
 
-        TileFloorNew[x] = Tile;
+        TileFloor[x] = Tile;
 
     }
 
@@ -160,15 +168,14 @@ void tile_background() {
 
     vera_layer_set_vertical_scroll(0,8*64);
     vera_tile_clear(0);
-    floor_init(15, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
+    floor_init();
     for(row=63;row>=32;row--) {
         // The 3 is very important, because we draw from the bottom to the top.
         // So every 4 rows, but we draw when the row is 4, not 0;
         if(row%4==3) {
-            s++; s&=1;
-            floor_draw(row/4, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
+            floor_draw();
         }
-        vera_tile_row(0, row, s?TileFloorOld:TileFloorNew);
+        vera_tile_row(0, row);
     }
 }
 
