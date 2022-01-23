@@ -34,36 +34,29 @@ void vera_tile_clear( byte layer ) {
     }
 }
 
-void vera_tile_row( byte layer, byte y,  byte *TileFloor ) {
-
-    byte resolution = 2;
-
-    y = y << resolution;
+void vera_tile_row( byte layer, byte row, byte *TileFloor ) {
 
     dword mapbase = vera_layer_get_mapbase_address(layer);
     byte shift = vera_layer_get_rowshift(layer);
-    word rowskip = (word)1 << shift;
-    mapbase += ((word)y << shift);
+    mapbase += ((word)row << shift);
 
-    for(byte sr=0;sr<4;sr+=2) {
-        for(byte r=0;r<4;r+=2) {
-            vera_vram_data0_address(mapbase,VERA_INC_1);
-            for(byte x=0; x<TILES;x++) {
-                word Segment = (word)TileFloor[x];
-                struct TileSegment *TileSegment = &(TileSegmentDB[Segment]);
-                for(byte sc=0;sc<2;sc++) {
-                    byte s = sc + sr;
-                    struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
-                    struct Tile *Tile = TilePart->Tile; 
-                    word TileOffset = TilePart->TileOffset;
-                    for(byte c=0;c<2;c++) {
-                        word Offset = TileOffset + r + c;
-                        *VERA_DATA0 = BYTE0(Offset);
-                        *VERA_DATA0 = Tile->PaletteOffset << 4 | BYTE1(Offset);
-                    }
-                }
+    byte sr = ( (row % 4) / 2 ) * 2;
+    byte r = (row % 2) * 2;
+
+    vera_vram_data0_address(mapbase,VERA_INC_1);
+    for(byte x=0; x<TILES;x++) {
+        word Segment = (word)TileFloor[x];
+        struct TileSegment *TileSegment = &(TileSegmentDB[Segment]);
+        for(byte sc=0;sc<2;sc++) {
+            byte s = sc + sr;
+            struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
+            struct Tile *Tile = TilePart->Tile; 
+            word TileOffset = TilePart->TileOffset;
+            for(byte c=0;c<2;c++) {
+                word Offset = TileOffset + r + c;
+                *VERA_DATA0 = BYTE0(Offset);
+                *VERA_DATA0 = Tile->PaletteOffset << 4 | BYTE1(Offset);
             }
-            mapbase += rowskip;
         }
     }
 }
@@ -107,25 +100,10 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
 
 void floor_init(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
-    // printf("\no=%x, n=%x", (word)TileFloorOld, (word)TileFloorNew);
-
-    byte TileLeft = (byte)modr16u(rand(),16,0);
-    TileFloorNew[0] = TileLeft;
-    for(byte x=1;x<TILES;x++) {
-        unsigned char Tile = (byte)modr16u(rand(),16,0);
-        byte TileMask = ((TileLeft << 1) & 0b1000) | ((TileLeft >> 1) & 0b0001);
-        Tile = Tile & 0b0110;
-        Tile = Tile | TileMask;
-        TileFloorNew[x] = Tile;
-        TileLeft = Tile;
+    // Initialize the first new floor was blank tiles.
+    for(byte x=0;x<TILES;x++) {
+        TileFloorNew[x] = 0;
     }
-
-    vera_tile_row( 0, y, TileFloorNew );
-
-    // for(byte x=0;x<TILES;x++) {
-    //     word Tile = (word)TileFloorNew[x];
-    //     vera_tile_element( 0, x, y, Tile);
-    // }
 }
 
 void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
@@ -137,13 +115,14 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     for(byte x=0;x<TILES;x++) {
 
-        byte Tile = (byte)modr16u(rand(),16,0);
-        byte Weight = (byte)modr16u(rand(),16,0);
-        while(TileSegmentDB[(word)Tile].Weight < Weight) {
-            Tile = (byte)modr16u(rand(),16,0);
+        byte Weight = (byte)modr16u(rand(),17,1);
+        struct TileWeight *TileWeight;
+        for(word i=0;i<TILE_WEIGHTS;i++) {
+            TileWeight = &(TileWeightDB[i]);
+            if(TileWeight->Weight >= Weight)
+                break;
         }
-        // byte TileDown = TileFloorOld[x];
-        // Tile = (Tile & 0b1100) | ((TileDown >> 2) & 0b0011 );
+        byte Tile = TileWeight->TileSegment[(unsigned char)modr16u(rand(),(word)TileWeight->Count,0)];
 
     // {
     // gotoxy(6+x*6,y*3+2);
@@ -170,8 +149,6 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
     }
 
-    vera_tile_row( 0, y, TileFloorNew );
-
     // for(byte x=0;x<TILES;x++) {
     //     word Tile = (word)TileFloorNew[x];
     //     // gotoxy(0,12+y); printf("y%02u",y);
@@ -181,21 +158,18 @@ void floor_draw(byte y, byte *TileFloorNew, byte *TileFloorOld) {
 
 void tile_background() {
 
-    int TileIndex = 0;
-    int TileIndexColumn = 0;
-    int TileIndexRow = 0;
-    TileIndex = TileIndexRow << 4 + TileIndexColumn;
-
-    vera_tile_clear(0);
-    byte y=15;
-    floor_init(y, TileFloorNew, TileFloorOld);
-    for(i=0;i<8;i++) {
-        y--;
-        floor_draw(y, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
-        s++;
-        s&=1;
-    }
     vera_layer_set_vertical_scroll(0,8*64);
+    vera_tile_clear(0);
+    floor_init(15, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
+    for(row=63;row>=32;row--) {
+        // The 3 is very important, because we draw from the bottom to the top.
+        // So every 4 rows, but we draw when the row is 4, not 0;
+        if(row%4==3) {
+            s++; s&=1;
+            floor_draw(row/4, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
+        }
+        vera_tile_row(0, row, s?TileFloorOld:TileFloorNew);
+    }
 }
 
 void show_memory_map() {

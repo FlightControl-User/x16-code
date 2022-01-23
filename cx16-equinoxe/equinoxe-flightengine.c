@@ -214,22 +214,60 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     if(!scroll_action--) {
         scroll_action = 2;
         // gotoxy(0, 10);
-        // printf("vscroll:%u row:%u   ",vscroll, row);
-        if((BYTE0(vscroll) & 0xC0)==BYTE0(vscroll) ) {
-            if(row<=7) {
-                unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+((row+8)*4*64*2);
-                unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+(row*4*64*2);
-                cx16_cpy16_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*4*2);
+        // printf("vscroll:%u segmentrow:%u   ",vscroll, segmentrow);
+        // if((BYTE0(vscroll) & 0xC0)==BYTE0(vscroll) ) {
+
+
+            // if(segmentrow<=7) {
+            //     unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+((segmentrow+8)*4*64*2);
+            //     unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+(segmentrow*4*64*2);
+            //     cx16_cpy16_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*4*2);
+            // }
+            // if(vscroll==0) {
+            //     vscroll=8*64;
+            //     segmentrow = 8;
+            // }
+            // floor_draw((byte)segmentrow-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
+            
+            // s++;
+            // s&=1;
+            // segmentrow--;
+
+        // Check every 16 vscroll movements if something needs to be done.
+        // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
+
+        // gotoxy(0,8+(byte)(row/4));
+        // printf("%02u - row: %03u, vscroll: %04u", row/4, row, vscroll);
+
+        if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
+
+            if(row%4==3) {
+                s++; s&=1;
+                floor_draw((byte)row/4, s?TileFloorOld:TileFloorNew, s?TileFloorNew:TileFloorOld);
             }
+
+            vera_tile_row(0, row, s?TileFloorOld:TileFloorNew);
+
+            if(row<=31) {
+                // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+((segmentrow+8)*4*64*2);
+                // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+(segmentrow*4*64*2);
+                unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
+                unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
+                cx16_cpy16_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*2); // Copy one row.
+            }
+
             if(vscroll==0) {
-                vscroll=8*64;
-                row = 8;
+                vscroll=16*32;
             }
-            floor_draw((byte)row-1, s?TileFloorNew:TileFloorOld, s?TileFloorOld:TileFloorNew);
-            s++;
-            s&=1;
+
+            if(row==0) {
+                row=32;
+            }
+
             row--;
-        } 
+
+        }
+
         vera_layer_set_vertical_scroll(0,vscroll);
         vscroll--;
        
