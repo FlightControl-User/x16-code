@@ -31,9 +31,9 @@ void plot_handle(heap_handle handle, word size, byte color) {
 void main() {
 
 	// We are going to use only the kernal on the X16.
-    cx16_brom_bank_set(CX16_ROM_KERNAL);
+    bank_set_brom(CX16_ROM_KERNAL);
 
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 2);

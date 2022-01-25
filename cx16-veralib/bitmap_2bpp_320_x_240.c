@@ -21,7 +21,7 @@ void main() {
     // realign the moved character set to 0xf000 as the new tile base for layer 1.
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 2);

@@ -57,7 +57,7 @@ void LogicPlayer() {
 
 		Entity* player = (Entity*)heap_data_ptr(player_handle);
 
-		byte bank = cx16_bram_bank_get();
+		byte bank = bank_get_bram();
 		// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, bank);
 		player->dx = player->dy = 0;
 

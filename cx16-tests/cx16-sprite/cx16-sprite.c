@@ -41,7 +41,7 @@ struct sprite sprite =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRIT
 int main() {
 
     // We are going to use only the kernal on the X16.
-    cx16_brom_bank_set(CX16_ROM_KERNAL);
+    bank_set_brom(CX16_ROM_KERNAL);
 
     // Handle the relocation of the CX16 petscii character set and map to the most upper corner in VERA VRAM.
     petscii();
@@ -50,7 +50,7 @@ int main() {
 
     gotoxy(0, 10);
 
-    unsigned int status = cx16_bram_load(1, 8, 0, sprite->File, 1, 0xA000);
+    unsigned int status = load_bram(1, 8, 0, sprite->File, 1, 0xA000);
     if(status!=$ff) printf("error file %s: %x\n", sprite->File, status);
 
     byte SpriteCount = sprite->SpriteCount;
@@ -65,7 +65,7 @@ int main() {
     for(byte s=0;s<SpriteCount;s++) {
 
         printf("bram->vram: %x, bank_vram_sprite = %x, ptr_vram_sprite = %p, bank_bram_sprite = %x, ptr_bram_sprite = %p, SpriteSize = %x\n", s, bank_vram_sprite, ptr_vram_sprite, bank_bram_sprite, ptr_bram_sprite, SpriteSize);
-        cx16_cpy_vram_from_bram(bank_vram_sprite, (word)ptr_vram_sprite, bank_vram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
+        memcpy_vram_bram(bank_vram_sprite, (word)ptr_vram_sprite, bank_vram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
 
         vera_sprite_bpp(s+1, sprite->BPP);
         vera_sprite_height(s+1, sprite->Height);
@@ -78,8 +78,8 @@ int main() {
 
         vera_sprite_ptr(s+1, 0, 0x0000);
 
-        ptr_bram_sprite = cx16_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
-        bank_bram_sprite = cx16_bram_bank_get();
+        ptr_bram_sprite = bank_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
+        bank_bram_sprite = bank_get_bram();
         while(!getin());
     }
 
@@ -88,7 +88,7 @@ int main() {
     while(!getin());
 
     // Back to basic.
-    cx16_brom_bank_set(CX16_ROM_BASIC);
+    bank_set_brom(CX16_ROM_BASIC);
 
 
 }

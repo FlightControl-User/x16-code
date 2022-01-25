@@ -101,7 +101,7 @@ struct TileWeight TileWeightDB[5] = {
     { 01, 6, { 01, 02, 04, 05, 07, 08 } },
     { 04, 4, { 10, 11, 13, 14 } },
     { 08, 2, { 03, 12 } },
-    { 12, 3, { 06, 09, 00 } },
+    { 12, 2, { 06, 09 } },
     { 16, 1, { 15 } }
 };
 
@@ -117,8 +117,10 @@ volatile unsigned char* TileFloorNew = TileFloorBufferNew;
 volatile unsigned char* TileFloorOld = TileFloorBufferOld;
 
 // This is a performance improvement tactic.
-#define FLOOR_MAP_OFFSET_VRAM_SRC_64 FLOOR_MAP_OFFSET_VRAM+(31+32)*64*2
-#define FLOOR_MAP_OFFSET_VRAM_DST_32 FLOOR_MAP_OFFSET_VRAM+31*64*2
-volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_64;
-volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_32;
+unsigned int const FLOOR_MAP_OFFSET_VRAM_DST_63 = FLOOR_MAP_OFFSET_VRAM+63*64*2;
+unsigned int const FLOOR_MAP_OFFSET_VRAM_SRC_31 = FLOOR_MAP_OFFSET_VRAM+31*64*2;
+volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63+64*2;
+volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31+64*2;
+volatile unsigned int row = 31;
+
 

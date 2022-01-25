@@ -151,7 +151,7 @@ void tile_16_x_16_8BPP_256_color() {
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x10000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
 
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x10000, 0x1F000, 128, 64, 8, 8, 1);
     vera_display_set_scale_none();
 
@@ -167,13 +167,13 @@ void tile_16_x_16_8BPP_256_color() {
 
 
     word tilebase = 0x0000;
-    cx16_cpy_vram_from_ram(0, tilebase, tiles, 256);
+    memcpy_vram_ram(0, tilebase, tiles, 256);
     tilebase+=256;
     for(byte t:1..255) {
         for(byte p:0..255) {
             tiles[p]+=1;
         }
-        cx16_cpy_vram_from_ram(0, tilebase, tiles, 256);
+        memcpy_vram_ram(0, tilebase, tiles, 256);
         tilebase+=256;
     }
 
@@ -228,7 +228,7 @@ void tile_16_x_16_8BPP_256_color() {
 
     while(!getin());
 
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 
@@ -255,13 +255,13 @@ void tile_8_x_8_8BPP_256_color() {
     };
 
     word tilebase = 0x4000;
-    cx16_cpy_vram_from_ram(1, tilebase, tiles, 64);
+    memcpy_vram_ram(1, tilebase, tiles, 64);
     tilebase+=64;
     for(byte t:1..255) {
         for(byte p:0..63) {
             tiles[p]+=1;
         }
-        cx16_cpy_vram_from_ram(1, tilebase, tiles, 64);
+        memcpy_vram_ram(1, tilebase, tiles, 64);
         tilebase+=64;
     }
 
@@ -312,7 +312,7 @@ void tile_8_x_8_8BPP_256_color() {
 
     while(!getin());
 
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 
@@ -458,7 +458,7 @@ void tile_16_x_16_4BPP_16_color() {
         0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
     };
 
-    cx16_cpy_vram_from_ram(1, 0x4000, tiles, 2048);
+    memcpy_vram_ram(1, 0x4000, tiles, 2048);
 
     //vera_tile_area(byte layer, word tileindex, byte x, byte y, byte w, byte h, byte hflip, byte vflip, byte offset)
 
@@ -575,7 +575,7 @@ void tile_8_x_8_4BPP_16_color() {
         0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
     };
 
-    cx16_cpy_vram_from_ram(1, 0x4000, tiles, 512);
+    memcpy_vram_ram(1, 0x4000, tiles, 512);
 
     vera_tile_area(0, 0, 0, 0, 80, 60, 0, 0, 0);
 
@@ -674,7 +674,7 @@ void tile_16_x_16_2BPP_4_color() {
         0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
     };
 
-    cx16_cpy_vram_from_ram(1, 0x4000, tiles, 256);
+    memcpy_vram_ram(1, 0x4000, tiles, 256);
 
     //vera_tile_area(byte layer, word tileindex, byte x, byte y, byte w, byte h, byte hflip, byte vflip, byte offset)
 
@@ -744,7 +744,7 @@ void tile_8_x_8_2BPP_4_color() {
 
     byte map[16] =  {0x00,0x00,0x00,0x00,0x01,0x00,0x01,0x00,0x02,0x00,0x02,0x00,0x03,0x00,0x03,0x00};
 
-    cx16_cpy_vram_from_ram(1, 0x4000, tiles, 64);
+    memcpy_vram_ram(1, 0x4000, tiles, 64);
 
     //vera_tile_area(byte layer, word tileindex, byte x, byte y, byte w, byte h, byte hflip, byte vflip, byte offset)
 
@@ -863,7 +863,7 @@ void bitmap_320_x_240_1BPP() {
     // realign the moved character set to 0xf000 as the new tile base for layer 1.
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 1);
 
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
@@ -912,7 +912,7 @@ void bitmap_320_x_240_1BPP() {
         x++;
         if(x>319) x=0;
     };
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_640_x_480_1BPP() {
@@ -927,7 +927,7 @@ void bitmap_640_x_480_1BPP() {
     // realign the moved character set to 0xf000 as the new tile base for layer 1.
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 640, 1);
@@ -976,7 +976,7 @@ void bitmap_640_x_480_1BPP() {
         x++;
         if(x>639) x=0;
     };
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_320_x_240_2BPP() {
@@ -989,7 +989,7 @@ void bitmap_320_x_240_2BPP() {
     // realign the moved character set to 0xf000 as the new tile base for layer 1.
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 2);
@@ -1038,7 +1038,7 @@ void bitmap_320_x_240_2BPP() {
         x++;
         if(x>319) x=0;
     };
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_640_x_480_2BPP() {
@@ -1051,7 +1051,7 @@ void bitmap_640_x_480_2BPP() {
     // realign the moved character set to 0xf000 as the new tile base for layer 1.
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 640, 2);
@@ -1100,7 +1100,7 @@ void bitmap_640_x_480_2BPP() {
         x++;
         if(x>639) x=0;
     };
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_320_x_240_4BPP() {
@@ -1114,7 +1114,7 @@ void bitmap_320_x_240_4BPP() {
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
 
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 4);
@@ -1164,7 +1164,7 @@ void bitmap_320_x_240_4BPP() {
         if(x>319) x=0;
     };
 
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_320_x_240_8BPP() {
@@ -1177,7 +1177,7 @@ void bitmap_320_x_240_8BPP() {
     // realign the moved character set to 0xf000 as the new tile base for layer 1.
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
-    cx16_cpy_vram_from_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 8);
@@ -1226,5 +1226,5 @@ void bitmap_320_x_240_8BPP() {
         if(x>319) x=0;
     };
 
-    cx16_cpy_vram_from_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }

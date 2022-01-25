@@ -123,14 +123,15 @@ void floor_draw() {
 
     for(byte x=0;x<TILES;x++) {
 
-        byte Weight = (byte)modr16u(rand(),17,1);
+        unsigned char Rnd = BYTE0(rand());
+        byte Weight = (Rnd & 17);
         struct TileWeight *TileWeight;
         for(word i=0;i<TILE_WEIGHTS;i++) {
             TileWeight = &(TileWeightDB[i]);
             if(TileWeight->Weight >= Weight)
                 break;
         }
-        byte Tile = TileWeight->TileSegment[(unsigned char)modr16u(rand(),(word)TileWeight->Count,0)];
+        byte Tile = TileWeight->TileSegment[(word)(Rnd & TileWeight->Count)];
 
     // {
     // gotoxy(6+x*6,y*3+2);
@@ -140,6 +141,7 @@ void floor_draw() {
     // }
     // }
 
+        // byte Tile = (BYTE0(rand()) & 0x0F);
 
         if(x>0) {
             byte TileLeft = TileFloorNew[x-1];
@@ -207,7 +209,7 @@ void tile_cpy_vram_from_bram(struct Tile *Tile) {
         heap_bank bank_vram_tile = heap_data_bank(handle_vram_tile);
         heap_ptr ptr_vram_tile = heap_data_ptr(handle_vram_tile);
 
-        cx16_cpy_vram_from_bram(bank_vram_tile, (word)ptr_vram_tile, bank_bram_tile, (byte*)ptr_bram_tile, TileSize);
+        memcpy_vram_bram(bank_vram_tile, (word)ptr_vram_tile, bank_bram_tile, (byte*)ptr_bram_tile, TileSize);
 
         struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
         // TODO: make shorter, missing fragments.
@@ -216,8 +218,8 @@ void tile_cpy_vram_from_bram(struct Tile *Tile) {
         // Offset = Offset >> 4;
         TilePart->TileOffset = BYTE1(Offset);
         TilePart->VRAM_Handle = handle_vram_tile;
-        ptr_bram_tile = cx16_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
-        bank_bram_tile = cx16_bram_bank_get();
+        ptr_bram_tile = bank_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
+        bank_bram_tile = bank_get_bram();
     }
 }
 
@@ -232,7 +234,7 @@ heap_handle tile_load( struct Tile *Tile) {
 
     // printf("bram: %x:%p\n", heap_data_bank(handle_bram_tile), heap_data_ptr(handle_bram_tile));
 
-    unsigned int tiles_loaded = cx16_bram_load(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
+    unsigned int tiles_loaded = load_bram(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
     if(!tiles_loaded) printf("error file %s\n", Tile->File);
 
     Tile->BRAM_Handle = handle_bram_tile;
@@ -246,7 +248,7 @@ heap_handle tile_load( struct Tile *Tile) {
 
 
 //     // We are going to use only the kernal on the X16.
-//     cx16_brom_bank_set(CX16_ROM_KERNAL);
+//     bank_set_brom(CX16_ROM_KERNAL);
 
 //     // Memory is managed as follows:
 //     // ------------------------------------------------------------------------
@@ -299,17 +301,17 @@ heap_handle tile_load( struct Tile *Tile) {
 
 //     unsigned int palette_loaded = 0;
 
-//     unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+//     unsigned int sprite_palette_loaded = load_bram(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
 //     if(!sprite_palette_loaded) printf("error file_palettes");
 //     palette_loaded += sprite_palette_loaded;
 //     heap_ptr ptr_bram_palettes_sprite = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
-//     unsigned int floor_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+//     unsigned int floor_palette_loaded = load_bram(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
 //     if(!floor_palette_loaded) printf("error file_palettes");
 //     palette_loaded += floor_palette_loaded;
 //     heap_ptr ptr_bram_palettes_floor = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
-//     cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
+//     memcpy_vram_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
 
 //     // Initialize the bram heap for tile loading.
 //     heap_address bram_floor_tile = heap_segment_bram(
@@ -349,7 +351,7 @@ heap_handle tile_load( struct Tile *Tile) {
 //     while(!kbhit());
 
 //     // Back to basic.
-//     cx16_brom_bank_set(CX16_ROM_BASIC);
+//     bank_set_brom(CX16_ROM_BASIC);
 // }
 
 // //VSYNC Interrupt Routine

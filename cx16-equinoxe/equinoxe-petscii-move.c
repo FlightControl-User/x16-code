@@ -20,7 +20,7 @@ heap_address petscii() {
     heap_vram_offset ptr_vram_petscii_tile = (heap_vram_offset)heap_data_ptr(handle_vram_petscii_tile);
     heap_bank bank_vram_petscii_tile = heap_data_bank(handle_vram_petscii_tile);
 
-    cx16_cpy_vram_from_vram(bank_vram_petscii_tile, (word)ptr_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
+    memcpy_vram_vram(bank_vram_petscii_tile, (word)ptr_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
 
     dword vram_petscii_map = vera_ptr_to_address(bank_vram_petscii_map, (char*)ptr_vram_petscii_map);
     dword vram_petscii_tile = vera_ptr_to_address(bank_vram_petscii_tile, (char*)ptr_vram_petscii_tile); 

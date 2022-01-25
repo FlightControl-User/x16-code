@@ -18,11 +18,11 @@
 struct HEAP_SEGMENT heap_segments[16];
 
 inline void heap_bram_bank_set(heap_bank bank) {
-	cx16_bram_bank_set(bank);
+	bank_set_bram(bank);
 }
 
 inline heap_bank heap_bram_bank_get() {
-	return cx16_bram_bank_get();
+	return bank_get_bram();
 }
 
 /**

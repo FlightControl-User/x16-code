@@ -42,7 +42,7 @@ void main() {
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x10000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
 
-    cx16_cpy_vram_from_vram(1, (char*)0xF000, VERA_INC_1, 0, (char*)0xF800, VERA_INC_1, 256*8); // We copy the 128 character set of 8 bytes each.
+    memcpy_vram_vram(1, (char*)0xF000, VERA_INC_1, 0, (char*)0xF800, VERA_INC_1, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_tile(1, 0x10000, 0x1F000, 128, 64, 8, 8, 1);
 
     screenlayer(1);
@@ -63,7 +63,7 @@ void main() {
         for(byte p:0..255) {
             tiles[p]+=1;
         }
-        cx16_cpy_vram_from_ram(0, tilebase, tiles, 256);
+        memcpy_vram_ram(0, tilebase, tiles, 256);
         tilebase+=256;
     }
 
@@ -121,7 +121,7 @@ void main() {
     // Now put back the defaults ...
     vera_tile_area(0, 0, 0, 0, 40, 30, 0, 0, 0);
     vera_layer_hide(0);
-    cx16_cpy_vram_from_vram(0, (char*)0xF800, VERA_INC_1, 1, (char*)0xF000, VERA_INC_1, 256*8);
+    memcpy_vram_vram(0, (char*)0xF800, VERA_INC_1, 1, (char*)0xF000, VERA_INC_1, 256*8);
     vera_layer_mode_tile(1, 0x00000, 0x0F800, 128, 128, 8, 8, 1);
     vera_layer_mode_tile(0, 0x00000, 0x0F800, 128, 128, 8, 8, 1);
 

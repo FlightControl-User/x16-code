@@ -43,11 +43,11 @@ void sprite_cpy_vram_from_bram(Sprite* sprite) {
         heap_bank bank_vram_sprite = heap_data_bank(handle_vram_sprite);
         heap_vram_offset offset_vram_sprite = (heap_vram_offset)heap_data_ptr(handle_vram_sprite);
 
-        cx16_cpy_vram_from_bram(bank_vram_sprite, (word)offset_vram_sprite, bank_bram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
+        memcpy_vram_bram(bank_vram_sprite, (word)offset_vram_sprite, bank_bram_sprite, (byte*)ptr_bram_sprite, SpriteSize);
 
         sprite->offset_image[s] = vera_sprite_get_image_offset(bank_vram_sprite, offset_vram_sprite);
-        ptr_bram_sprite = cx16_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
-        bank_bram_sprite = cx16_bram_bank_get();
+        ptr_bram_sprite = bank_bram_ptr_inc(bank_bram_sprite, ptr_bram_sprite, SpriteSize);
+        bank_bram_sprite = bank_get_bram();
     }
 }
 
@@ -59,7 +59,7 @@ heap_handle sprite_load(Sprite* sprite) {
     heap_bank bank_bram_sprite = heap_data_bank(handle_bram_sprite);
     heap_handle data_handle_bram_sprite = heap_data_get(handle_bram_sprite);
 
-    unsigned int bytes_loaded = cx16_bram_load(1, 8, 0, sprite->File, bank_bram_sprite, ptr_bram_sprite);
+    unsigned int bytes_loaded = load_bram(1, 8, 0, sprite->File, bank_bram_sprite, ptr_bram_sprite);
     if (!bytes_loaded) printf("error file %s\n", sprite->File);
 
     sprite->BRAM_Handle = handle_bram_sprite;
@@ -132,7 +132,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     vera_display_set_border_color(1);
 
-    cx16_bank oldbank = cx16_bram_bank_get();
+    cx16_bank oldbank = bank_get_bram();
 
     // Check if collision interrupt
     // if (vera_sprite_is_collision()) {
@@ -215,22 +215,24 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
             vera_tile_row(0, row);
 
             if(row<=31) {
-                unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
-                unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
-                cx16_cpy8_vram_from_vram(FLOOR_MAP_BANK_VRAM, dest_row, FLOOR_MAP_BANK_VRAM, src_row, 64*2); // Copy one row.
+                // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
+                // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
+                memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 64*2); // Copy one row.
             }
 
-            if(vscroll==0) {
+            if(!vscroll) {
                 vscroll=16*32;
             }
 
-            if(row==0) {
-                row=32;
-                tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_64+64*2;
-                tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_32+64*2;
+            if(!row) {
+                row=31;
+                tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
+                tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
+            } else {
+                row--;
+                tilerowsrc-=64*2;
+                tilerowdst-=64*2;
             }
-
-            row--;
         }
 
         vera_layer_set_vertical_scroll(0,vscroll);
@@ -244,7 +246,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     *VERA_ISR = VERA_VSYNC;
     // vera_sprites_collision_on();
 
-    cx16_bram_bank_set(oldbank);
+    bank_set_bram(oldbank);
     // gotoxy(curx, cury);
 
     vera_display_set_border_color(0);
@@ -254,7 +256,7 @@ void main() {
 
 
     // We are going to use only the kernal on the X16.
-    cx16_brom_bank_set(CX16_ROM_KERNAL);
+    bank_set_brom(CX16_ROM_KERNAL);
 
     // Memory is managed as follows:
     // ------------------------------------------------------------------------
@@ -320,18 +322,18 @@ void main() {
     unsigned int palette_loaded = 0;
 
 
-    unsigned int floor_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    unsigned int floor_palette_loaded = load_bram(1, 8, 0, FILE_PALETTES_FLOOR01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
     if(!floor_palette_loaded) printf("error file_palettes");
     palette_loaded += floor_palette_loaded;
     heap_ptr ptr_bram_palettes_floor = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
-    unsigned int sprite_palette_loaded = cx16_bram_load(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
+    unsigned int sprite_palette_loaded = load_bram(1, 8, 0, FILE_PALETTES_SPRITE01, bank_bram_palettes, ptr_bram_palettes+palette_loaded);
     if(!sprite_palette_loaded) printf("error file_palettes");
     palette_loaded += sprite_palette_loaded;
     heap_ptr ptr_bram_palettes_sprite = heap_data_ptr(handle_bram_palettes)+palette_loaded;
 
 
-    cx16_cpy_vram_from_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
+    memcpy_vram_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
     // Tested
 
     // TILE INITIALIZATION 
@@ -427,7 +429,7 @@ void main() {
     }; 
 
     // Back to basic.
-    cx16_brom_bank_set(CX16_ROM_BASIC);
+    bank_set_brom(CX16_ROM_BASIC);
 
 }
 

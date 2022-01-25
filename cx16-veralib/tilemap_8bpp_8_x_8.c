@@ -28,13 +28,13 @@ void main() {
     };
 
     word tilebase = 0x4000;
-    cx16_cpy_vram_from_ram(1, tilebase, tiles, 64);
+    memcpy_vram_ram(1, tilebase, tiles, 64);
     tilebase+=64;
     for(byte t:1..255) {
         for(byte p:0..63) {
             tiles[p]+=1;
         }
-        cx16_cpy_vram_from_ram(1, tilebase, tiles, 64);
+        memcpy_vram_ram(1, tilebase, tiles, 64);
         tilebase+=64;
     }
 
