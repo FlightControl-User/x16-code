@@ -1,7 +1,7 @@
 #include "equinoxe.h"
 
-typedef struct _entity Bullet;
+typedef struct entity_s Bullet;
 
-void FireBullet(struct _entity* entity, char reload);
+void FireBullet(struct entity_s* entity, char reload);
 void DrawBullets();
 void LogicBullets();

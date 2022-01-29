@@ -11,7 +11,7 @@
 
 
 
-typedef struct _entity {
+typedef struct entity_s {
     byte active;
     byte SpriteType;
     byte state_behaviour;

@@ -2,7 +2,7 @@
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 
-typedef struct _entity Enemy;
+typedef struct entity_s Enemy;
 
 void AddEnemy(char t, signed int x, signed int y);
 

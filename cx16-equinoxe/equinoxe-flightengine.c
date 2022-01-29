@@ -256,7 +256,7 @@ void main() {
         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
         heap_vram_pack(FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM), 
         heap_size_pack(0x8000), 
-        heap_bram_pack(1, (BRAM_PTR)0xA400), 
+        heap_bram_pack(1, (bram_ptr_t)0xA400), 
         0x100
         );
 
@@ -321,12 +321,6 @@ void main() {
     for(i=0;i<TILE_TYPES;i++) {
         tile_cpy_vram_from_bram(TileDB[i]);
     }
-
-    //show_memory_map();
-    // while(!kbhit());
-
-    // printf("sizeof Enemy = %u", sizeof(Enemy) );
-	// while(!getin());
 
 
     vera_layer_mode_tile(0, FLOOR_MAP_ADDRESS_VRAM, 0x02000, 64, 64, 16, 16, 8);

@@ -1,4 +1,5 @@
 #include <cx16-vera.h>
+#include <cx16-veralib.h>
 #include <fp3.h>
 
 typedef struct _sprite {
@@ -43,7 +44,7 @@ __mem Sprite *SpriteDB[4] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEngine01, 
 
 byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_ENGINE01_COUNT + SPRITE_BULLET01_COUNT; 
 
-typedef struct _entity {
+typedef struct entity_s {
     heap_handle next;
     heap_handle prev;
     signed int x;
@@ -82,7 +83,10 @@ typedef struct _entity {
     FP3 ty;
     FP3 tdx;
     FP3 tdy;
-} Entity;
+
+    unsigned char xmask;
+    unsigned char ymask;
+} entity_t;
 
 void Logic();
 void Draw();

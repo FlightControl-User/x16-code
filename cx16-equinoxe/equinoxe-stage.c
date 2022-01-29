@@ -38,7 +38,7 @@ void FreeOffset(vera_sprite_offset sprite_offset) {
 }
 
 static void StageReset(void) {
-	// Entity *e;
+	// entity_t *e;
 	// Explosion *ex;
 	// Debris *d;
 
