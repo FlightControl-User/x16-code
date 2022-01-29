@@ -1,9 +1,14 @@
-const char math_sin[32] = {0,	12,	24,	37,	48,	60,	71,	81,	90,	98,	106,	112,	118,	122,	125,	127,	128,	127,	125,	122,	118,	112,	106,	98,	90,	81,	71,	60,	48,	37,	24,	12};
-const char math_cos[32] = {128,	127,	125,	122,	118,	112,	106,	98,	90,	81,	71,	60,	48,	37,	24,	12,	0,	12,	24,	37,	48,	60,	71,	81,	90,	98,	106,	112,	118,	122,	125,	127};
+#include <fp3.h>
 
-signed char vecx(char angle, char speed);
-signed char vecy(char angle, char speed);
+const unsigned int math_sin[32] = {0,	25,	49,	74,	97,	120,	142,	162,	181,	197,	212,	225,	236,	244,	251,	254,	256,	254,	251,	244,	236,	225,	212,	197,	181,	162,	142,	120,	97,	74,	49,	25};
+const unsigned int math_cos[32] = {256,	254,	251,	244,	236,	225,	212,	197,	181,	162,	142,	120,	97,	74,	49,	25,	0,	25,	49,	74,	97,	120,	142,	162,	181,	197,	212,	225,	236,	244,	251,	254};
 
+void vecx(FP3* fp3, char angle, char speed);
+void vecy(FP3* fp3, char angle, char speed);
+
+// FP3 vecx(char angle, char speed);
+// FP3 vecy(char angle, char speed);
+// 
 unsigned char abs_u8(unsigned char b);
 unsigned int abs_u16(unsigned int w);
 unsigned char sgn_u8(unsigned char b);

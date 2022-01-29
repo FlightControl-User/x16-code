@@ -1,5 +1,6 @@
 #include <cx16-heap.h>
 #include "equinoxe.h"
+#include "equinoxe-flightengine.h"
 
 void DrawFighters()
 {
@@ -13,16 +14,16 @@ void DrawFighters()
         Entity* fighter = (Entity*)heap_data_ptr(fighter_handle);
         heap_handle engine_handle = fighter->engine_handle;
         unsigned char disable = 0;
-        if(fighter->x > -64) {
-            if(fighter->x < 640) {
+        if(fighter->tx.i > -64) {
+            if(fighter->tx.i < 640) {
                 sprite_enable(fighter->sprite_offset, fighter->sprite_type);
                 sprite_animate(fighter->sprite_offset, fighter->sprite_type, fighter->state_animation);
-                sprite_position(fighter->sprite_offset, fighter->x, fighter->y);
+                sprite_position(fighter->sprite_offset, fighter->tx.i, fighter->ty.i);
                 if(engine_handle) {
                     Entity* engine = (Entity*)heap_data_ptr(engine_handle);
                     sprite_enable(engine->sprite_offset, engine->sprite_type);
                     sprite_animate(engine->sprite_offset, engine->sprite_type, engine->state_animation);
-                    sprite_position(engine->sprite_offset, engine->x, engine->y);
+                    sprite_position(engine->sprite_offset, engine->tx.i, engine->ty.i);
                 }
             } else {
                 disable = 1;

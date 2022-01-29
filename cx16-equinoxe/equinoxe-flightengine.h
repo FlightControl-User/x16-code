@@ -1,4 +1,5 @@
 #include <cx16-vera.h>
+#include <fp3.h>
 
 typedef struct _sprite {
     char File[16];
@@ -77,6 +78,10 @@ typedef struct _entity {
     vera_sprite_offset sprite_offset;
 
     heap_handle engine_handle;
+    FP3 tx;
+    FP3 ty;
+    FP3 tdx;
+    FP3 tdy;
 } Entity;
 
 void Logic();

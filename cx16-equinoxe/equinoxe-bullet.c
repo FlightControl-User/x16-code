@@ -23,6 +23,10 @@ void FireBullet(Bullet* entity, char reload)
     bullet->y = y;
     bullet->dx = 0;
     bullet->dy = -8;
+    // bullet->x = fp3_set(x,0);
+    // bullet->y = fp3_set(y,0);
+    // bullet->dx = fp3_set(0,0);
+    // bullet->dy = fp3_set(-4,0);
     bullet->health = 1;
     bullet->side = SIDE_PLAYER;
     entity->firegun = entity->firegun^1;
@@ -63,14 +67,21 @@ void LogicBullets()
 
         signed char dx = bullet->dx;
         signed char dy = bullet->dy;
+        // FP3 dx = bullet->dx;
+        // FP3 dy = bullet->dy;
+        // FP3 x = bullet->x;
+        // FP3 y = bullet->y;
 
         bullet->x += dx;
         bullet->y += dy;
+        // bullet->x = fp3_add(x, dx);
+        // bullet->y = fp3_add(y, dy);
 
         // gotoxy(0, l+1);
         // printf("bullet : l=%03u, p=%04p o=%04x x=%04i y=%04i ", l, bullet, bullet->sprite_offset, bullet->x, bullet->y);
 
         if (bullet->y <= -32)
+        // if (bullet->y.i <= -32)
         {
             sprite_disable(bullet->sprite_offset);
             bullet_handle = RemoveBullet(bullet_handle);
@@ -93,6 +104,7 @@ void DrawBullets()
         Bullet *bullet = (Bullet *)heap_data_ptr(bullet_handle);
         sprite_enable(bullet->sprite_offset, bullet->sprite_type);
         sprite_animate(bullet->sprite_offset, bullet->sprite_type, 0);
+        // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
         sprite_position(bullet->sprite_offset, bullet->x, bullet->y);
         // gotoxy(40, 39 + l++);
         // printf("db: bullet = %p ", bullet);

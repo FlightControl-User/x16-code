@@ -10,8 +10,8 @@ void InitPlayer() {
 	memset_fast(player, 0, sizeof(Entity));
 
 	player->health = 1;
-	player->x = 320;
-	player->y = 200;
+	player->tx.i = 320;
+	player->ty.i = 200;
 	player->speed_animation = 8;
 	player->wait_animation = player->speed_animation;
 	player->state_animation = 3;
@@ -96,11 +96,11 @@ void LogicPlayer() {
 
 
 		// Added fragment
-		player->x = game.curr_mousex;
-		player->y = game.curr_mousey;
+		player->tx.i = game.curr_mousex;
+		player->ty.i = game.curr_mousey;
 
-		signed int playerx = player->x;
-		signed int playery = player->y;
+		signed int playerx = player->tx.i;
+		signed int playery = player->ty.i;
 
 		heap_handle engine_handle = player->engine_handle;
 		Entity* engine = (Entity*)heap_data_ptr(engine_handle);
@@ -111,8 +111,8 @@ void LogicPlayer() {
 			engine->wait_animation = engine->speed_animation;
 		}
 
-		engine->x = playerx + 8;
-		engine->y = playery + 22;
+		engine->tx.i = playerx + 8;
+		engine->ty.i = playery + 22;
 
 		if (game.status_mouse == 1 && player->reload <= 0)
 		{

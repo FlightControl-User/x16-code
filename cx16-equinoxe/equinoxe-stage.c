@@ -88,7 +88,7 @@ static void StageReset(void) {
 void StageProgress() {
 	switch(stage.level) {
 		case 1:
-			stage.spawnenemycount = 20;
+			stage.spawnenemycount = 30;
 			stage.spawnenemytype = 1;
 			break;
 	}

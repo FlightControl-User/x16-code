@@ -25,24 +25,54 @@ signed char sx[4] = {1, 1, -1, -1};
 signed char sy[4] = {1, -1, -1, 1};
 
 
-signed char vecx(char angle, char speed) {
+void vecx(FP3* fp3, char angle, char speed) {
+
     angle = angle % 64;
     char i = angle % 32;
     char s = angle / 16;
-    unsigned char dx = math_sin[i];
-    dx >>= (7-speed);
-    signed char sdx = (signed char)((sx[s]==1)?dx:-dx);
-    return sdx;
+    unsigned int dx = math_sin[i];
+    dx <<= speed;
+    signed int sdx = (signed int)((sx[s]==1)?dx:-dx);
+    asm {
+        ldy #0
+        lda sdx
+        sta (fp3),y
+        iny
+        lda sdx+1
+        sta (fp3),y
+        iny
+        lda #0
+        bit sdx+1
+        bpl !+
+        lda #$ff
+    !:
+        sta (fp3),y
+    }
 }
 
-signed char vecy(char angle, char speed) {
+void vecy(FP3* fp3, char angle, char speed) {
+
     angle = angle % 64;
     char i = (angle) % 32;
     char s = angle / 16;
-    unsigned char dy = math_cos[i];
-    dy >>= (7-speed);
-    signed char sdy = (signed char)((sy[s]==1)?dy:-dy);
-    return sdy;
+    unsigned int dy = math_cos[i];
+    dy <<= speed;
+    signed int sdy = (signed int)((sy[s]==1)?dy:-dy);
+    asm {
+        ldy #0
+        lda sdy
+        sta (fp3),y
+        iny
+        lda sdy+1
+        sta (fp3),y
+        iny
+        lda #0
+        bit sdy+1
+        bpl !+
+        lda #$ff
+    !:
+        sta (fp3),y
+    }
 }
 
 // Get the absolute value of an 8-bit unsigned number treated as a signed number.

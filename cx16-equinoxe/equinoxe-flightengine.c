@@ -1,8 +1,8 @@
 // Space flight engine for a space game written in kickc for the Commander X16.
 
-#ifndef __CC65__
+// #ifndef __CC65__
     #pragma var_model(mem)
-#endif
+// #endif
 
 #include <cx16.h>
 #include <cx16-veralib.h>
@@ -132,7 +132,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     vera_display_set_border_color(1);
 
-    cx16_bank oldbank = bank_get_bram();
+    bram_bank_t oldbank = bank_get_bram();
 
     // Check if collision interrupt
     // if (vera_sprite_is_collision()) {
@@ -144,38 +144,6 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
         char cx16_mouse_status = cx16_mouse_get();
 
-        // if (sprite_collided) {
-        //     // check which bullet collides with which enemy ...
-        //     for (byte b = 0;b < 10;b++) {
-        //         struct sprite_bullet* bullet = &sprite_bullets[b];
-        //         if (bullet->active) {
-        //             signed int bx = bullet->x;
-        //             signed int by = bullet->y;
-        //             for (byte e = 0;e < 32;e++) {
-        //                 Entity* enemy = &sprite_enemies[e];
-        //                 if (enemy->active) {
-        //                     signed int ex = enemy->x;
-        //                     signed int ey = enemy->y;
-        //                     byte collided = 1;
-        //                     if (bx<ex || bx + 16>ex + 32) {
-        //                         collided = 0;
-        //                     }
-        //                     if (by<ey || by + 16>ey + 32) {
-        //                         collided = 0;
-        //                     }
-        //                     if (collided) {
-        //                         enemy->active = 0;
-        //                         bullet->active = 0;
-        //                         sprite_disable(SPRITE_OFFSET_ENEMY + e);
-        //                         sprite_disable(SPRITE_OFFSET_BULLET + b);
-        //                         sprite_bullet_count--;
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     sprite_collided = 0;
-        // }
 
         game.prev_mousex = game.curr_mousex;
         game.prev_mousey = game.curr_mousey;
@@ -201,9 +169,6 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     if(!scroll_action--) {
         scroll_action = 2;
             
-        // gotoxy(0,8+(byte)(row/4));
-        // printf("%02u - row: %03u, vscroll: %04u", row/4, row, vscroll);
-
         // Check every 16 vscroll movements if something needs to be done.
         // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
         if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
@@ -291,7 +256,7 @@ void main() {
         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
         heap_vram_pack(FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM), 
         heap_size_pack(0x8000), 
-        heap_bram_pack(1, (cx16_bram_ptr)0xA400), 
+        heap_bram_pack(1, (BRAM_PTR)0xA400), 
         0x100
         );
 
@@ -359,6 +324,10 @@ void main() {
 
     //show_memory_map();
     // while(!kbhit());
+
+    // printf("sizeof Enemy = %u", sizeof(Enemy) );
+	// while(!getin());
+
 
     vera_layer_mode_tile(0, FLOOR_MAP_ADDRESS_VRAM, 0x02000, 64, 64, 16, 16, 8);
 

@@ -279,9 +279,9 @@ heap_handle tile_load( struct Tile *Tile) {
 
 //     heap_vram_packed vram_floor_tile = heap_segment_vram_floor(
 //         HEAP_SEGMENT_VRAM_FLOOR_TILE, 
-//         heap_vram_pack(1, (cx16_vram_offset)0x2000), 
+//         heap_vram_pack(1, (vram_offset_t)0x2000), 
 //         heap_size_pack(0x8000), 
-//         heap_bram_pack(1, (cx16_bram_ptr)0xA400), 
+//         heap_bram_pack(1, (bram_ptr_t)0xA400), 
 //         0x100
 //         );
 

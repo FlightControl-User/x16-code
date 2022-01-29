@@ -4,7 +4,7 @@ heap_address petscii() {
         HEAP_SEGMENT_VRAM_PETSCII, 
         heap_vram_pack(1, 0xF800),
         heap_size_pack(VRAM_PETSCII_MAP_SIZE + VERA_PETSCII_TILE_SIZE),
-        heap_bram_pack(1, (cx16_bram_ptr)0xA000), 
+        heap_bram_pack(1, (bram_ptr_t)0xA000), 
         heap_size_pack(16*8)
         );
 
