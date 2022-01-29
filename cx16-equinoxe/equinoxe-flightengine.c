@@ -17,6 +17,7 @@
 #include <division.h>
 #include <mos6522.h>
 #include <multiply.h>
+#include <ht.h>
 
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
@@ -25,8 +26,6 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-fighters.h"
 #include "equinoxe-bullet.h"
-
-
 
 void sprite_cpy_vram_from_bram(Sprite* sprite) {
 
@@ -219,6 +218,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 void main() {
 
+    ht_init(ht_collision, ht_size_collision);
 
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
@@ -387,8 +387,10 @@ void main() {
     CLI();
 
     cx16_mouse_config(0xFF, 1);
+
     while (!getin()) {
-        // gotoxy(0,0);    
+        // gotoxy(0,0);
+        // ht_display(ht_collision, ht_size_collision);
     }; 
 
     // Back to basic.

@@ -4,6 +4,7 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-math.h"
+#include <ht.h>
 
 void AddEnemy(char t, signed int x, signed int y) {
 
@@ -93,6 +94,11 @@ void LogicEnemies() {
 
 		if(enemy->side == SIDE_ENEMY) {
 
+			ht_item_t* item = enemy->collision;
+			if(item) {
+				ht_delete(ht_collision, ht_size_collision, item);
+			}
+
 			if(!enemy->flight) {
 				switch(enemy->step) {
 				case 0:
@@ -180,43 +186,18 @@ void LogicEnemies() {
 				enemy->move = 0;
 			}
 
-			// fx += tdx.f;
-			// fy += tdy.f;
-
-			// if(fx>=16) {
-			// 	signed char vx = fx >> 4;
-			// 	x += vx;
-			// 	fx &= 0x0F;
-			// }
-
-			// if(fx<=-16) {
-			// 	fx = -fx;
-			// 	signed char vx = fx >> 4;
-			// 	x -= vx;
-			// 	fx = fx & 0x0F;
-			// 	fx = -fx;
-			// }
-
-			// if(fy>=16) {
-			// 	signed char vy = fy >> 4;
-			// 	y += vy;
-			// 	fy &= 0x0F;
-			// }
-
-			// if(fy<=-16) {
-			// 	fy = -fy;
-			// 	signed char vy = fy >> 4;
-			// 	y -= vy;
-			// 	fy = fy & 0x0F;
-			// 	fy = -fy;
-			// }
-
-
-			// tx = fp3_set(20,2);
-			// ty = fp3_set(30,2);
-
 			fp3_add(&enemy->tx, &enemy->tdx);
 			fp3_add(&enemy->ty, &enemy->tdy);
+
+			// For collision, update collision hash table
+
+			volatile unsigned int x = (unsigned int)enemy->tx.i;
+			volatile unsigned int y = (unsigned int)enemy->ty.i;
+			unsigned int gx = x >> 5;
+			unsigned int gy = y >> 5;
+			ht_key_t ht_key = gx*15+gy;
+
+			enemy->collision = ht_insert(ht_collision, ht_size_collision, ht_key, enemy_handle);
 
 
 			if (enemy->reload > 0) {

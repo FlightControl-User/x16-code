@@ -1,6 +1,7 @@
 #include <cx16.h>
 #include <string.h>
 #include <cx16-heap.h>
+#include <ht.h>
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
@@ -40,17 +41,13 @@ const byte SIDE_ENEMY = 1;
 
 volatile byte i = 0;
 volatile byte j = 0;
-volatile byte a = 4;
 volatile word vscroll = 16*32;
 volatile int prev_mousex = 0;
 volatile int prev_mousey = 0;
-volatile byte sprite_player = 3;
-volatile byte sprite_player_moved = 0;
-volatile byte sprite_engine_flame = 0;
 volatile byte scroll_action = 2;
-volatile byte sprite_action = 0;
 
-volatile unsigned int debug_count = 0; 
+ht_size_t ht_size_collision = 256;
+ht_item_t ht_collision[256];
 
 
 struct sprite_bullet {

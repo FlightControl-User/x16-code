@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 void main() {
 
    ht_size_t ht_size = 128;
@@ -12,46 +13,20 @@ void main() {
 
    ht_init(ht, ht_size);
 
-   ht_insert(ht, 1, 20);
-   ht_insert(ht, 2, 70);
-   ht_insert(ht, 42, 80);
-   ht_insert(ht, 4, 25);
-   ht_insert(ht, 12, 44);
-   ht_insert(ht, 14, 32);
-   ht_insert(ht, 17, 11);
-   ht_insert(ht, 13, 78);
-   ht_insert(ht, 37, 97);
-   ht_insert(ht, 45, 145);
+   clrscr();
+   while(!getin()) {
 
-   display(ht);
-   
-   ht_item_t* ht_item = ht_get(ht, 37);
-   if(ht_item != NULL) {
-      printf("Element found: %u\n", ht_item->data);
-   } else {
-      printf("Element not found\n");
+      unsigned int ht_key = rand() & 0b1111;
+      unsigned int ht_data = rand() & 0b11;
+      ht_item_t* ht_item = ht_get_duplicate(ht, ht_size, ht_key, ht_data);
+      if(ht_item != NULL) {
+         ht_delete(ht, ht_size, ht_item);
+      } else {
+         ht_insert(ht, ht_size, ht_key, ht_data);
+      }
+      gotoxy(0,0);
+      ht_display(ht, ht_size);
    }
 
-   ht_delete(ht, ht_item);
-   ht_item = ht_get(ht, 37);
-
-   if(ht_item != NULL) {
-      printf("Element found: %u\n", ht_item->data);
-   } else {
-      printf("Element not found\n");
-   }
-
-   ht_item = ht_get(ht, 13);
-   ht_delete(ht, ht_item);
-
-   display(ht);
-
-   ht_item = ht_get(ht, 45);
-
-   if(ht_item != NULL) {
-      printf("Element found: %u\n", ht_item->data);
-   } else {
-      printf("Element not found\n");
-   }
 
 }

@@ -9,7 +9,7 @@
  * 
  */
 
-typedef unsigned int ht_size_t;
+typedef unsigned int const ht_size_t;
 typedef unsigned int ht_key_t;
 typedef unsigned int ht_data_t;
 typedef unsigned int ht_index_t;
@@ -24,8 +24,9 @@ typedef struct ht_item_s *ht_t;
 
 
 void ht_init(ht_t ht, ht_size_t ht_size_init);
-unsigned int ht_code(ht_key_t key);
-ht_item_t* ht_get(ht_t ht, ht_key_t key);
-void ht_insert(ht_t ht, ht_key_t key, ht_data_t data);
-ht_item_t* ht_delete(ht_t ht, ht_item_t* item);
-
+unsigned int ht_code(ht_size_t ht_size, ht_key_t key);
+ht_item_t* ht_get(ht_t ht, ht_size_t ht_size, ht_key_t key);
+ht_item_t* ht_get_duplicate(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t ht_data);
+ht_item_t* ht_insert(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t data);
+ht_item_t* ht_delete(ht_t ht, ht_size_t ht_size, ht_item_t* item);
+void ht_display(ht_t ht, ht_size_t ht_size);

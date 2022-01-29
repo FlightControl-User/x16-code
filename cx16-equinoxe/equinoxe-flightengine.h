@@ -1,6 +1,7 @@
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include <fp3.h>
+#include <ht.h>
 
 typedef struct _sprite {
     char File[16];
@@ -84,6 +85,7 @@ typedef struct entity_s {
     FP3 tdx;
     FP3 tdy;
 
+    ht_item_t* collision;
     unsigned char xmask;
     unsigned char ymask;
 } entity_t;
