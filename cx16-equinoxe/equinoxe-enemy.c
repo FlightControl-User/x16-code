@@ -193,9 +193,9 @@ void LogicEnemies() {
 
 			volatile unsigned int x = (unsigned int)enemy->tx.i;
 			volatile unsigned int y = (unsigned int)enemy->ty.i;
-			unsigned int gx = x >> 5;
-			unsigned int gy = y >> 5;
-			ht_key_t ht_key = gx*15+gy;
+			unsigned int gx = x >> 6;
+			unsigned int gy = y >> 6;
+			ht_key_t ht_key = (gx*8+gy)*4;
 
 			enemy->collision = ht_insert(ht_collision, ht_size_collision, ht_key, enemy_handle);
 
