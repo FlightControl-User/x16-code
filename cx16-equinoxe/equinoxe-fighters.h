@@ -1,1 +1,1 @@
-void DrawFighters();
+void DrawFighter(heap_handle fighter_handle);

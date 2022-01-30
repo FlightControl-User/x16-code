@@ -118,5 +118,7 @@ void LogicPlayer() {
 		{
 			FireBullet(player, 4);
 		}
+
+		DrawFighter(player_handle);
 	}
 }

@@ -120,7 +120,6 @@ inline void Logic(void) {
 
 
 inline void Draw(void) {
-    DrawFighters();
     DrawBullets();
 }
 
@@ -389,8 +388,8 @@ void main() {
     cx16_mouse_config(0xFF, 1);
 
     while (!getin()) {
-        // gotoxy(0,0);
-        // ht_display(ht_collision, ht_size_collision);
+        gotoxy(0,0);
+        ht_display(ht_collision, ht_size_collision);
     }; 
 
     // Back to basic.

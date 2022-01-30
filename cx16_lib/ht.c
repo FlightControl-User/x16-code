@@ -66,10 +66,15 @@ void ht_display(ht_t ht, ht_size_t ht_size) {
    for(ht_index = 0; ht_index<ht_size; ht_index++) {
 	
       if(ht[ht_index].data != NULL) {
-         printf("%4x - %4x     ",ht[ht_index].key,ht[ht_index].data);
+         if(ht[ht_index].key == 0xFFFF) {
+            printf(" ** ");
+         } else {
+            printf(" ++ ");
+
+         }
       }
       else
-         printf("---- - ----     ");
+         printf(" -- ");
    }
 	
    printf("\n");

@@ -218,6 +218,8 @@ void LogicEnemies() {
 
 		}
 
+		DrawFighter(enemy_handle);
+
 		enemy_handle = enemy->next;
 
 	} while (enemy_handle != stage.fighter_list);
