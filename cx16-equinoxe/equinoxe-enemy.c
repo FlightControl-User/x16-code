@@ -4,6 +4,7 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-math.h"
+#include "equinoxe-stage.h"
 #include <ht.h>
 
 void AddEnemy(char t, signed int x, signed int y) {

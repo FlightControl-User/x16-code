@@ -69,8 +69,8 @@ inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
     // Copy sprite palette to VRAM
     // Copy 8* sprite attributes to VRAM
     vera_sprite_bpp(sprite_offset, sprite->BPP);
-    vera_sprite_height(sprite_offset, sprite->Height);
     vera_sprite_width(sprite_offset, sprite->Width);
+    vera_sprite_height(sprite_offset, sprite->Height);
     vera_sprite_hflip(sprite_offset, sprite->Hflip);
     vera_sprite_vflip(sprite_offset, sprite->Vflip);
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
@@ -405,8 +405,8 @@ void main() {
     cx16_mouse_config(0xFF, 1);
 
     while (!getin()) {
-        gotoxy(0,0);
-        ht_display(ht_collision, ht_size_collision);
+        // gotoxy(0,0);
+        // ht_display(ht_collision, ht_size_collision);
     }; 
 
     // Back to basic.

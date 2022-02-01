@@ -1,3 +1,5 @@
+#include <cx16.h>
+#include <cx16-veralib.h>
 #include "equinoxe.h"
 #include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
