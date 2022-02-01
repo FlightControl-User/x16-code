@@ -1,3 +1,4 @@
+#include <cx16-heap.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include <fp3.h>
@@ -22,16 +23,44 @@ typedef struct _sprite {
 
 
 #define SPRITE_PLAYER01_COUNT 7
-Sprite SpritePlayer01 =       { "PLAYER01", SPRITE_PLAYER01_COUNT, 0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 32, 32, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 9, 0x0, { 0x0 } };
+Sprite SpritePlayer01 =       { 
+    "PLAYER01", 
+    SPRITE_PLAYER01_COUNT, 
+    0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 
+    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
+    VERA_SPRITE_ZDEPTH_IN_FRONT, 
+    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
+    VERA_SPRITE_4BPP, 9, 0x0, { 0x0 } 
+};
 
 #define SPRITE_ENEMY01_COUNT 12
-Sprite SpriteEnemy01 =       { "ENEMY01", SPRITE_ENEMY01_COUNT, 7, 32*32*SPRITE_ENEMY01_COUNT/2, 512, 32, 32, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 10, 0x0, { 0x0 } };
+Sprite SpriteEnemy01 =       { 
+    "ENEMY01", SPRITE_ENEMY01_COUNT, 
+    7, 32*32*SPRITE_ENEMY01_COUNT/2, 512, 
+    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
+    VERA_SPRITE_ZDEPTH_IN_FRONT, 
+    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
+    VERA_SPRITE_4BPP, 10, 0x0, { 0x0 } 
+};
 
 #define SPRITE_ENGINE01_COUNT 16
-Sprite SpriteEngine01 =       { "ENGINE01", SPRITE_ENGINE01_COUNT, 7+12, 16*16*SPRITE_ENGINE01_COUNT/2, 128, 16, 16, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 11, 0x0, { 0x0 } };
+Sprite SpriteEngine01 =       { 
+    "ENGINE01", SPRITE_ENGINE01_COUNT, 
+    7+12, 16*16*SPRITE_ENGINE01_COUNT/2, 128, 
+    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
+    VERA_SPRITE_ZDEPTH_IN_FRONT, 
+    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
+    VERA_SPRITE_4BPP, 11, 0x0, { 0x0 } 
+};
 
 #define SPRITE_BULLET01_COUNT 1
-Sprite SpriteBullet01 =       { "BULLET01", SPRITE_BULLET01_COUNT, 7+12+16, 16*16*SPRITE_BULLET01_COUNT/2, 128, 16, 16, VERA_SPRITE_ZDEPTH_IN_FRONT, 0, 0, 4, 12, 0x0, { 0x0 } };
+Sprite SpriteBullet01 =       { 
+    "BULLET01", SPRITE_BULLET01_COUNT, 
+    7+12+16, 16*16*SPRITE_BULLET01_COUNT/2, 128, 
+    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
+    VERA_SPRITE_ZDEPTH_IN_FRONT, 
+    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
+    VERA_SPRITE_4BPP, 12, 0x0, { 0x0 } };
 
 byte const SPRITE_TYPES = 4;
 byte const SPRITE_PLAYER01 = 0;
@@ -91,7 +120,7 @@ typedef struct entity_s {
 } entity_t;
 
 void Logic();
-void Draw();
+// void Draw();
 
 
 void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);

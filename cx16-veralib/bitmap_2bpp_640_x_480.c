@@ -5,6 +5,7 @@
 
 #pragma target(cx16)
 #include <cx16.h>
+#include <cx16-veralib.h>
 #include <conio.h>
 #include <printf.h>
 #include <cx16-bitmap.h>
@@ -22,11 +23,21 @@ void main() {
     // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
     // This is now all easily done with a few statements in the new kickc vera lib ...
     memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
+    vera_layer1_mode_tile(
+        1, 0x4000, 
+        1, 0xF000, 
+        VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_64, 
+        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+        VERA_LAYER_COLOR_DEPTH_1BPP
+    );
 
-    vera_layer_mode_bitmap(0, (dword)0x00000, 640, 2);
+    vera_layer0_mode_bitmap(
+         0, 0x0000, 
+         VERA_TILEBASE_WIDTH_16, 
+         VERA_LAYER_COLOR_DEPTH_2BPP
+    );
 
-    screenlayer(1);
+    screenlayer1();
     textcolor(WHITE);
     bgcolor(BLACK);
     clrscr();
@@ -37,7 +48,7 @@ void main() {
     printf("in this mode, it is possible to display\n");
     printf("graphics in 2 colors (black or color).\n");
 
-    vera_layer_show(0);
+    vera_layer0_show();
 
     bitmap_init(0, 0x00000);
     bitmap_clear();
@@ -71,7 +82,7 @@ void main() {
         if(x>639) x=0;
     };
 
-    screenlayer(1);
+    screenlayer1();
     textcolor(WHITE);
     bgcolor(BLUE);
     clrscr();

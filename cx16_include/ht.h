@@ -23,7 +23,7 @@ typedef struct ht_item_s {
 typedef struct ht_item_s *ht_t;
 
 
-void ht_init(ht_t ht, ht_size_t ht_size_init);
+void ht_init(ht_t ht, ht_size_t ht_size);
 unsigned int ht_code(ht_size_t ht_size, ht_key_t key);
 ht_item_t* ht_get(ht_t ht, ht_size_t ht_size, ht_key_t key);
 ht_item_t* ht_get_duplicate(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t ht_data);

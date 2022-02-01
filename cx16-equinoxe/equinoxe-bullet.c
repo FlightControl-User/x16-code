@@ -65,6 +65,10 @@ void LogicBullets()
 
         Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
 
+        vera_sprite_offset sprite_offset = bullet->sprite_offset;
+        signed int x = bullet->x;
+        signed int y = bullet->y;
+
         signed char dx = bullet->dx;
         signed char dy = bullet->dy;
         // FP3 dx = bullet->dx;
@@ -72,42 +76,49 @@ void LogicBullets()
         // FP3 x = bullet->x;
         // FP3 y = bullet->y;
 
-        bullet->x += dx;
-        bullet->y += dy;
+        x += dx;
+        y += dy;
         // bullet->x = fp3_add(x, dx);
         // bullet->y = fp3_add(y, dy);
+
+        bullet->x = x;
+        bullet->y = y;
 
         // gotoxy(0, l+1);
         // printf("bullet : l=%03u, p=%04p o=%04x x=%04i y=%04i ", l, bullet, bullet->sprite_offset, bullet->x, bullet->y);
 
-        if (bullet->y <= -32)
+        if (y <= -32)
         // if (bullet->y.i <= -32)
         {
-            sprite_disable(bullet->sprite_offset);
+            sprite_disable(sprite_offset);
             bullet_handle = RemoveBullet(bullet_handle);
             continue;
         }
 
+        DrawBullet(bullet_handle);
+
         bullet_handle = bullet->next;
+
         
     } while (bullet_handle != stage.bullet_list);
 }
 
-void DrawBullets()
-{
+inline void DrawBullet(heap_handle bullet_handle) {
     // gotoxy(40, 38);
     // printf("db: list = %x, count = %u - ", stage.bullet_list, stage.bullet_count);
     char l = 0;
-    heap_handle bullet_handle = stage.bullet_list;
-    
-    do {
-        Bullet *bullet = (Bullet *)heap_data_ptr(bullet_handle);
-        sprite_enable(bullet->sprite_offset, bullet->sprite_type);
-        sprite_animate(bullet->sprite_offset, bullet->sprite_type, 0);
-        // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
-        sprite_position(bullet->sprite_offset, bullet->x, bullet->y);
-        // gotoxy(40, 39 + l++);
-        // printf("db: bullet = %p ", bullet);
-        bullet_handle = bullet->next;
-    } while (bullet_handle != stage.bullet_list);
+
+    Bullet *bullet = (Bullet *)heap_data_ptr(bullet_handle);
+
+    vera_sprite_offset sprite_offset = bullet->sprite_offset;
+    signed int x = bullet->x;
+    signed int y = bullet->y;
+
+    sprite_enable(sprite_offset, bullet->sprite_type);
+    sprite_animate(sprite_offset, bullet->sprite_type, 0);
+    // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
+    sprite_position(sprite_offset, x, y);
+    // gotoxy(40, 39 + l++);
+    // printf("db: bullet = %p ", bullet);
+    bullet_handle = bullet->next;
 }

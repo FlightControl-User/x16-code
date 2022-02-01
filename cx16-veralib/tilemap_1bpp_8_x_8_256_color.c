@@ -16,7 +16,13 @@ void main() {
 
     // Configure the VERA card to work in text, 256 mode.
    // The color mode is here 256 colors, (256 foreground on a black transparent background).
-     vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
+    vera_layer1_mode_text( 
+        0, 0x0000, 
+        0, 0xF800, 
+        VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_64,
+        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+        VERA_LAYER_CONFIG_256C 
+    );
 
     // or you can use the below statement, but that includes setting a "mode", including
     // layer, map base address, tile base address, map width, map height, tile width, tile height, color mode.
@@ -27,7 +33,7 @@ void main() {
         printf(" ****** ");
     }
 
-    vera_layer_show(1);
+    vera_layer1_show();
 
     gotoxy(0,50);
     textcolor(WHITE);

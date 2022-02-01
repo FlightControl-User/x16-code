@@ -216,9 +216,9 @@ void LogicEnemies() {
 			// 	enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
 			// );
 
+			DrawFighter(enemy_handle);
 		}
 
-		DrawFighter(enemy_handle);
 
 		enemy_handle = enemy->next;
 

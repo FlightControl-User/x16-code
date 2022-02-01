@@ -5,7 +5,6 @@
 
 void StageInit(void) {
 	game.delegate.Logic = &Logic;
-	game.delegate.Draw = &Draw;
 
 	memset(&stage, 0, sizeof(Stage));
 
@@ -22,6 +21,7 @@ vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite
 	while(count) {
 		vera_sprite_offset sprite_offset = sprite_offsets[*sprite_id];
 		if(!sprite_offset) {
+			// sprite_offset = (vera_sprite_offset)((*sprite_id)<<3)+(vera_sprite_offset)sprite_buffer; 
 			sprite_offset =  vera_sprite_get_offset(*sprite_id); 
 			sprite_offsets[*sprite_id] = sprite_offset;
 			return sprite_offset;
@@ -31,6 +31,7 @@ vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite
 	}
 	return 0;
 }
+
 
 void FreeOffset(vera_sprite_offset sprite_offset) {
 	vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);

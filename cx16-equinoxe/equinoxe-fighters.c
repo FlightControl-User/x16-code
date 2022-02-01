@@ -9,16 +9,26 @@ void DrawFighter(heap_handle fighter_handle) {
     entity_t* fighter = (entity_t*)heap_data_ptr(fighter_handle);
     heap_handle engine_handle = fighter->engine_handle;
     unsigned char disable = 0;
-    if(fighter->tx.i > -64) {
-        if(fighter->tx.i < 640) {
-            sprite_enable(fighter->sprite_offset, fighter->sprite_type);
-            sprite_animate(fighter->sprite_offset, fighter->sprite_type, fighter->state_animation);
-            sprite_position(fighter->sprite_offset, fighter->tx.i, fighter->ty.i);
+
+    signed int x = fighter->tx.i;
+    signed int y =  fighter->ty.i;
+    vera_sprite_offset sprite_offset = fighter->sprite_offset;
+    
+    if(x > -64) {
+        if(x < 640) {
+            sprite_enable(sprite_offset, fighter->sprite_type);
+            sprite_animate(sprite_offset, fighter->sprite_type, fighter->state_animation);
+            sprite_position(sprite_offset, x, y);
             if(engine_handle) {
                 entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);
-                sprite_enable(engine->sprite_offset, engine->sprite_type);
-                sprite_animate(engine->sprite_offset, engine->sprite_type, engine->state_animation);
-                sprite_position(engine->sprite_offset, engine->tx.i, engine->ty.i);
+
+                signed int x = engine->tx.i;
+                signed int y =  engine->ty.i;
+                vera_sprite_offset sprite_offset = engine->sprite_offset;
+
+                sprite_enable(sprite_offset, engine->sprite_type);
+                sprite_animate(sprite_offset, engine->sprite_type, engine->state_animation);
+                sprite_position(sprite_offset, engine->tx.i, engine->ty.i);
             }
         } else {
             disable = 1;
@@ -28,10 +38,13 @@ void DrawFighter(heap_handle fighter_handle) {
     }
 
     if(disable) {
-        sprite_disable(fighter->sprite_offset);
+        entity_t* fighter = (entity_t*)heap_data_ptr(fighter_handle);
+        vera_sprite_offset sprite_offset = fighter->sprite_offset;
+        sprite_disable(sprite_offset);
         if(engine_handle) {
             entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);
-            sprite_disable(engine->sprite_offset);
+            vera_sprite_offset sprite_offset = engine->sprite_offset;
+            sprite_disable(sprite_offset);
         }
     }
 }

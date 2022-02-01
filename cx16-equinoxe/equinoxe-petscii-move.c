@@ -22,24 +22,22 @@ heap_address petscii() {
 
     memcpy_vram_vram(bank_vram_petscii_tile, (word)ptr_vram_petscii_tile, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
 
-    dword vram_petscii_map = vera_ptr_to_address(bank_vram_petscii_map, (char*)ptr_vram_petscii_map);
-    dword vram_petscii_tile = vera_ptr_to_address(bank_vram_petscii_tile, (char*)ptr_vram_petscii_tile); 
-
-    // printf("vram_floor_petscii = %x:%x\n", cx16_vram_unpack_bank(vram_floor_petscii), cx16_vram_unpack_offset(vram_floor_petscii));
     // printf("handle_vram_petscii_map = %x\n", handle_vram_petscii_map);
     // printf("ptr_vram_petscii_map = %x\n", ptr_vram_petscii_map);
     // printf("bank_vram_petscii_map = %x\n", bank_vram_petscii_map);
     // printf("handle_vram_petscii_map = %x\n", handle_vram_petscii_tile);
     // printf("ptr_vram_petscii_tile = %x\n", ptr_vram_petscii_tile);
     // printf("bank_vram_petscii_tile = %x\n", bank_vram_petscii_tile);
-    // printf("vram_petscii_map = %x\n", vram_petscii_map);
-    // printf("vram_petscii_tile = %x\n", vram_petscii_tile);
 
-    // while(!kbhit());
+    vera_layer1_mode_tile(
+        bank_vram_petscii_map, ptr_vram_petscii_map, 
+        bank_vram_petscii_tile, ptr_vram_petscii_tile, 
+        VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_64, 
+        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+        VERA_LAYER_COLOR_DEPTH_1BPP
+    );
 
-    vera_layer_mode_tile(1, vram_petscii_map, vram_petscii_tile, 128, 64, 8, 8, 1);
-
-    screenlayer(1);
+    screenlayer1();
     textcolor(WHITE);
     bgcolor(BLACK);
     clrscr();

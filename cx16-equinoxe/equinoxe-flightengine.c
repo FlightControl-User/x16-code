@@ -5,8 +5,8 @@
 // #endif
 
 #include <cx16.h>
-#include <cx16-veralib.h>
 #include <cx16-heap.h>
+#include <cx16-veralib.h>
 #include <cx16-mouse.h>
 #include <kernal.h>
 #include <6502.h>
@@ -80,6 +80,12 @@ inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
 #include "equinoxe-petscii-move.c"
 
 void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
+    // vera_sprite_buffer_bpp((vera_sprite_buffer_item_t *)sprite_offset, sprite->BPP);
+    // vera_sprite_buffer_height((vera_sprite_buffer_item_t *)sprite_offset, sprite->Height);
+    // vera_sprite_buffer_width((vera_sprite_buffer_item_t *)sprite_offset, sprite->Width);
+    // vera_sprite_buffer_hflip((vera_sprite_buffer_item_t *)sprite_offset, sprite->Hflip);
+    // vera_sprite_buffer_vflip((vera_sprite_buffer_item_t *)sprite_offset, sprite->Vflip);
+    // vera_sprite_buffer_palette_offset((vera_sprite_buffer_item_t *)sprite_offset, sprite->PaletteOffset);
     vera_sprite_bpp(sprite_offset, sprite->BPP);
     vera_sprite_height(sprite_offset, sprite->Height);
     vera_sprite_width(sprite_offset, sprite->Width);
@@ -91,37 +97,38 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
 void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index) {
     byte SpriteCount = sprite->SpriteCount;
     index = (index >= SpriteCount) ? index - SpriteCount : index;
+    // vera_sprite_buffer_set_image_offset((vera_sprite_buffer_item_t *)sprite_offset, sprite->offset_image[index]);
     vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
 }
 
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
+    // vera_sprite_buffer_xy((vera_sprite_buffer_item_t *)sprite_offset, x, y);
     vera_sprite_xy(sprite_offset, x, y);
 }
 
 void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
+    // vera_sprite_buffer_zdepth((vera_sprite_buffer_item_t *)sprite_offset, sprite->Zdepth);
     vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
 }
 
 void sprite_disable(vera_sprite_offset sprite_offset) {
+    // vera_sprite_buffer_disable((vera_sprite_buffer_item_t *)sprite_offset);
     vera_sprite_disable(sprite_offset);
 }
 
 
 void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
+    // vera_sprite_collision_mask(sprite_offset, mask);
     vera_sprite_collision_mask(sprite_offset, mask);
 }
 
 
 inline void Logic(void) {
     LogicPlayer();
-    LogicEnemies();
     LogicBullets();
+    LogicEnemies();
 }
 
-
-inline void Draw(void) {
-    DrawBullets();
-}
 
 
 //VSYNC Interrupt Routine
@@ -140,19 +147,19 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // } else {
 
 
-        char cx16_mouse_status = cx16_mouse_get();
+    char cx16_mouse_status = cx16_mouse_get();
 
 
-        game.prev_mousex = game.curr_mousex;
-        game.prev_mousey = game.curr_mousey;
-        game.curr_mousex = cx16_mousex;
-        game.curr_mousey = cx16_mousey;
-        game.status_mouse = cx16_mouse_status;
-        if(!(game.ticksync & 0x01)) {
-            LogicStage();
-            game.tickstage++;
-        }
-        game.ticksync++;
+    game.prev_mousex = game.curr_mousex;
+    game.prev_mousey = game.curr_mousey;
+    game.curr_mousex = cx16_mousex;
+    game.curr_mousey = cx16_mousey;
+    game.status_mouse = cx16_mouse_status;
+    if(!(game.ticksync & 0x01)) {
+        LogicStage();
+        game.tickstage++;
+    }
+    game.ticksync++;
 
         // volatile void (*fn)();
         // fn = game.delegate.Logic;
@@ -160,9 +167,10 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         // fn = game.delegate.Draw;
         // (*fn)();
 
-        Logic();
-        Draw();
-
+    LogicPlayer();
+    LogicBullets();
+    LogicEnemies();
+    
     // background scrolling
     if(!scroll_action--) {
         scroll_action = 2;
@@ -175,7 +183,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                 floor_draw();
             }
 
-            vera_tile_row(0, row);
+            vera_tile_row(row);
 
             if(row<=31) {
                 // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
@@ -198,7 +206,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
             }
         }
 
-        vera_layer_set_vertical_scroll(0,vscroll);
+        vera_layer0_set_vertical_scroll(vscroll);
         vscroll--;
        
     }
@@ -209,6 +217,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     *VERA_ISR = VERA_VSYNC;
     // vera_sprites_collision_on();
 
+    // vera_sprite_buffer_write(sprite_buffer);
+
     bank_set_bram(oldbank);
     // gotoxy(curx, cury);
 
@@ -218,6 +228,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 void main() {
 
     ht_init(ht_collision, ht_size_collision);
+
+    // vera_sprite_buffer_read(sprite_buffer);
 
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
@@ -322,10 +334,16 @@ void main() {
     }
 
 
-    vera_layer_mode_tile(0, FLOOR_MAP_ADDRESS_VRAM, 0x02000, 64, 64, 16, 16, 8);
+    vera_layer0_mode_tile( 
+        FLOOR_MAP_BANK_VRAM, FLOOR_MAP_OFFSET_VRAM, 
+        0, 0x2000, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_8BPP
+    );
 
-    vera_layer_show(0);
-    vera_layer_show(1);
+    vera_layer0_show();
+    vera_layer1_show();
 
     //floor_init();
     tile_background();
@@ -348,7 +366,6 @@ void main() {
     // gotoxy(0, 0);
     // printf("bram_entities = %x, ", bram_entities);
     // printf("bram_sprites = %x, ", bram_sprites);
-    // while (!getin());
     vera_sprites_show();
 
     // Loading the graphics in main banked memory.

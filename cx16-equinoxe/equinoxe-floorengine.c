@@ -19,31 +19,34 @@
 #include "equinoxe.h"
 #include "equinoxe-floorengine.h"
 
-void vera_tile_clear( byte layer ) {
+void vera_tile_clear() {
 
     byte PaletteOffset = 1;
     byte Offset = 100;
 
-    dword mapbase = vera_layer_get_mapbase_address(layer);
+    unsigned int mapbase_offset = vera_layer0_get_mapbase_offset();
+    unsigned int mapbase_bank = vera_layer0_get_mapbase_bank();
 
-    vera_vram_data0_address(mapbase,VERA_INC_1);
+    vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
 
+    // TODO: VERA MEMSET
     for(word i=0;i<64*20;i++) {
         *VERA_DATA0 = Offset;
         *VERA_DATA0 = PaletteOffset << 4;
     }
 }
 
-void vera_tile_row( byte layer, byte row) {
+void vera_tile_row(byte row) {
 
-    dword mapbase = vera_layer_get_mapbase_address(layer);
-    byte shift = vera_layer_get_rowshift(layer);
-    mapbase += ((word)row << shift);
+    unsigned int mapbase_offset = vera_layer0_get_mapbase_offset();
+    unsigned char mapbase_bank = vera_layer0_get_mapbase_bank();
+    byte shift = vera_layer0_get_rowshift();
+    mapbase_offset += ((word)row << shift);
 
     byte sr = ( (row % 4) / 2 ) * 2;
     byte r = (row % 2) * 2;
 
-    vera_vram_data0_address(mapbase,VERA_INC_1);
+    vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset,VERA_INC_1);
     for(byte x=0; x<TILES;x++) {
         word Segment = (word)TileFloor[x];
         struct TileSegment *TileSegment = &(TileSegmentDB[Segment]);
@@ -63,7 +66,7 @@ void vera_tile_row( byte layer, byte row) {
 }
 
 
-void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
+void vera_tile_element(byte x, byte y, word Segment ) {
 
     byte resolution = 2;
 
@@ -72,15 +75,16 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
     x = x << resolution;
     y = y << resolution;
 
-    dword mapbase = vera_layer_get_mapbase_address(layer);
-    byte shift = vera_layer_get_rowshift(layer);
-    word rowskip = vera_layer_get_rowskip(layer);
-    mapbase += ((word)y << shift);
-    mapbase += (x << 1); // 2 bytes per tile (one index + one palette)
+    unsigned int mapbase_offset = vera_layer0_get_mapbase_offset();
+    unsigned char mapbase_bank = vera_layer0_get_mapbase_bank();
+    byte shift = vera_layer0_get_rowshift();
+    word rowskip = vera_layer0_get_rowskip();
+    mapbase_offset += ((word)y << shift);
+    mapbase_offset += (x << 1); // 2 bytes per tile (one index + one palette)
 
     for(byte sr=0;sr<4;sr+=2) {
         for(byte r=0;r<4;r+=2) {
-            vera_vram_data0_address(mapbase,VERA_INC_1);
+            vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
             for(byte sc=0;sc<2;sc++) {
                 for(byte c=0;c<2;c++) {
                     byte s = sc + sr;
@@ -92,7 +96,7 @@ void vera_tile_element( byte layer, byte x, byte y, word Segment ) {
                     *VERA_DATA0 = Tile->PaletteOffset << 4 | BYTE1(Offset);
                 }
             }
-        mapbase += rowskip;
+        mapbase_offset += rowskip;
         }
     }
 }
@@ -168,8 +172,9 @@ void floor_draw() {
 
 void tile_background() {
 
-    vera_layer_set_vertical_scroll(0,8*64);
-    vera_tile_clear(0);
+    vera_layer0_set_vertical_scroll(8*64);
+    
+    vera_tile_clear();
     floor_init();
     for(row=63;row>=32;row--) {
         // The 3 is very important, because we draw from the bottom to the top.
@@ -177,7 +182,7 @@ void tile_background() {
         if(row%4==3) {
             floor_draw();
         }
-        vera_tile_row(0, row);
+        vera_tile_row(row);
     }
 }
 
