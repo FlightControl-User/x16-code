@@ -105,6 +105,7 @@ typedef struct entity_s {
     unsigned char delay;
     signed char turn;
     unsigned char speed;
+    unsigned char enabled;
     Sprite* sprite_type;
     vera_sprite_offset sprite_offset;
 
@@ -124,7 +125,7 @@ void Logic();
 
 
 void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
-void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index);
+void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index, byte animate);
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
 void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
 void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);

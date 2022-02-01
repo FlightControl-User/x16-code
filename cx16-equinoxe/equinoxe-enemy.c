@@ -5,6 +5,7 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
+#include "equinoxe-fighters.h"
 #include <ht.h>
 
 void AddEnemy(char t, signed int x, signed int y) {
@@ -65,6 +66,7 @@ void MoveEnemy( Enemy* enemy, unsigned int flight, signed char turn, unsigned ch
 	enemy->flight = flight;
 	enemy->angle = enemy->angle + turn;
 	enemy->speed = speed;
+	enemy->step++;
 }
 
 void ArcEnemy( Enemy* enemy, signed char turn, unsigned char radius, unsigned char speed) {
@@ -75,6 +77,7 @@ void ArcEnemy( Enemy* enemy, signed char turn, unsigned char radius, unsigned ch
 	enemy->flight = mul8u(abs_u8((unsigned char)turn), radius);
 	enemy->baseangle = enemy->angle;
 	enemy->speed = speed;
+	enemy->step++;
 }
 
 
@@ -105,57 +108,46 @@ void LogicEnemies() {
 				case 0:
 					// MoveEnemy(enemy, 320, 16, 5);
 					MoveEnemy(enemy, 160, 16, 1);
-					enemy->step++;
 					break;
 				case 1:
 					// ArcEnemy(enemy, -64, 12, 4);
 					ArcEnemy(enemy, -64, 4, 1);
-					enemy->step++;
 					break;
 				case 2:
 					// MoveEnemy(enemy, 80, 0, 4);
 					MoveEnemy(enemy, 80, 0, 1);
-					enemy->step++;
 					break;
 				case 3:
 					// ArcEnemy(enemy, 64, 9, 4);
 					ArcEnemy(enemy, 64, 4, 1);
-					enemy->step++;
 					break;
 				case 4:
 					// ArcEnemy(enemy, 8, 12, 3);
 					ArcEnemy(enemy, 8, 4, 1);
-					enemy->step++;
 					break;
 				case 5:
 					// MoveEnemy(enemy, 160, 0, 3);
 					MoveEnemy(enemy, 160, 0, 1);
-					enemy->step++;
 					break;
 				case 6:
 					// ArcEnemy(enemy, 16, 12, 3);
 					ArcEnemy(enemy, 16, 4, 1);
-					enemy->step++;
 					break;
 				case 7:
 					// ArcEnemy(enemy, 16, 12, 2);
 					ArcEnemy(enemy, 16, 4, 1);
-					enemy->step++;
 					break;
 				case 8:
 					// MoveEnemy(enemy, 80, 0, 2);
 					MoveEnemy(enemy, 80, 0, 1);
-					enemy->step++;
 					break;
 				case 9:
 					// ArcEnemy(enemy, 24, 12, 4);
 					ArcEnemy(enemy, 24, 4, 1);
-					enemy->step++;
 					break;
 				case 10:
 					// MoveEnemy(enemy, 160, 0, 4);
 					MoveEnemy(enemy, 160, 0, 1);
-					enemy->step++;
 					break;
 				case 11:
 					enemy_handle = RemoveEnemy(enemy_handle);
@@ -205,11 +197,12 @@ void LogicEnemies() {
 				enemy->reload--;
 			}
 
-			if (!enemy->wait_animation--) {
+			if (!enemy->wait_animation) {
 				enemy->wait_animation = enemy->speed_animation;
 				if(!enemy->state_animation--)
 				enemy->state_animation += 12;
 			}
+			enemy->wait_animation--;
 
 			// gotoxy(0, 32);
 			// printf("l=%5u a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", loop++, enemy->angle, enemy->x, enemy->y, enemy->dx, enemy->dy);
@@ -217,9 +210,19 @@ void LogicEnemies() {
 			// 	enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
 			// );
 
-			DrawFighter(enemy_handle);
+			if(x > -64 && x < 640) {
+				if(!enemy->enabled) {
+					EnableFighter(enemy_handle);
+					enemy->enabled = 1;
+				}
+				DrawFighter(enemy_handle);
+			} else {
+				if(enemy->enabled) {
+					DisableFighter(enemy_handle);
+					enemy->enabled = 0;
+				}
+			}
 		}
-
 
 		enemy_handle = enemy->next;
 

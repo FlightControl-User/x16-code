@@ -119,6 +119,17 @@ void LogicPlayer() {
 			FireBullet(player, 4);
 		}
 
-		DrawFighter(player_handle);
+		if(playerx > -64 && playerx < 640) {
+			if(!player->enabled) {
+				EnableFighter(player_handle);
+				player->enabled = 1;
+			}
+			DrawFighter(player_handle);
+		} else {
+			if(player->enabled) {
+				DisableFighter(player_handle);
+				player->enabled = 0;
+			}
+		}
 	}
 }

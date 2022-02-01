@@ -94,11 +94,13 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
 }
 
-void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index) {
+void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index, byte animate) {
     byte SpriteCount = sprite->SpriteCount;
     index = (index >= SpriteCount) ? index - SpriteCount : index;
+    if(!animate) {
+        vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
+    }
     // vera_sprite_buffer_set_image_offset((vera_sprite_buffer_item_t *)sprite_offset, sprite->offset_image[index]);
-    vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
 }
 
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {

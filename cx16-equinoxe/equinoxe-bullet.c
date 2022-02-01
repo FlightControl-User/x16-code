@@ -115,7 +115,7 @@ inline void DrawBullet(heap_handle bullet_handle) {
     signed int y = bullet->y;
 
     sprite_enable(sprite_offset, bullet->sprite_type);
-    sprite_animate(sprite_offset, bullet->sprite_type, 0);
+    sprite_animate(sprite_offset, bullet->sprite_type, 0, 0);
     // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
     sprite_position(sprite_offset, x, y);
     // gotoxy(40, 39 + l++);
