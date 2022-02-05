@@ -104,7 +104,8 @@ void LogicEnemies() {
 			}
 
 			if(!enemy->flight) {
-				switch(enemy->step) {
+				unsigned char step = enemy->step;
+				switch(step) {
 				case 0:
 					// MoveEnemy(enemy, 320, 16, 5);
 					MoveEnemy(enemy, 160, 16, 1);

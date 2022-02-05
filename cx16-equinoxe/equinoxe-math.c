@@ -32,7 +32,10 @@ void vecx(FP3* fp3, char angle, char speed) {
     char s = angle / 16;
     unsigned int dx = math_sin[i];
     dx <<= speed;
-    signed int sdx = (signed int)((sx[s]==1)?dx:-dx);
+    signed int sdx = (signed int)dx;   
+    if(sx[s]==-1) {
+        sdx = (signed int)-dx;
+    }
     asm {
         ldy #0
         lda sdx
@@ -57,7 +60,11 @@ void vecy(FP3* fp3, char angle, char speed) {
     char s = angle / 16;
     unsigned int dy = math_cos[i];
     dy <<= speed;
-    signed int sdy = (signed int)((sy[s]==1)?dy:-dy);
+    // signed int sdy = (signed int)((sy[s]==1)?dy:-dy);
+    signed int sdy = (signed int)dy;   
+    if(sy[s]==-1) {
+        sdy = (signed int)-dy;
+    }
     asm {
         ldy #0
         lda sdy

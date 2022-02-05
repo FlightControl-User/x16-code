@@ -65,7 +65,7 @@ void LogicPlayer() {
 			player->reload--;
 		}
 
-		if (!player->wait_animation--) {
+		if (!player->wait_animation) {
 			player->wait_animation = player->speed_animation;
 			if (game.curr_mousex < game.prev_mousex && player->state_animation > 0) {
 				// Added fragment
@@ -93,6 +93,7 @@ void LogicPlayer() {
 				player->moved--;
 			}
 		}
+		player->wait_animation--;
 
 
 		// Added fragment
@@ -105,12 +106,13 @@ void LogicPlayer() {
 		heap_handle engine_handle = player->engine_handle;
 		entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);
 
-		if (engine->wait_animation--) {
+		if (!engine->wait_animation) {
 			engine->state_animation++;
 			engine->state_animation &= 0xF;
 			engine->wait_animation = engine->speed_animation;
 		}
-
+		engine->wait_animation--;
+		
 		engine->tx.i = playerx + 8;
 		engine->ty.i = playery + 22;
 

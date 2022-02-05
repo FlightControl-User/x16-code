@@ -1,6 +1,7 @@
 #include <cx16.h>
 #include <string.h>
 #include <ht.h>
+#include <fp3.h>
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
