@@ -1,3 +1,6 @@
+#ifndef equinoxe_flightengine_h
+#define equinoxe_flightengine_h
+
 #include <cx16-heap.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
@@ -74,6 +77,12 @@ __mem Sprite *SpriteDB[4] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEngine01, 
 
 byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_ENGINE01_COUNT + SPRITE_BULLET01_COUNT; 
 
+typedef struct collision_s {
+    unsigned char cells;
+    ht_item_t* cell[4];
+} collision_t;
+
+
 typedef struct entity_s {
     heap_handle next;
     heap_handle prev;
@@ -115,8 +124,7 @@ typedef struct entity_s {
     FP3 tdx;
     FP3 tdy;
 
-    unsigned char cells;
-    ht_item_t* collision[8];
+    collision_t grid;
 
     unsigned char xmask;
     unsigned char ymask;
@@ -133,3 +141,4 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
 void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
 void sprite_disable(vera_sprite_offset sprite_offset);
 
+#endif

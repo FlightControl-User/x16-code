@@ -61,6 +61,8 @@ void LogicPlayer() {
 		// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, bank);
 		player->dx = player->dy = 0;
 
+		grid_remove(player);
+
 		if (player->reload > 0) {
 			player->reload--;
 		}
@@ -102,6 +104,15 @@ void LogicPlayer() {
 
 		signed int playerx = player->tx.i;
 		signed int playery = player->ty.i;
+
+		volatile unsigned int x = (unsigned int)player->tx.i;
+		volatile unsigned int y = (unsigned int)player->ty.i;
+
+		if(playerx<0 || playerx>640-32 || playery<0 || playery>480-32) {
+			player->grid.cells = 0;
+		} else {
+			player->grid.cells = grid_insert(player, x, y, player_handle);
+		}
 
 		heap_handle engine_handle = player->engine_handle;
 		entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);

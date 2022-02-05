@@ -4,6 +4,8 @@
     #pragma var_model(mem)
 // #endif
 
+#define __FLOOR 1
+
 #include <cx16.h>
 #include <cx16-heap.h>
 #include <cx16-veralib.h>
@@ -172,7 +174,9 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     LogicPlayer();
     LogicBullets();
     LogicEnemies();
-    
+
+#ifndef __FLOOR
+
     // background scrolling
     if(!scroll_action--) {
         scroll_action = 2;
@@ -212,6 +216,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         vscroll--;
        
     }
+
+#endif
 
     // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
 
@@ -291,8 +297,6 @@ void main() {
         heap_size_pack(0x2000)
     );
 
-    //#include "equinoxe-palettes.c"
-
     heap_handle handle_bram_palettes = heap_alloc(HEAP_SEGMENT_BRAM_PALETTES, 8192);
     heap_ptr ptr_bram_palettes = heap_data_ptr(handle_bram_palettes);
     heap_bank bank_bram_palettes = heap_data_bank(handle_bram_palettes);
@@ -314,6 +318,7 @@ void main() {
     memcpy_vram_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, bank_bram_palettes, ptr_bram_palettes, palette_loaded);
     // Tested
 
+#ifndef __FLOOR
     // TILE INITIALIZATION 
 
     // Initialize the bram heap for tile loading.
@@ -344,11 +349,13 @@ void main() {
         VERA_LAYER_COLOR_DEPTH_8BPP
     );
 
+
+    tile_background();
+
     vera_layer0_show();
     vera_layer1_show();
 
-    //floor_init();
-    tile_background();
+#endif
 
 
     // Initialize the bram heap for sprite loading.
@@ -407,8 +414,10 @@ void main() {
     cx16_mouse_config(0xFF, 1);
 
     while (!getin()) {
-        gotoxy(0,0);
-        ht_display(ht_collision, ht_size_collision);
+        // SEI();
+        // gotoxy(0,0);
+        // ht_display(ht_collision, ht_size_collision);
+        // CLI();
     }; 
 
     // Back to basic.

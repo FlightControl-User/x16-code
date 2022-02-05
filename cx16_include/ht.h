@@ -9,6 +9,9 @@
  * 
  */
 
+#ifndef ht_h
+#define ht_h
+
 typedef unsigned int const ht_size_t;
 typedef unsigned int ht_key_t;
 typedef unsigned int ht_data_t;
@@ -30,3 +33,5 @@ ht_item_t* ht_get_duplicate(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t 
 ht_item_t* ht_insert(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t data);
 ht_item_t* ht_delete(ht_t ht, ht_size_t ht_size, ht_item_t* item);
 void ht_display(ht_t ht, ht_size_t ht_size);
+
+#endif

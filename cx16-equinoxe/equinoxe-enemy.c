@@ -6,6 +6,7 @@
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-fighters.h"
+#include "equinoxe-collision.h"
 #include <ht.h>
 
 void AddEnemy(char t, signed int x, signed int y) {
@@ -98,15 +99,7 @@ void LogicEnemies() {
 
 		if(enemy->side == SIDE_ENEMY) {
 
-			unsigned char c = enemy->cells = c;
-			while(c) {
-				ht_item_t* item = enemy->collision[c];
-				if(item) {
-					ht_delete(ht_collision, ht_size_collision, item);
-				}
-				c--;
-			}
-			enemy->cells = 0;
+			grid_remove(enemy);
 
 			if(!enemy->flight) {
 				unsigned char step = enemy->step;
@@ -190,23 +183,16 @@ void LogicEnemies() {
 
 			// For collision, update collision hash table
 
+			volatile signed int bx = enemy->tx.i;
+			volatile signed int by = enemy->ty.i;
 			volatile unsigned int x = (unsigned int)enemy->tx.i;
 			volatile unsigned int y = (unsigned int)enemy->ty.i;
 
-			unsigned char cxmin = (unsigned char)(x >> 6);
-			unsigned char cymin = (unsigned char)(y >> 6);
-
-			unsigned char cxmax = (unsigned char)(x + 32) >> 6;
-			unsigned char cymax = (unsigned char)(y + 32) >> 6;
-
-			for(unsigned char cx = cxmin; cx<=cxmax; cx++) {
-				for(unsigned char cy=cymin; cy<=cxmax; cy++) {
-					ht_key_t ht_key = ((unsigned int)cx * 8 + (unsigned int)cy) * 8;
-					enemy->collision[c] = ht_insert(ht_collision, ht_size_collision, ht_key, enemy_handle);
-					c++;
-				}
+			if(bx<0 || bx>640-32 || by<0 || by>480-32) {
+				enemy->grid.cells = 0;
+			} else {
+				enemy->grid.cells = grid_insert(enemy, x, y, enemy_handle);
 			}
-			enemy->cells = c;
 
 			if (enemy->reload > 0) {
 				enemy->reload--;

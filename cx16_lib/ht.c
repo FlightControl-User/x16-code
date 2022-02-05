@@ -13,7 +13,7 @@ void ht_init(ht_t ht, ht_size_t ht_size) {
 }
 
 unsigned int ht_code(ht_size_t ht_size, ht_key_t key) {
-   return key % ht_size;
+   return (key << 3) % ht_size;
 }
 
 ht_item_t* ht_get(ht_t ht, ht_size_t ht_size, ht_key_t key) {
@@ -63,18 +63,27 @@ ht_item_t* ht_delete(ht_t ht, ht_size_t ht_size, ht_item_t* item) {
 void ht_display(ht_t ht, ht_size_t ht_size) {
    ht_index_t ht_index = 0;
 	
+   unsigned char col = 0;
    for(ht_index = 0; ht_index<ht_size; ht_index++) {
-	
+
+      if(!col) {
+         printf("%04X: ", ht_index);
+      }
       if(ht[ht_index].data != NULL) {
          if(ht[ht_index].key == 0xFFFF) {
             printf(" ** ");
          } else {
-            printf(" ++ ");
+            printf(" %02X ", ht[ht_index].key);
 
          }
       }
       else
          printf(" -- ");
+      
+      if(++col >= 16) {
+         col = 0;
+         printf("\n");
+      } 
    }
 	
    printf("\n");
