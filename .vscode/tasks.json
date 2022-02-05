@@ -35,6 +35,72 @@
             }
         },
         {
+            "label": "cx16-kickc-compile-optimized",
+            "command": "cmd/cx16-kickc-compile-optimized.ps1",            
+            "args": [
+                "${fileDirname}",
+                "${fileBasenameNoExtension}.c"
+            ],
+            
+            "type": "shell",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "cx16-kickc-compile-verbosed",
+            "command": "cmd/cx16-kickc-compile-verbosed.ps1",            
+            "args": [
+                "${fileDirname}",
+                "${fileBasenameNoExtension}.c"
+            ],
+            
+            "type": "shell",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
             "label": "cx16-cl65-compile",
             "command": "cmd/cx16-cl65-compile.ps1",
             "args": [

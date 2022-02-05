@@ -115,7 +115,9 @@ typedef struct entity_s {
     FP3 tdx;
     FP3 tdy;
 
-    ht_item_t* collision;
+    unsigned char cells;
+    ht_item_t* collision[8];
+
     unsigned char xmask;
     unsigned char ymask;
 } entity_t;

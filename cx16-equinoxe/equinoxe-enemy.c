@@ -98,10 +98,15 @@ void LogicEnemies() {
 
 		if(enemy->side == SIDE_ENEMY) {
 
-			ht_item_t* item = enemy->collision;
-			if(item) {
-				ht_delete(ht_collision, ht_size_collision, item);
+			unsigned char c = enemy->cells = c;
+			while(c) {
+				ht_item_t* item = enemy->collision[c];
+				if(item) {
+					ht_delete(ht_collision, ht_size_collision, item);
+				}
+				c--;
 			}
+			enemy->cells = 0;
 
 			if(!enemy->flight) {
 				unsigned char step = enemy->step;
@@ -187,12 +192,24 @@ void LogicEnemies() {
 
 			volatile unsigned int x = (unsigned int)enemy->tx.i;
 			volatile unsigned int y = (unsigned int)enemy->ty.i;
+
 			unsigned int gx = x >> 6;
 			unsigned int gy = y >> 6;
-			ht_key_t ht_key = (gx*8+gy)*4;
 
-			enemy->collision = ht_insert(ht_collision, ht_size_collision, ht_key, enemy_handle);
+			unsigned char cxmin = (unsigned char)(x >> 6);
+			unsigned char cymin = (unsigned char)(y >> 6);
 
+			unsigned char cxmax = (unsigned char)(x + 32) >> 6;
+			unsigned char cymax = (unsigned char)(y + 32) >> 6;
+
+			for(unsigned char cx = cxmin; cx<=cxmax; cx++) {
+				for(unsigned char cy=cymin; cy<=cxmax; cy++) {
+					ht_key_t ht_key = (cx * 8 + cy) * 4;
+					enemy->collision[c] = ht_insert(ht_collision, ht_size_collision, ht_key, enemy_handle);
+					c++;
+				}
+			}
+			enemy->cells = c;
 
 			if (enemy->reload > 0) {
 				enemy->reload--;
