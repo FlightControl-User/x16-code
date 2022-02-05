@@ -193,9 +193,6 @@ void LogicEnemies() {
 			volatile unsigned int x = (unsigned int)enemy->tx.i;
 			volatile unsigned int y = (unsigned int)enemy->ty.i;
 
-			unsigned int gx = x >> 6;
-			unsigned int gy = y >> 6;
-
 			unsigned char cxmin = (unsigned char)(x >> 6);
 			unsigned char cymin = (unsigned char)(y >> 6);
 
@@ -204,7 +201,7 @@ void LogicEnemies() {
 
 			for(unsigned char cx = cxmin; cx<=cxmax; cx++) {
 				for(unsigned char cy=cymin; cy<=cxmax; cy++) {
-					ht_key_t ht_key = (cx * 8 + cy) * 4;
+					ht_key_t ht_key = ((unsigned int)cx * 8 + (unsigned int)cy) * 8;
 					enemy->collision[c] = ht_insert(ht_collision, ht_size_collision, ht_key, enemy_handle);
 					c++;
 				}
