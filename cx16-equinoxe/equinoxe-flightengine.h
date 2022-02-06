@@ -79,9 +79,16 @@ byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_
 
 typedef struct collision_s {
     unsigned char cells;
+    unsigned char cx[4];
+    unsigned char cy[4];
     ht_item_t* cell[4];
 } collision_t;
 
+enum entity_types {
+    entity_type_player,
+    entity_type_enemy,
+    entity_type_bullet
+};
 
 typedef struct entity_s {
     heap_handle next;
@@ -92,6 +99,7 @@ typedef struct entity_s {
     signed char fy;
     signed char dx;
     signed char dy;
+    unsigned char type;
     byte active;
     byte SpriteType;
     byte state_behaviour;

@@ -50,11 +50,9 @@ volatile int prev_mousex = 0;
 volatile int prev_mousey = 0;
 volatile byte scroll_action = 2;
 
-ht_size_t ht_size_collision = 512;
-ht_item_t ht_collision[512];
+
 
 // vera_sprite_buffer_item_t sprite_buffer[128];
-
 
 
 struct sprite_bullet {

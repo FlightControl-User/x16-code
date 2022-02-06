@@ -1,6 +1,7 @@
 #include <cx16-heap.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
+#include "equinoxe-collision.h"
 
 void grid_remove(entity_t* entity) {
 
@@ -9,6 +10,15 @@ void grid_remove(entity_t* entity) {
         c--;
         ht_item_t* item = entity->grid.cell[c];
         if(item) {
+            unsigned char cx = entity->grid.cx[c];
+            unsigned char cy = entity->grid.cy[c];
+            unsigned char entities = grid.column[cx].row[cy].entities--;
+            if(!entities) {
+                grid.column[cx].rows--;
+            }
+            if(!grid.column[cx].rows) {
+                grid.columns--;
+            }
             ht_delete(ht_collision, ht_size_collision, item);
         }
     }
@@ -25,9 +35,18 @@ unsigned char grid_insert(entity_t* entity, unsigned int x, unsigned int y, unsi
 
     unsigned char c = 0;
     for(unsigned char cx = cxmin; cx<=cxmax; cx++) {
+        unsigned char count = 0;
+        grid.columns++;
         for(unsigned char cy=cymin; cy<=cymax; cy++) {
-            ht_key_t ht_key = ((unsigned int)cx * 8 + (unsigned int)cy);
-            entity->grid.cell[c] = ht_insert(ht_collision, ht_size_collision, ht_key, data);
+            // bit 0-3 = cy
+            // bit 4-7 = cx
+            // bit 8-11 = count
+            grid.column[cx].rows++;
+            unsigned char entities = grid.column[cx].row[cy].entities++;
+            ht_key_t ht_key = ((((unsigned int)cx << 4 + (unsigned int)cy)) << 8)+entities;
+            ht_insert(ht_collision, ht_size_collision, ht_key, data);
+            entity->grid.cx[c] = cx;
+            entity->grid.cy[c] = cy;
             c++;
         }
     }

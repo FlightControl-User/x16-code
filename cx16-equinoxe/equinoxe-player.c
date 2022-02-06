@@ -9,6 +9,7 @@ void InitPlayer() {
 	entity_t* player = &player_ram;
 	memset_fast(player, 0, sizeof(entity_t));
 
+	player->type = entity_type_player;
 	player->health = 1;
 	player->tx.i = 320;
 	player->ty.i = 200;

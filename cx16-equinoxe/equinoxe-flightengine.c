@@ -4,7 +4,7 @@
     #pragma var_model(mem)
 // #endif
 
-#define __FLOOR 1
+// #define __FLOOR 1
 
 #include <cx16.h>
 #include <cx16-heap.h>
@@ -137,18 +137,51 @@ inline void Logic(void) {
 
 //VSYNC Interrupt Routine
 
-__interrupt(rom_sys_cx16) void irq_vsync() {
+/* __interrupt(rom_sys_cx16) */ void irq_vsync() {
 
     vera_display_set_border_color(1);
 
     bram_bank_t oldbank = bank_get_bram();
 
     // Check if collision interrupt
-    // if (vera_sprite_is_collision()) {
-    //     gotoxy(0, 20);
-    //     sprite_collided = 1;
-    //     vera_sprite_collision_clear();
-    // } else {
+    if (vera_sprite_is_collision()) {
+        gotoxy(0, 20);
+        sprite_collided = 1;
+        vera_sprite_collision_clear();
+    } else {
+        if (sprite_collided) {
+            sprite_collided = 0;
+            // check which bullet collides with which enemy ...
+           
+            for(unsigned char cx=0;cx<10;cx++) {
+                if(!grid.columns) continue;
+                for(unsigned char cy=0;cy<8;cy++) {
+                    if(!grid.column[cx].rows) continue;
+                    unsigned char entities = grid.column[cx].row[cy].entities;
+                    ht_key_t ht_key = (((unsigned int)cx << 4 + (unsigned int)cy)<<8);
+                    for(unsigned char k=0; k<entities; k++) {
+                        ht_item_t* ht_item = ht_get(ht_collision, ht_size_collision, ht_key+k);
+                        heap_handle handle_entityA = ht_item->data;
+                        entity_t* entityA = heap_data_ptr(handle_entityA);
+                        signed int xA = entityA->tx.i;
+                        signed int yA = entityA->ty.i;
+                        for(unsigned char l=k+1; l<entities; l++) {
+                            ht_item_t* ht_item = ht_get(ht_collision, ht_size_collision, ht_key+l);
+                            heap_handle handle_entityB = ht_item->data;
+                            entity_t* entityB = heap_data_ptr(handle_entityA);
+                            signed int xB = entityB->tx.i;
+                            signed int yB = entityB->ty.i;
+                            if( xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB ) {
+                                
+                            } else {
+                                vera_display_set_border_color(2);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 
     char cx16_mouse_status = cx16_mouse_get();
@@ -165,11 +198,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     }
     game.ticksync++;
 
-        // volatile void (*fn)();
-        // fn = game.delegate.Logic;
-        // (*fn)();
-        // fn = game.delegate.Draw;
-        // (*fn)();
+    // volatile void (*fn)();
+    // fn = game.delegate.Logic;
+    // (*fn)();
+    // fn = game.delegate.Draw;
+    // (*fn)();
 
     LogicPlayer();
     LogicBullets();

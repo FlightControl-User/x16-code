@@ -15,6 +15,7 @@ void AddEnemy(char t, signed int x, signed int y) {
 	Enemy* enemy = &enemy_ram;
 	memset_fast(enemy, 0, sizeof(Enemy));
 
+	enemy->type = entity_type_enemy;
 	enemy->health = 1;
 	enemy->x = x;
 	enemy->y = y;
