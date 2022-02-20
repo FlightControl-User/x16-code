@@ -1,2 +1,2 @@
-select vdisk file="C:\SDCARD\X16.vhd"
+select vdisk file="C:\SDCARD\CX16.vhd"
 detach vdisk
