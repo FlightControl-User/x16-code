@@ -152,6 +152,24 @@
             "problemMatcher": []
         },
         {
+            "label": "x16-Box-Make-Run",
+            "command": "cmd/x16-box-make-run.ps1",
+            "args": [
+                "${fileDirname}",
+                "${fileBasenameNoExtension}.prg"
+            ],
+            "type": "shell",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "x16-Run",
             "command": "cmd/X16-Run.ps1",
             "args": [
