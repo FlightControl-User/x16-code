@@ -10,11 +10,11 @@ void grid_remove(entity_t* entity) {
         c--;
         ht_item_t* item = entity->grid.cell[c];
         if(item) {
-            unsigned char cx = entity->grid.cx[c];
+            unsigned char cx = entity->grid.cx[c]<<3;
             unsigned char cy = entity->grid.cy[c];
-            unsigned char entities = grid.column[cx].row[cy].entities--;
+            unsigned char entities = grid.entities[cx+cy]--;
             if(!entities) {
-                grid.column[cx].rows--;
+                grid.rows[cx][] //.column[cx].rows--;
             }
             if(!grid.column[cx].rows) {
                 grid.columns--;

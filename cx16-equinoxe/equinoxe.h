@@ -114,5 +114,7 @@ volatile heap_handle engine_handle;
 
 volatile Game game;
 
+grid_t grid;
+
 
 #endif
