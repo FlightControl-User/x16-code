@@ -29,7 +29,7 @@ typedef struct ht_item_s *ht_t;
 void ht_init(ht_t ht, ht_size_t ht_size);
 unsigned int ht_code(ht_size_t ht_size, ht_key_t key);
 ht_item_t* ht_get(ht_t ht, ht_size_t ht_size, ht_key_t key);
-ht_item_t* ht_get_duplicate(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t ht_data);
+ht_item_t* ht_get_next(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_item_t* ht_item);
 ht_item_t* ht_insert(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t data);
 ht_item_t* ht_delete(ht_t ht, ht_size_t ht_size, ht_item_t* item);
 void ht_display(ht_t ht, ht_size_t ht_size);

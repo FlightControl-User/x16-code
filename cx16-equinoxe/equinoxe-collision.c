@@ -10,15 +10,6 @@ void grid_remove(entity_t* entity) {
         c--;
         ht_item_t* item = entity->grid.cell[c];
         if(item) {
-            unsigned char cx = entity->grid.cx[c]<<3;
-            unsigned char cy = entity->grid.cy[c];
-            unsigned char entities = grid.entities[cx+cy]--;
-            if(!entities) {
-                grid.rows[cx][] //.column[cx].rows--;
-            }
-            if(!grid.column[cx].rows) {
-                grid.columns--;
-            }
             ht_delete(ht_collision, ht_size_collision, item);
         }
     }
@@ -36,14 +27,11 @@ unsigned char grid_insert(entity_t* entity, unsigned int x, unsigned int y, unsi
     unsigned char c = 0;
     for(unsigned char cx = cxmin; cx<=cxmax; cx++) {
         unsigned char count = 0;
-        grid.columns++;
         for(unsigned char cy=cymin; cy<=cymax; cy++) {
             // bit 0-3 = cy
             // bit 4-7 = cx
-            // bit 8-11 = count
-            grid.column[cx].rows++;
-            unsigned char entities = grid.column[cx].row[cy].entities++;
-            ht_key_t ht_key = ((((unsigned int)cx << 4 + (unsigned int)cy)) << 8)+entities;
+            // bit 15-12 = collision mask
+            ht_key_t ht_key = ((((unsigned int)cx << 4 + (unsigned int)cy))<<3);
             ht_insert(ht_collision, ht_size_collision, ht_key, data);
             entity->grid.cx[c] = cx;
             entity->grid.cy[c] = cy;

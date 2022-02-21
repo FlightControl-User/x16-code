@@ -20,6 +20,7 @@ typedef struct _sprite {
     unsigned char Vflip;
     unsigned char BPP;
     unsigned char PaletteOffset; 
+    unsigned char CollisionMask;
     heap_handle BRAM_Handle;
     vera_sprite_image_offset offset_image[16];
 } Sprite;
@@ -33,7 +34,7 @@ Sprite SpritePlayer01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 9, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 9, 0b00000000, 0x0, { 0x0 } 
 };
 
 #define SPRITE_ENEMY01_COUNT 12
@@ -43,7 +44,7 @@ Sprite SpriteEnemy01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 10, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 10, 0b00010000, 0x0, { 0x0 } 
 };
 
 #define SPRITE_ENGINE01_COUNT 16
@@ -53,7 +54,7 @@ Sprite SpriteEngine01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 11, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 11, 0b00000000, 0x0, { 0x0 } 
 };
 
 #define SPRITE_BULLET01_COUNT 1
@@ -63,7 +64,7 @@ Sprite SpriteBullet01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 0x0, { 0x0 } };
+    VERA_SPRITE_4BPP, 12, 0b00010000, 0x0, { 0x0 } };
 
 byte const SPRITE_TYPES = 4;
 byte const SPRITE_PLAYER01 = 0;
@@ -100,6 +101,7 @@ typedef struct entity_s {
     signed char dx;
     signed char dy;
     unsigned char type;
+    unsigned char collision_mask;
     byte active;
     byte SpriteType;
     byte state_behaviour;

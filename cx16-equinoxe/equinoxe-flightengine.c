@@ -94,6 +94,7 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_hflip(sprite_offset, sprite->Hflip);
     vera_sprite_vflip(sprite_offset, sprite->Vflip);
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
+    vera_sprite_set_collision_mask(sprite_offset, sprite->CollisionMask);
 }
 
 void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index, byte animate) {
@@ -123,7 +124,7 @@ void sprite_disable(vera_sprite_offset sprite_offset) {
 
 void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
     // vera_sprite_collision_mask(sprite_offset, mask);
-    vera_sprite_collision_mask(sprite_offset, mask);
+    vera_sprite_set_collision_mask(sprite_offset, mask);
 }
 
 
@@ -133,7 +134,7 @@ inline void Logic(void) {
     LogicEnemies();
 }
 
-
+unsigned int collisions = 0;
 
 //VSYNC Interrupt Routine
 
@@ -146,37 +147,35 @@ inline void Logic(void) {
     // Check if collision interrupt
     if (vera_sprite_is_collision()) {
         gotoxy(0, 20);
-        sprite_collided = 1;
+        sprite_collided = vera_sprite_get_collision();
         vera_sprite_collision_clear();
     } else {
         if (sprite_collided) {
-            sprite_collided = 0;
             // check which bullet collides with which enemy ...
            
-            for(unsigned char cx=0;cx<10;cx++) {
-                if(!grid.columns) continue;
+            for(unsigned char cx=0<<4;cx<10<<4;cx+=1<<4) {
                 for(unsigned char cy=0;cy<8;cy++) {
-                    if(!grid.column[cx].rows) continue;
-                    unsigned char entities = grid.column[cx].row[cy].entities;
-                    ht_key_t ht_key = (((unsigned int)cx << 4 + (unsigned int)cy)<<8);
-                    for(unsigned char k=0; k<entities; k++) {
-                        ht_item_t* ht_item = ht_get(ht_collision, ht_size_collision, ht_key+k);
-                        heap_handle handle_entityA = ht_item->data;
-                        entity_t* entityA = heap_data_ptr(handle_entityA);
+                    ht_key_t ht_key = (((unsigned int)cx << 4 + (unsigned int)cy)<<3);
+                    ht_item_t* ht_itemA = ht_get(ht_collision, ht_size_collision, ht_key);
+                    while(ht_itemA) {
+                        heap_handle handle_entityA = ht_itemA->data;
+                        entity_t* entityA = (entity_t*)heap_data_ptr(handle_entityA);
                         signed int xA = entityA->tx.i;
                         signed int yA = entityA->ty.i;
-                        for(unsigned char l=k+1; l<entities; l++) {
-                            ht_item_t* ht_item = ht_get(ht_collision, ht_size_collision, ht_key+l);
-                            heap_handle handle_entityB = ht_item->data;
-                            entity_t* entityB = heap_data_ptr(handle_entityA);
+                        ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemA);
+                        while(ht_itemB) {
+                            heap_handle handle_entityB = ht_itemB->data;
+                            entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
                             signed int xB = entityB->tx.i;
                             signed int yB = entityB->ty.i;
                             if( xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB ) {
                                 
                             } else {
-                                vera_display_set_border_color(2);
+                                gotoxy(20,10);
+                                printf("Collisions = %u", collisions++);
                             }
                         }
+                        ht_itemA = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemA);
                     }
                 }
             }

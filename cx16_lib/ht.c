@@ -30,12 +30,12 @@ ht_item_t* ht_get(ht_t ht, ht_size_t ht_size, ht_key_t key) {
    return NULL;        
 }
 
-ht_item_t* ht_get_duplicate(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t ht_data) {
+ht_item_t* ht_get_next(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_item_t* ht_item) {
 
-   ht_index_t ht_index = ht_code(ht_size, key);  
+   ht_index_t ht_index = ((unsigned int)(ht_item - ht))/sizeof(ht_item_t)+1;
 	
    while(ht[ht_index].data != NULL) {
-      if(ht[ht_index].key == key && ht[ht_index].data == ht_data)
+      if(ht[ht_index].key == key)
          return &ht[ht_index]; 
       ++ht_index;
       ht_index %= ht_size;

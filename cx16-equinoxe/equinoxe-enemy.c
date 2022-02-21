@@ -26,6 +26,7 @@ void AddEnemy(char t, signed int x, signed int y) {
 	enemy->state_animation = 12;
 	enemy->moved = 2;
 	enemy->side = SIDE_ENEMY;
+	enemy->collision_mask = SpriteEnemy01.CollisionMask;
 
 	enemy->sprite_type = &SpriteEnemy01;
 	enemy->sprite_offset = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
