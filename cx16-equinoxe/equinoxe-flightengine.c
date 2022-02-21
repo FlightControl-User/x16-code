@@ -274,6 +274,7 @@ void main() {
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
 
+
     // Memory is managed as follows:
     // ------------------------------------------------------------------------
     //
@@ -300,6 +301,8 @@ void main() {
         heap_bram_pack(1, (heap_ptr)0xA400), 
         0
         );
+
+
 
     //heap_segment_id segment_vram_floor_map = heap_segment_vram(HEAP_SEGMENT_VRAM_FLOOR_MAP, 1, 0x2000, 1, 0x0000, 1, 0xA400, 0);
 
@@ -390,6 +393,9 @@ void main() {
 #endif
 
 
+
+
+
     // Initialize the bram heap for sprite loading.
     heap_bram_packed bram_sprites = heap_segment_bram(
         HEAP_SEGMENT_BRAM_SPRITES,
@@ -423,7 +429,7 @@ void main() {
     //     sprite_create(SpriteDB[3], sprite); // Player bullets
     // }
 
-    //show_memory_map();
+
 
     // Initialize stage
 
@@ -436,12 +442,15 @@ void main() {
     vera_display_set_vstart(2);
     vera_display_set_vstop(236);
 
+    while(!getin());
+
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC;
     // vera_sprites_collision_on();
     CLI();
+
 
     cx16_mouse_config(0xFF, 1);
 
