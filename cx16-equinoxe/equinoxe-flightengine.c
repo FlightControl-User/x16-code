@@ -4,7 +4,7 @@
     #pragma var_model(mem)
 // #endif
 
-// #define __FLOOR 1
+#define __FLOOR 1
 
 #include <cx16.h>
 #include <cx16-heap.h>
@@ -138,7 +138,7 @@ unsigned int collisions = 0;
 
 //VSYNC Interrupt Routine
 
-/* __interrupt(rom_sys_cx16) */ void irq_vsync() {
+__interrupt(rom_sys_cx16) void irq_vsync() {
 
     vera_display_set_border_color(1);
 
@@ -155,14 +155,15 @@ unsigned int collisions = 0;
            
             for(unsigned char cx=0<<4;cx<10<<4;cx+=1<<4) {
                 for(unsigned char cy=0;cy<8;cy++) {
-                    ht_key_t ht_key = (((unsigned int)cx << 4 + (unsigned int)cy)<<3);
+                    ht_key_t ht_key = grid_key(0b10000000,cx,cy);
                     ht_item_t* ht_itemA = ht_get(ht_collision, ht_size_collision, ht_key);
                     while(ht_itemA) {
                         heap_handle handle_entityA = ht_itemA->data;
                         entity_t* entityA = (entity_t*)heap_data_ptr(handle_entityA);
                         signed int xA = entityA->tx.i;
                         signed int yA = entityA->ty.i;
-                        ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemA);
+                        ht_key_t ht_key = grid_key(0b01000000,cx,cy);
+                        ht_item_t* ht_itemB = ht_get(ht_collision, ht_size_collision, ht_key);
                         while(ht_itemB) {
                             heap_handle handle_entityB = ht_itemB->data;
                             entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
@@ -174,11 +175,14 @@ unsigned int collisions = 0;
                                 gotoxy(20,10);
                                 printf("Collisions = %u", collisions++);
                             }
+                            // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
+                            ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
                         }
                         ht_itemA = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemA);
                     }
                 }
             }
+        sprite_collided = 0;
         }
     }
 
@@ -255,7 +259,7 @@ unsigned int collisions = 0;
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
-    // vera_sprites_collision_on();
+    vera_sprites_collision_on();
 
     // vera_sprite_buffer_write(sprite_buffer);
 
@@ -442,13 +446,11 @@ void main() {
     vera_display_set_vstart(2);
     vera_display_set_vstop(236);
 
-    while(!getin());
-
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC;
-    // vera_sprites_collision_on();
+    vera_sprites_collision_on();
     CLI();
 
 
@@ -456,8 +458,8 @@ void main() {
 
     while (!getin()) {
         // SEI();
-        // gotoxy(0,0);
-        // ht_display(ht_collision, ht_size_collision);
+        gotoxy(0,0);
+        ht_display(ht_collision, ht_size_collision);
         // CLI();
     }; 
 

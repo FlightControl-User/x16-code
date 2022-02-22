@@ -193,7 +193,7 @@ void LogicEnemies() {
 			if(bx<0 || bx>640-32 || by<0 || by>480-32) {
 				enemy->grid.cells = 0;
 			} else {
-				enemy->grid.cells = grid_insert(enemy, x, y, enemy_handle);
+				enemy->grid.cells = grid_insert(enemy, 0b01000000, x, y, enemy_handle);
 			}
 
 			if (enemy->reload > 0) {

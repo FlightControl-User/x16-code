@@ -3,6 +3,12 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 
+inline ht_key_t grid_key(unsigned char group, unsigned char cx, unsigned char cy){
+     return ((((unsigned int)cx << 4 + (unsigned int)cy))+(unsigned int)group<<8);
+}
+
+
+
 void grid_remove(entity_t* entity) {
 
     unsigned char c = entity->grid.cells;
@@ -16,7 +22,7 @@ void grid_remove(entity_t* entity) {
     entity->grid.cells = 0;
 }
 
-unsigned char grid_insert(entity_t* entity, unsigned int x, unsigned int y, unsigned int data) { 
+unsigned char grid_insert(entity_t* entity, unsigned char group, unsigned int x, unsigned int y, unsigned int data) { 
 
     unsigned char cxmin = (unsigned char)(x >> 6);
     unsigned char cymin = (unsigned char)(y >> 6);
@@ -31,10 +37,10 @@ unsigned char grid_insert(entity_t* entity, unsigned int x, unsigned int y, unsi
             // bit 0-3 = cy
             // bit 4-7 = cx
             // bit 15-12 = collision mask
-            ht_key_t ht_key = ((((unsigned int)cx << 4 + (unsigned int)cy))<<3);
-            ht_insert(ht_collision, ht_size_collision, ht_key, data);
-            entity->grid.cx[c] = cx;
-            entity->grid.cy[c] = cy;
+            ht_key_t ht_key = grid_key(group,cx,cy);
+            entity->grid.cell[c] = ht_insert(ht_collision, ht_size_collision, ht_key, data);
+            // entity->grid.cx[c] = cx;
+            // entity->grid.cy[c] = cy;
             c++;
         }
     }

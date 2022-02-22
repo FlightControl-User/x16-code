@@ -2,6 +2,7 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-bullet.h"
+#include "equinoxe-collision.h"
 
 void InitPlayer() {
 
@@ -112,7 +113,7 @@ void LogicPlayer() {
 		if(playerx<0 || playerx>640-32 || playery<0 || playery>480-32) {
 			player->grid.cells = 0;
 		} else {
-			player->grid.cells = grid_insert(player, x, y, player_handle);
+			player->grid.cells = grid_insert(player, 0b10000000, x, y, player_handle);
 		}
 
 		heap_handle engine_handle = player->engine_handle;
