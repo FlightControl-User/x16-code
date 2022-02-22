@@ -176,7 +176,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                 printf("Collisions = %u", collisions++);
                             }
                             // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
-                            ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
+                            ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
                         }
                         ht_itemA = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemA);
                     }
