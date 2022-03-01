@@ -20,6 +20,7 @@
 #include <mos6522.h>
 #include <multiply.h>
 #include <ht.h>
+#include <cx16-bitmap.h>
 
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
@@ -65,17 +66,6 @@ heap_handle sprite_load(Sprite* sprite) {
 
     sprite->BRAM_Handle = handle_bram_sprite;
     return handle_bram_sprite;
-}
-
-inline void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset) {
-    // Copy sprite palette to VRAM
-    // Copy 8* sprite attributes to VRAM
-    vera_sprite_bpp(sprite_offset, sprite->BPP);
-    vera_sprite_width(sprite_offset, sprite->Width);
-    vera_sprite_height(sprite_offset, sprite->Height);
-    vera_sprite_hflip(sprite_offset, sprite->Hflip);
-    vera_sprite_vflip(sprite_offset, sprite->Vflip);
-    vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
 }
 
 
@@ -140,55 +130,12 @@ unsigned int collisions = 0;
 
 __interrupt(rom_sys_cx16) void irq_vsync() {
 
-    vera_display_set_border_color(1);
-
     bram_bank_t oldbank = bank_get_bram();
 
-    // Check if collision interrupt
-    if (vera_sprite_is_collision()) {
-        gotoxy(0, 20);
-        sprite_collided = vera_sprite_get_collision();
-        vera_sprite_collision_clear();
-    } else {
-        if (sprite_collided) {
-            // check which bullet collides with which enemy ...
-           
-            for(unsigned char cx=0<<4;cx<10<<4;cx+=1<<4) {
-                for(unsigned char cy=0;cy<8;cy++) {
-                    ht_key_t ht_key = grid_key(0b10000000,cx,cy);
-                    ht_item_t* ht_itemA = ht_get(ht_collision, ht_size_collision, ht_key);
-                    while(ht_itemA) {
-                        heap_handle handle_entityA = ht_itemA->data;
-                        entity_t* entityA = (entity_t*)heap_data_ptr(handle_entityA);
-                        signed int xA = entityA->tx.i;
-                        signed int yA = entityA->ty.i;
-                        ht_key_t ht_key = grid_key(0b01000000,cx,cy);
-                        ht_item_t* ht_itemB = ht_get(ht_collision, ht_size_collision, ht_key);
-                        while(ht_itemB) {
-                            heap_handle handle_entityB = ht_itemB->data;
-                            entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
-                            signed int xB = entityB->tx.i;
-                            signed int yB = entityB->ty.i;
-                            if( xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB ) {
-                                
-                            } else {
-                                gotoxy(20,10);
-                                printf("Collisions = %u", collisions++);
-                            }
-                            // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
-                            ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
-                        }
-                        ht_itemA = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemA);
-                    }
-                }
-            }
-        sprite_collided = 0;
-        }
-    }
 
-
+    vera_display_set_border_color(3);
+    memset(ht_collision,0,ht_size_collision*4);
     char cx16_mouse_status = cx16_mouse_get();
-
 
     game.prev_mousex = game.curr_mousex;
     game.prev_mousey = game.curr_mousey;
@@ -207,9 +154,125 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // fn = game.delegate.Draw;
     // (*fn)();
 
+    vera_display_set_border_color(7);
     LogicPlayer();
+    vera_display_set_border_color(6);
     LogicBullets();
+    vera_display_set_border_color(5);
     LogicEnemies();
+
+    // // Check if collision interrupt
+    // if(vera_sprite_is_collision()) {
+    //     sprite_collided = vera_sprite_get_collision();
+    //     vera_sprite_collision_clear();
+    // } else {
+    //     if(sprite_collided) {
+            // check which bullet collides with which enemy ...
+
+           
+        vera_display_set_border_color(2);
+
+        // Check player collisions
+        {
+            
+            heap_handle handle_entityA = player_handle;
+            entity_t* entityA = (entity_t*)heap_data_ptr(handle_entityA);
+            signed int xA = entityA->tx.i;
+            signed int yA = entityA->ty.i;
+
+            unsigned xmin = (unsigned int)xA;
+            unsigned ymin = (unsigned int)yA;
+            unsigned int xmax = (xmin + 32) & 0b1111111111000000; 
+            unsigned int ymax = (ymin + 32) & 0b1111111111000000; 
+
+            xmin = xmin & 0b1111111111000000;
+            ymin = ymin & 0b1111111111000000;
+
+            unsigned char grid = 0;
+
+            for(unsigned int gx=xmin; gx<=xmax; gx+=64) {
+                for(unsigned int gy=ymin; gy<=ymax; gy+=64) {
+
+                    ht_key_t ht_keyB = grid_key(0b01000000,(unsigned int)gx,(unsigned int)gy);
+                    ht_item_t* ht_itemB = ht_get(ht_collision, ht_size_collision, ht_keyB);
+                    // gotoxy(0,20);
+                    // printf("       %4p",ht_itemB);
+                    while(ht_itemB) {
+                        heap_handle handle_entityB = ht_itemB->data;
+                        entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
+                        signed int xB = entityB->tx.i;
+                        signed int yB = entityB->ty.i;
+                        // printf("keyB = %4x, xA = %i, xB = %i, yA = %i, yB = %i, ", ht_keyB, xA, xB, yA, yB);
+                        if(xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB) {
+                            
+                        } else {
+                            // printf("\ncollisions = %u", collisions++);
+                        }
+                        // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
+                        ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_keyB, ht_itemB);
+                        // gotoxy(0,20);
+                        // printf("%4p ",ht_itemB);
+                    }
+                }
+            }
+        }
+
+        vera_display_set_border_color(9);
+
+        // Check player bullet collisions
+        if(stage.bullet_list)
+        {
+            
+            heap_handle bullet_handle = stage.bullet_list;
+            do {
+                Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
+                signed int xA = bullet->tx.i;
+                signed int yA = bullet->ty.i;
+
+                unsigned xmin = (unsigned int)xA;
+                unsigned ymin = (unsigned int)yA;
+                unsigned int xmax = (xmin + 32) & 0b1111111111000000; 
+                unsigned int ymax = (ymin + 32) & 0b1111111111000000; 
+
+                xmin = xmin & 0b1111111111000000;
+                ymin = ymin & 0b1111111111000000;
+
+                unsigned char grid = 0;
+
+                for(unsigned int gx=xmin; gx<=xmax; gx+=64) {
+                    for(unsigned int gy=ymin; gy<=ymax; gy+=64) {
+
+                        ht_key_t ht_keyB = grid_key(0b01000000,(unsigned int)gx,(unsigned int)gy);
+                        ht_item_t* ht_itemB = ht_get(ht_collision, ht_size_collision, ht_keyB);
+                        // gotoxy(0,20);
+                        // printf("       %4p",ht_itemB);
+                        while(ht_itemB) {
+                            heap_handle handle_entityB = ht_itemB->data;
+                            entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
+                            signed int xB = entityB->tx.i;
+                            signed int yB = entityB->ty.i;
+                            // printf("keyB = %4x, xA = %i, xB = %i, yA = %i, yB = %i, ", ht_keyB, xA, xB, yA, yB);
+                            if(xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB) {
+                                
+                            } else {
+                                // printf("\ncollisions = %u", collisions++);
+                            }
+                            // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
+                            ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_keyB, ht_itemB);
+                            // gotoxy(0,20);
+                            // printf("%4p ",ht_itemB);
+                        }
+                    }
+                }
+                bullet_handle = bullet->next;
+            }   while(bullet_handle != stage.bullet_list);
+        }
+    //         sprite_collided = 0;
+    //     }
+    // }
+
+    vera_display_set_border_color(8);
+
 
 #ifndef __FLOOR
 
@@ -257,9 +320,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
 
+    vera_display_set_border_color(1);
+
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
-    vera_sprites_collision_on();
+    // vera_sprites_collision_on();
 
     // vera_sprite_buffer_write(sprite_buffer);
 
@@ -290,6 +355,21 @@ void main() {
     // HEAP_SEGMENT_BRAM_PALETTE                              3F/A000 - 3F/C000
 
     heap_address vram_petscii = petscii();
+
+    heap_handle handle_vram_bitmap = heap_alloc(10, 640*480*1/8);
+    heap_bank bank_vram_bitmap = heap_data_bank(handle_vram_bitmap);
+    heap_vram_offset offset_vram_bitmap = (heap_vram_offset)heap_data_ptr(handle_vram_bitmap);
+
+    vera_layer0_mode_bitmap( 
+        0, 0x0000, 
+        VERA_TILEBASE_WIDTH_16,
+        VERA_LAYER_COLOR_DEPTH_1BPP
+    );
+
+    vera_layer0_show();
+
+    bitmap_init(0, 0x00000);
+    bitmap_clear();
 
     // Allocate the segment for the tiles in vram.
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
@@ -434,8 +514,9 @@ void main() {
     // }
 
 
-
     // Initialize stage
+
+    
 
     StageInit();
 
@@ -450,7 +531,7 @@ void main() {
     SEI();
     *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC;
-    vera_sprites_collision_on();
+    // vera_sprites_collision_on();
     CLI();
 
 
@@ -458,8 +539,8 @@ void main() {
 
     while (!getin()) {
         // SEI();
-        gotoxy(0,0);
-        ht_display(ht_collision, ht_size_collision);
+        // gotoxy(0,0);
+        // ht_display(ht_collision, ht_size_collision);
         // CLI();
     }; 
 

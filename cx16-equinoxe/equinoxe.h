@@ -43,8 +43,6 @@ const byte SIDE_ENEMY = 1;
 
 // Joint global variables.
 
-volatile byte i = 0;
-volatile byte j = 0;
 volatile word vscroll = 16*32;
 volatile int prev_mousex = 0;
 volatile int prev_mousey = 0;
@@ -102,7 +100,7 @@ volatile Stage stage;
 volatile vera_sprite_offset sprite_offsets[127] = {0};
 
 
-volatile byte sprite_collided = 0;
+volatile unsigned char sprite_collided = 0;
 
 
 volatile byte state_game = 0;

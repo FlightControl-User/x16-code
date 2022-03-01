@@ -8,10 +8,10 @@
 void FireBullet(Bullet* entity, char reload)
 {
 
-	heap_handle bullet_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Bullet));
+	heap_handle bullet_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size);
 
 	Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
-    memset(bullet, 0, sizeof(Bullet));
+    memset(bullet, 0, entity_size);
 
 	heap_data_list_insert(&stage.bullet_list, bullet_handle);
 
@@ -19,14 +19,10 @@ void FireBullet(Bullet* entity, char reload)
     signed int y = game.curr_mousey;
     if (entity->firegun)
         x += (signed char)16;
-    bullet->x = x;
-    bullet->y = y;
-    bullet->dx = 0;
-    bullet->dy = -8;
-    // bullet->x = fp3_set(x,0);
-    // bullet->y = fp3_set(y,0);
-    // bullet->dx = fp3_set(0,0);
-    // bullet->dy = fp3_set(-4,0);
+    fp3_set(&bullet->tx, x, 0);
+	fp3_set(&bullet->ty, y, 0);
+    fp3_set(&bullet->tdx, 0, 0);
+	fp3_set(&bullet->tdy, -1, 0);
     bullet->health = 1;
     bullet->side = SIDE_PLAYER;
     entity->firegun = entity->firegun^1;
@@ -55,6 +51,8 @@ void LogicBullets()
 {
     // gotoxy(0, 38);
     // printf("lb: list = %x, count = %u", stage.bullet_list, stage.bullet_count);
+    if(!stage.bullet_list) return;
+
     char l = 0;
 
     heap_handle bullet_handle = stage.bullet_list;
@@ -66,28 +64,14 @@ void LogicBullets()
         Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
 
         vera_sprite_offset sprite_offset = bullet->sprite_offset;
-        signed int x = bullet->x;
-        signed int y = bullet->y;
 
-        signed char dx = bullet->dx;
-        signed char dy = bullet->dy;
-        // FP3 dx = bullet->dx;
-        // FP3 dy = bullet->dy;
-        // FP3 x = bullet->x;
-        // FP3 y = bullet->y;
-
-        x += dx;
-        y += dy;
-        // bullet->x = fp3_add(x, dx);
-        // bullet->y = fp3_add(y, dy);
-
-        bullet->x = x;
-        bullet->y = y;
+        fp3_add(&bullet->tx, &bullet->tdx);
+        fp3_add(&bullet->ty, &bullet->tdy);
 
         // gotoxy(0, l+1);
         // printf("bullet : l=%03u, p=%04p o=%04x x=%04i y=%04i ", l, bullet, bullet->sprite_offset, bullet->x, bullet->y);
 
-        if (y <= -32)
+        if (bullet->ty.i <= -32)
         // if (bullet->y.i <= -32)
         {
             sprite_disable(sprite_offset);
@@ -111,13 +95,11 @@ inline void DrawBullet(heap_handle bullet_handle) {
     Bullet *bullet = (Bullet *)heap_data_ptr(bullet_handle);
 
     vera_sprite_offset sprite_offset = bullet->sprite_offset;
-    signed int x = bullet->x;
-    signed int y = bullet->y;
 
     sprite_enable(sprite_offset, bullet->sprite_type);
     sprite_animate(sprite_offset, bullet->sprite_type, 0, 0);
     // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
-    sprite_position(sprite_offset, x, y);
+    sprite_position(sprite_offset, bullet->tx.i, bullet->ty.i);
     // gotoxy(40, 39 + l++);
     // printf("db: bullet = %p ", bullet);
     bullet_handle = bullet->next;

@@ -7,4 +7,5 @@ Remove-Item -Path X:\* -Recurse
 copy $filedir\Target\* X:\ -verbose
 copy $filedir\*.prg X:\ -verbose
 diskpart /s cmd/detach.dsk
-box16 -echo -sdcard "C:\SDCARD\CX16.vhd"  -keymap fr-be -prg $filedir\$filename 
+echo "symbol file = " + "$filedir\equinoxe-flightengine.sym"
+box16 -echo -sdcard "C:\SDCARD\CX16.vhd" -sym "$filedir\equinoxe-flightengine.vs" -keymap fr-be -prg $filedir\$filename 

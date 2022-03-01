@@ -6,6 +6,7 @@
 inline void EnableFighter(heap_handle fighter_handle) {
     entity_t* fighter = (entity_t*)heap_data_ptr(fighter_handle);
     sprite_enable(fighter->sprite_offset, fighter->sprite_type);
+    EnableEngine(fighter->engine_handle);
 }
 
 inline void EnableEngine(heap_handle engine_handle) {
@@ -18,6 +19,7 @@ inline void EnableEngine(heap_handle engine_handle) {
 inline void DisableFighter(heap_handle fighter_handle) {
     entity_t* fighter = (entity_t*)heap_data_ptr(fighter_handle);
     sprite_disable(fighter->sprite_offset);
+    DisableEngine(fighter->engine_handle);
 }
 
 inline void DisableEngine(heap_handle engine_handle) {
@@ -39,5 +41,6 @@ inline void DrawFighter(heap_handle fighter_handle) {
     entity_t* fighter = (entity_t*)heap_data_ptr(fighter_handle);
     sprite_animate(fighter->sprite_offset, fighter->sprite_type, fighter->state_animation, fighter->wait_animation);
     sprite_position(fighter->sprite_offset, fighter->tx.i, fighter->ty.i);
+    sprite_collision(fighter->sprite_offset, 0b10000000);
     DrawEngine(fighter->engine_handle);
 }

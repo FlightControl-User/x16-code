@@ -6,9 +6,9 @@
 
 void InitPlayer() {
 
-	entity_t player_ram;
-	entity_t* player = &player_ram;
-	memset_fast(player, 0, sizeof(entity_t));
+	player_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size); 
+	entity_t* player = (entity_t*)heap_data_ptr(player_handle);
+	memset_fast(player, 0, entity_size);
 
 	player->type = entity_type_player;
 	player->health = 1;
@@ -25,10 +25,9 @@ void InitPlayer() {
 	player->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
 	sprite_configure(player->sprite_offset, player->sprite_type);
 
-
-	entity_t engine_ram;
-	entity_t* engine = &engine_ram;
-	memset_fast(engine, 0, sizeof(entity_t));
+	heap_handle engine_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size);
+	entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);
+	memset_fast(engine, 0, entity_size);
 
 	engine->health = 1;
 	engine->speed_animation = 1;
@@ -39,18 +38,11 @@ void InitPlayer() {
 	engine->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
 	sprite_configure(engine->sprite_offset, engine->sprite_type);
 
-	heap_handle engine_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(entity_t));
+	player = (entity_t*)heap_data_ptr(player_handle);
 	player->engine_handle = engine_handle;
 
-	player_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(entity_t)); 
-	entity_t* player_bram = (entity_t*)heap_data_ptr(player_handle);
-	memcpy_fast(player_bram, player, sizeof(entity_t));
-
-	entity_t* engine_bram = (entity_t*)heap_data_ptr(engine_handle);
-	memcpy_fast(engine_bram, engine, sizeof(entity_t));
-
 	heap_data_list_insert(&stage.fighter_list, player_handle);
-	
+
 }
 
 void LogicPlayer() {
@@ -61,9 +53,8 @@ void LogicPlayer() {
 
 		byte bank = bank_get_bram();
 		// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, bank);
-		player->dx = player->dy = 0;
 
-		grid_remove(player);
+		// grid_remove(player);
 
 		if (player->reload > 0) {
 			player->reload--;
@@ -134,6 +125,7 @@ void LogicPlayer() {
 			FireBullet(player, 4);
 		}
 
+		
 		if(playerx > -64 && playerx < 640) {
 			if(!player->enabled) {
 				EnableFighter(player_handle);

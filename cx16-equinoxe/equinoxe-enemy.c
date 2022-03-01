@@ -11,9 +11,9 @@
 
 void AddEnemy(char t, signed int x, signed int y) {
 
-	Enemy enemy_ram;
-	Enemy* enemy = &enemy_ram;
-	memset_fast(enemy, 0, sizeof(Enemy));
+	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size);
+	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	memset_fast(enemy, 0, entity_size);
 
 	enemy->type = entity_type_enemy;
 	enemy->health = 1;
@@ -26,15 +26,11 @@ void AddEnemy(char t, signed int x, signed int y) {
 	enemy->state_animation = 12;
 	enemy->moved = 2;
 	enemy->side = SIDE_ENEMY;
-	enemy->collision_mask = SpriteEnemy01.CollisionMask;
 
 	enemy->sprite_type = &SpriteEnemy01;
 	enemy->sprite_offset = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
 	sprite_configure(enemy->sprite_offset, enemy->sprite_type);
 
-	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, sizeof(Enemy));
-	Enemy* enemy_bram = (Enemy*)heap_data_ptr(enemy_handle);
-	memcpy_fast(enemy_bram, enemy, sizeof(Enemy));
 	heap_data_list_insert(&stage.fighter_list, enemy_handle);
 }
 
@@ -65,7 +61,7 @@ heap_handle RemoveEnemy(heap_handle handle_remove) {
 
 void MoveEnemy( Enemy* enemy, unsigned int flight, signed char turn, unsigned char speed) {
 	enemy->move = 1;
-	flight >>= speed;
+	if(speed) flight >>= speed;
 	enemy->flight = flight;
 	enemy->angle = enemy->angle + turn;
 	enemy->speed = speed;
@@ -95,64 +91,75 @@ void LogicEnemies() {
 	// Enemy enemy_ram;
 	// Enemy* enemy = &enemy_ram;
 
+	// gotoxy(0,30);
+	// printf("enemy_handle = %4x, stage.fighter_list = %4x", enemy_handle, stage.fighter_list);
+
 	do {
+
+
+		// gotoxy(0,31);
+		// printf("enemy_handle = %4x, stage.fighter_list = %4x, ", enemy_handle, stage.fighter_list);
+		// printf("loop = %05u, size = %u", ++loop, sizeof(Enemy));
 
 		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
 
 		if(enemy->side == SIDE_ENEMY) {
 
-			grid_remove(enemy);
+
+			// grid_remove(enemy);
 
 			if(!enemy->flight) {
 				unsigned char step = enemy->step;
 				switch(step) {
 				case 0:
 					// MoveEnemy(enemy, 320, 16, 5);
-					MoveEnemy(enemy, 160, 16, 1);
+					MoveEnemy(enemy, 160, 16, 0);
 					break;
 				case 1:
 					// ArcEnemy(enemy, -64, 12, 4);
-					ArcEnemy(enemy, -64, 4, 1);
+					ArcEnemy(enemy, -64, 4, 0);
 					break;
 				case 2:
 					// MoveEnemy(enemy, 80, 0, 4);
-					MoveEnemy(enemy, 80, 0, 1);
+					MoveEnemy(enemy, 80, 0, 0);
 					break;
 				case 3:
 					// ArcEnemy(enemy, 64, 9, 4);
-					ArcEnemy(enemy, 64, 4, 1);
+					ArcEnemy(enemy, 64, 4, 0);
 					break;
 				case 4:
 					// ArcEnemy(enemy, 8, 12, 3);
-					ArcEnemy(enemy, 8, 4, 1);
+					ArcEnemy(enemy, 8, 4, 0);
 					break;
 				case 5:
 					// MoveEnemy(enemy, 160, 0, 3);
-					MoveEnemy(enemy, 160, 0, 1);
+					MoveEnemy(enemy, 160, 0, 0);
 					break;
 				case 6:
 					// ArcEnemy(enemy, 16, 12, 3);
-					ArcEnemy(enemy, 16, 4, 1);
+					ArcEnemy(enemy, 16, 4, 0);
 					break;
 				case 7:
 					// ArcEnemy(enemy, 16, 12, 2);
-					ArcEnemy(enemy, 16, 4, 1);
+					ArcEnemy(enemy, 16, 4, 0);
 					break;
 				case 8:
 					// MoveEnemy(enemy, 80, 0, 2);
-					MoveEnemy(enemy, 80, 0, 1);
+					MoveEnemy(enemy, 80, 0, 0);
 					break;
 				case 9:
 					// ArcEnemy(enemy, 24, 12, 4);
-					ArcEnemy(enemy, 24, 4, 1);
+					ArcEnemy(enemy, 24, 4, 0);
 					break;
 				case 10:
 					// MoveEnemy(enemy, 160, 0, 4);
-					MoveEnemy(enemy, 160, 0, 1);
+					MoveEnemy(enemy, 160, 0, 0);
 					break;
 				case 11:
-					enemy_handle = RemoveEnemy(enemy_handle);
-					continue;
+					ArcEnemy(enemy, 16, 4, 0);
+					enemy->step--;
+					// enemy_handle = RemoveEnemy(enemy_handle);
+					// continue;
 				}
 			}
 

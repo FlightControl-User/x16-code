@@ -30,13 +30,18 @@ ht_item_t* ht_get(ht_t ht, ht_size_t ht_size, ht_key_t key) {
    return NULL;        
 }
 
-ht_item_t* ht_get_next(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_item_t* ht_item) {
+inline ht_item_t* ht_get_next(ht_t ht, ht_size_t ht_size, ht_key_t key, ht_item_t* ht_item) {
 
-   ht_index_t ht_index = ((unsigned int)(ht_item - ht))/sizeof(ht_item_t)+1;
+   ht_index_t ht_index = ((unsigned int)(ht_item - ht))/sizeof(ht_item_t);
+   ++ht_index;
+   ht_index %= ht_size;
 	
    while(ht[ht_index].data != NULL) {
       if(ht[ht_index].key == key)
-         return &ht[ht_index]; 
+         if(ht_item != &ht[ht_index])
+            return &ht[ht_index];
+         else
+            return NULL; 
       ++ht_index;
       ht_index %= ht_size;
    }        
@@ -72,16 +77,16 @@ void ht_display(ht_t ht, ht_size_t ht_size) {
       }
       if(ht[ht_index].data != NULL) {
          if(ht[ht_index].key == 0xFFFF) {
-            printf(" ** ");
+            printf(" **** ");
          } else {
-            printf(" %02X ", ht[ht_index].key);
+            printf(" %04X ", ht[ht_index].key);
 
          }
       }
       else
-         printf(" -- ");
+         printf(" ---- ");
       
-      if(++col >= 16) {
+      if(++col >= 8) {
          col = 0;
          printf("\n");
       } 

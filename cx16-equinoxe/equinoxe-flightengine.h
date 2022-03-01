@@ -34,7 +34,7 @@ Sprite SpritePlayer01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 9, 0b00000000, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 9, 0b10000000, 0x0, { 0x0 } 
 };
 
 #define SPRITE_ENEMY01_COUNT 12
@@ -44,7 +44,7 @@ Sprite SpriteEnemy01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 10, 0b00010000, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 10, 0b11000000, 0x0, { 0x0 } 
 };
 
 #define SPRITE_ENGINE01_COUNT 16
@@ -64,7 +64,7 @@ Sprite SpriteBullet01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 0b00010000, 0x0, { 0x0 } };
+    VERA_SPRITE_4BPP, 12, 0b01000000, 0x0, { 0x0 } };
 
 byte const SPRITE_TYPES = 4;
 byte const SPRITE_PLAYER01 = 0;
@@ -80,8 +80,8 @@ byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_
 
 typedef struct collision_s {
     unsigned char cells;
-    unsigned char cx[4];
-    unsigned char cy[4];
+    unsigned int gx[4];
+    unsigned int gy[4];
     ht_item_t* cell[4];
 } collision_t;
 
@@ -91,15 +91,14 @@ enum entity_types {
     entity_type_bullet
 };
 
+const unsigned char entity_size = 120U;
+
 typedef struct entity_s {
     heap_handle next;
     heap_handle prev;
+
     signed int x;
     signed int y;
-    signed char fx;
-    signed char fy;
-    signed char dx;
-    signed char dy;
     unsigned char type;
     unsigned char collision_mask;
     byte active;
@@ -135,20 +134,18 @@ typedef struct entity_s {
     FP3 tdy;
 
     collision_t grid;
-
-    unsigned char xmask;
-    unsigned char ymask;
 } entity_t;
 
 void Logic();
 // void Draw();
 
 
-void sprite_create(Sprite* sprite, vera_sprite_offset sprite_offset);
 void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index, byte animate);
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
 void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite);
 void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite);
 void sprite_disable(vera_sprite_offset sprite_offset);
+void sprite_collision(vera_sprite_offset sprite_offset, byte mask);
+
 
 #endif
