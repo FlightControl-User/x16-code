@@ -15,7 +15,7 @@ struct Tile {
     word TotalSize;
     word TileSize;
     byte PaletteOffset; 
-    heap_handle BRAM_Handle;
+    heap_handle bram_handle[64];
 };
 
 

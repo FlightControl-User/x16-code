@@ -24,62 +24,75 @@
 signed char sx[4] = {1, 1, -1, -1};
 signed char sy[4] = {1, -1, -1, 1};
 
-
-void vecx(FP3* fp3, char angle, char speed) {
-
-    angle = angle % 64;
-    char i = angle % 32;
-    char s = angle / 16;
-    unsigned int dx = math_sin[i];
-    if(speed) dx <<= speed;
-    signed int sdx = (signed int)dx;   
-    if(sx[s]==-1) {
-        sdx = (signed int)-dx;
-    }
-    asm {
-        ldy #0
-        lda sdx
-        sta (fp3),y
-        iny
-        lda sdx+1
-        sta (fp3),y
-        iny
-        lda #0
-        bit sdx+1
-        bpl !+
-        lda #$ff
-    !:
-        sta (fp3),y
-    }
+// Prepare MEM pointers for operations using MEM
+inline void fp3_prep_math(FP3* fp3_num, signed int d) {
+	fp3 = BYTE0(fp3_num);
+	fp3hi = BYTE1(fp3_num);
 }
 
-void vecy(FP3* fp3, char angle, char speed) {
+
+inline void vecx(FP3* fp3, char angle, char speed) {
 
     angle = angle % 64;
-    char i = (angle) % 32;
-    char s = angle / 16;
-    unsigned int dy = math_cos[i];
+    // char i = angle % 32;
+    // char s = angle / 16;
+    signed int dx = math_cos[angle];
+    // if(sx[s]==-1) {
+    //     dx = -dx;
+    // }
+    if(speed) dx <<= speed;
+
+    fp3->fp3fi.f = (signed char)BYTE0(dx);
+    fp3->fp3fi.i = (signed int)BYTE1(dx);
+
+    // kickasm(uses fp3, uses fp3hi, uses dx) {{
+    //     ldy #0
+    //     lda vecx1_dx
+    //     sta (vecx1_fp3),y
+    //     iny
+    //     lda vecx1_dx+1
+    //     sta (vecx1_fp3),y
+    //     iny
+    //     lda #0
+    //     bit vecx1_dx+1
+    //     bpl !+
+    //     lda #$ff
+    // !:
+    //     sta (vecx1_fp3),y
+    // }}
+}
+
+inline void vecy(FP3* fp3, char angle, char speed) {
+
+    angle = angle % 64;
+    // char i = (angle) % 32;
+    // char s = angle / 16;
+    signed int dy = math_sin[angle];
     if(speed) dy <<= speed;
     // signed int sdy = (signed int)((sy[s]==1)?dy:-dy);
-    signed int sdy = (signed int)dy;   
-    if(sy[s]==-1) {
-        sdy = (signed int)-dy;
-    }
-    asm {
-        ldy #0
-        lda sdy
-        sta (fp3),y
-        iny
-        lda sdy+1
-        sta (fp3),y
-        iny
-        lda #0
-        bit sdy+1
-        bpl !+
-        lda #$ff
-    !:
-        sta (fp3),y
-    }
+    // signed int sdy = (signed int)dy;   
+    // if(sy[s]==-1) {
+    //     sdy = (signed int)-dy;
+    // }
+
+    fp3->fp3fi.f = (signed char)BYTE0(dy);
+    fp3->fp3fi.i = (signed int)BYTE1(dy);
+
+    // kickasm(uses fp3, uses fp3hi, uses dy) {{
+    //     ldy #0
+    //     lda vecy1_dy
+    //     sta (vecy1_fp3),y
+    //     iny
+    //     lda vecy1_dy+1
+    //     sta (vecy1_fp3),y
+    //     iny
+    //     lda #0
+    //     bit vecy1_dy+1
+    //     bpl !+
+    //     lda #$ff
+    // !:
+    //     sta (vecy1_fp3),y
+    // }}
 }
 
 // Get the absolute value of an 8-bit unsigned number treated as a signed number.

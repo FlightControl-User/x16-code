@@ -1,7 +1,7 @@
 #ifndef equinoxe_flightengine_h
 #define equinoxe_flightengine_h
 
-#include <cx16-heap.h>
+#include <cx16-fb.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include <fp3.h>
@@ -21,9 +21,16 @@ typedef struct _sprite {
     unsigned char BPP;
     unsigned char PaletteOffset; 
     unsigned char CollisionMask;
-    heap_handle BRAM_Handle;
+    heap_handle bram_handle[16];
     vera_sprite_image_offset offset_image[16];
 } Sprite;
+
+typedef struct {
+    heap_handle next;
+    heap_handle prev;
+    heap_handle handle;
+    vera_sprite_image_offset offset;
+} sprite_list;
 
 
 #define SPRITE_PLAYER01_COUNT 7
@@ -34,8 +41,9 @@ Sprite SpritePlayer01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 9, 0b10000000, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 9, 0b10000000, {0x0}, {0x0} 
 };
+heap_handle sprite_player_01[SPRITE_PLAYER01_COUNT];
 
 #define SPRITE_ENEMY01_COUNT 12
 Sprite SpriteEnemy01 =       { 
@@ -44,8 +52,9 @@ Sprite SpriteEnemy01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 10, 0b11000000, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 10, 0b11000000, {0x0}, { 0x0 } 
 };
+heap_handle sprite_enemy_01[SPRITE_ENEMY01_COUNT];
 
 #define SPRITE_ENGINE01_COUNT 16
 Sprite SpriteEngine01 =       { 
@@ -54,8 +63,9 @@ Sprite SpriteEngine01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 11, 0b00000000, 0x0, { 0x0 } 
+    VERA_SPRITE_4BPP, 11, 0b00000000, {0x0}, { 0x0 } 
 };
+heap_handle sprite_engine_01[SPRITE_ENGINE01_COUNT];
 
 #define SPRITE_BULLET01_COUNT 1
 Sprite SpriteBullet01 =       { 
@@ -64,7 +74,9 @@ Sprite SpriteBullet01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 0b01000000, 0x0, { 0x0 } };
+    VERA_SPRITE_4BPP, 12, 0b01000000, {0x0}, { 0x0 } };
+heap_handle sprite_bullet_01[SPRITE_BULLET01_COUNT];
+
 
 byte const SPRITE_TYPES = 4;
 byte const SPRITE_PLAYER01 = 0;
@@ -82,7 +94,7 @@ typedef struct collision_s {
     unsigned char cells;
     unsigned int gx[4];
     unsigned int gy[4];
-    ht_item_t* cell[4];
+    ht_list_ptr_t cell[4];
 } collision_t;
 
 enum entity_types {
@@ -92,6 +104,30 @@ enum entity_types {
 };
 
 const unsigned char entity_size = 120U;
+
+typedef struct {
+
+    unsigned char move[64];
+    unsigned char flight[64];
+    unsigned char angle[64];
+    unsigned char speed[64];
+    unsigned char step[64];
+    signed char turn[64];
+    unsigned char radius[64];
+    unsigned char baseangle[64];
+    unsigned char reload[64];
+    unsigned char wait_animation[64];
+    unsigned char speed_animation[64];
+ 
+    FP3 tx[64];
+    FP3 ty[64];
+    FP3 tdx[64];
+    FP3 tdy[64];
+} flight_engine_t;
+
+volatile flight_engine_t fe;
+
+
 
 typedef struct entity_s {
     heap_handle next;

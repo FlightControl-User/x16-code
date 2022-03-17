@@ -2,10 +2,10 @@
 
 void fp3_set(FP3* fp3, signed int i, signed char f) {
 
-    fp3->i = i;
-    fp3->f = f;
+    fp3->fp3fi.i = i;
+    fp3->fp3fi.f = f;
     if(i==0 && f<0) {
-        fp3->i=-1;
+        fp3->fp3fi.i=-1;
     }
 }
 

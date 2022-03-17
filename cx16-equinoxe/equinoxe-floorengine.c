@@ -5,7 +5,6 @@
 
 #include <cx16.h>
 #include <cx16-veralib.h>
-#include <cx16-heap.h>
 #include <kernal.h>
 #include <6502.h>
 #include <conio.h>
@@ -186,23 +185,20 @@ void tile_background() {
     }
 }
 
-void show_memory_map() {
-    for(byte i=0;i<TILE_TYPES;i++) {
-        struct Tile *Tile = TileDB[i];
-        byte TileOffset = Tile->TileOffset;
-        // gotoxy(0, 30+i);
-        printf("t:%u bram:%x:%p, vram:", i, heap_data_bank(Tile->BRAM_Handle), heap_data_ptr(Tile->BRAM_Handle));
-        for(byte j=0;j<Tile->TileCount;j++) {
-            struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+j)];
-            printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
-        }
-    }
-}
+// void show_memory_map() {
+//     for(byte i=0;i<TILE_TYPES;i++) {
+//         struct Tile *Tile = TileDB[i];
+//         byte TileOffset = Tile->TileOffset;
+//         // gotoxy(0, 30+i);
+//         printf("t:%u bram:%x:%p, vram:", i, (Tile->bram_handle).bank, Tile->bram_handle.ptr));
+//         for(byte j=0;j<Tile->TileCount;j++) {
+//             struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+j)];
+//             printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
+//         }
+//     }
+// }
 
-void tile_cpy_vram_from_bram(struct Tile *Tile) {
-
-    heap_ptr ptr_bram_tile = heap_data_ptr(Tile->BRAM_Handle);
-    heap_bank bank_bram_tile = heap_data_bank(Tile->BRAM_Handle);
+void tile_cpy_vram_from_bram(struct Tile *Tile, heap_handle* vram_handle) {
 
     byte TileCount = Tile->TileCount;
     word TileSize = Tile->TileSize;
@@ -210,40 +206,40 @@ void tile_cpy_vram_from_bram(struct Tile *Tile) {
 
     for(byte t=0;t<TileCount;t++) {
 
-        heap_handle handle_vram_tile = heap_alloc(HEAP_SEGMENT_VRAM_FLOOR_TILE, TileSize);
-        heap_bank bank_vram_tile = heap_data_bank(handle_vram_tile);
-        heap_ptr ptr_vram_tile = heap_data_ptr(handle_vram_tile);
+        heap_handle bram_handle = Tile->bram_handle[t];
 
-        memcpy_vram_bram(bank_vram_tile, (word)ptr_vram_tile, bank_bram_tile, (byte*)ptr_bram_tile, TileSize);
+        memcpy_vram_bram(vram_handle->bank, (vram_offset_t)vram_handle->ptr, bram_handle.bank, (bram_ptr_t)bram_handle.ptr, TileSize);
 
         struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+t)];
         // TODO: make shorter, missing fragments.
-        word Offset = ((word)ptr_vram_tile - (word)0x2000);
+        word Offset = ((vram_offset_t)vram_handle->ptr - (word)0x2000);
         // Offset = Offset >> 4;
         // Offset = Offset >> 4;
         TilePart->TileOffset = BYTE1(Offset);
-        TilePart->VRAM_Handle = handle_vram_tile;
-        ptr_bram_tile = bank_bram_ptr_inc(bank_bram_tile, ptr_bram_tile, TileSize);
-        bank_bram_tile = bank_get_bram();
+        TilePart->VRAM_Handle = *vram_handle;
+        vram_handle+=TileSize;
     }
 }
 
 
 // Load the tile into bram using the new cx16 heap manager.
-heap_handle tile_load( struct Tile *Tile) {
+void tile_load( struct Tile *tile) {
 
-    heap_handle handle_bram_tile = heap_alloc(HEAP_SEGMENT_BRAM_TILES, Tile->TotalSize);  // Reserve enough memory on the heap for the tile loading.
-    heap_ptr ptr_bram_tile = heap_data_ptr(handle_bram_tile);
-    heap_bank bank_bram_tile = heap_data_bank(handle_bram_tile);
-    heap_handle data_handle_bram_tile = heap_data_get(handle_bram_tile);
+    unsigned int status = open_file(1, 8, 0, tile->File);
+    if (!status) printf("error opening file %s\n", tile->File);
 
-    // printf("bram: %x:%p\n", heap_data_bank(handle_bram_tile), heap_data_ptr(handle_bram_tile));
+    for(char s=0; s<tile->TileCount; s++) {
+        heap_handle handle = heap_alloc(bins, tile->TileSize);
+        unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle.bank, handle.ptr, tile->TileSize);
+        if (!bytes_loaded) {
+            printf("error loading file %s\n", tile->File);
+            break;
+        }
+        tile->bram_handle[s] = handle; // TODO: rework this to map into banked memory.
+    }
 
-    unsigned int tiles_loaded = load_bram(1, 8, 0, Tile->File, bank_bram_tile, ptr_bram_tile);
-    if(!tiles_loaded) printf("error file %s\n", Tile->File);
-
-    Tile->BRAM_Handle = handle_bram_tile;
-    return handle_bram_tile;
+    status = close_file(1, 8, 0);
+    if (!status) printf("error closing file %s\n", tile->File);
 }
 
 

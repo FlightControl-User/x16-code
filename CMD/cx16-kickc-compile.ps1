@@ -28,7 +28,7 @@ Write-Output ("kickc_jar = " + $kickc_jar)
 cd (Get-Location).Path
 
 # Unoptimized compile
-java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -Onouplift -vasmout "$filedir/$filename"
+java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -Onouplift -Xassembler=-symbolfile -vasmout "$filedir/$filename"
 
 # Optimized compile
 #java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -vasmout -Xassembler=-symbolfile "$filedir/$filename"
@@ -37,7 +37,7 @@ java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" 
 #java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -v -t=cx16 -a -Sc -Si -Onouplift -vasmout -Xassembler=-symbolfile "$filedir/$filename" #  Out-File "$user_dev/compile_$filename.log"
 
 #Fragment compile
-#java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -v -fragment "_deref_pwum1=vwum2" -t=cx16 -a  -Sc -Si -Onouplift -vasmout -Xassembler=-symbolfile "$filedir/$filename"
+#java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -v -fragment "qbuz1=qbuz2_plus_1" -t=cx16 -a  -Sc -Si -Onouplift -vasmout -Xassembler=-symbolfile "$filedir/$filename"
 
 
 

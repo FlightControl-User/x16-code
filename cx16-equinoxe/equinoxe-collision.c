@@ -1,74 +1,54 @@
-#include <cx16-heap.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 #include "stdio.h"
 #include <cx16-bitmap.h>
 
-ht_key_t grid_key(unsigned char group, unsigned int gx, unsigned int gy) {
-     unsigned char kx = (BYTE1(gx)<<2 | BYTE0(gx)>>6);
-     unsigned char ky = (BYTE1(gy)<<2 | BYTE0(gy)>>6);
-     return (((unsigned int)(kx<<4 + ky))|(unsigned int)group<<4);
+inline ht_key_t grid_key(unsigned char group, unsigned char gx, unsigned char gy) {
+     return MAKEWORD(group, gx | gy>>4);
+    //  return (((unsigned int)(kx + ky))|(unsigned int)group<<4);
 }
 
-void grid_remove(entity_t* entity) {
-
-    unsigned char grid = entity->grid.cells;
-    while(grid) {
-        grid--;
-        ht_item_t* item = entity->grid.cell[grid];
-
-        // unsigned int gx00 = entity->grid.gx[grid];
-        // unsigned int gy00 = entity->grid.gy[grid];
-        // unsigned int gx64 = gx00+64;
-        // unsigned int gy64 = gy00+64;
-
-        // bitmap_plot(gx00,gy00,0);
-        // bitmap_plot(gx00,gy64,0);
-        // bitmap_plot(gx64,gy00,0);
-        // bitmap_plot(gx64,gy64,0);
-
-        if(item) {
-            ht_delete(ht_collision, ht_size_collision, item);
-        }
-    }
-    entity->grid.cells = 0;
+void grid_reset(ht_item_ptr_t ht, ht_size_t ht_size)
+{
+    bram_bank_t bram_old = bank_get_bram();
+    bank_set_bram(60);
+    ht_reset(ht, ht_size);
+    bank_set_bram(bram_old);
 }
 
-unsigned char grid_insert(entity_t* entity, unsigned char group, unsigned int xmin, unsigned int ymin, unsigned int data) { 
+void grid_init(ht_item_ptr_t ht, ht_size_t ht_size)
+{
+    bram_bank_t bram_old = bank_get_bram();
+    bank_set_bram(60);
+    ht_init(ht, ht_size);
+    bank_set_bram(bram_old);
+}
 
-    unsigned int xmax = (xmin + 32) & 0b1111111111000000; 
-    unsigned int ymax = (ymin + 32) & 0b1111111111000000; 
+ inline void grid_insert(entity_t* entity, unsigned char group, unsigned char xmin, unsigned char ymin, heap_handle data) { 
 
-    xmin = xmin & 0b1111111111000000;
-    ymin = ymin & 0b1111111111000000;
+    bram_bank_t bram_old = bank_get_bram();
+    bank_set_bram(60);
 
-    unsigned char grid = 0;
+    unsigned char xmax = (xmin + 8) & 0b11110000;
+    unsigned char ymax = (ymin + 8) & 0b11110000; 
 
-    for(unsigned int gx=xmin; gx<=xmax; gx+=64) {
-        for(unsigned int gy=ymin; gy<=ymax; gy+=64) {
+    xmin = xmin & 0b11110000;
+    ymin = ymin & 0b11110000;
 
-            // unsigned int gx00 = gx;
-            // unsigned int gy00 = gy;
-            // unsigned int gx64 = gx00+64;
-            // unsigned int gy64 = gy00+64;
-
-            // bitmap_plot(gx00,gy00,1);
-            // bitmap_plot(gx00,gy64,1);
-            // bitmap_plot(gx64,gy00,1);
-            // bitmap_plot(gx64,gy64,1);
+    for(unsigned char gx=xmin; gx<=xmax; gx+=16) {
+        for(unsigned char gy=ymin; gy<=ymax; gy+=16) {
 
             // bit 0-3 = cy
             // bit 4-7 = cx
             // bit 15-12 = collision mask
 
             ht_key_t ht_key = grid_key(group,gx,gy);
-            entity->grid.cell[grid] = ht_insert(ht_collision, ht_size_collision, ht_key, data);
-            entity->grid.gx[grid] = gx;
-            entity->grid.gy[grid] = gy;
-            grid++;
+            ht_insert(ht_collision, ht_size_collision, ht_key, data);
+            // entity->grid.gx[grid] = gx;
+            // entity->grid.gy[grid] = gy;
         }
     }
 
-    return grid;
+    bank_set_bram(bram_old);
 }

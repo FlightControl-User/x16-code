@@ -11,8 +11,8 @@
 
 void AddEnemy(char t, signed int x, signed int y) {
 
-	enemy_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size);
-	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	enemy_handle = heap_alloc(bins, entity_size);
+	Enemy* enemy = (Enemy*)heap_ptr(enemy_handle);
 	memset_fast(enemy, 0, entity_size);
 
 	enemy->type = entity_type_enemy;
@@ -31,18 +31,18 @@ void AddEnemy(char t, signed int x, signed int y) {
 	enemy->sprite_offset = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
 	sprite_configure(enemy->sprite_offset, enemy->sprite_type);
 
-	heap_data_list_insert(&stage.fighter_list, enemy_handle);
+	heap_list_insert(&stage.fighter_list, enemy_handle);
 }
 
 heap_handle RemoveEnemy(heap_handle handle_remove) {
 
-	heap_handle handle_next = ((Enemy*)heap_data_ptr(handle_remove))->next;
+	heap_handle handle_next = ((Enemy*)heap_ptr(handle_remove))->next;
 
 	// clrscr();
 	// gotoxy(0,0);
-	heap_data_list_remove(&stage.fighter_list, handle_remove);
+	heap_list_remove(&stage.fighter_list, handle_remove);
 	// heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
-	heap_free(HEAP_SEGMENT_BRAM_ENTITIES, handle_remove); 
+	heap_free(bins, handle_remove); 
 	// heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
 
 	// {
@@ -50,7 +50,7 @@ heap_handle RemoveEnemy(heap_handle handle_remove) {
 	// printf("stage fighter list = %x\n", stage.fighter_list);
 	// do {
 
-	// 	Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
+	// 	Enemy* enemy = (Enemy*)heap_ptr(enemy_handle);
 	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
 	// 	enemy_handle = enemy->next;
 	// } while (enemy_handle != stage.fighter_list);
@@ -80,30 +80,35 @@ void ArcEnemy( Enemy* enemy, signed char turn, unsigned char radius, unsigned ch
 }
 
 
+
+
+// Prepare MEM pointers for operations using MEM
+inline void fp3_prep(FP3* fp3_num, FP3* fp3_add) {
+	fp3 = BYTE0(fp3_num);
+	fp3hi = BYTE1(fp3_num);
+	add = BYTE0(fp3_add);
+	addhi = BYTE1(fp3_add);
+}
+
+
+
 void LogicEnemies() {
 
-	if (!stage.fighter_list) return;
+	if (heap_handle_is_null(stage.fighter_list)) return;
 
     heap_handle enemy_handle = stage.fighter_list;
     heap_handle last_handle = stage.fighter_list;
 	unsigned int loop = 0;
 
-	// Enemy enemy_ram;
-	// Enemy* enemy = &enemy_ram;
-
-	// gotoxy(0,30);
-	// printf("enemy_handle = %4x, stage.fighter_list = %4x", enemy_handle, stage.fighter_list);
-
 	do {
 
+    #ifdef debug_scanlines
+	    vera_display_set_border_color(1);
+    #endif
 
-		// gotoxy(0,31);
-		// printf("enemy_handle = %4x, stage.fighter_list = %4x, ", enemy_handle, stage.fighter_list);
-		// printf("loop = %05u, size = %u", ++loop, sizeof(Enemy));
+		Enemy* enemy = (Enemy*)heap_ptr(enemy_handle);
 
-		Enemy* enemy = (Enemy*)heap_data_ptr(enemy_handle);
-
-		if(enemy->side == SIDE_ENEMY) {
+		if(enemy->side == SIDE_ENEMY) {	
 
 
 			// grid_remove(enemy);
@@ -113,7 +118,7 @@ void LogicEnemies() {
 				switch(step) {
 				case 0:
 					// MoveEnemy(enemy, 320, 16, 5);
-					MoveEnemy(enemy, 160, 16, 0);
+					MoveEnemy(enemy, 160, 0, 0);
 					break;
 				case 1:
 					// ArcEnemy(enemy, -64, 12, 4);
@@ -187,21 +192,63 @@ void LogicEnemies() {
 				enemy->move = 0;
 			}
 
-			fp3_add(&enemy->tx, &enemy->tdx);
-			fp3_add(&enemy->ty, &enemy->tdy);
+			// fp3_add(&enemy->tx, &enemy->tdx);
+			// fp3_add(&enemy->ty, &enemy->tdy);
+
+			fp3_prep(&enemy->tx, &enemy->tdx);
+
+			kickasm( uses fp3, uses fp3hi, uses add, uses addhi) {{
+				clc
+				ldy #0
+				lda (fp3),y
+				adc (add),y
+				sta (fp3),y
+				iny
+				lda (fp3),y
+				adc (add),y
+				sta (fp3),y
+				iny
+				lda (fp3),y
+				adc (add),y
+				sta (fp3),y
+			}}
+
+
+			// fp3_prep(&fp3x, &fp3dx);
+			fp3_prep(&enemy->tx, &enemy->tdx);
+
+			kickasm( uses fp3, uses fp3hi, uses add, uses addhi) {{
+				clc
+				ldy #0
+				lda (fp3),y
+				adc (add),y
+				sta (fp3),y
+				iny
+				lda (fp3),y
+				adc (add),y
+				sta (fp3),y
+				iny
+				lda (fp3),y
+				adc (add),y
+				sta (fp3),y
+			}}
 
 			// For collision, update collision hash table
 
-			volatile signed int bx = enemy->tx.i;
-			volatile signed int by = enemy->ty.i;
-			volatile unsigned int x = (unsigned int)enemy->tx.i;
-			volatile unsigned int y = (unsigned int)enemy->ty.i;
 
-			if(bx<0 || bx>640-32 || by<0 || by>480-32) {
-				enemy->grid.cells = 0;
-			} else {
-				enemy->grid.cells = grid_insert(enemy, 0b01000000, x, y, enemy_handle);
+#ifdef debug_scanlines
+			vera_display_set_border_color(2);
+#endif
+
+#ifdef __collision
+			if(enemy->tx.fp3fi.i>=0 && enemy->tx.fp3fi.i<=640-32 && enemy->ty.fp3fi.i>=0 && enemy->ty.fp3fi.i<=480-32) {
+				grid_insert(enemy, 0b01000000, BYTE0(enemy->ty.fp3fi.i>>2), BYTE0(enemy->ty.fp3fi.i>>2), enemy_handle);
 			}
+#endif
+
+#ifdef debug_scanlines
+			vera_display_set_border_color(3);
+#endif
 
 			if (enemy->reload > 0) {
 				enemy->reload--;
@@ -220,7 +267,7 @@ void LogicEnemies() {
 			// 	enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
 			// );
 
-			if(x > -64 && x < 640) {
+			if(enemy->tx.fp3fi.i > -64 && enemy->tx.fp3fi.i < 640) {
 				if(!enemy->enabled) {
 					EnableFighter(enemy_handle);
 					enemy->enabled = 1;
@@ -236,7 +283,7 @@ void LogicEnemies() {
 
 		enemy_handle = enemy->next;
 
-	} while (enemy_handle != stage.fighter_list);
+	} while (heap_handle_ne_handle(enemy_handle, stage.fighter_list));
 
 }
 

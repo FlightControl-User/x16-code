@@ -1,4 +1,8 @@
 
+// #ifndef __CC65__
+    #pragma var_model(mem)
+// #endif
+
 #ifndef equinoxe_h
 #define equinoxe_h
 
@@ -6,6 +10,16 @@
 #include <string.h>
 #include <ht.h>
 #include <fp3.h>
+#include <cx16-fb.h>
+#include "equinoxe-debug.h"
+
+// Zeropage addresses used to hold byte at zeropage for fast adding
+__address(0xfe) char fp3;
+__address(0xff) char fp3hi;
+__address(0xfc) char add;
+__address(0xfd) char addhi;
+
+
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
@@ -111,5 +125,13 @@ volatile heap_handle enemy_handle;
 volatile heap_handle engine_handle;
 
 volatile Game game;
+
+static heap_segment heap_64; static heap_segment* bin64 = &heap_64;
+static heap_segment heap_128; static heap_segment* bin128 = &heap_128;
+static heap_segment heap_256; static heap_segment* bin256 = &heap_256;
+static heap_segment heap_512; static heap_segment* bin512 = &heap_512;
+
+static heap_structure heap; static heap_structure* bins = &heap;
+
 
 #endif

@@ -6,14 +6,14 @@
 
 void InitPlayer() {
 
-	player_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size); 
-	entity_t* player = (entity_t*)heap_data_ptr(player_handle);
+	player_handle = heap_alloc(bins, entity_size); 
+	entity_t* player = (entity_t*)heap_ptr(player_handle);
 	memset_fast(player, 0, entity_size);
 
 	player->type = entity_type_player;
 	player->health = 1;
-	player->tx.i = 320;
-	player->ty.i = 200;
+	player->tx.fp3fi.i = 320;
+	player->ty.fp3fi.i = 200;
 	player->speed_animation = 8;
 	player->wait_animation = player->speed_animation;
 	player->state_animation = 3;
@@ -25,8 +25,8 @@ void InitPlayer() {
 	player->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
 	sprite_configure(player->sprite_offset, player->sprite_type);
 
-	heap_handle engine_handle = heap_alloc(HEAP_SEGMENT_BRAM_ENTITIES, entity_size);
-	entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);
+	heap_handle engine_handle = heap_alloc(bins, entity_size);
+	entity_t* engine = (entity_t*)heap_ptr(engine_handle);
 	memset_fast(engine, 0, entity_size);
 
 	engine->health = 1;
@@ -38,18 +38,18 @@ void InitPlayer() {
 	engine->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
 	sprite_configure(engine->sprite_offset, engine->sprite_type);
 
-	player = (entity_t*)heap_data_ptr(player_handle);
+	player = (entity_t*)heap_ptr(player_handle);
 	player->engine_handle = engine_handle;
 
-	heap_data_list_insert(&stage.fighter_list, player_handle);
+	heap_list_insert(&stage.fighter_list, player_handle);
 
 }
 
 void LogicPlayer() {
 
-	if (player_handle) {
+	if (heap_handle_is_not_null(player_handle)) {
 
-		entity_t* player = (entity_t*)heap_data_ptr(player_handle);
+		entity_t* player = (entity_t*)heap_ptr(player_handle);
 
 		byte bank = bank_get_bram();
 		// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, bank);
@@ -92,23 +92,23 @@ void LogicPlayer() {
 
 
 		// Added fragment
-		player->tx.i = game.curr_mousex;
-		player->ty.i = game.curr_mousey;
+		player->tx.fp3fi.i = game.curr_mousex;
+		player->ty.fp3fi.i = game.curr_mousey;
 
-		signed int playerx = player->tx.i;
-		signed int playery = player->ty.i;
+		signed int playerx = player->tx.fp3fi.i;
+		signed int playery = player->ty.fp3fi.i;
 
-		volatile unsigned int x = (unsigned int)player->tx.i;
-		volatile unsigned int y = (unsigned int)player->ty.i;
+		volatile unsigned int x = (unsigned int)player->tx.fp3fi.i;
+		volatile unsigned int y = (unsigned int)player->ty.fp3fi.i;
 
-		if(playerx<0 || playerx>640-32 || playery<0 || playery>480-32) {
-			player->grid.cells = 0;
-		} else {
-			player->grid.cells = grid_insert(player, 0b10000000, x, y, player_handle);
+		#ifdef __collision
+		if(playerx>=0 && playerx<640-32 && playery>=0 && playery<480-32) {
+			grid_insert(player, 0b10000000, BYTE0(x>>2), BYTE0(y>>2), player_handle);
 		}
+		#endif
 
 		heap_handle engine_handle = player->engine_handle;
-		entity_t* engine = (entity_t*)heap_data_ptr(engine_handle);
+		entity_t* engine = (entity_t*)heap_ptr(engine_handle);
 
 		if (!engine->wait_animation) {
 			engine->state_animation++;
@@ -117,8 +117,8 @@ void LogicPlayer() {
 		}
 		engine->wait_animation--;
 		
-		engine->tx.i = playerx + 8;
-		engine->ty.i = playery + 22;
+		engine->tx.fp3fi.i = playerx + 8;
+		engine->ty.fp3fi.i = playery + 22;
 
 		if (game.status_mouse == 1 && player->reload <= 0)
 		{
