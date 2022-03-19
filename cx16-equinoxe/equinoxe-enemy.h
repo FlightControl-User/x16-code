@@ -9,9 +9,9 @@ typedef struct entity_s Enemy;
 
 
 
-void AddEnemy(char t, signed int x, signed int y);
+void AddEnemy(char t, unsigned int x, unsigned int y);
 
-unsigned char SpawnEnemies(unsigned char t, signed int x, signed int y);
+unsigned char SpawnEnemies(unsigned char t, unsigned int x, unsigned int y);
 
 void LogicEnemies();
 

@@ -73,7 +73,7 @@ int main() {
         vera_sprite_hflip(s+1, sprite->Hflip);
         vera_sprite_vflip(s+1, sprite->Vflip);
         vera_sprite_palette_offset(s+1, sprite->PaletteOffset);
-        vera_sprite_xy(s+1, s*36, 20);
+        vera_sprite_set_xy(s+1, s*36, 20);
         vera_sprite_zdepth(s+1, sprite->Zdepth);
 
         vera_sprite_ptr(s+1, 0, 0x0000);

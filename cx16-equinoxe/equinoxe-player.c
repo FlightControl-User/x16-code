@@ -103,7 +103,7 @@ void LogicPlayer() {
 
 		#ifdef __collision
 		if(playerx>=0 && playerx<640-32 && playery>=0 && playery<480-32) {
-			grid_insert(player, 0b10000000, BYTE0(x>>2), BYTE0(y>>2), player_handle);
+			// grid_insert(0b10000000, BYTE0(x>>2), BYTE0(y>>2), (unsigned int)player_handle);
 		}
 		#endif
 
@@ -128,13 +128,18 @@ void LogicPlayer() {
 		
 		if(playerx > -64 && playerx < 640) {
 			if(!player->enabled) {
-				EnableFighter(player_handle);
+			    sprite_enable(player->sprite_offset, player->sprite_type);
+				// EnableFighter(player_handle);
 				player->enabled = 1;
 			}
-			DrawFighter(player_handle);
+			sprite_animate(player->sprite_offset, player->sprite_type, player->state_animation, player->wait_animation);
+			sprite_position(player->sprite_offset, (vera_sprite_coordinate)(player->tx.fp3fi.i), (vera_sprite_coordinate)(player->ty.fp3fi.i));
+			sprite_collision(player->sprite_offset, 0b10000000);
+			// DrawFighter(player_handle);
 		} else {
 			if(player->enabled) {
-				DisableFighter(player_handle);
+			    sprite_disable(player->sprite_offset);
+				// DisableFighter(player_handle);
 				player->enabled = 0;
 			}
 		}

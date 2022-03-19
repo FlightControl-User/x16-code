@@ -3,11 +3,11 @@
 /**
  * @brief Calculates the x vector from an angle and speed.
  * 
- * In equinoxe world, an angle is not 360 steps but 64 steps to complete a round circle!
- * Each quadrant is subdivided in 16 steps.
- * The vectors are calculated from a common sin/cos table.
- * The 0° vector is on the x axis and the 90° vector is on the y axis.
- * Rotation is done counter clockwise.
+ * In equinoxe world, an angle is not 360 degrees but 64 degrees to complete a round circle!
+ * Each quadrant is subdivided in 16 degrees.
+ * The x/y vectors are calculated from a common cos/sin table.
+ * The 0° vector is on the x axis and the 16° vector is on the y axis.
+ * Rotation is done clockwise.
  * This brings us to the following table:
  * >=	<	dx	dy
  * 0	16	1	1
@@ -21,78 +21,29 @@
  * @return signed char 
  */
 
-signed char sx[4] = {1, 1, -1, -1};
-signed char sy[4] = {1, -1, -1, 1};
 
-// Prepare MEM pointers for operations using MEM
-inline void fp3_prep_math(FP3* fp3_num, signed int d) {
-	fp3 = BYTE0(fp3_num);
-	fp3hi = BYTE1(fp3_num);
-}
+FP vecx(unsigned char angle, char speed) {
 
-
-inline void vecx(FP3* fp3, char angle, char speed) {
-
-    angle = angle % 64;
-    // char i = angle % 32;
-    // char s = angle / 16;
-    signed int dx = math_cos[angle];
-    // if(sx[s]==-1) {
-    //     dx = -dx;
-    // }
+    signed int dx = math_cos[angle%64];
     if(speed) dx <<= speed;
 
-    fp3->fp3fi.f = (signed char)BYTE0(dx);
-    fp3->fp3fi.i = (signed int)BYTE1(dx);
-
-    // kickasm(uses fp3, uses fp3hi, uses dx) {{
-    //     ldy #0
-    //     lda vecx1_dx
-    //     sta (vecx1_fp3),y
-    //     iny
-    //     lda vecx1_dx+1
-    //     sta (vecx1_fp3),y
-    //     iny
-    //     lda #0
-    //     bit vecx1_dx+1
-    //     bpl !+
-    //     lda #$ff
-    // !:
-    //     sta (vecx1_fp3),y
-    // }}
+    signed char dx2 = (signed char)BYTE0(dx);
+    signed char dx3 = (signed char)BYTE1(dx);
+    signed char dx4 = (signed char)0;
+    if(dx3<0) dx4=-1;
+    return (FP)MAKELONG4((char)dx4, (char)dx3, (char)dx2, 0);
 }
 
-inline void vecy(FP3* fp3, char angle, char speed) {
+FP vecy(unsigned char angle, char speed) {
 
-    angle = angle % 64;
-    // char i = (angle) % 32;
-    // char s = angle / 16;
-    signed int dy = math_sin[angle];
+    signed int dy = math_sin[angle%64];
     if(speed) dy <<= speed;
-    // signed int sdy = (signed int)((sy[s]==1)?dy:-dy);
-    // signed int sdy = (signed int)dy;   
-    // if(sy[s]==-1) {
-    //     sdy = (signed int)-dy;
-    // }
 
-    fp3->fp3fi.f = (signed char)BYTE0(dy);
-    fp3->fp3fi.i = (signed int)BYTE1(dy);
-
-    // kickasm(uses fp3, uses fp3hi, uses dy) {{
-    //     ldy #0
-    //     lda vecy1_dy
-    //     sta (vecy1_fp3),y
-    //     iny
-    //     lda vecy1_dy+1
-    //     sta (vecy1_fp3),y
-    //     iny
-    //     lda #0
-    //     bit vecy1_dy+1
-    //     bpl !+
-    //     lda #$ff
-    // !:
-    //     sta (vecy1_fp3),y
-    // }}
+    signed char dy2 = (signed char)BYTE0(dy);
+    signed char dy3 = (signed char)BYTE1(dy);
+    signed char dy4 = (signed char)0;
+    if(dy3<0) dy4=-1;
+    return (FP)MAKELONG4((char)dy4, (char)dy3, (char)dy2, 0);
 }
 
 // Get the absolute value of an 8-bit unsigned number treated as a signed number.

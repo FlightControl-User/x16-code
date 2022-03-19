@@ -1,7 +1,7 @@
-inline void EnableFighter(heap_handle fighter_handle);
-inline void EnableEngine(heap_handle engine_handle);
-inline void DisableFighter(heap_handle fighter_handle);
-inline void DisableEngine(heap_handle engine_handle);
-inline void DrawEngine(heap_handle engine_handle);
-inline void DrawFighter(heap_handle fighter_handle);
+inline void EnableFighter(unsigned char e);
+inline void EnableEngine(unsigned char e);
+inline void DisableFighter(unsigned char e);
+inline void DisableEngine(unsigned char e);
+inline void DrawEngine(unsigned char e);
+inline void DrawFighter(unsigned char e);
 

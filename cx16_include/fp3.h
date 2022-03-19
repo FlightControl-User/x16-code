@@ -4,15 +4,22 @@ typedef struct {
 } FP3FI;
 
 typedef struct {
-    signed char f;
-    signed char il;
-    signed char ih;
-} FP3B;
+    signed int lo;
+    signed char hi;
+} FP3LO;
+
+typedef struct {
+    signed char lo;
+    signed int hi;
+} FP3HI;
 
 typedef union {
     FP3FI fp3fi;
-    FP3B fp3b;
+    FP3LO fp3lo;
+    FP3HI fp3hi;
 } FP3;
+
+typedef unsigned long FP;
 
 void fp3_set(FP3* fp3, signed int i, signed char f);
 void fp3_add(FP3* fp3, FP3* add);

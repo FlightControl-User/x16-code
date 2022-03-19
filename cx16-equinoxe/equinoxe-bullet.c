@@ -98,7 +98,7 @@ inline void DrawBullet(heap_handle bullet_handle) {
     sprite_enable(sprite_offset, bullet->sprite_type);
     sprite_animate(sprite_offset, bullet->sprite_type, 0, 0);
     // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
-    sprite_position(sprite_offset, bullet->tx.fp3fi.i, bullet->ty.fp3fi.i);
+    sprite_position(sprite_offset, (vera_sprite_coordinate) (bullet->tx.fp3fi.i), (vera_sprite_coordinate)(bullet->ty.fp3fi.i));
     // gotoxy(40, 39 + l++);
     // printf("db: bullet = %p ", bullet);
     bullet_handle = bullet->next;

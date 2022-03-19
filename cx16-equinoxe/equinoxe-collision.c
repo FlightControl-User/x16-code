@@ -25,7 +25,7 @@ void grid_init(ht_item_ptr_t ht, ht_size_t ht_size)
     bank_set_bram(bram_old);
 }
 
- inline void grid_insert(entity_t* entity, unsigned char group, unsigned char xmin, unsigned char ymin, heap_handle data) { 
+ inline void grid_insert(unsigned char group, unsigned char xmin, unsigned char ymin, unsigned int data) { 
 
     bram_bank_t bram_old = bank_get_bram();
     bank_set_bram(60);
@@ -37,7 +37,7 @@ void grid_init(ht_item_ptr_t ht, ht_size_t ht_size)
     ymin = ymin & 0b11110000;
 
     for(unsigned char gx=xmin; gx<=xmax; gx+=16) {
-        for(unsigned char gy=ymin; gy<=ymax; gy+=16) {
+        for(unsigned char gy=ymax; gy<=ymax; gy+=16) {
 
             // bit 0-3 = cy
             // bit 4-7 = cx

@@ -15,6 +15,8 @@ void StageInit(void) {
 	stage.level = 1;
 	stage.phase = 1;
 
+	fighter.pool = 0;
+
 	StageProgress();
 }
 
@@ -100,7 +102,7 @@ void StageProgress() {
 void LogicStage() {
 	if(stage.spawnenemycount) {
 		if(!(game.tickstage & 0x0F)) {
-        	stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 0, 240);
+        	stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 0, 40);
 		}
     }
 }

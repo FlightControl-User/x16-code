@@ -13,6 +13,6 @@ void grid_reset(ht_item_ptr_t ht, ht_size_t ht_size);
 void grid_init(ht_item_ptr_t ht, ht_size_t ht_size);
 
 ht_key_t grid_key(unsigned char group, unsigned char gx, unsigned char gy);
-void grid_insert(entity_t* entity, unsigned char group, unsigned char x, unsigned char y, heap_handle data);
+void grid_insert(unsigned char group, unsigned char x, unsigned char y, unsigned int data);
 
 #endif

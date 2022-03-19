@@ -107,25 +107,44 @@ const unsigned char entity_size = 120U;
 
 typedef struct {
 
+    FP tx[64];
+    FP ty[64];
+    FP tdx[64];
+    FP tdy[64];
+
+    unsigned char pool;
+    unsigned char used[64];
+
+    unsigned char type[64];
+    unsigned char side[64];
+
     unsigned char move[64];
-    unsigned char flight[64];
+    unsigned char moved[64];
+    unsigned char enabled[64];
+
+    unsigned char step[64];
+    unsigned int flight[64];
+    unsigned char delay[64];
+
     unsigned char angle[64];
     unsigned char speed[64];
-    unsigned char step[64];
-    signed char turn[64];
+    unsigned char turn[64];
     unsigned char radius[64];
     unsigned char baseangle[64];
+
     unsigned char reload[64];
+    unsigned char health[64];
+
     unsigned char wait_animation[64];
     unsigned char speed_animation[64];
- 
-    FP3 tx[64];
-    FP3 ty[64];
-    FP3 tdx[64];
-    FP3 tdy[64];
+    unsigned char state_animation[64];
+
+    Sprite* sprite_type[64];
+    vera_sprite_offset sprite_offset[64];
+
 } flight_engine_t;
 
-volatile flight_engine_t fe;
+flight_engine_t fighter;
 
 
 

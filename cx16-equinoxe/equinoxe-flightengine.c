@@ -1,7 +1,7 @@
 // Space flight engine for a space game written in kickc for the Commander X16.
 
 // #ifndef __CC65__
-    #pragma var_model(mem)
+    // #pragma var_model(mem)
 // #endif
 
 
@@ -102,7 +102,7 @@ inline void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byt
 
 inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
     // vera_sprite_buffer_xy((vera_sprite_buffer_item_t *)sprite_offset, x, y);
-    vera_sprite_xy(sprite_offset, x, y);
+    vera_sprite_set_xy(sprite_offset, x, y);
 }
 
 inline void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {

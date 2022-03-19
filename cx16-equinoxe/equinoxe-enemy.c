@@ -9,29 +9,43 @@
 #include "equinoxe-collision.h"
 #include <ht.h>
 
-void AddEnemy(char t, signed int x, signed int y) {
+void AddEnemy(char t, unsigned int x, unsigned int y) {
 
-	enemy_handle = heap_alloc(bins, entity_size);
-	Enemy* enemy = (Enemy*)heap_ptr(enemy_handle);
-	memset_fast(enemy, 0, entity_size);
+	while(fighter.used[fighter.pool]) {
+		fighter.pool = (fighter.pool++)%64;
+	}
+	
+	fighter.used[fighter.pool] = 1;
 
-	enemy->type = entity_type_enemy;
-	enemy->health = 1;
-	enemy->x = x;
-	enemy->y = y;
-	fp3_set(&enemy->tx, x, 0);
-	fp3_set(&enemy->ty, y, 0);
-	enemy->speed_animation = 4;
-	enemy->wait_animation = enemy->speed_animation;
-	enemy->state_animation = 12;
-	enemy->moved = 2;
-	enemy->side = SIDE_ENEMY;
+	fighter.type[fighter.pool] = entity_type_enemy;
+	fighter.side[fighter.pool] = SIDE_ENEMY;
+	fighter.move[fighter.pool] = 0;
+	fighter.moved[fighter.pool] = 0;
+	fighter.flight[fighter.pool] = 0;
+	fighter.angle[fighter.pool] = 0;
+	fighter.speed[fighter.pool] = 0;
+	fighter.step[fighter.pool] = 0;
+	fighter.turn[fighter.pool] = 0;
+	fighter.radius[fighter.pool] = 0;
+	fighter.baseangle[fighter.pool] = 0;
+	fighter.reload[fighter.pool] = 0;
+	fighter.wait_animation[fighter.pool] = 4;
+	fighter.speed_animation[fighter.pool] = 4;
+	fighter.state_animation[fighter.pool] = 12;
+	fighter.health[fighter.pool] = 1;
+	fighter.delay[fighter.pool] = 0;
+	fighter.tx[fighter.pool] = MAKELONG(x,0);
+	fighter.ty[fighter.pool] = MAKELONG(y,0);
+	fighter.tdx[fighter.pool] = 0;
+	fighter.tdy[fighter.pool] = 0;
 
-	enemy->sprite_type = &SpriteEnemy01;
-	enemy->sprite_offset = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
-	sprite_configure(enemy->sprite_offset, enemy->sprite_type);
+	fighter.sprite_type[fighter.pool] = &SpriteEnemy01;
+	fighter.sprite_offset[fighter.pool] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
 
-	heap_list_insert(&stage.fighter_list, enemy_handle);
+	sprite_configure(fighter.sprite_offset[fighter.pool], fighter.sprite_type[fighter.pool]);
+
+	fighter.pool = (fighter.pool++)%64;
+
 }
 
 heap_handle RemoveEnemy(heap_handle handle_remove) {
@@ -59,181 +73,85 @@ heap_handle RemoveEnemy(heap_handle handle_remove) {
 	return handle_next;
 }
 
-void MoveEnemy( Enemy* enemy, unsigned int flight, signed char turn, unsigned char speed) {
-	enemy->move = 1;
+void MoveEnemy( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed) {
+	fighter.move[e] = 1;
 	if(speed) flight >>= speed;
-	enemy->flight = flight;
-	enemy->angle = enemy->angle + turn;
-	enemy->speed = speed;
-	enemy->step++;
+	fighter.flight[e] = flight;
+	fighter.angle[e] = fighter.angle[e] + turn;
+	fighter.speed[e] = speed;
+	fighter.step[e]++;
 }
 
-void ArcEnemy( Enemy* enemy, signed char turn, unsigned char radius, unsigned char speed) {
-	enemy->move = 2;
-	enemy->turn = turn;
-	enemy->radius = radius;
-	enemy->delay = 0;
-	enemy->flight = mul8u(abs_u8((unsigned char)turn), radius);
-	enemy->baseangle = enemy->angle;
-	enemy->speed = speed;
-	enemy->step++;
+void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed) {
+	fighter.move[e] = 2;
+	fighter.turn[e] = sgn_u8(turn);
+	fighter.radius[e] = radius;
+	fighter.delay[e] = 0;
+	fighter.flight[e] = mul8u(abs_u8((unsigned char)turn), radius);
+	fighter.baseangle[e] = fighter.angle[e];
+	fighter.speed[e] = speed;
+	fighter.step[e]++;
 }
-
-
-
-
-// Prepare MEM pointers for operations using MEM
-inline void fp3_prep(FP3* fp3_num, FP3* fp3_add) {
-	fp3 = BYTE0(fp3_num);
-	fp3hi = BYTE1(fp3_num);
-	add = BYTE0(fp3_add);
-	addhi = BYTE1(fp3_add);
-}
-
 
 
 void LogicEnemies() {
 
-	if (heap_handle_is_null(stage.fighter_list)) return;
+	if (!fighter.pool) return;
 
-    heap_handle enemy_handle = stage.fighter_list;
-    heap_handle last_handle = stage.fighter_list;
-	unsigned int loop = 0;
-
-	do {
+	for(unsigned char e=0; e<64; e++) {
 
     #ifdef debug_scanlines
 	    vera_display_set_border_color(1);
     #endif
 
-		Enemy* enemy = (Enemy*)heap_ptr(enemy_handle);
+		if(fighter.used[e] && fighter.side[e] == SIDE_ENEMY) {	
 
-		if(enemy->side == SIDE_ENEMY) {	
-
-
-			// grid_remove(enemy);
-
-			if(!enemy->flight) {
-				unsigned char step = enemy->step;
-				switch(step) {
+			if(!fighter.flight[e]) {
+				switch(fighter.step[e]) {
 				case 0:
-					// MoveEnemy(enemy, 320, 16, 5);
-					MoveEnemy(enemy, 160, 0, 0);
+					MoveEnemy(e, 530, 32, 1);
 					break;
 				case 1:
-					// ArcEnemy(enemy, -64, 12, 4);
-					ArcEnemy(enemy, -64, 4, 0);
+					ArcEnemy(e, -32, 2, 1);
 					break;
 				case 2:
-					// MoveEnemy(enemy, 80, 0, 4);
-					MoveEnemy(enemy, 80, 0, 0);
+					MoveEnemy(e, 440, 0, 1);
 					break;
 				case 3:
-					// ArcEnemy(enemy, 64, 9, 4);
-					ArcEnemy(enemy, 64, 4, 0);
+					ArcEnemy(e, -32, 2, 1);
 					break;
 				case 4:
-					// ArcEnemy(enemy, 8, 12, 3);
-					ArcEnemy(enemy, 8, 4, 0);
+					MoveEnemy(e, 440, 0, 1);
+					fighter.step[e] = 1;
 					break;
-				case 5:
-					// MoveEnemy(enemy, 160, 0, 3);
-					MoveEnemy(enemy, 160, 0, 0);
-					break;
-				case 6:
-					// ArcEnemy(enemy, 16, 12, 3);
-					ArcEnemy(enemy, 16, 4, 0);
-					break;
-				case 7:
-					// ArcEnemy(enemy, 16, 12, 2);
-					ArcEnemy(enemy, 16, 4, 0);
-					break;
-				case 8:
-					// MoveEnemy(enemy, 80, 0, 2);
-					MoveEnemy(enemy, 80, 0, 0);
-					break;
-				case 9:
-					// ArcEnemy(enemy, 24, 12, 4);
-					ArcEnemy(enemy, 24, 4, 0);
-					break;
-				case 10:
-					// MoveEnemy(enemy, 160, 0, 4);
-					MoveEnemy(enemy, 160, 0, 0);
-					break;
-				case 11:
-					ArcEnemy(enemy, 16, 4, 0);
-					enemy->step--;
-					// enemy_handle = RemoveEnemy(enemy_handle);
-					// continue;
 				}
 			}
 
-			if(enemy->flight) {
-				enemy->flight--;
-				if(enemy->move == 1) {
-					vecx(&enemy->tdx, enemy->angle, enemy->speed);
-					vecy(&enemy->tdy, enemy->angle, enemy->speed);
-					// dx = vecx(enemy->angle, enemy->speed);
-					// dy = vecy(enemy->angle, enemy->speed);
+			if(fighter.flight[e]) {
+				fighter.flight[e]--;
+				if(fighter.move[e] == 1) {
+					fighter.tdx[e] = vecx(fighter.angle[e], fighter.speed[e]);
+					fighter.tdy[e] = vecy(fighter.angle[e], fighter.speed[e]);
 				}
 
-				if(enemy->move == 2) {
+				if(fighter.move[e] == 2) {
 					// Calculate current angle based on flight from x,y and angle startpoint.
-					if(!enemy->delay) {
-						enemy->angle += sgn_u8((unsigned char)enemy->turn);
-						enemy->angle %= 64;
-						enemy->delay = enemy->radius;
-						vecx(&enemy->tdx, enemy->angle, enemy->speed);
-						vecy(&enemy->tdy, enemy->angle, enemy->speed);
+					if(!fighter.delay[e]) {
+						fighter.angle[e] += fighter.turn[e];
+						fighter.angle[e] %= 64;
+						fighter.delay[e] = fighter.radius[e];
+						fighter.tdx[e] = vecx(fighter.angle[e], fighter.speed[e]);
+						fighter.tdy[e] = vecy(fighter.angle[e], fighter.speed[e]);
 					}
-					enemy->delay--;
+					fighter.delay[e]--;
 				}
 			} else {
-				enemy->move = 0;
+				fighter.move[e] = 0;
 			}
 
-			// fp3_add(&enemy->tx, &enemy->tdx);
-			// fp3_add(&enemy->ty, &enemy->tdy);
+			fighter.tx[e] += fighter.tdx[e];
+			fighter.ty[e] += fighter.tdy[e];
 
-			fp3_prep(&enemy->tx, &enemy->tdx);
-
-			kickasm( uses fp3, uses fp3hi, uses add, uses addhi) {{
-				clc
-				ldy #0
-				lda (fp3),y
-				adc (add),y
-				sta (fp3),y
-				iny
-				lda (fp3),y
-				adc (add),y
-				sta (fp3),y
-				iny
-				lda (fp3),y
-				adc (add),y
-				sta (fp3),y
-			}}
-
-
-			// fp3_prep(&fp3x, &fp3dx);
-			fp3_prep(&enemy->tx, &enemy->tdx);
-
-			kickasm( uses fp3, uses fp3hi, uses add, uses addhi) {{
-				clc
-				ldy #0
-				lda (fp3),y
-				adc (add),y
-				sta (fp3),y
-				iny
-				lda (fp3),y
-				adc (add),y
-				sta (fp3),y
-				iny
-				lda (fp3),y
-				adc (add),y
-				sta (fp3),y
-			}}
-
-			// For collision, update collision hash table
 
 
 #ifdef debug_scanlines
@@ -241,8 +159,11 @@ void LogicEnemies() {
 #endif
 
 #ifdef __collision
-			if(enemy->tx.fp3fi.i>=0 && enemy->tx.fp3fi.i<=640-32 && enemy->ty.fp3fi.i>=0 && enemy->ty.fp3fi.i<=480-32) {
-				grid_insert(enemy, 0b01000000, BYTE0(enemy->ty.fp3fi.i>>2), BYTE0(enemy->ty.fp3fi.i>>2), enemy_handle);
+			unsigned int x = WORD1(fighter.tx[e]);
+			unsigned int y = WORD1(fighter.ty[e]);
+
+			if(x>=0 && x<=640-32 && x>=0 && x<=480-32) {
+				grid_insert(0b01000000, BYTE0(x>>2), BYTE0(y>>2), (unsigned int)e);
 			}
 #endif
 
@@ -250,44 +171,58 @@ void LogicEnemies() {
 			vera_display_set_border_color(3);
 #endif
 
-			if (enemy->reload > 0) {
-				enemy->reload--;
+			if (fighter.reload[e] > 0) {
+				fighter.reload[e]--;
 			}
 
-			if (!enemy->wait_animation) {
-				enemy->wait_animation = enemy->speed_animation;
-				if(!enemy->state_animation--)
-				enemy->state_animation += 12;
+			if (!fighter.wait_animation[e]) {
+				fighter.wait_animation[e] = fighter.speed_animation[e];
+				if(!fighter.state_animation[e])
+					fighter.state_animation[e] = 12;
+				fighter.state_animation[e]--;
 			}
-			enemy->wait_animation--;
+			fighter.wait_animation[e]--;
+
 
 			// gotoxy(0, 32);
-			// printf("l=%5u a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", loop++, enemy->angle, enemy->x, enemy->y, enemy->dx, enemy->dy);
+			// printf("l=%5u a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", loop++, enemy.angle[e], enemy.x[e], enemy.y[e], enemy.dx[e], enemy.dy[e]);
 			// printf("a=%u, x=%i, y=%i, s=%u, m=%u, f=%u      ", 
-			// 	enemy->angle, enemy->x, enemy->y, enemy->step, enemy->move, enemy->flight
+			// 	enemy.angle[e], enemy.x[e], enemy.y[e], enemy.step[e], enemy.move[e], enemy.flight[e]
 			// );
 
-			if(enemy->tx.fp3fi.i > -64 && enemy->tx.fp3fi.i < 640) {
-				if(!enemy->enabled) {
-					EnableFighter(enemy_handle);
-					enemy->enabled = 1;
+			// if(x > -64 && x < 640) {
+				// if(!fighter.enabled[e]) {
+					// EnableFighter(e);
+					
+				// }
+				vera_sprite_offset sprite_offset = fighter.sprite_offset[e];
+				Sprite* sprite = fighter.sprite_type[e];
+				if(!fighter.enabled[e]) {
+			    	vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
+					fighter.enabled[e] = 1;
 				}
-				DrawFighter(enemy_handle);
-			} else {
-				if(enemy->enabled) {
-					DisableFighter(enemy_handle);
-					enemy->enabled = 0;
+				// sprite_animate(sprite_offset, sprite, fighter.state_animation[e], fighter.wait_animation[e]);
+				if(fighter.wait_animation[e]) {
+					vera_sprite_set_xy(sprite_offset, x, y);
+				} else {
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[fighter.state_animation[e]]);
 				}
-			}
+
+				// sprite_collision(fighter.sprite_offset[e], 0b10000000);
+				// DrawFighter(e);
+			// } else {
+			// 	if(fighter.enabled[e]) {
+			// 		DisableFighter(e);
+			// 		fighter.enabled[e] = 0;
+			// 	}
+			// }
 		}
 
-		enemy_handle = enemy->next;
-
-	} while (heap_handle_ne_handle(enemy_handle, stage.fighter_list));
+	}
 
 }
 
-unsigned char SpawnEnemies(unsigned char t, signed int x, signed int y) {
+unsigned char SpawnEnemies(unsigned char t, unsigned int x, unsigned int y) {
 
 	AddEnemy(t, x, y);
 	return 1;

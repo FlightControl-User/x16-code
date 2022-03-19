@@ -14,7 +14,7 @@
 
 typedef unsigned int const ht_size_t;
 typedef unsigned int ht_key_t;
-typedef heap_handle ht_data_t;
+typedef unsigned int ht_data_t;
 typedef unsigned int ht_index_t;
 
 typedef struct ht_list_s {

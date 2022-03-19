@@ -9,8 +9,8 @@ signed int math_cos[64] = kickasm {{
 }};
 
 
-void vecx(FP3* fp3, char angle, char speed);
-void vecy(FP3* fp3, char angle, char speed);
+FP vecx(unsigned char angle, char speed);
+FP vecy(unsigned char angle, char speed);
 
 // FP3 vecx(char angle, char speed);
 // FP3 vecy(char angle, char speed);
