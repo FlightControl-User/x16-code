@@ -24,14 +24,16 @@
 
 FP vecx(unsigned char angle, char speed) {
 
+    //TODO: check with jesper this code section, could be a bug in the optimizer.
     signed int dx = math_cos[angle%64];
     if(speed) dx <<= speed;
 
-    signed char dx2 = (signed char)BYTE0(dx);
-    signed char dx3 = (signed char)BYTE1(dx);
-    signed char dx4 = (signed char)0;
-    if(dx3<0) dx4=-1;
-    return (FP)MAKELONG4((char)dx4, (char)dx3, (char)dx2, 0);
+    // signed char dx2 = (signed char)BYTE0(dx);
+    // signed char dx3 = (signed char)BYTE1(dx);
+    // signed char dx4 = (signed char)0;
+    // if(dx3<0) dx4=-1;
+    // return (FP)MAKELONG4((char)dx4, (char)dx3, (char)dx2, 0);
+    return (FP)dx<<8;
 }
 
 FP vecy(unsigned char angle, char speed) {
@@ -39,11 +41,12 @@ FP vecy(unsigned char angle, char speed) {
     signed int dy = math_sin[angle%64];
     if(speed) dy <<= speed;
 
-    signed char dy2 = (signed char)BYTE0(dy);
-    signed char dy3 = (signed char)BYTE1(dy);
-    signed char dy4 = (signed char)0;
-    if(dy3<0) dy4=-1;
-    return (FP)MAKELONG4((char)dy4, (char)dy3, (char)dy2, 0);
+    // signed char dy2 = (signed char)BYTE0(dy);
+    // signed char dy3 = (signed char)BYTE1(dy);
+    // signed char dy4 = (signed char)0;
+    // if(dy3<0) dy4=-1;
+    // return (FP)MAKELONG4((char)dy4, (char)dy3, (char)dy2, 0);
+    return (FP)dy<<8;
 }
 
 // Get the absolute value of an 8-bit unsigned number treated as a signed number.

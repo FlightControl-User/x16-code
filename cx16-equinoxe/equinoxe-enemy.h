@@ -10,6 +10,7 @@ typedef struct entity_s Enemy;
 
 
 void AddEnemy(char t, unsigned int x, unsigned int y);
+void RemoveEnemy(unsigned char e);
 
 unsigned char SpawnEnemies(unsigned char t, unsigned int x, unsigned int y);
 

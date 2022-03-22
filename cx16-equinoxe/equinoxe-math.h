@@ -1,11 +1,11 @@
 #include <fp3.h>
 
 signed int math_sin[64] = kickasm {{
-.fillword 64, 256*sin(toRadians(i*360/64))
+.fillword 64, 128*sin(toRadians(i*360/64))
 }};
 
 signed int math_cos[64] = kickasm {{
-.fillword 64, 256*cos(toRadians(i*360/64))
+.fillword 64, 128*cos(toRadians(i*360/64))
 }};
 
 

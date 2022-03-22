@@ -4,8 +4,6 @@
     // #pragma var_model(mem)
 // #endif
 
-
-
 #include <cx16.h>
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
@@ -141,7 +139,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     vera_display_set_border_color(3);
     #endif
 
-    grid_reset(ht_collision, ht_size_collision);
+    ht_reset(&ht_collision);
 
     char cx16_mouse_status = cx16_mouse_get();
 
@@ -238,53 +236,50 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         #endif
 
         // Check player bullet collisions
-        // if(stage.bullet_list)
-        // {
-            
-        //     heap_handle bullet_handle = stage.bullet_list;
-        //     do {
-        //         Bullet* bullet = (Bullet*)heap_data_ptr(bullet_handle);
-        //         signed int xA = bullet->tx.i;
-        //         signed int yA = bullet->ty.i;
 
-        //         unsigned xmin = (unsigned int)xA;
-        //         unsigned ymin = (unsigned int)yA;
-        //         unsigned int xmax = (xmin + 32) & 0b1111111111000000; 
-        //         unsigned int ymax = (ymin + 32) & 0b1111111111000000; 
+        if(stage.sprite_bullet_count) {
 
-        //         xmin = xmin & 0b1111111111000000;
-        //         ymin = ymin & 0b1111111111000000;
+            for(unsigned char gx=0; gx<640>>2; gx+=64>>2) {
+                for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
 
-        //         unsigned char grid = 0;
+                    ht_key_t ht_key_bullet = grid_key(3, gx, gy);
+                    ht_index_t ht_index_bullet = ht_get(&ht_collision, ht_key_bullet);
 
-        //         for(unsigned int gx=xmin; gx<=xmax; gx+=64) {
-        //             for(unsigned int gy=ymin; gy<=ymax; gy+=64) {
+                    ht_key_t ht_key_enemy = grid_key(2, gx, gy);
 
-        //                 ht_key_t ht_keyB = grid_key(0b01000000,(unsigned int)gx,(unsigned int)gy);
-        //                 ht_item_t* ht_itemB = ht_get(ht_collision, ht_size_collision, ht_keyB);
-        //                 // gotoxy(0,20);
-        //                 // printf("       %4p",ht_itemB);
-        //                 while(ht_itemB) {
-        //                     heap_handle handle_entityB = ht_itemB->data;
-        //                     entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
-        //                     signed int xB = entityB->tx.i;
-        //                     signed int yB = entityB->ty.i;
-        //                     // printf("keyB = %4x, xA = %i, xB = %i, yA = %i, yB = %i, ", ht_keyB, xA, xB, yA, yB);
-        //                     if(xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB) {
-                                
-        //                     } else {
-        //                         // printf("\ncollisions = %u", collisions++);
-        //                     }
-        //                     // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
-        //                     ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_keyB, ht_itemB);
-        //                     // gotoxy(0,20);
-        //                     // printf("%4p ",ht_itemB);
-        //                 }
-        //             }
-        //         }
-        //         bullet_handle = bullet->next;
-        //     }   while(bullet_handle != stage.bullet_list);
-        // }
+                    while(ht_index_bullet) {
+                        unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
+
+                        if(bullet.used[b]) {
+                            signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
+                            signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
+
+                            ht_index_t ht_index_enemy = ht_get(&ht_collision, ht_key_enemy);
+
+                            while(ht_index_enemy) {
+                                unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
+
+                                if(enemy.used[e]) {
+                                    signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
+                                    signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
+
+                                    if(x_bullet > x_enemy+32 || y_bullet > y_enemy+32 || 
+                                       x_bullet+1 < x_enemy || y_bullet+8 < y_enemy) {
+                                    } else {
+                                        RemoveBullet(b);
+                                        RemoveEnemy(e);
+                                        break;
+                                    }
+                                }
+                                ht_index_enemy = ht_get_next(ht_index_enemy);
+                            }
+                        }
+                        ht_index_bullet = ht_get_next(ht_index_bullet);
+                    }
+                }   
+            }       
+        }
+
     //         sprite_collided = 0;
     //     }
     // }
@@ -356,7 +351,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 void main() {
 
-    grid_init(ht_collision, ht_size_collision);
+    ht_init(&ht_collision);
 
     // vera_sprite_buffer_read(sprite_buffer);
 
@@ -490,17 +485,18 @@ void main() {
     // vera_sprites_collision_on();
     CLI();
 
-
     cx16_mouse_config(0xFF, 1);
+
+    char cx16_mouse_status = cx16_mouse_get();
+    game.prev_mousex = cx16_mousex;
+    game.prev_mousey = cx16_mousey;
+    game.curr_mousex = cx16_mousex;
+    game.curr_mousey = cx16_mousey;
 
     while (!getin()) {
         // SEI();
         // gotoxy(0,0);
-        // ht_display(ht_collision, ht_size_collision);
-        // gotoxy(0, 30);
-        // printf("collision loop g=%5u, n=%5u, i=%5u, c=%5u", ht_loop_get, ht_loop_next, ht_loop_insert, ht_loop_clean);
-        // gotoxy(0, 31);
-        // printf("collision max  g=%5u, n=%5u, i=%5u, c=%5u", ht_max_get, ht_max_next, ht_max_insert, ht_max_clean);
+        // grid_print(&ht_collision);
         // CLI();
     }; 
 

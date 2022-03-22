@@ -3,103 +3,88 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-bullet.h"
 #include "equinoxe-stage.h"
+#include "equinoxe-collision.h"
 
-void FireBullet(Bullet* entity, char reload)
+void FireBullet(unsigned char p, char reload)
 {
 
-	heap_handle bullet_handle = heap_alloc(bins, entity_size);
+	// player
+	while(bullet.used[bullet.pool]) {
+		bullet.pool = (bullet.pool++)%FE_BULLET;
+	}
 
-	Bullet* bullet = (Bullet*)heap_ptr(bullet_handle);
-    memset(bullet, 0, entity_size);
+	unsigned char b = bullet.pool;
 
-	heap_list_insert(&stage.bullet_list, bullet_handle);
+    bullet.used[b] = 1;
 
-    signed int x = game.curr_mousex;
-    signed int y = game.curr_mousey;
-    if (entity->firegun)
+    unsigned int x = (unsigned int)game.curr_mousex;
+    unsigned int y = (unsigned int)game.curr_mousey;
+
+    if(player.firegun[p])
         x += (signed char)16;
-    fp3_set(&bullet->tx, x, 0);
-	fp3_set(&bullet->ty, y, 0);
-    fp3_set(&bullet->tdx, 0, 0);
-	fp3_set(&bullet->tdy, -1, 0);
-    bullet->health = 1;
-    bullet->side = SIDE_PLAYER;
-    entity->firegun = entity->firegun^1;
+    bullet.tx[b] = MAKELONG(x, 0);
+    bullet.ty[b] = MAKELONG(y, 0);
+    bullet.tdx[b] = MAKELONG(0, 0);
+    bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
 
-    bullet->sprite_offset = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet);
-    bullet->sprite_type = &SpriteBullet01;
-	sprite_configure(bullet->sprite_offset, bullet->sprite_type);
+    player.firegun[p] = player.firegun[p]^1;
+
+    bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
+    bullet.sprite_type[b] = &SpriteBullet01;
+	sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
 
     // gotoxy(0, 20);
     // printf("list = %x - ", stage.bullet_list);
     // printf("%u %i %i   ", bullet->sprite_offset, bullet->x, bullet->y);
 
-    entity->reload = reload;
+    player.reload[p] = reload;
 
+    bullet.pool = (bullet.pool++)%FE_BULLET;
 }
 
 
-heap_handle RemoveBullet(heap_handle handle_remove) {
-	heap_handle handle_next = heap_list_remove(&stage.bullet_list, handle_remove);
-	heap_free(bins, handle_remove); 
-	return handle_next;
-}
-
-
-void LogicBullets()
+void RemoveBullet(unsigned char b) 
 {
-    // gotoxy(0, 38);
-    // printf("lb: list = %x, count = %u", stage.bullet_list, stage.bullet_count);
-    if(heap_handle_is_null(stage.bullet_list)) return;
-
-    char l = 0;
-
-    heap_handle bullet_handle = stage.bullet_list;
-    // gotoxy(40, 0);
-    // printf("bullet_list = %x", stage.bullet_list);
-
-    do {
-
-        Bullet* bullet = (Bullet*)heap_ptr(bullet_handle);
-
-        vera_sprite_offset sprite_offset = bullet->sprite_offset;
-
-        fp3_add(&bullet->tx, &bullet->tdx);
-        fp3_add(&bullet->ty, &bullet->tdy);
-
-        // gotoxy(0, l+1);
-        // printf("bullet : l=%03u, p=%04p o=%04x x=%04i y=%04i ", l, bullet, bullet->sprite_offset, bullet->x, bullet->y);
-
-        if (bullet->ty.fp3fi.i <= -32)
-        // if (bullet->y.i <= -32)
-        {
-            sprite_disable(sprite_offset);
-            bullet_handle = RemoveBullet(bullet_handle);
-            continue;
-        }
-
-        DrawBullet(bullet_handle);
-
-        bullet_handle = bullet->next;
-
-        
-    } while(heap_handle_ne_handle(bullet_handle, stage.bullet_list));
+    vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
+    FreeOffset(sprite_offset, &stage.sprite_bullet_count);
+    vera_sprite_disable(sprite_offset);
+    bullet.used[b] = 0;
+    bullet.enabled[b] = 0;
 }
 
-inline void DrawBullet(heap_handle bullet_handle) {
-    // gotoxy(40, 38);
-    // printf("db: list = %x, count = %u - ", stage.bullet_list, stage.bullet_count);
-    char l = 0;
 
-    Bullet *bullet = (Bullet *)heap_ptr(bullet_handle);
+inline void LogicBullets()
+{
+    if(!bullet.pool) return;
 
-    vera_sprite_offset sprite_offset = bullet->sprite_offset;
+    for(unsigned char b=FE_BULLET_LO; b<FE_BULLET; b++) {
 
-    sprite_enable(sprite_offset, bullet->sprite_type);
-    sprite_animate(sprite_offset, bullet->sprite_type, 0, 0);
-    // sprite_position(bullet->sprite_offset, bullet->x.i, bullet->y.i);
-    sprite_position(sprite_offset, (vera_sprite_coordinate) (bullet->tx.fp3fi.i), (vera_sprite_coordinate)(bullet->ty.fp3fi.i));
-    // gotoxy(40, 39 + l++);
-    // printf("db: bullet = %p ", bullet);
-    bullet_handle = bullet->next;
+        if(bullet.used[b]) {
+            vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
+            Sprite* sprite = bullet.sprite_type[b];
+
+
+            bullet.tx[b] += bullet.tdx[b];
+            bullet.ty[b] += bullet.tdy[b];
+
+            signed int x = (signed int)WORD1(bullet.tx[b]);
+            signed int y = (signed int)WORD1(bullet.ty[b]);
+
+            if(y < -32) {
+                RemoveBullet(b);
+            } else {
+                if(!bullet.enabled[b]) {
+                    vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
+                    bullet.enabled[b] = 1;
+                }            
+                vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[0]);
+				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
+            }
+
+            // gotoxy(0,21);
+            // printf("bullet count=%2u, #=%2u", stage.sprite_bullet_count, stage.sprite_bullet);
+
+        }
+        
+    }
 }

@@ -11,92 +11,76 @@
 
 void AddEnemy(char t, unsigned int x, unsigned int y) {
 
-	while(fighter.used[fighter.pool]) {
-		fighter.pool = (fighter.pool++)%64;
+	while(enemy.used[enemy.pool]) {
+		enemy.pool = (enemy.pool++)%FE_ENEMY;
 	}
 	
-	fighter.used[fighter.pool] = 1;
+	enemy.used[enemy.pool] = 1;
 
-	fighter.type[fighter.pool] = entity_type_enemy;
-	fighter.side[fighter.pool] = SIDE_ENEMY;
-	fighter.move[fighter.pool] = 0;
-	fighter.moved[fighter.pool] = 0;
-	fighter.flight[fighter.pool] = 0;
-	fighter.angle[fighter.pool] = 0;
-	fighter.speed[fighter.pool] = 0;
-	fighter.step[fighter.pool] = 0;
-	fighter.turn[fighter.pool] = 0;
-	fighter.radius[fighter.pool] = 0;
-	fighter.baseangle[fighter.pool] = 0;
-	fighter.reload[fighter.pool] = 0;
-	fighter.wait_animation[fighter.pool] = 4;
-	fighter.speed_animation[fighter.pool] = 4;
-	fighter.state_animation[fighter.pool] = 12;
-	fighter.health[fighter.pool] = 1;
-	fighter.delay[fighter.pool] = 0;
-	fighter.tx[fighter.pool] = MAKELONG(x,0);
-	fighter.ty[fighter.pool] = MAKELONG(y,0);
-	fighter.tdx[fighter.pool] = 0;
-	fighter.tdy[fighter.pool] = 0;
+	enemy.type[enemy.pool] = entity_type_enemy;
+	enemy.side[enemy.pool] = SIDE_ENEMY;
+	enemy.move[enemy.pool] = 0;
+	enemy.moved[enemy.pool] = 0;
+	enemy.flight[enemy.pool] = 0;
+	enemy.angle[enemy.pool] = 0;
+	enemy.speed[enemy.pool] = 0;
+	enemy.step[enemy.pool] = 0;
+	enemy.turn[enemy.pool] = 0;
+	enemy.radius[enemy.pool] = 0;
+	enemy.baseangle[enemy.pool] = 0;
+	enemy.reload[enemy.pool] = 0;
+	enemy.wait_animation[enemy.pool] = 4;
+	enemy.speed_animation[enemy.pool] = 4;
+	enemy.state_animation[enemy.pool] = 12;
+	enemy.health[enemy.pool] = 1;
+	enemy.delay[enemy.pool] = 0;
+	enemy.tx[enemy.pool] = MAKELONG(x, 0);
+	enemy.ty[enemy.pool] = MAKELONG(y, 0);
+	enemy.tdx[enemy.pool] = 0;
+	enemy.tdy[enemy.pool] = 0;
 
-	fighter.sprite_type[fighter.pool] = &SpriteEnemy01;
-	fighter.sprite_offset[fighter.pool] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy);
+	enemy.sprite_type[enemy.pool] = &SpriteEnemy01;
+	enemy.sprite_offset[enemy.pool] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
 
-	sprite_configure(fighter.sprite_offset[fighter.pool], fighter.sprite_type[fighter.pool]);
+	sprite_configure(enemy.sprite_offset[enemy.pool], enemy.sprite_type[enemy.pool]);
 
-	fighter.pool = (fighter.pool++)%64;
+	enemy.pool = (enemy.pool++)%FE_ENEMY;
 
 }
 
-heap_handle RemoveEnemy(heap_handle handle_remove) {
-
-	heap_handle handle_next = ((Enemy*)heap_ptr(handle_remove))->next;
-
-	// clrscr();
-	// gotoxy(0,0);
-	heap_list_remove(&stage.fighter_list, handle_remove);
-	// heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
-	heap_free(bins, handle_remove); 
-	// heap_dump(HEAP_SEGMENT_BRAM_ENTITIES);
-
-	// {
-    // heap_handle enemy_handle = stage.fighter_list;
-	// printf("stage fighter list = %x\n", stage.fighter_list);
-	// do {
-
-	// 	Enemy* enemy = (Enemy*)heap_ptr(enemy_handle);
-	// 	printf("enemy = %p, enemy_handle = %x, next = %x, prev = %x\n", enemy, enemy_handle, enemy->next, enemy->prev);
-	// 	enemy_handle = enemy->next;
-	// } while (enemy_handle != stage.fighter_list);
-	// }
-
-	return handle_next;
+void RemoveEnemy(unsigned char e) 
+{
+	vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+    FreeOffset(sprite_offset, &stage.sprite_enemy_count);
+    vera_sprite_disable(sprite_offset);
+    enemy.used[e] = 0;
+    enemy.enabled[e] = 0;
 }
 
 void MoveEnemy( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed) {
-	fighter.move[e] = 1;
-	if(speed) flight >>= speed;
-	fighter.flight[e] = flight;
-	fighter.angle[e] = fighter.angle[e] + turn;
-	fighter.speed[e] = speed;
-	fighter.step[e]++;
+	enemy.move[e] = 1;
+	if(speed) flight >>= (speed-1);
+	enemy.flight[e] = flight;
+	enemy.angle[e] = enemy.angle[e] + turn;
+	enemy.speed[e] = speed;
+	enemy.step[e]++;
 }
 
 void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed) {
-	fighter.move[e] = 2;
-	fighter.turn[e] = sgn_u8(turn);
-	fighter.radius[e] = radius;
-	fighter.delay[e] = 0;
-	fighter.flight[e] = mul8u(abs_u8((unsigned char)turn), radius);
-	fighter.baseangle[e] = fighter.angle[e];
-	fighter.speed[e] = speed;
-	fighter.step[e]++;
+	enemy.move[e] = 2;
+	enemy.turn[e] = sgn_u8(turn);
+	enemy.radius[e] = radius;
+	enemy.delay[e] = 0;
+	enemy.flight[e] = mul8u(abs_u8((unsigned char)turn), radius);
+	enemy.baseangle[e] = enemy.angle[e];
+	enemy.speed[e] = speed;
+	enemy.step[e]++;
 }
 
 
 void LogicEnemies() {
 
-	if (!fighter.pool) return;
+	if (!enemy.pool) return;
 
 	for(unsigned char e=0; e<64; e++) {
 
@@ -104,53 +88,53 @@ void LogicEnemies() {
 	    vera_display_set_border_color(1);
     #endif
 
-		if(fighter.used[e] && fighter.side[e] == SIDE_ENEMY) {	
+		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 
-			if(!fighter.flight[e]) {
-				switch(fighter.step[e]) {
+			if(!enemy.flight[e]) {
+				switch(enemy.step[e]) {
 				case 0:
-					MoveEnemy(e, 530, 32, 1);
+					MoveEnemy(e, 530, 32, 2);
 					break;
 				case 1:
-					ArcEnemy(e, -32, 2, 1);
+					ArcEnemy(e, -32, 2, 2);
 					break;
 				case 2:
-					MoveEnemy(e, 440, 0, 1);
+					MoveEnemy(e, 440, 0, 2);
 					break;
 				case 3:
-					ArcEnemy(e, -32, 2, 1);
+					ArcEnemy(e, -32, 2, 2);
 					break;
 				case 4:
-					MoveEnemy(e, 440, 0, 1);
-					fighter.step[e] = 1;
+					MoveEnemy(e, 440, 0, 2);
+					enemy.step[e] = 1;
 					break;
 				}
 			}
 
-			if(fighter.flight[e]) {
-				fighter.flight[e]--;
-				if(fighter.move[e] == 1) {
-					fighter.tdx[e] = vecx(fighter.angle[e], fighter.speed[e]);
-					fighter.tdy[e] = vecy(fighter.angle[e], fighter.speed[e]);
+			if(enemy.flight[e]) {
+				enemy.flight[e]--;
+				if(enemy.move[e] == 1) {
+					enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
+					enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
 				}
 
-				if(fighter.move[e] == 2) {
+				if(enemy.move[e] == 2) {
 					// Calculate current angle based on flight from x,y and angle startpoint.
-					if(!fighter.delay[e]) {
-						fighter.angle[e] += fighter.turn[e];
-						fighter.angle[e] %= 64;
-						fighter.delay[e] = fighter.radius[e];
-						fighter.tdx[e] = vecx(fighter.angle[e], fighter.speed[e]);
-						fighter.tdy[e] = vecy(fighter.angle[e], fighter.speed[e]);
+					if(!enemy.delay[e]) {
+						enemy.angle[e] += enemy.turn[e];
+						enemy.angle[e] %= 64;
+						enemy.delay[e] = enemy.radius[e];
+						enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
+						enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
 					}
-					fighter.delay[e]--;
+					enemy.delay[e]--;
 				}
 			} else {
-				fighter.move[e] = 0;
+				enemy.move[e] = 0;
 			}
 
-			fighter.tx[e] += fighter.tdx[e];
-			fighter.ty[e] += fighter.tdy[e];
+			enemy.tx[e] += enemy.tdx[e];
+			enemy.ty[e] += enemy.tdy[e];
 
 
 
@@ -159,11 +143,11 @@ void LogicEnemies() {
 #endif
 
 #ifdef __collision
-			unsigned int x = WORD1(fighter.tx[e]);
-			unsigned int y = WORD1(fighter.ty[e]);
+			signed int x = (signed int)WORD1(enemy.tx[e]);
+			signed int y = (signed int)WORD1(enemy.ty[e]);
 
 			if(x>=0 && x<=640-32 && x>=0 && x<=480-32) {
-				grid_insert(0b01000000, BYTE0(x>>2), BYTE0(y>>2), (unsigned int)e);
+				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
 			}
 #endif
 
@@ -171,17 +155,17 @@ void LogicEnemies() {
 			vera_display_set_border_color(3);
 #endif
 
-			if (fighter.reload[e] > 0) {
-				fighter.reload[e]--;
+			if (enemy.reload[e] > 0) {
+				enemy.reload[e]--;
 			}
 
-			if (!fighter.wait_animation[e]) {
-				fighter.wait_animation[e] = fighter.speed_animation[e];
-				if(!fighter.state_animation[e])
-					fighter.state_animation[e] = 12;
-				fighter.state_animation[e]--;
+			if (!enemy.wait_animation[e]) {
+				enemy.wait_animation[e] = enemy.speed_animation[e];
+				if(!enemy.state_animation[e])
+					enemy.state_animation[e] = 12;
+				enemy.state_animation[e]--;
 			}
-			fighter.wait_animation[e]--;
+			enemy.wait_animation[e]--;
 
 
 			// gotoxy(0, 32);
@@ -195,17 +179,17 @@ void LogicEnemies() {
 					// EnableFighter(e);
 					
 				// }
-				vera_sprite_offset sprite_offset = fighter.sprite_offset[e];
-				Sprite* sprite = fighter.sprite_type[e];
-				if(!fighter.enabled[e]) {
+				vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+				Sprite* sprite = enemy.sprite_type[e];
+				if(!enemy.enabled[e]) {
 			    	vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
-					fighter.enabled[e] = 1;
+					enemy.enabled[e] = 1;
 				}
 				// sprite_animate(sprite_offset, sprite, fighter.state_animation[e], fighter.wait_animation[e]);
-				if(fighter.wait_animation[e]) {
+				if(enemy.wait_animation[e]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[fighter.state_animation[e]]);
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[enemy.state_animation[e]]);
 				}
 
 				// sprite_collision(fighter.sprite_offset[e], 0b10000000);

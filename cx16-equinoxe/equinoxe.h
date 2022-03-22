@@ -11,6 +11,7 @@
 #include <ht.h>
 #include <fp3.h>
 #include <cx16-fb.h>
+#include <cx16-veralib.h>
 #include "equinoxe-debug.h"
 
 // Zeropage addresses used to hold byte at zeropage for fast adding
@@ -102,16 +103,19 @@ typedef struct {
     heap_handle bullet_tail;
     heap_handle bullet_list;
     vera_sprite_id sprite_player; // Keep track of the last player sprite allocated.
+    unsigned char sprite_player_count;
     vera_sprite_id sprite_bullet; // Keep track of the last bullet sprite allocated.
+    unsigned char sprite_bullet_count;
     vera_sprite_id sprite_enemy;  // Keep track of the last enemy sprite allocated.
+    unsigned char sprite_enemy_count;
     unsigned char level;
     unsigned char phase;
     unsigned char spawnenemycount;
     unsigned char spawnenemytype;
 } Stage;
 
-volatile Stage stage;
-volatile vera_sprite_offset sprite_offsets[127] = {0};
+Stage stage;
+vera_sprite_offset sprite_offsets[127] = {0};
 
 
 volatile unsigned char sprite_collided = 0;

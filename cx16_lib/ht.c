@@ -6,84 +6,100 @@
 #include <string.h>
 #include <stdlib.h>
 
-void ht_init(ht_item_ptr_t ht, ht_size_t ht_size) 
+void ht_init(ht_item_t* ht) 
 {
    // heap_segment_define(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!
-   memset(ht,0,ht_size*4);
-   ht_list_index = 0;
+   memset(ht,0x00,HT_SIZE*2);
+   ht_list_index = 0xFF;
 }
 
-void ht_reset(ht_item_ptr_t ht, ht_size_t ht_size) 
+void ht_reset(ht_item_t* ht) 
 {
    // heap_segment_reset(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!
-   memset(ht,0,ht_size*4);
-   ht_list_index = 0;
+   memset(ht,0x00,HT_SIZE*2);
+   ht_list_index = 0xFF;
 }
 
-void ht_clean(ht_item_ptr_t ht, ht_size_t ht_size) 
-{
 
-   for(ht_index_t ht_index = 0; ht_index<ht_size; ht_index++) {
-      if(!ht[ht_index].key) {
-         ht[ht_index].key = 0xFFFF;
-         ht[ht_index].next = NULL;
+inline ht_index_t ht_code(ht_key_t key) 
+{
+   return HT_RANDOM[key];
+}
+
+inline ht_index_t ht_get(ht_item_t* ht, ht_key_t key) 
+{
+   ht_index_t ht_index = ht_code(key);
+
+   while(ht->next[ht_index]) {
+      if(ht->key[ht_index] == key)  {
+         return ht->next[ht_index];
       }
+      ht_index++;
+      // ht_index %= HT_SIZE;
    }
+
+   return 0x00;
 }
 
-inline ht_index_t ht_code(ht_size_t ht_size, ht_key_t key) 
+inline ht_index_t ht_get_next(ht_index_t ht_index) 
 {
-   return (key) % ht_size;
+   return ht_list.next[ht_index];
 }
 
-inline ht_list_ptr_t ht_get(ht_item_ptr_t ht, ht_size_t ht_size, ht_key_t key) 
+inline ht_data_t ht_get_data(ht_index_t ht_index) 
 {
-   ht_index_t ht_index = ht_code(ht_size, key);
-   return ht[ht_index].next;
+   return ht_list.data[ht_index];
 }
 
-inline ht_list_ptr_t ht_get_next(ht_list_ptr_t ht_list) 
-{
-   return ht_list->next;
-}
 
-inline ht_list_ptr_t ht_insert(ht_item_ptr_t ht, ht_size_t ht_size, ht_key_t key, ht_data_t data) 
+inline ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data) 
 {
-   ht_index_t ht_index = ht_code(ht_size, key);
-   ht[ht_index].key = key;
+   ht_index_t ht_index = ht_code(key);
+
+   while(ht->next[ht_index] && ht->key[ht_index]!=key) {
+      ht_index++;
+      // ht_index %= HT_SIZE;
+   }
+
+   ht->key[ht_index] = key;
 
    // There is already an entry in the main node, so we add this item as a new node in the duplicate list.
-   ht_list_ptr_t next = ht[ht_index].next;
-   ht_list_ptr_t ht_list_ptr = &ht_list[ht_list_index++];
-   ht_list_ptr->data = data;
+   ht_index_t next = ht->next[ht_index];
+   ht_list.data[ht_list_index] = data;
 
    // Now the new node becomes the first node in the list;
-   ht_list_ptr->next = next;
-   ht[ht_index].next = ht_list_ptr;
+   ht_list.next[ht_list_index] = next;
+   ht->next[ht_index] = ht_list_index;
 
-   return ht_list_ptr;
+   ht_list_index--;
+
+   return ht_index;
 }
 
-void ht_display(ht_item_ptr_t ht, ht_size_t ht_size) {
+void ht_display(ht_item_t* ht) {
    ht_index_t ht_index = 0;
 	
    unsigned char col = 0;
-   for(ht_index = 0; ht_index<ht_size; ht_index++) {
+
+   do {
 
       if(!col) {
          printf("%04X: ", ht_index);
       }
-      if(ht[ht_index].key == 0xFFFF) {
+      if(!ht->next[ht_index]) {
          printf(" ---- ");
       } else {
-         printf(" %04X ", ht[ht_index].key);
+         printf(" %04X ", ht->key[ht_index]);
       }
       
       if(++col >= 8) {
          col = 0;
          printf("\n");
       } 
-   }
+
+      ht_index++;
+
+   } while(ht_index > 0);
 	
    printf("\n");
 }

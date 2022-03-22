@@ -90,13 +90,6 @@ __mem Sprite *SpriteDB[4] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEngine01, 
 
 byte const SPRITE_COUNT = SPRITE_PLAYER01_COUNT + SPRITE_ENEMY01_COUNT + SPRITE_ENGINE01_COUNT + SPRITE_BULLET01_COUNT; 
 
-typedef struct collision_s {
-    unsigned char cells;
-    unsigned int gx[4];
-    unsigned int gy[4];
-    ht_list_ptr_t cell[4];
-} collision_t;
-
 enum entity_types {
     entity_type_player,
     entity_type_enemy,
@@ -104,6 +97,20 @@ enum entity_types {
 };
 
 const unsigned char entity_size = 120U;
+
+const unsigned char FE_PLAYER = 4;
+const unsigned char FE_PLAYER_LO = 0;
+const unsigned char FE_PLAYER_HI = 3;
+const unsigned char FE_ENEMY = 64;
+const unsigned char FE_ENEMY_LO = 0;
+const unsigned char FE_ENEMY_HI = 63;
+const unsigned char FE_BULLET = 64;
+const unsigned char FE_BULLET_LO = 0;
+const unsigned char FE_BULLET_HI = 63;
+
+const unsigned char FE_ENGINE = 4;
+const unsigned char FE_ENGINE_LO = 0;
+const unsigned char FE_ENGINE_HI = 3;
 
 typedef struct {
 
@@ -142,10 +149,96 @@ typedef struct {
     Sprite* sprite_type[64];
     vera_sprite_offset sprite_offset[64];
 
-} flight_engine_t;
+} fe_enemy_t;
 
-flight_engine_t fighter;
+fe_enemy_t enemy;
 
+typedef struct {
+
+    FP tx[4];
+    FP ty[4];
+    FP tdx[4];
+    FP tdy[4];
+
+    unsigned char pool;
+    unsigned char used[4];
+
+    unsigned char moved[4];
+    unsigned char enabled[4];
+    unsigned char engine[4];
+
+    unsigned char firegun[4];
+    unsigned char reload[4];
+    unsigned char health[4];
+
+    unsigned char wait_animation[4];
+    unsigned char speed_animation[4];
+    unsigned char state_animation[4];
+
+    Sprite* sprite_type[4];
+    vera_sprite_offset sprite_offset[4];
+
+} fe_player_t;
+
+fe_player_t player;
+
+typedef struct {
+
+    unsigned char pool;
+    unsigned char used[4];
+
+    unsigned char wait_animation[4];
+    unsigned char speed_animation[4];
+    unsigned char state_animation[4];
+
+    Sprite* sprite_type[4];
+    vera_sprite_offset sprite_offset[4];
+
+} fe_engine_t;
+
+fe_engine_t engine;
+
+
+typedef struct {
+
+    FP tx[64];
+    FP ty[64];
+    FP tdx[64];
+    FP tdy[64];
+
+    unsigned char pool;
+    unsigned char used[64];
+
+    unsigned char type[64];
+    unsigned char side[64];
+
+    unsigned char move[64];
+    unsigned char moved[64];
+    unsigned char enabled[64];
+
+    unsigned char step[64];
+    unsigned int flight[64];
+    unsigned char delay[64];
+
+    unsigned char angle[64];
+    unsigned char speed[64];
+    unsigned char turn[64];
+    unsigned char radius[64];
+    unsigned char baseangle[64];
+
+    unsigned char reload[64];
+    unsigned char health[64];
+
+    unsigned char wait_animation[64];
+    unsigned char speed_animation[64];
+    unsigned char state_animation[64];
+
+    Sprite* sprite_type[64];
+    vera_sprite_offset sprite_offset[64];
+
+} fe_bullet_t;
+
+fe_bullet_t bullet;
 
 
 typedef struct entity_s {
@@ -187,8 +280,6 @@ typedef struct entity_s {
     FP3 ty;
     FP3 tdx;
     FP3 tdy;
-
-    collision_t grid;
 } entity_t;
 
 void Logic();

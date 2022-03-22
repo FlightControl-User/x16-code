@@ -15,85 +15,52 @@ void StageInit(void) {
 	stage.level = 1;
 	stage.phase = 1;
 
-	fighter.pool = 0;
-
 	StageProgress();
 }
 
-vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id) {
-	vera_sprite_id count = sprite_end-sprite_start;
-	while(count) {
-		vera_sprite_offset sprite_offset = sprite_offsets[*sprite_id];
-		if(!sprite_offset) {
-			// sprite_offset = (vera_sprite_offset)((*sprite_id)<<3)+(vera_sprite_offset)sprite_buffer; 
-			sprite_offset =  vera_sprite_get_offset(*sprite_id); 
-			sprite_offsets[*sprite_id] = sprite_offset;
-			return sprite_offset;
-		}
-		count--;
-		*sprite_id = (*sprite_id==sprite_end) ? sprite_start : (*sprite_id)++;
+vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count) {
+
+	while(sprite_offsets[*sprite_id]) {
+		*sprite_id = ((*sprite_id) >= sprite_end)?sprite_start:(*sprite_id)+1;
 	}
-	return 0;
+
+	(*count)++;
+	vera_sprite_offset sprite_offset = vera_sprite_get_offset(*sprite_id); 
+	sprite_offsets[*sprite_id] = sprite_offset;
+	return sprite_offset;
 }
 
 
-void FreeOffset(vera_sprite_offset sprite_offset) {
+void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count) {
 	vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
 	sprite_offsets[sprite_id] = 0;
+	(*count)--;
 }
 
 static void StageReset(void) {
-	// entity_t *e;
-	// Explosion *ex;
-	// Debris *d;
-
-	// while (stage.fighterHead.next)
-	// {
-	// 	e = stage.fighterHead.next;
-	// 	stage.fighterHead.next = e->next;
-	// 	free(e);
-	// }
-
-	// while (stage.bulletHead.next)
-	// {
-	// 	e = stage.bulletHead.next;
-	// 	stage.bulletHead.next = e->next;
-	// 	free(e);
-	// }
-
-	// while (stage.explosionHead.next)
-	// {
-	// 	ex = stage.explosionHead.next;
-	// 	stage.explosionHead.next = ex->next;
-	// 	free(ex);
-	// }
-
-	// while (stage.debrisHead.next)
-	// {
-	// 	d = stage.debrisHead.next;
-	// 	stage.debrisHead.next = d->next;
-	// 	free(d);
-	// }
 
 	memset(&stage, 0, sizeof(Stage));
-	// stage.fighterTail = &stage.fighterHead;
-	// stage.bulletTail = &stage.bulletHead;
-	// stage.explosionTail = &stage.explosionHead;
-	// stage.debrisTail = &stage.debrisHead;
-	
+
+	enemy.pool = 0;
+	player.pool = 0;
+	bullet.pool = 0;
+	engine.pool = 0;
+
+	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
+	stage.sprite_bullet_count = 0;
+	stage.sprite_enemy = SPRITE_OFFSET_ENEMY_START;
+	stage.sprite_enemy_count = 0;
+	stage.sprite_player = SPRITE_OFFSET_PLAYER_START;
+	stage.sprite_player_count = 0;
+
 	InitPlayer();
 
-	// initStarfield();
-
-	// enemySpawnTimer = 0;
-
-	// stageResetTimer = FPS * 3;
 }
 
 void StageProgress() {
 	switch(stage.level) {
 		case 1:
-			stage.spawnenemycount = 30;
+			stage.spawnenemycount = 120;
 			stage.spawnenemytype = 1;
 			break;
 	}
@@ -102,7 +69,9 @@ void StageProgress() {
 void LogicStage() {
 	if(stage.spawnenemycount) {
 		if(!(game.tickstage & 0x0F)) {
-        	stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 0, 40);
+			if(stage.sprite_enemy_count<32) {
+        		stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 640, 40);
+			}
 		}
     }
 }

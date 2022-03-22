@@ -6,141 +6,166 @@
 
 void InitPlayer() {
 
-	player_handle = heap_alloc(bins, entity_size); 
-	entity_t* player = (entity_t*)heap_ptr(player_handle);
-	memset_fast(player, 0, entity_size);
+	// player
+	while(player.used[player.pool]) {
+		player.pool = (player.pool++)%FE_PLAYER;
+	}
 
-	player->type = entity_type_player;
-	player->health = 1;
-	player->tx.fp3fi.i = 320;
-	player->ty.fp3fi.i = 200;
-	player->speed_animation = 8;
-	player->wait_animation = player->speed_animation;
-	player->state_animation = 3;
-	player->moved = 2;
-	player->firegun = 0;
-	player->side = SIDE_PLAYER;
+	unsigned char p = player.pool;
+	
+	player.used[p] = 1;
 
-	player->sprite_type = &SpritePlayer01;
-	player->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
-	sprite_configure(player->sprite_offset, player->sprite_type);
+	player.moved[p] = 2;
+	player.enabled[p] = 0;
 
-	heap_handle engine_handle = heap_alloc(bins, entity_size);
-	entity_t* engine = (entity_t*)heap_ptr(engine_handle);
-	memset_fast(engine, 0, entity_size);
+	player.tx[p] = MAKELONG(320, 0);
+	player.ty[p] = MAKELONG(200, 0);
+	player.tdx[p] = 0;
+	player.tdy[p] = 0;
 
-	engine->health = 1;
-	engine->speed_animation = 1;
-	engine->wait_animation = engine->speed_animation;
-	engine->side = SIDE_PLAYER;
+	player.health[p] = 1;
+	player.firegun[p] = 0;
+	player.reload[p] = 0;
 
-	engine->sprite_type = &SpriteEngine01;
-	engine->sprite_offset = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player);
-	sprite_configure(engine->sprite_offset, engine->sprite_type);
+	player.speed_animation[p] = 8;
+	player.wait_animation[p] = player.speed_animation[p];
+	player.state_animation[p] = 3;
 
-	player = (entity_t*)heap_ptr(player_handle);
-	player->engine_handle = engine_handle;
+	player.sprite_type[p] = &SpritePlayer01;
+	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
+	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
 
-	heap_list_insert(&stage.fighter_list, player_handle);
+	player.pool = (player.pool++)%FE_PLAYER;
+
+	// Engine
+	while(engine.used[engine.pool]) {
+		engine.pool = (engine.pool++)%FE_ENGINE;
+	}
+
+	unsigned char n = engine.pool;
+
+	player.engine[p] = n;
+
+	engine.used[p] = 1;
+
+	engine.speed_animation[n] = 1;
+	engine.wait_animation[n] = engine.speed_animation[n];
+
+	engine.sprite_type[n] = &SpriteEngine01;
+	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
+	sprite_configure(engine.sprite_offset[n], engine.sprite_type[n]);
+
+	engine.pool = (engine.pool++)%FE_ENGINE;
 
 }
 
 void LogicPlayer() {
 
-	if (heap_handle_is_not_null(player_handle)) {
+	if (player.pool) {
 
-		entity_t* player = (entity_t*)heap_ptr(player_handle);
+		for(char p=FE_PLAYER_LO; p<FE_PLAYER_HI; p++) {
 
-		byte bank = bank_get_bram();
-		// printf("logic - ph = %x, *p = %x, b = %u\n", player_handle, (word)player, bank);
+			byte bank = bank_get_bram();
 
-		// grid_remove(player);
+			if(player.used[p]) {
 
-		if (player->reload > 0) {
-			player->reload--;
-		}
-
-		if (!player->wait_animation) {
-			player->wait_animation = player->speed_animation;
-			if (game.curr_mousex < game.prev_mousex && player->state_animation > 0) {
-				// Added fragment
-				player->state_animation -= 1;
-				player->moved = 2;
-			}
-			if (game.curr_mousex > game.prev_mousex && player->state_animation < 6) {
-				player->state_animation += 1;
-				player->moved = 2;
-			}
-
-			if (player->moved == 1) {
-				if (player->state_animation < 3) {
-					player->state_animation += 1;
+				if (player.reload[p] > 0) {
+					player.reload[p]--;
 				}
-				if (player->state_animation > 3) {
-					player->state_animation -= 1;
+
+				if (!player.wait_animation[p]) {
+					player.wait_animation[p] = player.speed_animation[p];
+					if (game.curr_mousex < game.prev_mousex && player.state_animation[p] > 0) {
+						// Added fragment
+						player.state_animation[p] -= 1;
+						player.moved[p] = 2;
+					}
+					if (game.curr_mousex > game.prev_mousex && player.state_animation[p] < 6) {
+						player.state_animation[p] += 1;
+						player.moved[p] = 2;
+					}
+
+					if (player.moved[p] == 1) {
+						if (player.state_animation[p] < 3) {
+							player.state_animation[p] += 1;
+						}
+						if (player.state_animation[p] > 3) {
+							player.state_animation[p] -= 1;
+						}
+						if (player.state_animation[p] == 3) {
+							player.moved[p] = 0;
+						}
+					}
+
+					if(player.moved[p] == 2) {
+						player.moved[p]--;
+					}
 				}
-				if (player->state_animation == 3) {
-					player->moved = 0;
+				player.wait_animation[p]--;
+
+
+				// player.tdx[p] = MAKELONG((word)(game.curr_mousex - game.prev_mousex),0);
+				// player.tdy[p] = MAKELONG((word)(game.curr_mousey - game.prev_mousey),0);
+				
+				// // Added fragment
+				// player.tx[p] += player.tdx[p];
+				// player.ty[p] += player.tdy[p];
+
+				player.tx[p] = MAKELONG((word)(game.curr_mousex),0);
+				player.ty[p] = MAKELONG((word)(game.curr_mousey),0);
+
+				signed int playerx = (signed int)WORD1(player.tx[p]);
+				signed int playery = (signed int)WORD1(player.ty[p]);
+
+				#ifdef __collision
+				if(playerx>=0 && playerx<640-32 && playery>=0 && playery<480-32) {
+					grid_insert(&ht_collision, 1, BYTE0(playerx>>2), BYTE0(playery>>2), p);
 				}
-			}
+				#endif
 
-			if(player->moved == 2) {
-				player->moved--;
-			}
-		}
-		player->wait_animation--;
+				unsigned char n = player.engine[p];
 
+				if (!engine.wait_animation[n]) {
+					engine.state_animation[n]++;
+					engine.state_animation[n] &= 0xF;
+					engine.wait_animation[n] = engine.speed_animation[n];
+				}
+				engine.wait_animation[n]--;
+				
+				if (game.status_mouse == 1 && player.reload[p] <= 0)
+				{
+					FireBullet(p, 8);
+				}
+				
+				vera_sprite_offset player_sprite_offset = player.sprite_offset[p];
+				Sprite* player_sprite = player.sprite_type[p];
 
-		// Added fragment
-		player->tx.fp3fi.i = game.curr_mousex;
-		player->ty.fp3fi.i = game.curr_mousey;
-
-		signed int playerx = player->tx.fp3fi.i;
-		signed int playery = player->ty.fp3fi.i;
-
-		volatile unsigned int x = (unsigned int)player->tx.fp3fi.i;
-		volatile unsigned int y = (unsigned int)player->ty.fp3fi.i;
-
-		#ifdef __collision
-		if(playerx>=0 && playerx<640-32 && playery>=0 && playery<480-32) {
-			// grid_insert(0b10000000, BYTE0(x>>2), BYTE0(y>>2), (unsigned int)player_handle);
-		}
-		#endif
-
-		heap_handle engine_handle = player->engine_handle;
-		entity_t* engine = (entity_t*)heap_ptr(engine_handle);
-
-		if (!engine->wait_animation) {
-			engine->state_animation++;
-			engine->state_animation &= 0xF;
-			engine->wait_animation = engine->speed_animation;
-		}
-		engine->wait_animation--;
-		
-		engine->tx.fp3fi.i = playerx + 8;
-		engine->ty.fp3fi.i = playery + 22;
-
-		if (game.status_mouse == 1 && player->reload <= 0)
-		{
-			FireBullet(player, 4);
-		}
-
-		
-		if(playerx > -64 && playerx < 640) {
-			if(!player->enabled) {
-			    sprite_enable(player->sprite_offset, player->sprite_type);
-				// EnableFighter(player_handle);
-				player->enabled = 1;
-			}
-			sprite_animate(player->sprite_offset, player->sprite_type, player->state_animation, player->wait_animation);
-			sprite_position(player->sprite_offset, (vera_sprite_coordinate)(player->tx.fp3fi.i), (vera_sprite_coordinate)(player->ty.fp3fi.i));
-			sprite_collision(player->sprite_offset, 0b10000000);
-			// DrawFighter(player_handle);
-		} else {
-			if(player->enabled) {
-			    sprite_disable(player->sprite_offset);
-				// DisableFighter(player_handle);
-				player->enabled = 0;
+				vera_sprite_offset engine_sprite_offset = engine.sprite_offset[n];
+				Sprite* engine_sprite = engine.sprite_type[n];
+				if(playerx > -64 && playerx < 640) {
+					if(!player.enabled[p]) {
+				    	vera_sprite_zdepth(player_sprite_offset, player_sprite->Zdepth);
+				    	vera_sprite_zdepth(engine_sprite_offset, engine_sprite->Zdepth);
+						player.enabled[p] = 1;
+					}
+					if(player.wait_animation[p]) {
+						vera_sprite_set_xy(player_sprite_offset, playerx, playery);
+					} else {
+						vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, player_sprite->offset_image[player.state_animation[p]]);
+					}
+					if(engine.wait_animation[p]) {
+						vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
+					} else {
+						vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, engine_sprite->offset_image[engine.state_animation[n]]);
+					}
+					// DrawFighter(player_handle);
+				} else {
+					if(player.enabled[p]) {
+				    	vera_sprite_disable(player_sprite_offset);
+				    	vera_sprite_disable(engine_sprite_offset);
+						player.enabled[p] = 0;
+					}
+				}
 			}
 		}
 	}
