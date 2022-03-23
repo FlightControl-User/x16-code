@@ -7,21 +7,16 @@
 void InitPlayer() {
 
 	// player
-	while(player.used[player.pool]) {
-		player.pool = (player.pool++)%FE_PLAYER;
-	}
-
 	unsigned char p = player.pool;
+
+	while(player.used[p]) {
+		p = (p+1)%FE_PLAYER;
+	}
 	
 	player.used[p] = 1;
-
-	player.moved[p] = 2;
 	player.enabled[p] = 0;
 
-	player.tx[p] = MAKELONG(320, 0);
-	player.ty[p] = MAKELONG(200, 0);
-	player.tdx[p] = 0;
-	player.tdy[p] = 0;
+	player.moved[p] = 2;
 
 	player.health[p] = 1;
 	player.firegun[p] = 0;
@@ -35,7 +30,17 @@ void InitPlayer() {
 	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
 	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
 
-	player.pool = (player.pool++)%FE_PLAYER;
+	player.tx[p] = MAKELONG(320, 0);
+	player.ty[p] = MAKELONG(200, 0);
+	player.tdx[p] = 0;
+	player.tdy[p] = 0;
+
+	player.aabb_min_x[p] = SpritePlayer01.aabb[0];
+	player.aabb_min_y[p] = SpritePlayer01.aabb[1];
+	player.aabb_max_x[p] = SpritePlayer01.aabb[2];
+	player.aabb_max_y[p] = SpritePlayer01.aabb[3];
+
+	player.pool = (p+1)%FE_PLAYER;
 
 	// Engine
 	while(engine.used[engine.pool]) {

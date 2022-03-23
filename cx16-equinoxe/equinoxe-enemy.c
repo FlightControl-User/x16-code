@@ -1,5 +1,6 @@
 #include <division.h>
 #include <multiply.h>
+#include <stdlib.h>
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
@@ -9,42 +10,53 @@
 #include "equinoxe-collision.h"
 #include <ht.h>
 
+volatile unsigned char shoot = 12;
+
 void AddEnemy(char t, unsigned int x, unsigned int y) {
 
-	while(enemy.used[enemy.pool]) {
-		enemy.pool = (enemy.pool++)%FE_ENEMY;
+	unsigned char e = enemy.pool;
+
+	while(enemy.used[e]) {
+		e = (e+1)%FE_ENEMY;
 	}
 	
-	enemy.used[enemy.pool] = 1;
+	enemy.used[e] = 1;
+	enemy.enabled[e] = 0;
 
-	enemy.type[enemy.pool] = entity_type_enemy;
-	enemy.side[enemy.pool] = SIDE_ENEMY;
-	enemy.move[enemy.pool] = 0;
-	enemy.moved[enemy.pool] = 0;
-	enemy.flight[enemy.pool] = 0;
-	enemy.angle[enemy.pool] = 0;
-	enemy.speed[enemy.pool] = 0;
-	enemy.step[enemy.pool] = 0;
-	enemy.turn[enemy.pool] = 0;
-	enemy.radius[enemy.pool] = 0;
-	enemy.baseangle[enemy.pool] = 0;
-	enemy.reload[enemy.pool] = 0;
-	enemy.wait_animation[enemy.pool] = 4;
-	enemy.speed_animation[enemy.pool] = 4;
-	enemy.state_animation[enemy.pool] = 12;
-	enemy.health[enemy.pool] = 1;
-	enemy.delay[enemy.pool] = 0;
-	enemy.tx[enemy.pool] = MAKELONG(x, 0);
-	enemy.ty[enemy.pool] = MAKELONG(y, 0);
-	enemy.tdx[enemy.pool] = 0;
-	enemy.tdy[enemy.pool] = 0;
+	enemy.type[e] = entity_type_enemy;
+	enemy.side[e] = SIDE_ENEMY;
+	enemy.move[e] = 0;
+	enemy.moved[e] = 0;
+	enemy.flight[e] = 0;
+	enemy.angle[e] = 0;
+	enemy.speed[e] = 0;
+	enemy.step[e] = 0;
+	enemy.turn[e] = 0;
+	enemy.radius[e] = 0;
+	enemy.baseangle[e] = 0;
+	enemy.reload[e] = 0;
+	enemy.wait_animation[e] = 4;
+	enemy.speed_animation[e] = 4;
+	enemy.state_animation[e] = 12;
+	enemy.health[e] = 1;
+	enemy.delay[e] = 0;
 
-	enemy.sprite_type[enemy.pool] = &SpriteEnemy01;
-	enemy.sprite_offset[enemy.pool] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
+	enemy.sprite_type[e] = &SpriteEnemy01;
+	enemy.sprite_offset[e] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
 
-	sprite_configure(enemy.sprite_offset[enemy.pool], enemy.sprite_type[enemy.pool]);
+	sprite_configure(enemy.sprite_offset[e], enemy.sprite_type[e]);
 
-	enemy.pool = (enemy.pool++)%FE_ENEMY;
+	enemy.tx[e] = MAKELONG(x, 0);
+	enemy.ty[e] = MAKELONG(y, 0);
+	enemy.tdx[e] = 0;
+	enemy.tdy[e] = 0;
+	
+	enemy.aabb_min_x[e] = SpriteEnemy01.aabb[0];
+	enemy.aabb_min_y[e] = SpriteEnemy01.aabb[1];
+	enemy.aabb_max_x[e] = SpriteEnemy01.aabb[2];
+	enemy.aabb_max_y[e] = SpriteEnemy01.aabb[3];
+
+	enemy.pool = (e+1)%FE_ENEMY;
 
 }
 
@@ -93,19 +105,21 @@ void LogicEnemies() {
 			if(!enemy.flight[e]) {
 				switch(enemy.step[e]) {
 				case 0:
-					MoveEnemy(e, 530, 32, 2);
+					shoot++;
+					if(shoot>22) shoot=10;
+					MoveEnemy(e, modr16u(rand(),400,0)+120, shoot, 2);
 					break;
 				case 1:
 					ArcEnemy(e, -32, 2, 2);
 					break;
 				case 2:
-					MoveEnemy(e, 440, 0, 2);
+					MoveEnemy(e, 40, 0, 2);
 					break;
 				case 3:
-					ArcEnemy(e, -32, 2, 2);
+					ArcEnemy(e, -36, 2, 2);
 					break;
 				case 4:
-					MoveEnemy(e, 440, 0, 2);
+					MoveEnemy(e, 40, 0, 2);
 					enemy.step[e] = 1;
 					break;
 				}
@@ -138,22 +152,7 @@ void LogicEnemies() {
 
 
 
-#ifdef debug_scanlines
-			vera_display_set_border_color(2);
-#endif
 
-#ifdef __collision
-			signed int x = (signed int)WORD1(enemy.tx[e]);
-			signed int y = (signed int)WORD1(enemy.ty[e]);
-
-			if(x>=0 && x<=640-32 && x>=0 && x<=480-32) {
-				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
-			}
-#endif
-
-#ifdef debug_scanlines
-			vera_display_set_border_color(3);
-#endif
 
 			if (enemy.reload[e] > 0) {
 				enemy.reload[e]--;
@@ -168,42 +167,37 @@ void LogicEnemies() {
 			enemy.wait_animation[e]--;
 
 
-			// gotoxy(0, 32);
-			// printf("l=%5u a=%4u x=%4i y=%4i dx=%4i dy=%4i    ", loop++, enemy.angle[e], enemy.x[e], enemy.y[e], enemy.dx[e], enemy.dy[e]);
-			// printf("a=%u, x=%i, y=%i, s=%u, m=%u, f=%u      ", 
-			// 	enemy.angle[e], enemy.x[e], enemy.y[e], enemy.step[e], enemy.move[e], enemy.flight[e]
-			// );
+			signed int x = (signed int)WORD1(enemy.tx[e]);
+			signed int y = (signed int)WORD1(enemy.ty[e]);
 
-			// if(x > -64 && x < 640) {
-				// if(!fighter.enabled[e]) {
-					// EnableFighter(e);
-					
-				// }
-				vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
-				Sprite* sprite = enemy.sprite_type[e];
+			vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+			Sprite* sprite = enemy.sprite_type[e];
+
+			if(x>=-31 && x<640 && y>=-31 && y<480) {
+#ifdef debug_scanlines
+			vera_display_set_border_color(2);
+#endif
+				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
+#ifdef debug_scanlines
+			vera_display_set_border_color(3);
+#endif
 				if(!enemy.enabled[e]) {
 			    	vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
 					enemy.enabled[e] = 1;
 				}
-				// sprite_animate(sprite_offset, sprite, fighter.state_animation[e], fighter.wait_animation[e]);
 				if(enemy.wait_animation[e]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[enemy.state_animation[e]]);
 				}
-
-				// sprite_collision(fighter.sprite_offset[e], 0b10000000);
-				// DrawFighter(e);
-			// } else {
-			// 	if(fighter.enabled[e]) {
-			// 		DisableFighter(e);
-			// 		fighter.enabled[e] = 0;
-			// 	}
-			// }
+			} else {
+				if(enemy.enabled[e]) {
+			    	vera_sprite_disable(sprite_offset);
+					enemy.enabled[e] = 0;
+				}
+			}
 		}
-
 	}
-
 }
 
 unsigned char SpawnEnemies(unsigned char t, unsigned int x, unsigned int y) {

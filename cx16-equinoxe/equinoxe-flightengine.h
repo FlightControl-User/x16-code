@@ -20,7 +20,7 @@ typedef struct _sprite {
     unsigned char Vflip;
     unsigned char BPP;
     unsigned char PaletteOffset; 
-    unsigned char CollisionMask;
+    unsigned char aabb[4];
     heap_handle bram_handle[16];
     vera_sprite_image_offset offset_image[16];
 } Sprite;
@@ -41,7 +41,7 @@ Sprite SpritePlayer01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 9, 0b10000000, {0x0}, {0x0} 
+    VERA_SPRITE_4BPP, 9, {2,2,32-2,32-2}, {0x0}, {0x0} 
 };
 heap_handle sprite_player_01[SPRITE_PLAYER01_COUNT];
 
@@ -52,7 +52,7 @@ Sprite SpriteEnemy01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 10, 0b11000000, {0x0}, { 0x0 } 
+    VERA_SPRITE_4BPP, 10, {2,2,32-2,32-2}, {0x0}, { 0x0 } 
 };
 heap_handle sprite_enemy_01[SPRITE_ENEMY01_COUNT];
 
@@ -63,7 +63,7 @@ Sprite SpriteEngine01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 11, 0b00000000, {0x0}, { 0x0 } 
+    VERA_SPRITE_4BPP, 11, {0,0,0,0}, {0x0}, { 0x0 } 
 };
 heap_handle sprite_engine_01[SPRITE_ENGINE01_COUNT];
 
@@ -74,7 +74,7 @@ Sprite SpriteBullet01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 0b01000000, {0x0}, { 0x0 } };
+    VERA_SPRITE_4BPP, 12, {0,0,1,4}, {0x0}, { 0x0 } };
 heap_handle sprite_bullet_01[SPRITE_BULLET01_COUNT];
 
 
@@ -119,6 +119,11 @@ typedef struct {
     FP tdx[64];
     FP tdy[64];
 
+    unsigned char aabb_min_x[64];
+    unsigned char aabb_min_y[64];
+    unsigned char aabb_max_x[64];
+    unsigned char aabb_max_y[64];
+
     unsigned char pool;
     unsigned char used[64];
 
@@ -159,6 +164,11 @@ typedef struct {
     FP ty[4];
     FP tdx[4];
     FP tdy[4];
+
+    unsigned char aabb_min_x[64];
+    unsigned char aabb_min_y[64];
+    unsigned char aabb_max_x[64];
+    unsigned char aabb_max_y[64];
 
     unsigned char pool;
     unsigned char used[4];
@@ -205,6 +215,11 @@ typedef struct {
     FP ty[64];
     FP tdx[64];
     FP tdy[64];
+
+    unsigned char aabb_min_x[64];
+    unsigned char aabb_min_y[64];
+    unsigned char aabb_max_x[64];
+    unsigned char aabb_max_y[64];
 
     unsigned char pool;
     unsigned char used[64];

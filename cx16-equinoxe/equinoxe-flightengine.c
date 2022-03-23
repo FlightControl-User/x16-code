@@ -4,6 +4,7 @@
     // #pragma var_model(mem)
 // #endif
 
+#include <stdlib.h>
 #include <cx16.h>
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
@@ -52,7 +53,7 @@ void sprite_load(Sprite* sprite)
     unsigned int status = open_file(1, 8, 0, sprite->File);
     if (!status) printf("error opening file %s\n", sprite->File);
 
-    printf("spritecount = %u\n", sprite->SpriteCount);
+    // printf("spritecount = %u\n", sprite->SpriteCount);
 
     for(char s=0; s<sprite->SpriteCount; s++) {
         heap_handle handle = heap_alloc(bins, sprite->SpriteSize);
@@ -85,7 +86,6 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_hflip(sprite_offset, sprite->Hflip);
     vera_sprite_vflip(sprite_offset, sprite->Vflip);
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
-    vera_sprite_set_collision_mask(sprite_offset, sprite->CollisionMask);
 }
 
 inline void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index, byte animate) {
@@ -243,19 +243,24 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                 for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
 
                     ht_key_t ht_key_bullet = grid_key(3, gx, gy);
-                    ht_index_t ht_index_bullet = ht_get(&ht_collision, ht_key_bullet);
+                    ht_index_t ht_index_bullet_init = ht_get(&ht_collision, ht_key_bullet);
 
                     ht_key_t ht_key_enemy = grid_key(2, gx, gy);
+                    ht_index_t ht_index_enemy_init = ht_get(&ht_collision, ht_key_enemy);
 
+                    ht_index_t ht_index_bullet = ht_index_bullet_init;
                     while(ht_index_bullet) {
                         unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
 
                         if(bullet.used[b]) {
                             signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
                             signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
+                            unsigned char bullet_aabb_min_x = bullet.aabb_min_x[b];
+                            unsigned char bullet_aabb_min_y = bullet.aabb_min_y[b];
+                            unsigned char bullet_aabb_max_x = bullet.aabb_max_x[b];
+                            unsigned char bullet_aabb_max_y = bullet.aabb_max_y[b];
 
-                            ht_index_t ht_index_enemy = ht_get(&ht_collision, ht_key_enemy);
-
+                            ht_index_t ht_index_enemy = ht_index_enemy_init;
                             while(ht_index_enemy) {
                                 unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
 
@@ -263,8 +268,15 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                     signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
                                     signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
 
-                                    if(x_bullet > x_enemy+32 || y_bullet > y_enemy+32 || 
-                                       x_bullet+1 < x_enemy || y_bullet+8 < y_enemy) {
+                                    unsigned char enemy_aabb_min_x = enemy.aabb_min_x[e];
+                                    unsigned char enemy_aabb_min_y = enemy.aabb_min_y[e];
+                                    unsigned char enemy_aabb_max_x = enemy.aabb_max_x[e];
+                                    unsigned char enemy_aabb_max_y = enemy.aabb_max_y[e];
+
+                                    if(x_bullet+bullet_aabb_min_x > x_enemy+enemy_aabb_max_x || 
+                                       y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
+                                       x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
+                                       y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
                                     } else {
                                         RemoveBullet(b);
                                         RemoveEnemy(e);
@@ -280,9 +292,6 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
             }       
         }
 
-    //         sprite_collided = 0;
-    //     }
-    // }
 
     vera_display_set_border_color(8);
 
@@ -389,6 +398,18 @@ void main() {
 
     bitmap_init(0, 0x00000);
     bitmap_clear();
+
+    for(unsigned int x=0; x<640; x+=64) {
+        for(unsigned int y=0; y<480; y+=4) {
+            bitmap_plot(x, y, 1);
+        }
+    }
+
+    for(unsigned int y=0; y<480; y+=64) {
+        for(unsigned int x=0; x<640; x+=4) {
+            bitmap_plot(x, y, 1);
+        }
+    }
 
     // Allocate the segment for the tiles in vram.
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;

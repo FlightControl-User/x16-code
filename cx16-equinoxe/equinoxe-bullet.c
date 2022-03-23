@@ -8,38 +8,39 @@
 void FireBullet(unsigned char p, char reload)
 {
 
-	// player
-	while(bullet.used[bullet.pool]) {
-		bullet.pool = (bullet.pool++)%FE_BULLET;
-	}
-
 	unsigned char b = bullet.pool;
 
-    bullet.used[b] = 1;
+	while(bullet.used[b]) {
+		b = (b+1)%FE_BULLET;
+	}
 
     unsigned int x = (unsigned int)game.curr_mousex;
     unsigned int y = (unsigned int)game.curr_mousey;
 
     if(player.firegun[p])
         x += (signed char)16;
-    bullet.tx[b] = MAKELONG(x, 0);
-    bullet.ty[b] = MAKELONG(y, 0);
-    bullet.tdx[b] = MAKELONG(0, 0);
-    bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
 
+    player.reload[p] = reload;
     player.firegun[p] = player.firegun[p]^1;
+
+    bullet.used[b] = 1;
+    bullet.enabled[b] = 0;
 
     bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
     bullet.sprite_type[b] = &SpriteBullet01;
 	sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
 
-    // gotoxy(0, 20);
-    // printf("list = %x - ", stage.bullet_list);
-    // printf("%u %i %i   ", bullet->sprite_offset, bullet->x, bullet->y);
+    bullet.tx[b] = MAKELONG(x, 0);
+    bullet.ty[b] = MAKELONG(y, 0);
+    bullet.tdx[b] = MAKELONG(0, 0);
+    bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
 
-    player.reload[p] = reload;
+	bullet.aabb_min_x[b] = SpriteBullet01.aabb[0];
+	bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
+	bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
+	bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
 
-    bullet.pool = (bullet.pool++)%FE_BULLET;
+    bullet.pool = (b+1)%FE_BULLET;
 }
 
 

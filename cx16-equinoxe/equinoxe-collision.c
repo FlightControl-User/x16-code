@@ -5,7 +5,7 @@
 #include <cx16-bitmap.h>
 
 inline ht_key_t grid_key(unsigned char group, unsigned char gx, unsigned char gy) {
-     return (gy + gx + group);
+     return ((gy | gx >> 4) + group);
     //  return (((unsigned int)(kx + ky))|(unsigned int)group<<4);
 }
 
