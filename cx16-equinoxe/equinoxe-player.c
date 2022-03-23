@@ -70,6 +70,10 @@ void LogicPlayer() {
 
 		for(char p=FE_PLAYER_LO; p<FE_PLAYER_HI; p++) {
 
+#ifdef debug_scanlines
+			vera_display_set_border_color(6);
+#endif
+
 			byte bank = bank_get_bram();
 
 			if(player.used[p]) {
@@ -108,6 +112,19 @@ void LogicPlayer() {
 				}
 				player.wait_animation[p]--;
 
+				unsigned char n = player.engine[p];
+
+				if (!engine.wait_animation[n]) {
+					engine.state_animation[n]++;
+					engine.state_animation[n] &= 0xF;
+					engine.wait_animation[n] = engine.speed_animation[n];
+				}
+				engine.wait_animation[n]--;
+				
+				if (game.status_mouse == 1 && player.reload[p] <= 0)
+				{
+					FireBullet(p, 8);
+				}
 
 				// player.tdx[p] = MAKELONG((word)(game.curr_mousex - game.prev_mousex),0);
 				// player.tdy[p] = MAKELONG((word)(game.curr_mousey - game.prev_mousey),0);
@@ -122,32 +139,17 @@ void LogicPlayer() {
 				signed int playerx = (signed int)WORD1(player.tx[p]);
 				signed int playery = (signed int)WORD1(player.ty[p]);
 
-				#ifdef __collision
-				if(playerx>=0 && playerx<640-32 && playery>=0 && playery<480-32) {
-					grid_insert(&ht_collision, 1, BYTE0(playerx>>2), BYTE0(playery>>2), p);
-				}
-				#endif
-
-				unsigned char n = player.engine[p];
-
-				if (!engine.wait_animation[n]) {
-					engine.state_animation[n]++;
-					engine.state_animation[n] &= 0xF;
-					engine.wait_animation[n] = engine.speed_animation[n];
-				}
-				engine.wait_animation[n]--;
-				
-				if (game.status_mouse == 1 && player.reload[p] <= 0)
-				{
-					FireBullet(p, 8);
-				}
-				
 				vera_sprite_offset player_sprite_offset = player.sprite_offset[p];
 				Sprite* player_sprite = player.sprite_type[p];
 
 				vera_sprite_offset engine_sprite_offset = engine.sprite_offset[n];
 				Sprite* engine_sprite = engine.sprite_type[n];
-				if(playerx > -64 && playerx < 640) {
+
+				if(playerx>-32 && playerx<640-32 && playery>-32 && playery<480-32) {
+#ifdef __collision
+					grid_insert(&ht_collision, 1, BYTE0(playerx>>2), BYTE0(playery>>2), p);
+#endif
+
 					if(!player.enabled[p]) {
 				    	vera_sprite_zdepth(player_sprite_offset, player_sprite->Zdepth);
 				    	vera_sprite_zdepth(engine_sprite_offset, engine_sprite->Zdepth);
@@ -163,7 +165,6 @@ void LogicPlayer() {
 					} else {
 						vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, engine_sprite->offset_image[engine.state_animation[n]]);
 					}
-					// DrawFighter(player_handle);
 				} else {
 					if(player.enabled[p]) {
 				    	vera_sprite_disable(player_sprite_offset);
@@ -171,6 +172,8 @@ void LogicPlayer() {
 						player.enabled[p] = 0;
 					}
 				}
+
+				
 			}
 		}
 	}

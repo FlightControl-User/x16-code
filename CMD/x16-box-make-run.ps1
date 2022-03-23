@@ -8,4 +8,4 @@ copy $filedir\Target\* X:\ -verbose
 copy $filedir\*.prg X:\ -verbose
 diskpart /s cmd/detach.dsk
 echo "symbol file = " + "$filedir\equinoxe-flightengine.sym"
-box16 -echo -sdcard "C:\SDCARD\CX16.vhd" -sym "$filedir\equinoxe-flightengine.vs" -keymap fr-be -prg $filedir\$filename 
+box16 -echo -sdcard "C:\SDCARD\CX16.vhd" -sym "$filedir\equinoxe-flightengine.vs" -vsync none -keymap fr-be -prg $filedir\$filename 
