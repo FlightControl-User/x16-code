@@ -1,8 +1,10 @@
 {
     "configurations": [
         {
-            "name": "kickc",
+            "name": "KickC",
             "includePath": [
+                "${default}",
+                "D:/Users/svenv/OneDrive/Documents/GitHub/kickc/src/main/kc/include",
                 "${workspaceFolder}/cx16_include",
                 "${env:KICKCDEV}/**"
             ],
@@ -20,33 +22,13 @@
                 "__address(size)=",
                 "__interrupt(rom_sys_cx16)=",
                 "export="
-            ],
-            "windowsSdkVersion": "10.0.17763.0",
-            "compilerPath": "",
+           ],
+            "windowsSdkVersion": "10.0.19041.0",
+            "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/bin/Hostx64/x64/cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-msvc-x64",
             "forcedInclude": []
-        },
-        {
-            "name": "build",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "${env:KICKCDEV}/src/main/kc/include"
-            ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE",
-                "byte=unsigned char",
-                "word=unsigned int",
-                "dword=unsigned long"
-            ],
-            "windowsSdkVersion": "10.0.17763.0",
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
-            "cStandard": "c17",
-            "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4

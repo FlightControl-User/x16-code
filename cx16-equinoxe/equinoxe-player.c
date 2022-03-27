@@ -7,7 +7,7 @@
 void InitPlayer() {
 
 	// player
-	unsigned char p = player.pool;
+	unsigned char p = player_pool;
 
 	while(player.used[p]) {
 		p = (p+1)%FE_PLAYER;
@@ -40,14 +40,14 @@ void InitPlayer() {
 	player.aabb_max_x[p] = SpritePlayer01.aabb[2];
 	player.aabb_max_y[p] = SpritePlayer01.aabb[3];
 
-	player.pool = (p+1)%FE_PLAYER;
+	player_pool = (p+1)%FE_PLAYER;
 
 	// Engine
-	while(engine.used[engine.pool]) {
-		engine.pool = (engine.pool++)%FE_ENGINE;
+	while(engine.used[engine_pool]) {
+		engine_pool = (engine_pool++)%FE_ENGINE;
 	}
 
-	unsigned char n = engine.pool;
+	unsigned char n = engine_pool;
 
 	player.engine[p] = n;
 
@@ -60,15 +60,15 @@ void InitPlayer() {
 	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
 	sprite_configure(engine.sprite_offset[n], engine.sprite_type[n]);
 
-	engine.pool = (engine.pool++)%FE_ENGINE;
+	engine_pool = (engine_pool++)%FE_ENGINE;
 
 }
 
 void LogicPlayer() {
 
-	if (player.pool) {
+	if (player_pool) {
 
-		for(char p=FE_PLAYER_LO; p<FE_PLAYER_HI; p++) {
+		for(char p=0; p<FE_PLAYER-1; p++) {
 
 #ifdef debug_scanlines
 			vera_display_set_border_color(6);

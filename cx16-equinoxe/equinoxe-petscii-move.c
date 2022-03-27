@@ -20,6 +20,8 @@ void petscii() {
     textcolor(WHITE);
     bgcolor(BLACK);
     clrscr();
+    vera_layer1_show();
+    vera_layer0_hide();
 
 }
 

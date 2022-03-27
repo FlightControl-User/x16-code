@@ -41,10 +41,10 @@ static void StageReset(void) {
 
 	memset(&stage, 0, sizeof(Stage));
 
-	enemy.pool = 0;
-	player.pool = 0;
-	bullet.pool = 0;
-	engine.pool = 0;
+	enemy_pool = 0;
+	player_pool = 0;
+	bullet_pool = 0;
+	engine_pool = 0;
 
 	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
 	stage.sprite_bullet_count = 0;

@@ -1,10 +1,7 @@
-
-// #ifndef __CC65__
-    #pragma var_model(mem)
-// #endif
-
 #ifndef equinoxe_h
 #define equinoxe_h
+
+#pragma var_model(mem)
 
 #include <cx16.h>
 #include <string.h>
@@ -13,14 +10,6 @@
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
 #include "equinoxe-debug.h"
-
-// Zeropage addresses used to hold byte at zeropage for fast adding
-__address(0xfe) char fp3;
-__address(0xff) char fp3hi;
-__address(0xfc) char add;
-__address(0xfd) char addhi;
-
-
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
@@ -41,8 +30,8 @@ const byte HEAP_SEGMENT_BRAM_ENTITIES_BANK = 30;
 const byte HEAP_SEGMENT_BRAM_ENTITIES_BANKS = 1;
 
 // File declarations
-const char FILE_PALETTES_SPRITE01[] = "PALSPRITE01";
-const char FILE_PALETTES_FLOOR01[] = "PALFLOOR01";
+const char FILE_PALETTES_SPRITE01[] = "palsprite01";
+const char FILE_PALETTES_FLOOR01[] = "palfloor01";
 
 // Sprite constants
 const unsigned char SPRITE_OFFSET_PLAYER_START = 1;
@@ -115,6 +104,7 @@ typedef struct {
 } Stage;
 
 Stage stage;
+
 vera_sprite_offset sprite_offsets[127] = {0};
 
 
@@ -130,12 +120,16 @@ volatile heap_handle engine_handle;
 
 volatile Game game;
 
+// #pragma data_seg(Heap)
+
 static heap_segment heap_64; static heap_segment* bin64 = &heap_64;
 static heap_segment heap_128; static heap_segment* bin128 = &heap_128;
 static heap_segment heap_256; static heap_segment* bin256 = &heap_256;
 static heap_segment heap_512; static heap_segment* bin512 = &heap_512;
+static heap_segment heap_1024; static heap_segment* bin1024 = &heap_1024;
 
 static heap_structure heap; static heap_structure* bins = &heap;
 
+#pragma data_seg(Data)
 
 #endif

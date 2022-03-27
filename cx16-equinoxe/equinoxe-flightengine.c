@@ -1,8 +1,10 @@
 // Space flight engine for a space game written in kickc for the Commander X16.
 
-// #ifndef __CC65__
-    // #pragma var_model(mem)
-// #endif
+#pragma link("equinoxe.ld")
+
+#pragma encoding(petscii_mixed)
+
+#pragma var_model(mem)
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -42,7 +44,7 @@ void sprite_cpy_vram_from_bram(Sprite* sprite, heap_handle* vram_sprites) {
         memcpy_vram_bram(vram_sprites->bank, (vram_offset_t)vram_sprites->ptr, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, SpriteSize);
 
         sprite->offset_image[s] = vera_sprite_get_image_offset(vram_sprites->bank, (vram_offset_t)vram_sprites->ptr);
-        *vram_sprites = heap_handle_add(*vram_sprites, SpriteSize);
+        *vram_sprites = heap_handle_add_vram(*vram_sprites, SpriteSize);
     }
 }
 
@@ -50,24 +52,34 @@ void sprite_cpy_vram_from_bram(Sprite* sprite, heap_handle* vram_sprites) {
 void sprite_load(Sprite* sprite) 
 {
 
+    printf("loading sprites %s\n", sprite->File);
+    printf("spritecount=%u, spritesize=%u", sprite->SpriteCount, sprite->SpriteSize);
+    printf(", opening\n");
+
+
     unsigned int status = open_file(1, 8, 0, sprite->File);
     if (!status) printf("error opening file %s\n", sprite->File);
 
     // printf("spritecount = %u\n", sprite->SpriteCount);
 
-    for(char s=0; s<sprite->SpriteCount; s++) {
-        heap_handle handle = heap_alloc(bins, sprite->SpriteSize);
-        unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle.bank, handle.ptr, sprite->SpriteSize);
+    for(unsigned char s=0; s<sprite->SpriteCount; s++) {
+        printf("allocating");
+        heap_handle handle_bram = heap_alloc(bins, sprite->SpriteSize);
+        printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
+        printf(", loading");
+        unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, sprite->SpriteSize);
         if (!bytes_loaded) {
             printf("error loading file %s\n", sprite->File);
             break;
         }
-        sprite->bram_handle[s] = handle; // TODO: rework this to map into banked memory.
+        printf(" %u bytes\n", bytes_loaded);
+        sprite->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
     }
 
     status = close_file(1, 8, 0);
     if (!status) printf("error closing file %s\n", sprite->File);
 
+    printf(", done\n");
 }
 
 
@@ -132,7 +144,9 @@ unsigned int collisions = 0;
 
 __interrupt(rom_sys_cx16) void irq_vsync() {
 
+    // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
     bram_bank_t oldbank = bank_get_bram();
+    bank_set_bram(0);
 
 
     #ifdef debug_scanlines
@@ -253,8 +267,10 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                         unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
 
                         if(bullet.used[b]) {
+
                             signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
                             signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
+
                             unsigned char bullet_aabb_min_x = bullet.aabb_min_x[b];
                             unsigned char bullet_aabb_min_y = bullet.aabb_min_y[b];
                             unsigned char bullet_aabb_max_x = bullet.aabb_max_x[b];
@@ -265,6 +281,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                 unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
 
                                 if(enemy.used[e]) {
+
                                     signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
                                     signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
 
@@ -368,10 +385,12 @@ void main() {
     bank_set_brom(CX16_ROM_KERNAL);
 
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
+    heap_segment_base(bins, 32, (heap_handle_ptr)0xA000); // We set the heap to start in BRAM, bank 32. 
     heap_segment_define(bins, bin64, 64, 128, 64*128);
     heap_segment_define(bins, bin128, 128, 64, 128*364);
     heap_segment_define(bins, bin256, 256, 64, 256*64);
     heap_segment_define(bins, bin512, 512, 64, 512*64);
+    heap_segment_define(bins, bin1024, 1024, 63, 1024*63);
 
     // Memory is managed as follows:
     // ------------------------------------------------------------------------
@@ -383,33 +402,36 @@ void main() {
     // SPRITES                          01:0000 - 01:B000
     // PETSCII                          01:B000 - 01:F800     
     // 
-    // HEAP_SEGMENT_BRAM_SPRITES                              02/A000 - 20/C000
-    // PALETTE                                                3F:A000 - 3F:C000
+    // SpriteControlEnemies                                   00:A800 - 00:B2FF
+    // SpriteControlBullets                                   00:B300 - 00:B87F
+    // SpriteControlPlayer                                    00:B900 - 00:B987
+    // SpriteControlEngine                                    00:BA00 - 00:BA1F
+    // Palette                                                3F:A000 - 3F:BFFF
 
     petscii();
+    // vera_layer1_show();
 
-    vera_layer0_mode_bitmap( 
-        0, 0x0000, 
-        VERA_TILEBASE_WIDTH_16,
-        VERA_LAYER_COLOR_DEPTH_1BPP
-    );
+    // vera_layer0_mode_bitmap( 
+    //     0, 0x0000, 
+    //     VERA_TILEBASE_WIDTH_16,
+    //     VERA_LAYER_COLOR_DEPTH_1BPP
+    // );
 
-    vera_layer0_show();
 
-    bitmap_init(0, 0x00000);
-    bitmap_clear();
+    // bitmap_init(0, 0x00000);
+    // bitmap_clear();
 
-    for(unsigned int x=0; x<640; x+=64) {
-        for(unsigned int y=0; y<480; y+=4) {
-            bitmap_plot(x, y, 1);
-        }
-    }
+    // for(unsigned int x=0; x<640; x+=64) {
+    //     for(unsigned int y=0; y<480; y+=4) {
+    //         bitmap_plot(x, y, 1);
+    //     }
+    // }
 
-    for(unsigned int y=0; y<480; y+=64) {
-        for(unsigned int x=0; x<640; x+=4) {
-            bitmap_plot(x, y, 1);
-        }
-    }
+    // for(unsigned int y=0; y<480; y+=64) {
+    //     for(unsigned int x=0; x<640; x+=4) {
+    //         bitmap_plot(x, y, 1);
+    //     }
+    // }
 
     // Allocate the segment for the tiles in vram.
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
@@ -423,70 +445,69 @@ void main() {
     unsigned int floor_palette_loaded = load_file(1, 8, 0, FILE_PALETTES_FLOOR01, handle_bram_palettes.bank, handle_bram_palettes.ptr+palette_loaded);
     if(!floor_palette_loaded) printf("error file_palettes");
     palette_loaded += floor_palette_loaded;
-    heap_handle_ptr ptr_bram_palettes_floor = heap_ptr(handle_bram_palettes)+palette_loaded;
 
     unsigned int sprite_palette_loaded = load_file(1, 8, 0, FILE_PALETTES_SPRITE01, handle_bram_palettes.bank, handle_bram_palettes.ptr+palette_loaded);
     if(!sprite_palette_loaded) printf("error file_palettes");
     palette_loaded += sprite_palette_loaded;
-    heap_handle_ptr ptr_bram_palettes_sprite = heap_ptr(handle_bram_palettes)+palette_loaded;
 
     memcpy_vram_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, handle_bram_palettes.bank, handle_bram_palettes.ptr, palette_loaded);
 
-    // Tested
+    printf("palette loaded = %u\n", palette_loaded);
 
-#ifndef __FLOOR
-    // // TILE INITIALIZATION 
-
-    // // Initialize the bram heap for tile loading.
-    // heap_address bram_floor_tile = heap_segment_bram(
-    //     HEAP_SEGMENT_BRAM_TILES,
-    //     heap_bram_pack(33,(heap_ptr)0xA000),
-    //     heap_size_pack(0x2000*8)
-    //     );
-
-    // // gotoxy(0, 10);
-
-    // // Loading the graphics in main banked memory.
-    // for(i=0; i<TILE_TYPES;i++) {
-    //     tile_load(TileDB[i]);
-    // }
-
-    // // Now we activate the tile mode.
-    // for(i=0;i<TILE_TYPES;i++) {
-    //     tile_cpy_vram_from_bram(TileDB[i]);
-    // }
-
-
-    // vera_layer0_mode_tile( 
-    //     FLOOR_MAP_BANK_VRAM, FLOOR_MAP_OFFSET_VRAM, 
-    //     0, 0x2000, 
-    //     VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
-    //     VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-    //     VERA_LAYER_COLOR_DEPTH_8BPP
-    // );
-
-
-    // tile_background();
-
-    // vera_layer0_show();
-    // vera_layer1_show();
-
-#endif
-
-    vera_sprites_show();
 
     // Loading the sprites in bram.
     for (byte i = 0; i < SPRITE_TYPES;i++) {
         sprite_load(SpriteDB[i]);
     }
 
-    heap_handle handle_vram_sprites = {1, (heap_handle_ptr)0x0000}; // size = 0xB000;
-
     // Now we copy the sprites from bram to vram.
+    heap_handle handle_vram_sprites = {1, (heap_handle_ptr)0x0000}; // size = 0xB000;
     for (byte i = 0;i < SPRITE_TYPES;i++) {
         sprite_cpy_vram_from_bram(SpriteDB[i], &handle_vram_sprites);
     }
 
+
+    // Tested
+
+#ifndef __FLOOR
+    // TILE INITIALIZATION 
+
+    // Loading the graphics in main banked memory.
+    for(unsigned char type=0; type<TILE_TYPES; type++) {
+        tile_load(TileDB[type]);
+    }
+
+    while(!getin());
+    clrscr();
+
+    // TODO: rework handle_vram_tiles to const
+    heap_handle handle_vram_tiles = {0, (heap_handle_ptr)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
+    for(unsigned char type=0; type<TILE_TYPES; type++) {
+        tile_cpy_vram_from_bram(TileDB[type], handle_vram_tiles);
+    }
+
+    while(!getin());
+    clrscr();
+
+    vera_layer0_mode_tile( 
+        FLOOR_MAP_BANK_VRAM, (vram_offset_t)FLOOR_MAP_OFFSET_VRAM, 
+        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_8BPP
+    );
+
+    vera_layer0_show();
+    vera_layer1_show();
+
+    tile_background();
+
+#endif
+
+    vera_sprites_show();
+
+
+    bank_set_bram(0);
 
     // Initialize stage
     StageInit();

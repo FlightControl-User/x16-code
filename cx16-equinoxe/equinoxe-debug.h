@@ -1,4 +1,4 @@
-#define __FLOOR 1
+// #define __FLOOR
 #define __collision
 
 // #define debug_file

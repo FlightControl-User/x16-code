@@ -102,11 +102,13 @@ typedef heap_list* heap_list_ptr;
 
 
 
+void heap_segment_base(heap_structure* structure, heap_bank bank, heap_handle_ptr ptr);
 void heap_segment_define(heap_structure* structure, heap_segment* segment, heap_size size, unsigned int blocks, size_t total);
 void heap_segment_reset(heap_structure* structure, heap_segment* segment, heap_size size, unsigned int blocks, size_t total);
 
 heap_handle_ptr heap_ptr(heap_handle handle);
-heap_handle heap_handle_add(heap_handle handle, unsigned int add); 
+heap_handle heap_handle_add_bram(heap_handle handle, unsigned int add); 
+heap_handle heap_handle_add_vram(heap_handle handle, unsigned int add); 
 heap_handle heap_segment_alloc(heap_segment* self, size_t size);
 heap_handle heap_calloc(heap_segment* segment, size_t num, size_t size);
 void heap_segment_free(heap_segment* self, heap_handle handle_free);

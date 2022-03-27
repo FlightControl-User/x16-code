@@ -5,9 +5,6 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 
-typedef struct entity_s Enemy;
-
-
 
 void AddEnemy(char t, unsigned int x, unsigned int y);
 void RemoveEnemy(unsigned char e);

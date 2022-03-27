@@ -8,7 +8,7 @@
 void FireBullet(unsigned char p, char reload)
 {
 
-	unsigned char b = bullet.pool;
+	unsigned char b = bullet_pool;
 
 	while(bullet.used[b]) {
 		b = (b+1)%FE_BULLET;
@@ -40,7 +40,7 @@ void FireBullet(unsigned char p, char reload)
 	bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
 	bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
 
-    bullet.pool = (b+1)%FE_BULLET;
+    bullet_pool = (b+1)%FE_BULLET;
 }
 
 
@@ -56,9 +56,9 @@ void RemoveBullet(unsigned char b)
 
 inline void LogicBullets()
 {
-    if(!bullet.pool) return;
+    if(!bullet_pool) return;
 
-    for(unsigned char b=FE_BULLET_LO; b<FE_BULLET; b++) {
+    for(unsigned char b=0; b<FE_BULLET-1; b++) {
 
         if(bullet.used[b]) {
             vera_sprite_offset sprite_offset = bullet.sprite_offset[b];

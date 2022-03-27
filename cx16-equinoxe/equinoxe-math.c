@@ -1,3 +1,5 @@
+// #pragma data_seg(Math)
+
 #include "equinoxe-math.h"
 
 /**
@@ -22,7 +24,7 @@
  */
 
 
-FP vecx(unsigned char angle, char speed) {
+inline FP vecx(unsigned char angle, char speed) {
 
     //TODO: check with jesper this code section, could be a bug in the optimizer.
     signed int dx = math_cos[angle%64];
@@ -36,7 +38,7 @@ FP vecx(unsigned char angle, char speed) {
     return (FP)dx<<8;
 }
 
-FP vecy(unsigned char angle, char speed) {
+inline FP vecy(unsigned char angle, char speed) {
 
     signed int dy = math_sin[angle%64];
     if(speed) dy <<= speed;
@@ -86,3 +88,5 @@ unsigned int sgn_u16(unsigned int w) {
         return 1;
     }
 }
+
+#pragma data_seg(Data)

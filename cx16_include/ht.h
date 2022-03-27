@@ -18,6 +18,8 @@ typedef unsigned char ht_data_t;
 typedef unsigned char ht_index_t;
 typedef unsigned char ht_count_t;
 
+#pragma data_seg(Hash)
+
 #define HT_SIZE 256
 
 static const unsigned char HT_RANDOM[256] = {
@@ -53,6 +55,7 @@ typedef struct ht_list_s {
 
 ht_list_t ht_list;
 
+#pragma data_seg(Data)
 
 void ht_init(ht_item_t* ht);
 void ht_reset(ht_item_t* ht); 
@@ -64,3 +67,4 @@ ht_data_t ht_get_data(ht_index_t ht_index);
 ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data);
 void ht_display(ht_item_t* ht);
 
+#pragma data_seg(Data)

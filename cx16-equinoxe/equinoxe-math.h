@@ -1,5 +1,7 @@
 #include <fp3.h>
 
+// #pragma data_seg(Math)
+
 signed int math_sin[64] = kickasm {{
 .fillword 64, 128*sin(toRadians(i*360/64))
 }};
@@ -19,3 +21,5 @@ unsigned char abs_u8(unsigned char b);
 unsigned int abs_u16(unsigned int w);
 unsigned char sgn_u8(unsigned char b);
 unsigned int sgn_u16(unsigned int w);
+
+#pragma data_seg(Data)

@@ -10,7 +10,7 @@ inline ht_key_t grid_key(unsigned char group, unsigned char gx, unsigned char gy
 }
 
 
-inline void grid_insert(ht_item_t* ht, unsigned char group, unsigned char xmin, unsigned char ymin, ht_data_t data) { 
+void grid_insert(ht_item_t* ht, unsigned char group, unsigned char xmin, unsigned char ymin, ht_data_t data) { 
 
     // bram_bank_t bram_old = bank_get_bram();
     // bank_set_bram(60);
@@ -42,3 +42,4 @@ inline void grid_print(ht_item_t* ht)
     ht_display(ht);
     bank_set_bram(bram_old);
 }
+

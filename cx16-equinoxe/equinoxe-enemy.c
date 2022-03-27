@@ -14,7 +14,7 @@ volatile unsigned char shoot = 12;
 
 void AddEnemy(char t, unsigned int x, unsigned int y) {
 
-	unsigned char e = enemy.pool;
+	unsigned char e = enemy_pool;
 
 	while(enemy.used[e]) {
 		e = (e+1)%FE_ENEMY;
@@ -56,7 +56,7 @@ void AddEnemy(char t, unsigned int x, unsigned int y) {
 	enemy.aabb_max_x[e] = SpriteEnemy01.aabb[2];
 	enemy.aabb_max_y[e] = SpriteEnemy01.aabb[3];
 
-	enemy.pool = (e+1)%FE_ENEMY;
+	enemy_pool = (e+1)%FE_ENEMY;
 
 }
 
@@ -92,15 +92,18 @@ void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsign
 
 void LogicEnemies() {
 
-	if (!enemy.pool) return;
+	if (!enemy_pool) return;
 
-	for(unsigned char e=0; e<64; e++) {
+	for(unsigned char e=0; e<FE_ENEMY-1; e++) {
+
+		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 
     #ifdef debug_scanlines
 	    vera_display_set_border_color(1);
     #endif
 
-		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
+			// FP tdx = enemy.tdx[e];
+			// FP tdy = enemy.tdy[e];
 
 			if(!enemy.flight[e]) {
 				switch(enemy.step[e]) {
@@ -123,36 +126,34 @@ void LogicEnemies() {
 					enemy.step[e] = 1;
 					break;
 				}
-			}
-
-			if(enemy.flight[e]) {
+			} else {
 				enemy.flight[e]--;
-				if(enemy.move[e] == 1) {
-					enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
-					enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
-				}
 
-				if(enemy.move[e] == 2) {
-					// Calculate current angle based on flight from x,y and angle startpoint.
-					if(!enemy.delay[e]) {
-						enemy.angle[e] += enemy.turn[e];
-						enemy.angle[e] %= 64;
-						enemy.delay[e] = enemy.radius[e];
+				if( enemy.move[e]) {
+					if(enemy.move[e] == 1) {
 						enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
 						enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
+						enemy.move[e] = 0;
 					}
-					enemy.delay[e]--;
+					if(enemy.move[e] == 2) {
+						// Calculate current angle based on flight from x,y and angle startpoint.
+						if(!enemy.delay[e]) {
+							enemy.angle[e] += enemy.turn[e];
+							enemy.angle[e] %= 64;
+							enemy.delay[e] = enemy.radius[e];
+							enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
+							enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
+						}
+						enemy.delay[e]--;
+					}
 				}
-			} else {
-				enemy.move[e] = 0;
 			}
 
 			enemy.tx[e] += enemy.tdx[e];
 			enemy.ty[e] += enemy.tdy[e];
 
-
-
-
+			// enemy.tdx[e] = tdx;
+			// enemy.tdy[e] = tdy;
 
 			if (enemy.reload[e] > 0) {
 				enemy.reload[e]--;

@@ -39,12 +39,21 @@ inline heap_handle_ptr heap_ptr(heap_handle handle)
     return handle.ptr;
 }
 
-heap_handle heap_handle_add(heap_handle handle, unsigned int add) 
+heap_handle heap_handle_add_bram(heap_handle handle, unsigned int add) 
 {
     handle.ptr = (void*)((char*)handle.ptr + add % 0x2000);
     handle.bank += (heap_bank)(add / 0x2000);
     if(handle.ptr >= 0xC000) {
         handle.ptr = (void*)((char*)handle.ptr - 0x2000);
+        handle.bank++;
+    }
+    return handle;
+}
+
+heap_handle heap_handle_add_vram(heap_handle handle, unsigned int add) 
+{
+    handle.ptr = (void*)((char*)handle.ptr + add);
+    if(handle.ptr < add) {
         handle.bank++;
     }
     return handle;
@@ -96,7 +105,7 @@ heap_handle heap_new(heap_segment* self)
         #ifdef debug_heap
             printf(", block_size=%u", self->block_size);
         #endif
-        handle = heap_handle_add(self->pool, self->block_size);
+        handle = heap_handle_add_bram(self->pool, self->block_size);
         self->pool = handle;
     }
 
@@ -231,11 +240,19 @@ void heap_segment_reset(heap_structure* structure, heap_segment* segment, heap_s
 
     segment->pool = base;
     segment->floor = base;
-    segment->ceil = heap_handle_add(base, total);
+    segment->ceil = heap_handle_add_bram(base, total);
     segment->total_size = total;
     segment->block_size = size;
     segment->block_max = blocks;
     segment->head = heap_null;
+}
+
+void heap_segment_base(heap_structure* structure, heap_bank bank, heap_handle_ptr ptr)
+{
+    structure->base.bank = bank;
+    structure->base.ptr = ptr;
+    structure->ceil.bank = bank;
+    structure->ceil.ptr = ptr;
 }
 
 void heap_segment_define(heap_structure* structure, heap_segment* segment, heap_size size, unsigned int blocks, size_t total)
@@ -243,9 +260,9 @@ void heap_segment_define(heap_structure* structure, heap_segment* segment, heap_
     memset(segment, 0, sizeof(heap_segment));
 
     heap_handle ceil = structure->ceil; 
-    if(heap_handle_is_null(structure->base))
-        structure->base = (heap_handle){1,0xA000};
-    else {
+    if(heap_handle_is_null(structure->base)) {
+        structure->base = (heap_handle){1,0xA000}; // The default start of the heap is at BRAM bank 1.
+    } else {
         structure->base = ceil;
     }
 
@@ -253,7 +270,7 @@ void heap_segment_define(heap_structure* structure, heap_segment* segment, heap_
 
     segment->pool = base;
     segment->floor = base;
-    segment->ceil = heap_handle_add(base, total);
+    segment->ceil = heap_handle_add_bram(base, total);
     segment->total_size = total;
     segment->block_size = size;
     segment->block_max = blocks;
