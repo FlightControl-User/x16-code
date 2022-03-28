@@ -71,7 +71,7 @@ struct TilePart TilePartDB[30] = {
     { &TileFloor01, 26*4 }, // 26
     { &TileFloor01, 27*4 }, // 27
     { &TileFloor01, 28*4 }, // 28
-    { &TileFloor01, 29*4 } // 29
+    { &TileFloor01, 29*4 }  // 29
 };
 
 

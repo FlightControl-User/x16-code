@@ -6,6 +6,9 @@
 
 #pragma var_model(mem)
 
+#define __FLOOR
+#define __DEBUG
+
 #include <stdlib.h>
 #include <cx16.h>
 #include <cx16-fb.h>
@@ -313,7 +316,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     vera_display_set_border_color(8);
 
 
-#ifndef __FLOOR
+#ifdef __FLOOR
 
     // background scrolling
     if(!scroll_action--) {
@@ -329,7 +332,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
             vera_tile_row(row);
 
-            if(row<=31) {
+            if(row<31) {
                 // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
                 // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
                 memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 64*2); // Copy one row.
@@ -352,7 +355,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
         vera_layer0_set_vertical_scroll(vscroll);
         vscroll--;
-       
+        
     }
 
 #endif
@@ -360,7 +363,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
 
     #ifdef debug_scanlines
-    vera_display_set_border_color(1);
+    vera_display_set_border_color(0);
     #endif
 
     // Reset the VSYNC interrupt
@@ -371,8 +374,6 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     bank_set_bram(oldbank);
     // gotoxy(curx, cury);
-
-    vera_display_set_border_color(0);
 }
 
 void main() {
@@ -520,6 +521,9 @@ void main() {
     vera_display_set_vstop(236);
     #endif
 
+    while(!getin());
+    clrscr();
+
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
@@ -536,9 +540,10 @@ void main() {
     game.curr_mousey = cx16_mousey;
 
     while (!getin()) {
-        // SEI();
         // gotoxy(0,0);
         // grid_print(&ht_collision);
+        // SEI();
+        // printf("vscroll:%02u\n",vscroll);
         // CLI();
     }; 
 
