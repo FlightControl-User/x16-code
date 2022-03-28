@@ -470,7 +470,7 @@ void main() {
 
     // Tested
 
-#ifndef __FLOOR
+#ifdef __FLOOR
     // TILE INITIALIZATION 
 
     // Loading the graphics in main banked memory.
