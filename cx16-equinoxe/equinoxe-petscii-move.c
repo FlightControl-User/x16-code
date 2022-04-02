@@ -6,7 +6,7 @@ void petscii() {
     // Maps must be aligned to 512 bytes, so allocate the map second.
     heap_handle handle_vram_petscii_map =  {1, (heap_handle_ptr)0xB000};
 
-    memcpy_vram_vram(handle_vram_petscii_tile.bank, (word)handle_vram_petscii_tile.ptr, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
+    // memcpy_vram_vram(handle_vram_petscii_tile.bank, (word)handle_vram_petscii_tile.ptr, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
 
     vera_layer1_mode_tile(
         handle_vram_petscii_map.bank, (vram_offset_t)handle_vram_petscii_map.ptr, 

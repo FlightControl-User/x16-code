@@ -7,4 +7,4 @@ Remove-Item -Path X:\* -Recurse
 copy $filedir\Target\* X:\ -verbose
 copy $filedir\*.prg X:\ -verbose
 diskpart /s cmd/detach.dsk
-x16emu -echo -sdcard "C:\SDCARD\X16.vhd" -prg $filedir\$filename -debug -keymap fr-be
+x16emu -echo -sdcard "C:\SDCARD\CX16.vhd" -prg $filedir\$filename -debug -keymap fr-be

@@ -6,8 +6,12 @@
 
 #pragma var_model(mem)
 
+// #define __DEBUG
+
 #define __FLOOR
-#define __DEBUG
+#define __FLIGHT
+#define __PALETTE
+// #define __FILE
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -149,33 +153,37 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
     bram_bank_t oldbank = bank_get_bram();
+
     bank_set_bram(0);
-
-
-    #ifdef debug_scanlines
-    vera_display_set_border_color(3);
-    #endif
-
-    ht_reset(&ht_collision);
+    bank_set_brom(CX16_ROM_KERNAL);
 
     char cx16_mouse_status = cx16_mouse_get();
-
     game.prev_mousex = game.curr_mousex;
     game.prev_mousey = game.curr_mousey;
     game.curr_mousex = cx16_mousex;
     game.curr_mousey = cx16_mousey;
     game.status_mouse = cx16_mouse_status;
+
     if(!(game.ticksync & 0x01)) {
         LogicStage();
         game.tickstage++;
     }
     game.ticksync++;
 
+
     // volatile void (*fn)();
     // fn = game.delegate.Logic;
     // (*fn)();
     // fn = game.delegate.Draw;
     // (*fn)();
+
+#ifdef __FLIGHT
+
+    #ifdef debug_scanlines
+    vera_display_set_border_color(3);
+    #endif
+
+    ht_reset(&ht_collision);
 
     #ifdef debug_scanlines
     vera_display_set_border_color(7);
@@ -192,169 +200,144 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     #endif
     LogicEnemies();
 
-    // // Check if collision interrupt
-    // if(vera_sprite_is_collision()) {
-    //     sprite_collided = vera_sprite_get_collision();
-    //     vera_sprite_collision_clear();
-    // } else {
-    //     if(sprite_collided) {
-            // check which bullet collides with which enemy ...
-
            
-        vera_display_set_border_color(2);
+    vera_display_set_border_color(2);
 
-        // Check player collisions
-        // {
-            
-        //     heap_handle handle_entityA = player_handle;
-        //     entity_t* entityA = (entity_t*)heap_data_ptr(handle_entityA);
-        //     signed int xA = entityA->tx.i;
-        //     signed int yA = entityA->ty.i;
+    #ifdef debug_scanlines
+    vera_display_set_border_color(9);
+    #endif
 
-        //     unsigned xmin = (unsigned int)xA;
-        //     unsigned ymin = (unsigned int)yA;
-        //     unsigned int xmax = (xmin + 32) & 0b1111111111000000; 
-        //     unsigned int ymax = (ymin + 32) & 0b1111111111000000; 
+    // Check player bullet collisions
 
-        //     xmin = xmin & 0b1111111111000000;
-        //     ymin = ymin & 0b1111111111000000;
+    if(stage.sprite_bullet_count) {
 
-        //     unsigned char grid = 0;
+        for(unsigned char gx=0; gx<640>>2; gx+=64>>2) {
+            for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
 
-        //     for(unsigned int gx=xmin; gx<=xmax; gx+=64) {
-        //         for(unsigned int gy=ymin; gy<=ymax; gy+=64) {
+                ht_key_t ht_key_bullet = grid_key(3, gx, gy);
+                ht_index_t ht_index_bullet_init = ht_get(&ht_collision, ht_key_bullet);
 
-        //             ht_key_t ht_keyB = grid_key(0b01000000,(unsigned int)gx,(unsigned int)gy);
-        //             ht_item_t* ht_itemB = ht_get(ht_collision, ht_size_collision, ht_keyB);
-        //             // gotoxy(0,20);
-        //             // printf("       %4p",ht_itemB);
-        //             while(ht_itemB) {
-        //                 heap_handle handle_entityB = ht_itemB->data;
-        //                 entity_t* entityB = (entity_t*)heap_data_ptr(handle_entityB);
-        //                 signed int xB = entityB->tx.i;
-        //                 signed int yB = entityB->ty.i;
-        //                 // printf("keyB = %4x, xA = %i, xB = %i, yA = %i, yB = %i, ", ht_keyB, xA, xB, yA, yB);
-        //                 if(xA > xB+32 || xA+32 < xB || yA > yB+32 || yB+32 < yB) {
-                            
-        //                 } else {
-        //                     // printf("\ncollisions = %u", collisions++);
-        //                 }
-        //                 // TODO: This crashes the compiler - ht_item_t* ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_key, ht_itemB);
-        //                 ht_itemB = ht_get_next(ht_collision, ht_size_collision, ht_keyB, ht_itemB);
-        //                 // gotoxy(0,20);
-        //                 // printf("%4p ",ht_itemB);
-        //             }
-        //         }
-        //     }
-        // }
+                ht_key_t ht_key_enemy = grid_key(2, gx, gy);
+                ht_index_t ht_index_enemy_init = ht_get(&ht_collision, ht_key_enemy);
 
-        #ifdef debug_scanlines
-        vera_display_set_border_color(9);
-        #endif
+                ht_index_t ht_index_bullet = ht_index_bullet_init;
+                while(ht_index_bullet) {
+                    unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
 
-        // Check player bullet collisions
+                    if(bullet.used[b]) {
 
-        if(stage.sprite_bullet_count) {
+                        signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
+                        signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
 
-            for(unsigned char gx=0; gx<640>>2; gx+=64>>2) {
-                for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
+                        unsigned char bullet_aabb_min_x = bullet.aabb_min_x[b];
+                        unsigned char bullet_aabb_min_y = bullet.aabb_min_y[b];
+                        unsigned char bullet_aabb_max_x = bullet.aabb_max_x[b];
+                        unsigned char bullet_aabb_max_y = bullet.aabb_max_y[b];
 
-                    ht_key_t ht_key_bullet = grid_key(3, gx, gy);
-                    ht_index_t ht_index_bullet_init = ht_get(&ht_collision, ht_key_bullet);
+                        ht_index_t ht_index_enemy = ht_index_enemy_init;
+                        while(ht_index_enemy) {
+                            unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
 
-                    ht_key_t ht_key_enemy = grid_key(2, gx, gy);
-                    ht_index_t ht_index_enemy_init = ht_get(&ht_collision, ht_key_enemy);
+                            if(enemy.used[e]) {
 
-                    ht_index_t ht_index_bullet = ht_index_bullet_init;
-                    while(ht_index_bullet) {
-                        unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
+                                signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
+                                signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
 
-                        if(bullet.used[b]) {
+                                unsigned char enemy_aabb_min_x = enemy.aabb_min_x[e];
+                                unsigned char enemy_aabb_min_y = enemy.aabb_min_y[e];
+                                unsigned char enemy_aabb_max_x = enemy.aabb_max_x[e];
+                                unsigned char enemy_aabb_max_y = enemy.aabb_max_y[e];
 
-                            signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
-                            signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
-
-                            unsigned char bullet_aabb_min_x = bullet.aabb_min_x[b];
-                            unsigned char bullet_aabb_min_y = bullet.aabb_min_y[b];
-                            unsigned char bullet_aabb_max_x = bullet.aabb_max_x[b];
-                            unsigned char bullet_aabb_max_y = bullet.aabb_max_y[b];
-
-                            ht_index_t ht_index_enemy = ht_index_enemy_init;
-                            while(ht_index_enemy) {
-                                unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
-
-                                if(enemy.used[e]) {
-
-                                    signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
-                                    signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
-
-                                    unsigned char enemy_aabb_min_x = enemy.aabb_min_x[e];
-                                    unsigned char enemy_aabb_min_y = enemy.aabb_min_y[e];
-                                    unsigned char enemy_aabb_max_x = enemy.aabb_max_x[e];
-                                    unsigned char enemy_aabb_max_y = enemy.aabb_max_y[e];
-
-                                    if(x_bullet+bullet_aabb_min_x > x_enemy+enemy_aabb_max_x || 
-                                       y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
-                                       x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
-                                       y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
-                                    } else {
-                                        RemoveBullet(b);
-                                        RemoveEnemy(e);
-                                        break;
-                                    }
+                                if(x_bullet+bullet_aabb_min_x > x_enemy+enemy_aabb_max_x || 
+                                    y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
+                                    x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
+                                    y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
+                                } else {
+                                    RemoveBullet(b);
+                                    RemoveEnemy(e);
+                                    break;
                                 }
-                                ht_index_enemy = ht_get_next(ht_index_enemy);
                             }
+                            ht_index_enemy = ht_get_next(ht_index_enemy);
                         }
-                        ht_index_bullet = ht_get_next(ht_index_bullet);
                     }
-                }   
-            }       
-        }
+                    ht_index_bullet = ht_get_next(ht_index_bullet);
+                }
+            }   
+        }       
+    }
 
 
     vera_display_set_border_color(8);
 
+#endif
 
 #ifdef __FLOOR
 
     // background scrolling
     if(!scroll_action--) {
-        scroll_action = 2;
-            
+        scroll_action = 1;
+
+        // Check every 16 vscroll movements if something needs to be done.
+        // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
+        // if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
+        //     if(row<=15) {
+        //         // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
+        //         // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
+        //         memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 64*2); // Copy one row.
+        //     }
+        // }
+
+
         // Check every 16 vscroll movements if something needs to be done.
         // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
         if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
-
-            if(row%4==3) {
-                floor_draw();
-            }
-
-            vera_tile_row(row);
-
-            if(row<31) {
-                // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
-                // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
-                memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 64*2); // Copy one row.
-            }
 
             if(!vscroll) {
                 vscroll=16*32;
             }
 
             if(!row) {
-                row=31;
+                row=ROW_MIDDLE;
                 tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
                 tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
             } else {
                 row--;
-                tilerowsrc-=64*2;
-                tilerowdst-=64*2;
             }
+        }
+
+        // Check every 16 vscroll movements if something needs to be done.
+        // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
+        if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
+            if(row%4==3) {
+                floor_draw();
+                column = 16;
+            }
+        }
+
+
+        // There are 16 scroll iterations per tile.
+        // However, each row has 16 tile segments.
+        // In order to spread the CPU load, at each scroll iteration we paint a tile segment.
+
+        // gotoxy(0,10);
+        // printf("column=%02u, vscroll=%03u, row=%02u, tilerowsrc=%4u, tilerowdst=%4u", column, vscroll, row, tilerowsrc, tilerowdst);
+
+        column--;
+        column %= 16;
+        vera_tile_cell(row, column);
+
+        tilerowsrc-=4*2;
+        tilerowdst-=4*2;
+        if(row<=ROW_MIDDLE) {
+            // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
+            // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
+            memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 8*2); // Copy one row.
         }
 
         vera_layer0_set_vertical_scroll(vscroll);
         vscroll--;
+
         
     }
 
@@ -378,12 +361,10 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 void main() {
 
-    ht_init(&ht_collision);
-
-    // vera_sprite_buffer_read(sprite_buffer);
-
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
+
+    ht_init(&ht_collision);
 
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
     heap_segment_base(bins, 32, (heap_handle_ptr)0xA000); // We set the heap to start in BRAM, bank 32. 
@@ -438,6 +419,7 @@ void main() {
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
 
+#ifdef __PALETTE
     // Load the palettes in main banked memory.
     heap_handle handle_bram_palettes = {63, (bram_ptr_t)0xA000}; // size = 0x2000;
 
@@ -455,6 +437,12 @@ void main() {
 
     printf("palette loaded = %u\n", palette_loaded);
 
+    while(!getin());
+    clrscr();
+
+#endif
+
+#ifdef __FLIGHT
 
     // Loading the sprites in bram.
     for (byte i = 0; i < SPRITE_TYPES;i++) {
@@ -467,6 +455,7 @@ void main() {
         sprite_cpy_vram_from_bram(SpriteDB[i], &handle_vram_sprites);
     }
 
+#endif
 
     // Tested
 
@@ -501,17 +490,22 @@ void main() {
     vera_layer0_show();
     vera_layer1_show();
 
+    vera_tile_clear();
     tile_background();
 
 #endif
 
     vera_sprites_show();
 
-
     bank_set_bram(0);
 
     // Initialize stage
+
+#ifdef __FLIGHT
+
     StageInit();
+
+#endif
 
     #ifdef debug_scanlines
     // Set border to measure scan lines
@@ -524,6 +518,9 @@ void main() {
     while(!getin());
     clrscr();
 
+    gotoxy(0,9);
+    printf("column=%2u, vscroll=%2u, row=%2u", column, vscroll, row);
+
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
@@ -531,13 +528,16 @@ void main() {
     // vera_sprites_collision_on();
     CLI();
 
-    cx16_mouse_config(0xFF, 1);
+    cx16_mouse_config(0xFF, 80, 60);
 
     char cx16_mouse_status = cx16_mouse_get();
     game.prev_mousex = cx16_mousex;
     game.prev_mousey = cx16_mousey;
     game.curr_mousex = cx16_mousex;
     game.curr_mousey = cx16_mousey;
+
+    vera_layer0_set_vertical_scroll(0);
+
 
     while (!getin()) {
         // gotoxy(0,0);

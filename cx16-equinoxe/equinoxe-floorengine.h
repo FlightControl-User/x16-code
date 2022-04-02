@@ -37,66 +37,55 @@ byte const TILE_TYPES = 1;
 __mem tile_t *TileDB[1] = { &TileFloor01 };
 
 struct TilePart {
-    tile_t *Tile;
-    word TileOffset;
+    tile_t *Tile[64];
+    word TileOffset[64];
 };
 
-struct TilePart TilePartDB[30] = {
-    { &TileFloor01, 00*4 }, // 00
-    { &TileFloor01, 01*4 }, // 01
-    { &TileFloor01, 02*4 }, // 02
-    { &TileFloor01, 03*4 }, // 03
-    { &TileFloor01, 04*4 }, // 04
-    { &TileFloor01, 05*4 }, // 05
-    { &TileFloor01, 06*4 }, // 06
-    { &TileFloor01, 07*4 }, // 07
-    { &TileFloor01, 08*4 }, // 08
-    { &TileFloor01, 09*4 }, // 09
-    { &TileFloor01, 10*4 }, // 10
-    { &TileFloor01, 11*4 }, // 11
-    { &TileFloor01, 12*4 }, // 12
-    { &TileFloor01, 13*4 }, // 13
-    { &TileFloor01, 14*4 }, // 14
-    { &TileFloor01, 15*4 }, // 15
-    { &TileFloor01, 16*4 }, // 16
-    { &TileFloor01, 17*4 }, // 17
-    { &TileFloor01, 18*4 }, // 18
-    { &TileFloor01, 19*4 }, // 19
-    { &TileFloor01, 20*4 }, // 20
-    { &TileFloor01, 21*4 }, // 21
-    { &TileFloor01, 22*4 }, // 22
-    { &TileFloor01, 23*4 }, // 23
-    { &TileFloor01, 24*4 }, // 24
-    { &TileFloor01, 25*4 }, // 25
-    { &TileFloor01, 26*4 }, // 26
-    { &TileFloor01, 27*4 }, // 27
-    { &TileFloor01, 28*4 }, // 28
-    { &TileFloor01, 29*4 }  // 29
+struct TilePart TilePartDB = {
+    { 
+        &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, 
+        &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, 
+        &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, 
+        &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01
+    }, 
+    {
+        00*4, 01*4, 02*4, 03*4, 04*4, 05*4, 06*4, 07*4, 
+        08*4, 09*4, 10*4, 11*4, 12*4, 13*4, 14*4, 15*4, 
+        16*4, 17*4, 18*4, 19*4, 20*4, 21*4, 22*4, 23*4, 
+        24*4, 25*4, 26*4, 27*4, 28*4, 29*4
+    }
 };
 
+struct TileComposition {
+    byte segment[4];
+};
 
 struct TileSegment {
-    byte Weight;
-    byte Composition[4];
+    byte weight[64];
+    byte composition[256];
 };
 
-struct TileSegment TileSegmentDB[16] = {
-    { 16, { 00, 00, 00, 00 } }, // 00 -  
-    { 02, { 00, 00, 03, 00 } }, // 01 - 
-    { 02, { 00, 00, 00, 01 } }, // 02 - 
-    { 12, { 00, 00, 02, 02 } }, // 03 - 
-    { 02, { 00, 06, 00, 08 } }, // 04 - 
-    { 02, { 00, 06, 03, 08 } }, // 05 - 
-    { 12, { 00, 04, 00, 04 } }, // 06 - 
-    { 02, { 00, 14, 02, 18 } }, // 07 - 
-    { 02, { 07, 00, 08, 00 } }, // 08 - 
-    { 12, { 05, 00, 05, 00 } }, // 09 - 
-    { 02, { 07, 00, 08, 01 } }, // 10 -
-    { 02, { 13, 00, 16, 02 } }, // 11 -
-    { 12, { 11, 11, 08, 08 } }, // 12 -
-    { 02, { 10, 11, 13, 08 } }, // 13 -
-    { 02, { 11, 12, 09, 14 } }, // 14 -
-    { 16, { 15, 15, 15, 15 } }  // 15 -
+struct TileSegment TileSegmentDB = {
+    { 
+        16, 02, 
+        02, 12, 
+        02, 02, 
+        12, 02,   
+        02, 12,   
+        02, 02,  
+        12, 02,  
+        02, 16
+    },  
+    {
+        00, 00, 00, 00, 00, 00, 03, 00,
+        00, 00, 00, 01, 00, 00, 02, 02,
+        00, 06, 00, 08, 00, 06, 03, 08,
+        00, 04, 00, 04, 00, 14, 02, 18, 
+        07, 00, 08, 00, 05, 00, 05, 00,
+        07, 00, 08, 01, 13, 00, 16, 02,
+        11, 11, 08, 08, 10, 11, 13, 08,
+        11, 12, 09, 14, 15, 15, 15, 15
+    }
 };
 
 struct TileWeight {
@@ -127,15 +116,18 @@ typedef struct {
 volatile tilefloor_t TileFloor[2];
 
 // This is a performance improvement tactic.
-unsigned int const FLOOR_MAP_OFFSET_VRAM_DST_63 = FLOOR_MAP_OFFSET_VRAM+63*64*2;
-unsigned int const FLOOR_MAP_OFFSET_VRAM_SRC_31 = FLOOR_MAP_OFFSET_VRAM+31*64*2;
-volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63+64*2;
-volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31+64*2;
-volatile unsigned int row = 31;
+unsigned char const ROW_BOTTOM = 63;
+unsigned char const ROW_MIDDLE = 31;
+unsigned int const FLOOR_MAP_OFFSET_VRAM_DST_63 = FLOOR_MAP_OFFSET_VRAM+(ROW_BOTTOM+1)*64*2;
+unsigned int const FLOOR_MAP_OFFSET_VRAM_SRC_31 = FLOOR_MAP_OFFSET_VRAM+(ROW_MIDDLE+1)*64*2;
+volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
+volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
+volatile unsigned char row = ROW_MIDDLE;
+volatile unsigned char column = 16;
 
 #pragma data_seg(Data)
 
-void vera_tile_row(byte rowlocal);
+void vera_tile_cell(unsigned char row, unsigned char column);
 void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram);
 void tile_load(tile_t *tile);
 
