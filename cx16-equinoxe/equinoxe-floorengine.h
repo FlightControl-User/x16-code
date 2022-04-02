@@ -127,6 +127,9 @@ volatile unsigned char column = 16;
 
 #pragma data_seg(Data)
 
+void floor_init();
+void floor_draw(unsigned char row, unsigned char column); 
+
 void vera_tile_cell(unsigned char row, unsigned char column);
 void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram);
 void tile_load(tile_t *tile);

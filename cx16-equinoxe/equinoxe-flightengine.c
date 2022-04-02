@@ -6,8 +6,6 @@
 
 #pragma var_model(mem)
 
-// #define __DEBUG
-
 #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
@@ -276,7 +274,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // background scrolling
     if(!scroll_action--) {
-        scroll_action = 1;
+        scroll_action = 4;
 
         // Check every 16 vscroll movements if something needs to be done.
         // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
@@ -306,25 +304,28 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
             }
         }
 
-        // Check every 16 vscroll movements if something needs to be done.
-        // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
-        if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
-            if(row%4==3) {
-                floor_draw();
-                column = 16;
-            }
-        }
 
+
+        // // Check every 16 vscroll movements if something needs to be done.
+        // // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
+        // if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
+        //     if(row%4==3) {
+        //         column = 16;
+        //     }
+        // }
 
         // There are 16 scroll iterations per tile.
         // However, each row has 16 tile segments.
         // In order to spread the CPU load, at each scroll iteration we paint a tile segment.
 
         // gotoxy(0,10);
-        // printf("column=%02u, vscroll=%03u, row=%02u, tilerowsrc=%4u, tilerowdst=%4u", column, vscroll, row, tilerowsrc, tilerowdst);
+        // printf("column=%02u, vscroll=%03u, row=%02u, index=%4u", column, vscroll, row, TileFloorIndex);
 
         column--;
         column %= 16;
+        if(row%4==3) {
+            floor_draw(row, column);
+        }
         vera_tile_cell(row, column);
 
         tilerowsrc-=4*2;
@@ -492,6 +493,9 @@ void main() {
 
     vera_tile_clear();
     tile_background();
+
+    column = 16;
+    row = 31;
 
 #endif
 

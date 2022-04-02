@@ -112,28 +112,29 @@ void floor_init() {
     }
 }
 
-void floor_draw() {
+void floor_draw(unsigned char row, unsigned char column) 
+{
 
     // gotoxy(0,y*3+2);
     // printf("rnd: %02u", y);
     // gotoxy(0,y*3+2+1);
     // printf("val: %02u", y);
 
+    TileFloorIndex = row>>2 & 0x01;
     unsigned char TileFloorNew = TileFloorIndex;
-    TileFloorIndex = (TileFloorIndex + 1) & 0x01;
-    unsigned char TileFloorOld = TileFloorIndex;
+    unsigned char TileFloorOld = ~TileFloorIndex & 0x01;
+    // unsigned char TileFloorNew = TileFloorIndex;
+    // unsigned char TileFloorOld = TileFloorIndex;
 
-    for(byte x=0;x<TILES;x++) {
-
-        unsigned char Rnd = BYTE0(rand());
-        byte Weight = (Rnd & 17);
+        unsigned char rnd = BYTE0(rand());
+        byte Weight = (rnd & 17);
         struct TileWeight *TileWeight;
         for(word i=0;i<TILE_WEIGHTS;i++) {
             TileWeight = &(TileWeightDB[i]);
             if(TileWeight->Weight >= Weight)
                 break;
         }
-        byte Tile = TileWeight->TileSegment[(word)(Rnd & TileWeight->Count)];
+        byte Tile = TileWeight->TileSegment[(rnd & TileWeight->Count)];
 
     // {
     // gotoxy(6+x*6,y*3+2);
@@ -145,20 +146,19 @@ void floor_draw() {
 
         // byte Tile = (BYTE0(rand()) & 0x0F);
 
-        if(x>0) {
-            byte TileLeft = TileFloor[(word)TileFloorNew].floortile[(word)x-1];
-            byte TileMask = ((TileLeft << 1) & 0b1000) | ((TileLeft >> 1) & 0b0001);
-            Tile = Tile & 0b0110;
+        if(column<15) {
+            byte TileRight = TileFloor[TileFloorNew].floortile[column+1];
+            byte TileMask = ((TileRight >> 1) & 0b0100) | ((TileRight << 1) & 0b0010);
+            Tile = Tile & 0b1001;
             Tile = Tile | TileMask;
         }
 
-        byte TileDown = TileFloor[(word)TileFloorOld].floortile[(word)x];
+        byte TileDown = TileFloor[TileFloorOld].floortile[column];
         byte TileMask = ((TileDown >> 3) & 0b0001) | ((TileDown >> 1) & 0b0010);
         Tile = Tile & 0b1100;
         Tile = Tile | TileMask;
 
-        TileFloor[(word)TileFloorNew].floortile[(word)x] = Tile;
-    }
+        TileFloor[TileFloorNew].floortile[column] = Tile;
 }
 
 void tile_background() {
@@ -170,12 +170,14 @@ void tile_background() {
     for(row=ROW_BOTTOM;row>=ROW_MIDDLE;row--) {
         // The 3 is very important, because we draw from the bottom to the top.
         // So every 4 rows, but we draw when the row is 4, not 0;
-        if(row%4==3) {
-            floor_draw();
-        }
-        for(unsigned char column=0; column<16; column++) {
+        unsigned char column=16;
+        do {
+            column--;
+            if(row%4==3) {
+                floor_draw(row, column);
+            }
             vera_tile_cell(row, column);
-        }
+        } while(column>0);
     }
     row++;
 }
