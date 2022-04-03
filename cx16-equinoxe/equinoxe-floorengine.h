@@ -116,19 +116,21 @@ typedef struct {
 volatile tilefloor_t TileFloor[2];
 
 // This is a performance improvement tactic.
+unsigned char const FLOOR_SCROLL_START = 32*16; // 32 rows of 16 lines (the height of the tiles is 16 pixels).
 unsigned char const FLOOR_ROW_63 = 63;
-unsigned char const FLOOR_ROW_31 = 31;
-unsigned int const FLOOR_MAP_OFFSET_VRAM_DST_63 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_ROW_63)*64*2;
-unsigned int const FLOOR_MAP_OFFSET_VRAM_SRC_31 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_ROW_31)*64*2;
-volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
-volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
-volatile unsigned char row = FLOOR_ROW_31;
-volatile unsigned char column = 16;
+unsigned char const FLOOR_TILE_ROW_31 = 31;
+unsigned char const FLOOR_TILE_COLUMN_16 = 16;
+unsigned int const FLOOR_CPY_MAP_63 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_ROW_63)*64*2;
+unsigned int const FLOOR_CPY_MAP_31 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_TILE_ROW_31)*64*2;
+volatile unsigned int floor_cpy_map_dst = FLOOR_CPY_MAP_63;
+volatile unsigned int floor_cpy_map_src = FLOOR_CPY_MAP_31;
+volatile unsigned char floor_tile_row = FLOOR_TILE_ROW_31;
+volatile unsigned char floor_tile_column = 16;
 
 #pragma data_seg(Data)
 
 void floor_init();
-void floor_draw(unsigned char row, unsigned char column); 
+void floor_paint_segment(unsigned char row, unsigned char column); 
 
 void vera_tile_cell(unsigned char row, unsigned char column);
 void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram);

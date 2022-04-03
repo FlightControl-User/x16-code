@@ -47,10 +47,10 @@ const byte SIDE_ENEMY = 1;
 
 // Joint global variables.
 
-volatile word vscroll = 16*32;
+volatile word floor_scroll_vertical = 16*32;
 volatile int prev_mousex = 0;
 volatile int prev_mousey = 0;
-volatile byte scroll_action = 2;
+volatile byte floor_scroll_action = 2;
 
 
 

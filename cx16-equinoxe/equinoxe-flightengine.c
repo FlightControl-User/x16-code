@@ -272,63 +272,68 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 #ifdef __FLOOR
 
-    // background scrolling
-    if(!scroll_action--) {
-        scroll_action = 4;
+    // We only will execute the scroll logic when a scroll action needs to be done.
+    if(!floor_scroll_action--) {
+        floor_scroll_action = 2;
 
-        gotoxy(1, 0);
-        printf("row=%02u, src=%04u, dst=%04u", row, tilerowsrc, tilerowdst);
+        // Check every 16 floor_scroll_vertical the logic to initialize the scroll variables.
+        if(!(BYTE0(floor_scroll_vertical) % 16) ) {
 
-        gotoxy(1, 58);
-        printf("row=%02u", row + 29);
-
-        // Check every 16 vscroll movements if something needs to be done.
-        if(!(BYTE0(vscroll) % 16) ) {
-
-            if(!vscroll) {
-                vscroll=16*32;
+            // If the floor_scroll_vertical position has reached it's top position,
+            // then we flip to the start position, which is 32 rows * 16 pixels height per row, which is 512.
+            // Note that the player won't notice, as the tiles that were painted at each row,
+            // were copied to the row + 32 ...
+            if(!floor_scroll_vertical) {
+                floor_scroll_vertical = FLOOR_SCROLL_START;
             }
 
-            if(!row) {
-                row=FLOOR_ROW_31;
-                tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
-                tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
+            if(!floor_tile_row) {
+                floor_tile_row = FLOOR_TILE_ROW_31;
+                floor_cpy_map_dst = FLOOR_CPY_MAP_63;
+                floor_cpy_map_src = FLOOR_CPY_MAP_31;
             } else {
-                row--;
+                floor_tile_row--;
             }
 
-            column = 16;
+            floor_tile_column = FLOOR_TILE_COLUMN_16;
         }
 
+        // There are 16 scroll iterations as the height of the tiles is 16 pixels.
+        // Each segment is 4 tiles on the x axis, so the total amount of tiles are 64 tiles of 16 pixels wide.
+        // So there are 16 segments to be painted on each row.
+        // That allows to paint a segment per scroll action!
+        // We decrease the column for tiling, and ensure that we never go above 16.
+        floor_tile_column--;
+        floor_tile_column %= 16;
 
-
-        // There are 16 scroll iterations per tile.
-        // However, each row has 16 tile segments.
-        // In order to spread the CPU load, at each scroll iteration we paint a tile segment.
-
-        // gotoxy(0,10);
-        // printf("column=%02u, vscroll=%03u, row=%02u, index=%4u", column, vscroll, row, TileFloorIndex);
-
-        column--;
-        column %= 16;
-
-        if(row%4==3) {
-            floor_draw(row, column);
-        }
-        vera_tile_cell(row, column);
-
-        tilerowsrc-=4*2;
-        tilerowdst-=4*2;
-
-        if(row<=FLOOR_ROW_31) {
-            // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
-            // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
-            memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 8*2); // Copy one cell.
+        // We paint from bottom to top. Each paint segment is 64 pixels on the y axis, so we must paint every 4 rows.
+        // We paint when the row is the bottom row of the paint segment, so row 3. Row 0 is the top row of the segment.
+        if(floor_tile_row%4==3) {
+            floor_paint_segment(floor_tile_row, floor_tile_column);
         }
 
-        vera_layer0_set_vertical_scroll(vscroll);
-        vscroll--;
+        // Now that the segment for the respective floor_tile_row and floor_tile_column has been painted,
+        // we can draw a cell from the painted segment. Note that when floor_tile_row is 0, 1 or 2,
+        // all paint segments will have been painted on the paint buffer, and the tiling will just pick
+        // row 2, 1 or 0 from the paint segment...
+        vera_tile_cell(floor_tile_row, floor_tile_column);
 
+        // This handles the smooth scrolling and enables seamless frame flipping.
+        // Copy each cell of the current floor_tile_row, that has been tiled, to the bottom floor_tile_row (source floor_tile_row + 32),
+        // so that when the scrolling position reaches 0, the scrolling position can be safely repositioned
+        // to 16 lines * 32 rows = 512, and the display will look exactly the same!
+        // In order to not blow up the performance of the frames, we do a copy of 1/16th of a floor_tile_row when
+        // the scrolling even happens, so that we don't below up the frame performance. There is very
+        // limited time painting each frame!
+        floor_cpy_map_src-=4*2;
+        floor_cpy_map_dst-=4*2;
+        if(floor_tile_row<=FLOOR_TILE_ROW_31) {
+            memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, floor_cpy_map_dst, FLOOR_MAP_BANK_VRAM, floor_cpy_map_src, 8*2); // Copy one cell.
+        }
+
+        // Now we set the vertical scroll to the required scroll position.
+        vera_layer0_set_vertical_scroll(floor_scroll_vertical);
+        floor_scroll_vertical--;
         
     }
 
@@ -484,8 +489,8 @@ void main() {
     vera_tile_clear();
     tile_background();
 
-    column = 16;
-    row = 31;
+    floor_tile_column = 16;
+    floor_tile_row = 31;
 
 #endif
 
@@ -534,7 +539,7 @@ void main() {
         // gotoxy(0,0);
         // grid_print(&ht_collision);
         // SEI();
-        // printf("vscroll:%02u\n",vscroll);
+        // printf("floor_scroll_vertical:%02u\n",floor_scroll_vertical);
         // CLI();
     }; 
 

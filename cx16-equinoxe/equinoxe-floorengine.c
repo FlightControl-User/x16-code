@@ -112,53 +112,80 @@ void floor_init() {
     }
 }
 
-void floor_draw(unsigned char row, unsigned char column) 
+/**
+ * @brief Paint the segments according a progressing tiling mechanism.
+ * 
+ * There are 16 tiles which have each 4 segments, and are separated by a "line".
+ * In order to ensure that the segments to be painted have correct separation lines, a tile logic is required.
+ * This segment paint logic works as follows.
+ * Each segment is indexed according the corner "fill" property.
+ * Each segment corner can be filled or can be empty. In other words, each segment can have 16 combinations.
+ * These 16 combinations are represented as an index in 4 bits, a bit mask ...
+ * The bits are ordered from bit 3 to bit 0 clock-wise starting from the top left corner:
+ * 
+ *   - bit 3 = top left corner
+ *   - bit 2 = top right corner
+ *   - bit 1 = bottom right corner
+ *   - bit 0 = bottom left corner
+ * 
+ *     00 = 0000  01 = 0001  02 = 0010  03 = 0011  04 = 0100  05 = 0101  06 = 0110  07 = 0111
+ *     # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #   
+ *     # 0 | 0 #  # 0 | 0 #  # 0 | 0 #  # 0 | 0 #  # 0 | 1 #  # 0 | 1 #  # 0 | 1 #  # 0 | 1 #        
+ *     # - + - #  # - + - #  # - + - #  # - + - #  # - + - #  # - + - #  # - + - #  # - + - #        
+ *     # 0 | 0 #  # 1 | 0 #  # 0 | 1 #  # 1 | 1 #  # 0 | 0 #  # 1 | 0 #  # 0 | 1 #  # 1 | 1 #        
+ *     # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #        
+ * 
+ *     08 = 1000  09 = 1001  10 = 1010  11 = 1011  12 = 1100  13 = 1101  14 = 1110  15 = 1111
+ *     # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #   
+ *     # 1 | 0 #  # 1 | 0 #  # 1 | 0 #  # 1 | 0 #  # 1 | 1 #  # 1 | 1 #  # 1 | 1 #  # 1 | 1 #        
+ *     # - + - #  # - + - #  # - + - #  # - + - #  # - + - #  # - + - #  # - + - #  # - + - #        
+ *     # 0 | 0 #  # 1 | 0 #  # 0 | 1 #  # 1 | 1 #  # 0 | 0 #  # 1 | 0 #  # 0 | 1 #  # 1 | 1 #        
+ *     # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #        
+ * 
+ * The segment painting is nothing more than selecting the correct segments for a row.
+ * In order to achieve this, the logic works with 2 arrays of 16 bytes, that represent the "New" and the "Old" segment rows.
+ * The painting works from bottom to top, so the old segment row will be at the bottom from the new segment row.
+ * 
+ * The new segments are painted from right to left on the new row, and are carefully selected so that:
+ * 
+ *   - the new left segment glues with the new right segment row.
+ *   - the new left segment glues with the old bottom segment row.
+ * 
+ *  
+ * @param row 
+ * @param column 
+ */
+void floor_paint_segment(unsigned char row, unsigned char column) 
 {
-
-    // gotoxy(0,y*3+2);
-    // printf("rnd: %02u", y);
-    // gotoxy(0,y*3+2+1);
-    // printf("val: %02u", y);
-
     TileFloorIndex = row>>2 & 0x01;
     unsigned char TileFloorNew = TileFloorIndex;
     unsigned char TileFloorOld = ~TileFloorIndex & 0x01;
-    // unsigned char TileFloorNew = TileFloorIndex;
-    // unsigned char TileFloorOld = TileFloorIndex;
 
-        unsigned char rnd = BYTE0(rand());
-        byte Weight = (rnd & 17);
-        struct TileWeight *TileWeight;
-        for(word i=0;i<TILE_WEIGHTS;i++) {
-            TileWeight = &(TileWeightDB[i]);
-            if(TileWeight->Weight >= Weight)
-                break;
-        }
-        byte Tile = TileWeight->TileSegment[(rnd & TileWeight->Count)];
+    unsigned char rnd = BYTE0(rand());
+    byte Weight = (rnd & 17);
+    struct TileWeight *TileWeight;
+    for(word i=0;i<TILE_WEIGHTS;i++) {
+        TileWeight = &(TileWeightDB[i]);
+        if(TileWeight->Weight >= Weight)
+            break;
+    }
+    byte Tile = TileWeight->TileSegment[(rnd & TileWeight->Count)];
 
-    // {
-    // gotoxy(6+x*6,y*3+2);
-    // byte i = 4; /* however many bits are in a byte on your platform */
-    // while(i--) {
-    //     printf("%c", '0' + (((byte)Tile >> i) & 1)); /* loop through and print the bits */
-    // }
-    // }
+    // byte Tile = (BYTE0(rand()) & 0x0F);
 
-        // byte Tile = (BYTE0(rand()) & 0x0F);
-
-        if(column<15) {
-            byte TileRight = TileFloor[TileFloorNew].floortile[column+1];
-            byte TileMask = ((TileRight >> 1) & 0b0100) | ((TileRight << 1) & 0b0010);
-            Tile = Tile & 0b1001;
-            Tile = Tile | TileMask;
-        }
-
-        byte TileDown = TileFloor[TileFloorOld].floortile[column];
-        byte TileMask = ((TileDown >> 3) & 0b0001) | ((TileDown >> 1) & 0b0010);
-        Tile = Tile & 0b1100;
+    if(column<15) {
+        byte TileRight = TileFloor[TileFloorNew].floortile[column+1];
+        byte TileMask = ((TileRight >> 1) & 0b0100) | ((TileRight << 1) & 0b0010);
+        Tile = Tile & 0b1001;
         Tile = Tile | TileMask;
+    }
 
-        TileFloor[TileFloorNew].floortile[column] = Tile;
+    byte TileDown = TileFloor[TileFloorOld].floortile[column];
+    byte TileMask = ((TileDown >> 3) & 0b0001) | ((TileDown >> 1) & 0b0010);
+    Tile = Tile & 0b1100;
+    Tile = Tile | TileMask;
+
+    TileFloor[TileFloorNew].floortile[column] = Tile;
 }
 
 void tile_background() {
@@ -167,19 +194,19 @@ void tile_background() {
     
     vera_tile_clear();
     floor_init();
-    for(row=FLOOR_ROW_63;row>=FLOOR_ROW_31;row--) {
+    for(floor_tile_row=FLOOR_ROW_63;floor_tile_row>=FLOOR_TILE_ROW_31;floor_tile_row--) {
         // The 3 is very important, because we draw from the bottom to the top.
         // So every 4 rows, but we draw when the row is 4, not 0;
         unsigned char column=16;
         do {
             column--;
-            if(row%4==3) {
-                floor_draw(row, column);
+            if(floor_tile_row%4==3) {
+                floor_paint_segment(floor_tile_row, column);
             }
-            vera_tile_cell(row, column);
+            vera_tile_cell(floor_tile_row, column);
         } while(column>0);
     }
-    row++;
+    floor_tile_row++;
 }
 
 // void show_memory_map() {
