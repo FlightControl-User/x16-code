@@ -431,11 +431,6 @@ void main() {
 
     memcpy_vram_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, handle_bram_palettes.bank, handle_bram_palettes.ptr, palette_loaded);
 
-    printf("palette loaded = %u\n", palette_loaded);
-
-    while(!getin());
-    clrscr();
-
 #endif
 
 #ifdef __FLIGHT
