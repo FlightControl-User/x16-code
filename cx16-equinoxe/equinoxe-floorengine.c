@@ -161,6 +161,9 @@ void floor_paint_segment(unsigned char row, unsigned char column)
     unsigned char TileFloorNew = TileFloorIndex;
     unsigned char TileFloorOld = ~TileFloorIndex & 0x01;
 
+    gotoxy(0, 10);
+    printf("new=%1u, old=%1u", TileFloorNew, TileFloorOld);
+
     unsigned char rnd = BYTE0(rand());
     byte Weight = (rnd & 17);
     struct TileWeight *TileWeight;
