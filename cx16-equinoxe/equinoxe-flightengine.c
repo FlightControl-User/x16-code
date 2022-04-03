@@ -276,43 +276,31 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     if(!scroll_action--) {
         scroll_action = 4;
 
-        // Check every 16 vscroll movements if something needs to be done.
-        // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
-        // if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
-        //     if(row<=15) {
-        //         // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
-        //         // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
-        //         memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 64*2); // Copy one row.
-        //     }
-        // }
+        gotoxy(1, 0);
+        printf("row=%02u, src=%04u, dst=%04u", row, tilerowsrc, tilerowdst);
 
+        gotoxy(1, 58);
+        printf("row=%02u", row + 29);
 
         // Check every 16 vscroll movements if something needs to be done.
-        // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
-        if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
+        if(!(BYTE0(vscroll) % 16) ) {
 
             if(!vscroll) {
                 vscroll=16*32;
             }
 
             if(!row) {
-                row=ROW_MIDDLE;
+                row=FLOOR_ROW_31;
                 tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
                 tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
             } else {
                 row--;
             }
+
+            column = 16;
         }
 
 
-
-        // // Check every 16 vscroll movements if something needs to be done.
-        // // 0b11110000 is the mask for testing every 16 iterations based on vscroll value.
-        // if((BYTE0(vscroll) & 0xF0)==BYTE0(vscroll) ) {
-        //     if(row%4==3) {
-        //         column = 16;
-        //     }
-        // }
 
         // There are 16 scroll iterations per tile.
         // However, each row has 16 tile segments.
@@ -323,6 +311,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
         column--;
         column %= 16;
+
         if(row%4==3) {
             floor_draw(row, column);
         }
@@ -330,10 +319,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
         tilerowsrc-=4*2;
         tilerowdst-=4*2;
-        if(row<=ROW_MIDDLE) {
+
+        if(row<=FLOOR_ROW_31) {
             // unsigned int dest_row = FLOOR_MAP_OFFSET_VRAM+(((row)+32)*64*2); // TODO: To change in increments and counters for performance.
             // unsigned int src_row = FLOOR_MAP_OFFSET_VRAM+((row)*64*2); // TODO: To change in increments and counters for performance.
-            memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 8*2); // Copy one row.
+            memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, tilerowdst, FLOOR_MAP_BANK_VRAM, tilerowsrc, 8*2); // Copy one cell.
         }
 
         vera_layer0_set_vertical_scroll(vscroll);
@@ -521,9 +511,6 @@ void main() {
 
     while(!getin());
     clrscr();
-
-    gotoxy(0,9);
-    printf("column=%2u, vscroll=%2u, row=%2u", column, vscroll, row);
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();

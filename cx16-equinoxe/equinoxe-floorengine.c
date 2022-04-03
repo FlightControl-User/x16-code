@@ -167,7 +167,7 @@ void tile_background() {
     
     vera_tile_clear();
     floor_init();
-    for(row=ROW_BOTTOM;row>=ROW_MIDDLE;row--) {
+    for(row=FLOOR_ROW_63;row>=FLOOR_ROW_31;row--) {
         // The 3 is very important, because we draw from the bottom to the top.
         // So every 4 rows, but we draw when the row is 4, not 0;
         unsigned char column=16;

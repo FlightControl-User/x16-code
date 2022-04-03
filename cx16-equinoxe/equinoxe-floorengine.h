@@ -116,13 +116,13 @@ typedef struct {
 volatile tilefloor_t TileFloor[2];
 
 // This is a performance improvement tactic.
-unsigned char const ROW_BOTTOM = 63;
-unsigned char const ROW_MIDDLE = 31;
-unsigned int const FLOOR_MAP_OFFSET_VRAM_DST_63 = FLOOR_MAP_OFFSET_VRAM+(ROW_BOTTOM+1)*64*2;
-unsigned int const FLOOR_MAP_OFFSET_VRAM_SRC_31 = FLOOR_MAP_OFFSET_VRAM+(ROW_MIDDLE+1)*64*2;
+unsigned char const FLOOR_ROW_63 = 63;
+unsigned char const FLOOR_ROW_31 = 31;
+unsigned int const FLOOR_MAP_OFFSET_VRAM_DST_63 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_ROW_63)*64*2;
+unsigned int const FLOOR_MAP_OFFSET_VRAM_SRC_31 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_ROW_31)*64*2;
 volatile unsigned int tilerowdst = FLOOR_MAP_OFFSET_VRAM_DST_63;
 volatile unsigned int tilerowsrc = FLOOR_MAP_OFFSET_VRAM_SRC_31;
-volatile unsigned char row = ROW_MIDDLE;
+volatile unsigned char row = FLOOR_ROW_31;
 volatile unsigned char column = 16;
 
 #pragma data_seg(Data)
