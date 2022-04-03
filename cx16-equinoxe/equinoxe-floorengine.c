@@ -265,7 +265,7 @@ void tile_load(tile_t *tile) {
     printf(", opening\n");
 
     unsigned int status = open_file(1, 8, 0, tile->File);
-    if (!status) printf("error opening file %s\n", tile->File);
+    if (status) printf("error opening file %s\n", tile->File);
 
     for(unsigned char s=0; s<tile->TileCount; s++) {
         printf("allocating");
@@ -283,7 +283,7 @@ void tile_load(tile_t *tile) {
     printf(", closing");
 
     status = close_file(1, 8, 0);
-    if (!status) printf("error closing file %s\n", tile->File);
+    if (status) printf("error closing file %s\n", tile->File);
 
     printf(", done\n");
 }

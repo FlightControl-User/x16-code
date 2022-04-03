@@ -63,7 +63,7 @@ void sprite_load(Sprite* sprite)
 
 
     unsigned int status = open_file(1, 8, 0, sprite->File);
-    if (!status) printf("error opening file %s\n", sprite->File);
+    if (status) printf("error opening file %s\n", sprite->File);
 
     // printf("spritecount = %u\n", sprite->SpriteCount);
 
@@ -82,7 +82,7 @@ void sprite_load(Sprite* sprite)
     }
 
     status = close_file(1, 8, 0);
-    if (!status) printf("error closing file %s\n", sprite->File);
+    if (status) printf("error closing file %s\n", sprite->File);
 
     printf(", done\n");
 }
