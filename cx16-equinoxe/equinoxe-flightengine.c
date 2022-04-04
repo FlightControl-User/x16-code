@@ -266,15 +266,16 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     }
 
 
-    vera_display_set_border_color(8);
 
 #endif
 
 #ifdef __FLOOR
 
+    vera_display_set_border_color(8);
+
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!floor_scroll_action--) {
-        floor_scroll_action = 1;
+        floor_scroll_action = 4;
 
         // Check every 16 floor_scroll_vertical the logic to initialize the scroll variables.
         if(!(BYTE0(floor_scroll_vertical) % 16) ) {
@@ -528,7 +529,6 @@ void main() {
     game.curr_mousey = cx16_mousey;
 
     vera_layer0_set_vertical_scroll(0);
-
 
     while (!getin()) {
         // gotoxy(0,0);

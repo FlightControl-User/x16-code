@@ -91,16 +91,16 @@ struct TileSegment TileSegmentDB = {
 struct TileWeight {
     byte Weight;
     byte Count;
-    byte TileSegment[10];
+    byte TileSegment[15];
 };
 
 byte const TILE_WEIGHTS = 5;
 struct TileWeight TileWeightDB[5] = {
-    { 01, 6, { 01, 02, 04, 05, 07, 08 } },
-    { 04, 4, { 10, 11, 13, 14 } },
-    { 08, 2, { 03, 12 } },
-    { 12, 2, { 06, 09 } },
-    { 16, 1, { 15 } }
+    { 0, 4, { 10, 11, 13, 14 } },
+    { 3, 2, { 03, 12 } },
+    { 4, 2, { 06, 09 } },
+    { 5, 6, { 01, 02, 04, 05, 07, 08 } },
+    { 15, 1, { 15 } }
 };
 
 // Work variables

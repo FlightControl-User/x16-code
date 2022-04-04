@@ -161,18 +161,19 @@ void floor_paint_segment(unsigned char row, unsigned char column)
     unsigned char TileFloorNew = TileFloorIndex;
     unsigned char TileFloorOld = ~TileFloorIndex & 0x01;
 
-    gotoxy(0, 10);
-    printf("new=%1u, old=%1u", TileFloorNew, TileFloorOld);
-
     unsigned char rnd = BYTE0(rand());
-    byte Weight = (rnd & 17);
+    byte Weight = rnd % 16;
     struct TileWeight *TileWeight;
     for(word i=0;i<TILE_WEIGHTS;i++) {
         TileWeight = &(TileWeightDB[i]);
-        if(TileWeight->Weight >= Weight)
+        if(TileWeight->Weight >= Weight) {
             break;
+        }
     }
-    byte Tile = TileWeight->TileSegment[(rnd & TileWeight->Count)];
+
+    // Now that we know the weight, select a record from the weight table.
+    char div = div8u(rnd,TileWeight->Count);
+    byte Tile = TileWeight->TileSegment[rem8u];
 
     // byte Tile = (BYTE0(rand()) & 0x0F);
 
@@ -189,6 +190,13 @@ void floor_paint_segment(unsigned char row, unsigned char column)
     Tile = Tile | TileMask;
 
     TileFloor[TileFloorNew].floortile[column] = Tile;
+
+    // gotoxy(column<<2+10, row);
+    // printf("%2u", Tile);
+    // if(!column) {
+    //     gotoxy(0, row);
+    //     printf("row %2u %1u", row, TileFloorIndex);
+    // }
 }
 
 void tile_background() {
