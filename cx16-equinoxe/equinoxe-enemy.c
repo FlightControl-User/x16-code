@@ -8,6 +8,7 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-fighters.h"
 #include "equinoxe-collision.h"
+#include "equinoxe-bullet.h"
 #include <ht.h>
 
 volatile unsigned char shoot = 12;
@@ -123,6 +124,7 @@ void LogicEnemies() {
 					break;
 				case 4:
 					MoveEnemy(e, 40, 0, 2);
+                    // FireBulletEnemy()
 					enemy.step[e] = 1;
 					break;
 				}

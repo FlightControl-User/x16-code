@@ -43,6 +43,38 @@ void FireBullet(unsigned char p, char reload)
     bullet_pool = (b+1)%FE_BULLET;
 }
 
+void FireBulletEnemy(unsigned char e, char reload, Sprite *sprite_bullet)
+{
+
+	unsigned char b = bullet_pool;
+
+	while(bullet.used[b]) {
+		b = (b+1)%FE_BULLET;
+	}
+
+    unsigned int x = (unsigned int)game.curr_mousex;
+    unsigned int y = (unsigned int)game.curr_mousey;
+
+    bullet.used[b] = 1;
+    bullet.enabled[b] = 0;
+
+    bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
+    bullet.sprite_type[b] = sprite_bullet;
+	sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
+
+    bullet.tx[b] = MAKELONG(x, 0);
+    bullet.ty[b] = MAKELONG(y, 0);
+    bullet.tdx[b] = MAKELONG(0, 0);
+    bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000); // Negative -8
+
+	bullet.aabb_min_x[b] = SpriteBullet01.aabb[0];
+	bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
+	bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
+	bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
+
+    bullet_pool = (b+1)%FE_BULLET;
+}
+
 
 void RemoveBullet(unsigned char b) 
 {
