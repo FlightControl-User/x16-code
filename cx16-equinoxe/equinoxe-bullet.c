@@ -4,6 +4,7 @@
 #include "equinoxe-bullet.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-collision.h"
+#include "equinoxe-math.h"
 
 void FireBullet(unsigned char p, char reload)
 {
@@ -25,6 +26,8 @@ void FireBullet(unsigned char p, char reload)
 
     bullet.used[b] = 1;
     bullet.enabled[b] = 0;
+    bullet.group[b] = 3;
+
 
     bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
     bullet.sprite_type[b] = &SpriteBullet01;
@@ -43,7 +46,7 @@ void FireBullet(unsigned char p, char reload)
     bullet_pool = (b+1)%FE_BULLET;
 }
 
-void FireBulletEnemy(unsigned char e, char reload, Sprite *sprite_bullet)
+void FireBulletEnemy(unsigned char e)
 {
 
 	unsigned char b = bullet_pool;
@@ -52,20 +55,26 @@ void FireBulletEnemy(unsigned char e, char reload, Sprite *sprite_bullet)
 		b = (b+1)%FE_BULLET;
 	}
 
-    unsigned int x = (unsigned int)game.curr_mousex;
-    unsigned int y = (unsigned int)game.curr_mousey;
+    unsigned int x = (unsigned int)enemy.tx;
+    unsigned int y = (unsigned int)enemy.ty;
+    unsigned int px = (unsigned int)game.curr_mousex;
+    unsigned int py = (unsigned int)game.curr_mousey;
 
     bullet.used[b] = 1;
     bullet.enabled[b] = 0;
+    bullet.group[b] = 2;
 
     bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
-    bullet.sprite_type[b] = sprite_bullet;
+    bullet.sprite_type[b] = &SpriteBullet01;
 	sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
 
     bullet.tx[b] = MAKELONG(x, 0);
     bullet.ty[b] = MAKELONG(y, 0);
-    bullet.tdx[b] = MAKELONG(0, 0);
-    bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000); // Negative -8
+
+    unsigned char angle = math_atan2(BYTE0(x>>2), BYTE0(px>>2), BYTE0(y>>2), BYTE0(py>>2));
+
+    bullet.tdx[b] = vecx(angle, 0);
+    bullet.tdy[b] = vecy(angle, 0); 
 
 	bullet.aabb_min_x[b] = SpriteBullet01.aabb[0];
 	bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
@@ -111,7 +120,7 @@ inline void LogicBullets()
                     bullet.enabled[b] = 1;
                 }            
                 vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[0]);
-				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
+				grid_insert(&ht_collision, bullet.group[b], BYTE0(x>>2), BYTE0(y>>2), b);
             }
 
             // gotoxy(0,21);

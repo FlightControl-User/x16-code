@@ -6,7 +6,7 @@
 
 #pragma var_model(mem)
 
-#define __FLOOR
+// #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
 // #define __FILE
@@ -171,7 +171,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 #endif
 
-#ifdef __FLOOR
+// #ifdef __FLOOR
 
     vera_display_set_border_color(8);
 
@@ -353,7 +353,7 @@ void main() {
 
     // Tested
 
-#ifdef __FLOOR
+// #ifdef __FLOOR
     // TILE INITIALIZATION 
 
     // Loading the graphics in main banked memory.

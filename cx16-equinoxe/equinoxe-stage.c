@@ -69,7 +69,7 @@ void StageProgress() {
 void LogicStage() {
 	if(stage.spawnenemycount) {
 		if(!(game.tickstage & 0x0F)) {
-			if(stage.sprite_enemy_count<32) {
+			if(stage.sprite_enemy_count<2) {
         		stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 320, -32);
 			}
 		}

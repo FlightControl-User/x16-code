@@ -229,7 +229,7 @@ typedef struct {
     unsigned char used[32];
 
     unsigned char type[32];
-    unsigned char side[32];
+    unsigned char group[32];
 
     unsigned char move[32];
     unsigned char moved[32];

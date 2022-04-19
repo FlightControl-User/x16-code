@@ -193,6 +193,10 @@ void LogicEnemies() {
 				} else {
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[enemy.state_animation[e]]);
 				}
+				unsigned int r = rand();
+				if(r>=1000) {
+					FireBulletEnemy(e);
+				}
 			} else {
 				if(enemy.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);
