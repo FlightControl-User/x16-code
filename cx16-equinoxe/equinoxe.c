@@ -171,7 +171,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 #endif
 
-// #ifdef __FLOOR
+#ifdef __FLOOR
 
     vera_display_set_border_color(8);
 
