@@ -4,6 +4,7 @@
 .file [name="Target/ENEMY01", type="bin", segments="Enemy01"]
 .file [name="Target/ENGINE01", type="bin", segments="Engine01"]
 .file [name="Target/BULLET01", type="bin", segments="Bullet01"]
+.file [name="Target/BULLET02", type="bin", segments="Bullet02"]
 .file [name="Target/PALETTES", type="bin", segments="Palettes"]
 .segmentdef Program [segments="Basic, Code, Data"]
 .segmentdef Basic [start=$0801]
@@ -15,4 +16,5 @@
 .segmentdef Enemy01 
 .segmentdef Engine01 
 .segmentdef Bullet01 
+.segmentdef Bullet02 
 .segmentdef Palettes

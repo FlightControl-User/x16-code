@@ -124,7 +124,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                 while(ht_index_bullet) {
                     unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
 
-                    if(bullet.used[b]) {
+                    if(bullet.used[b] && bullet.side[b] == SIDE_PLAYER) {
 
                         signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
                         signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
@@ -285,7 +285,7 @@ void main() {
     // 
     // SpriteControlEnemies                                   00:A800 - 00:B2FF
     // SpriteControlBullets                                   00:B300 - 00:B87F
-    // SpriteControlPlayer                                    00:B900 - 00:B987
+    // SpriteControlP²layer                                    00:B900 - 00:B987
     // SpriteControlEngine                                    00:BA00 - 00:BA1F
     // Palette                                                3F:A000 - 3F:BFFF
 
@@ -353,7 +353,7 @@ void main() {
 
     // Tested
 
-// #ifdef __FLOOR
+#ifdef __FLOOR
     // TILE INITIALIZATION 
 
     // Loading the graphics in main banked memory.

@@ -6,10 +6,6 @@
 
 #pragma var_model(mem)
 
-#define __FLOOR
-#define __FLIGHT
-#define __PALETTE
-// #define __FILE
 
 #include <stdlib.h>
 #include <cx16.h>

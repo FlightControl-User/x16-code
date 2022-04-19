@@ -82,14 +82,24 @@ Sprite SpriteBullet01 =       {
     VERA_SPRITE_4BPP, 12, {0,0,1,4}, {0x0}, { 0x0 } };
 heap_handle sprite_bullet_01[SPRITE_BULLET01_COUNT];
 
+#define SPRITE_BULLET02_COUNT 1
+Sprite SpriteBullet02 =       { 
+    "bullet02", SPRITE_BULLET02_COUNT, 
+    7+12+16, 16*16*SPRITE_BULLET02_COUNT/2, 128, 
+    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
+    VERA_SPRITE_ZDEPTH_IN_FRONT, 
+    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
+    VERA_SPRITE_4BPP, 12, {0,0,1,4}, {0x0}, { 0x0 } };
+heap_handle sprite_bullet_02[SPRITE_BULLET02_COUNT];
 
-byte const SPRITE_TYPES = 4;
+byte const SPRITE_TYPES = 5;
 byte const SPRITE_PLAYER01 = 0;
 byte const SPRITE_ENEMY01 = 1;
 byte const SPRITE_ENGINE01 = 2;
 byte const SPRITE_BULLET01 = 3;
+byte const SPRITE_BULLET02 = 4;
 
-Sprite *SpriteDB[4] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEngine01, &SpriteBullet01 };
+Sprite *SpriteDB[5] = { &SpritePlayer01, &SpriteEnemy01, &SpriteEngine01, &SpriteBullet01, &SpriteBullet02 };
 
 
 
@@ -229,7 +239,7 @@ typedef struct {
     unsigned char used[32];
 
     unsigned char type[32];
-    unsigned char group[32];
+    unsigned char side[32];
 
     unsigned char move[32];
     unsigned char moved[32];
@@ -266,6 +276,8 @@ volatile unsigned char enemy_pool;
 volatile unsigned char player_pool;
 volatile unsigned char engine_pool;
 volatile unsigned char bullet_pool;
+
+volatile unsigned char bullet_count = 0;
 
 void Logic();
 // void Draw();

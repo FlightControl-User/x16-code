@@ -46,6 +46,8 @@ static void StageReset(void) {
 	bullet_pool = 0;
 	engine_pool = 0;
 
+    bullet_count = 0;
+
 	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
 	stage.sprite_bullet_count = 0;
 	stage.sprite_enemy = SPRITE_OFFSET_ENEMY_START;
@@ -69,7 +71,7 @@ void StageProgress() {
 void LogicStage() {
 	if(stage.spawnenemycount) {
 		if(!(game.tickstage & 0x0F)) {
-			if(stage.sprite_enemy_count<2) {
+			if(stage.sprite_enemy_count<12) {
         		stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 320, -32);
 			}
 		}
