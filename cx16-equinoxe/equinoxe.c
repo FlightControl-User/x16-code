@@ -6,7 +6,7 @@
 
 #pragma var_model(mem)
 
-// #define __FLOOR
+#define __FLOOR
 #define __FLIGHT
 #define __PALETTE
 // #define __FILE
