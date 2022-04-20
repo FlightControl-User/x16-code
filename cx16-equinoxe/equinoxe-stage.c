@@ -82,10 +82,10 @@ void LogicStage() {
 		}
     }
 
-    if(stage.respawn) {
-        stage.respawn--;
-        if(!stage.respawn) {
-            InitPlayer();
-        }
-    }
+    // if(stage.respawn) {
+    //     stage.respawn--;
+    //     if(!stage.respawn) {
+    //         InitPlayer();
+    //     }
+    // }
 }
