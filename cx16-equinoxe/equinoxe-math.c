@@ -24,7 +24,7 @@
  */
 
 
-inline FP vecx(unsigned char angle, char speed) {
+inline FP math_vecx(unsigned char angle, char speed) {
 
     //TODO: check with jesper this code section, could be a bug in the optimizer.
     signed int dx = math_cos[angle%64];
@@ -38,7 +38,7 @@ inline FP vecx(unsigned char angle, char speed) {
     return (FP)dx<<8;
 }
 
-inline FP vecy(unsigned char angle, char speed) {
+inline FP math_vecy(unsigned char angle, char speed) {
 
     signed int dy = math_sin[angle%64];
     if(speed) dy <<= speed;

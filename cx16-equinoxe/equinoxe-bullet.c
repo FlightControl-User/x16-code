@@ -83,8 +83,8 @@ void FireBulletEnemy(unsigned char e)
 
         unsigned char angle = math_atan2(BYTE0(ex>>2), BYTE0(px>>2), BYTE0(ey>>2), BYTE0(py>>2));
 
-        bullet.tdx[b] = vecx(angle-16, 3);
-        bullet.tdy[b] = vecy(angle-16, 3); 
+        bullet.tdx[b] = math_vecx(angle-16, 3);
+        bullet.tdy[b] = math_vecy(angle-16, 3); 
 
         bullet.aabb_min_x[b] = SpriteBullet01.aabb[0];
         bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];

@@ -22,8 +22,8 @@ __align(0x0100) unsigned char atantab[] = kickasm {{
 }};
 
 
-FP vecx(unsigned char angle, char speed);
-FP vecy(unsigned char angle, char speed);
+FP math_vecx(unsigned char angle, char speed);
+FP math_vecy(unsigned char angle, char speed);
 unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2);
 
 // FP3 vecx(char angle, char speed);

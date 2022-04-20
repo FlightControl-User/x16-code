@@ -104,13 +104,19 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     vera_display_set_border_color(2);
 
     #ifdef debug_scanlines
-    vera_display_set_border_color(9);
+    vera_display_set_border_color(YELLOW);
     #endif
 
     // Check player bullet collisions
 
     if(stage.sprite_bullet_count) {
 
+        // For each cell on the grid, check the collisions that are relevant to the objects.
+        // We reduce the resolution with 2 bits to the right, so we divide by 4.
+        // So the total screen dimension is 160x120.
+        // Each "grid" cell is 16x16 pixels.
+        // Note that this resolution reduction is ONLY for the spacial grid map, to base
+        // the collision calculations on 8 bits instead of 16 bit numbers.
         for(unsigned char gx=0; gx<640>>2; gx+=64>>2) {
             for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
 
@@ -120,11 +126,14 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                 ht_key_t ht_key_enemy = grid_key(2, gx, gy);
                 ht_index_t ht_index_enemy_init = ht_get(&ht_collision, ht_key_enemy);
 
+                ht_key_t ht_key_player = grid_key(1, gx, gy);
+                ht_index_t ht_index_player_init = ht_get(&ht_collision, ht_key_player);
+
                 ht_index_t ht_index_bullet = ht_index_bullet_init;
                 while(ht_index_bullet) {
                     unsigned char b = (unsigned char)ht_get_data(ht_index_bullet);
 
-                    if(bullet.used[b] && bullet.side[b] == SIDE_PLAYER) {
+                    if(bullet.used[b]) {
 
                         signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
                         signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
@@ -134,40 +143,72 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                         unsigned char bullet_aabb_max_x = bullet.aabb_max_x[b];
                         unsigned char bullet_aabb_max_y = bullet.aabb_max_y[b];
 
-                        ht_index_t ht_index_enemy = ht_index_enemy_init;
-                        while(ht_index_enemy) {
-                            unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
+                        if(bullet.side[b] == SIDE_PLAYER) {
 
-                            if(enemy.used[e]) {
+                            ht_index_t ht_index_enemy = ht_index_enemy_init;
+                            while(ht_index_enemy) {
+                                unsigned char e = (unsigned char)ht_get_data(ht_index_enemy);
 
-                                signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
-                                signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
+                                if(enemy.used[e]) {
 
-                                unsigned char enemy_aabb_min_x = enemy.aabb_min_x[e];
-                                unsigned char enemy_aabb_min_y = enemy.aabb_min_y[e];
-                                unsigned char enemy_aabb_max_x = enemy.aabb_max_x[e];
-                                unsigned char enemy_aabb_max_y = enemy.aabb_max_y[e];
+                                    signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
+                                    signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
 
-                                if(x_bullet+bullet_aabb_min_x > x_enemy+enemy_aabb_max_x || 
-                                    y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
-                                    x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
-                                    y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
-                                } else {
-                                    RemoveBullet(b);
-                                    RemoveEnemy(e);
-                                    break;
+                                    unsigned char enemy_aabb_min_x = enemy.aabb_min_x[e];
+                                    unsigned char enemy_aabb_min_y = enemy.aabb_min_y[e];
+                                    unsigned char enemy_aabb_max_x = enemy.aabb_max_x[e];
+                                    unsigned char enemy_aabb_max_y = enemy.aabb_max_y[e];
+
+                                    if(x_bullet+bullet_aabb_min_x > x_enemy+enemy_aabb_max_x || 
+                                        y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
+                                        x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
+                                        y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
+                                    } else {
+                                        RemoveBullet(b);
+                                        RemoveEnemy(e);
+                                        break;
+                                    }
                                 }
+                                ht_index_enemy = ht_get_next(ht_index_enemy);
                             }
-                            ht_index_enemy = ht_get_next(ht_index_enemy);
                         }
+
+                        if(bullet.side[b] == SIDE_ENEMY) {
+
+                            ht_index_t ht_index_player = ht_index_player_init;
+                            while(ht_index_player) {
+
+                                unsigned char p = (unsigned char)ht_get_data(ht_index_player);
+                                if(player.used[p]) {
+
+                                    signed int x_player = (signed int)WORD1(player.tx[p]);
+                                    signed int y_player = (signed int)WORD1(player.ty[p]);
+
+                                    unsigned char player_aabb_min_x = player.aabb_min_x[p];
+                                    unsigned char player_aabb_min_y = player.aabb_min_y[p];
+                                    unsigned char player_aabb_max_x = player.aabb_max_x[p];
+                                    unsigned char player_aabb_max_y = player.aabb_max_y[p];
+
+                                    if(x_bullet+bullet_aabb_min_x > x_player+player_aabb_max_x || 
+                                        y_bullet+bullet_aabb_min_y > y_player+player_aabb_max_y || 
+                                        x_bullet+bullet_aabb_max_x < x_player+player_aabb_min_x || 
+                                        y_bullet+bullet_aabb_max_y < y_player+player_aabb_min_y) {
+                                    } else {
+                                        RemoveBullet(b);
+                                        // RemovePlayer(p);
+                                        break;
+                                    }
+                                }
+                                ht_index_player = ht_get_next(ht_index_player);
+                            }
+                        }
+
                     }
                     ht_index_bullet = ht_get_next(ht_index_bullet);
                 }
             }   
         }       
     }
-
-
 
 #endif
 

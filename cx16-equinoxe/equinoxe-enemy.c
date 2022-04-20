@@ -133,8 +133,8 @@ void LogicEnemies() {
 
 				if( enemy.move[e]) {
 					if(enemy.move[e] == 1) {
-						enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
-						enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
+						enemy.tdx[e] = math_vecx(enemy.angle[e], enemy.speed[e]);
+						enemy.tdy[e] = math_vecy(enemy.angle[e], enemy.speed[e]);
 						enemy.move[e] = 0;
 					}
 					if(enemy.move[e] == 2) {
@@ -143,8 +143,8 @@ void LogicEnemies() {
 							enemy.angle[e] += enemy.turn[e];
 							enemy.angle[e] %= 64;
 							enemy.delay[e] = enemy.radius[e];
-							enemy.tdx[e] = vecx(enemy.angle[e], enemy.speed[e]);
-							enemy.tdy[e] = vecy(enemy.angle[e], enemy.speed[e]);
+							enemy.tdx[e] = math_vecx(enemy.angle[e], enemy.speed[e]);
+							enemy.tdy[e] = math_vecy(enemy.angle[e], enemy.speed[e]);
 						}
 						enemy.delay[e]--;
 					}
