@@ -9,7 +9,6 @@
 #include <fp3.h>
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
-#include "equinoxe-debug.h"
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;

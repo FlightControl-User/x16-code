@@ -6,9 +6,11 @@
 
 #pragma var_model(mem)
 
-#define __FLOOR
+// #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
+// #define __CPULINES
+// #define __COLLISION
 // #define __FILE
 
 #include <stdlib.h>
@@ -79,36 +81,32 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 #ifdef __FLIGHT
 
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     vera_display_set_border_color(3);
     #endif
 
     ht_reset(&ht_collision);
 
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     vera_display_set_border_color(7);
     #endif
     LogicPlayer();
 
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     vera_display_set_border_color(6);
     #endif
     LogicBullets();
 
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     vera_display_set_border_color(1);
     #endif
     LogicEnemies();
 
-           
-    vera_display_set_border_color(2);
-
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     vera_display_set_border_color(YELLOW);
     #endif
 
-    // Check player bullet collisions
-
+#ifdef __COLLISION
     if(stage.sprite_bullet_count) {
 
         // For each cell on the grid, check the collisions that are relevant to the objects.
@@ -207,14 +205,17 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                     ht_index_bullet = ht_get_next(ht_index_bullet);
                 }
             }   
-        }       
+        }
     }
+#endif // __COLLISION
 
-#endif
+#endif // __FLIGHT
 
 #ifdef __FLOOR
 
-    vera_display_set_border_color(8);
+    #ifdef __CPULINES
+    vera_display_set_border_color(GREY);
+    #endif
 
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!floor_scroll_action--) {
@@ -285,7 +286,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
 
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     vera_display_set_border_color(0);
     #endif
 
@@ -445,7 +446,7 @@ void main() {
 
 #endif
 
-    #ifdef debug_scanlines
+    #ifdef __CPULINES
     // Set border to measure scan lines
     vera_display_set_hstart(2);
     vera_display_set_hstop(158);
