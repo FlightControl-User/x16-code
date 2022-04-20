@@ -55,6 +55,11 @@ static void StageReset(void) {
 	stage.sprite_player = SPRITE_OFFSET_PLAYER_START;
 	stage.sprite_player_count = 0;
 
+    stage.score = 0;
+    stage.penalty = 0;
+    stage.lives = 10;
+    stage.respawn = 0;
+
 	InitPlayer();
 
 }
@@ -71,9 +76,16 @@ void StageProgress() {
 void LogicStage() {
 	if(stage.spawnenemycount) {
 		if(!(game.tickstage & 0x0F)) {
-			if(stage.sprite_enemy_count<12) {
+			if(stage.sprite_enemy_count<4) {
         		stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 320, -32);
 			}
 		}
+    }
+
+    if(stage.respawn) {
+        stage.respawn--;
+        if(!stage.respawn) {
+            InitPlayer();
+        }
     }
 }

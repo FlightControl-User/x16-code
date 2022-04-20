@@ -48,6 +48,8 @@ void FireBullet(unsigned char p, char reload)
         bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
         bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
 
+        bullet.energy[b] = -50;
+
         bullet_pool = (b+1)%FE_BULLET;
     }
 }
@@ -90,6 +92,8 @@ void FireBulletEnemy(unsigned char e)
         bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
         bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
         bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
+
+        bullet.energy[b] = -25;
 
         bullet_pool = (b+1)%FE_BULLET;
     }

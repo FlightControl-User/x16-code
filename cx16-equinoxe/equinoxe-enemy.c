@@ -39,7 +39,7 @@ void AddEnemy(char t, unsigned int x, unsigned int y) {
 	enemy.wait_animation[e] = 4;
 	enemy.speed_animation[e] = 4;
 	enemy.state_animation[e] = 12;
-	enemy.health[e] = 1;
+	enemy.health[e] = 100;
 	enemy.delay[e] = 0;
 
 	enemy.sprite_type[e] = &SpriteEnemy01;
@@ -61,13 +61,16 @@ void AddEnemy(char t, unsigned int x, unsigned int y) {
 
 }
 
-void RemoveEnemy(unsigned char e) 
+void RemoveEnemy(unsigned char e, unsigned char b) 
 {
-	vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
-    FreeOffset(sprite_offset, &stage.sprite_enemy_count);
-    vera_sprite_disable(sprite_offset);
-    enemy.used[e] = 0;
-    enemy.enabled[e] = 0;
+    enemy.health[e] += bullet.energy[b];
+    if(enemy.health[e] <= 0) {
+        vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+        FreeOffset(sprite_offset, &stage.sprite_enemy_count);
+        vera_sprite_disable(sprite_offset);
+        enemy.used[e] = 0;
+        enemy.enabled[e] = 0;
+    }
 }
 
 void MoveEnemy( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed) {
@@ -99,8 +102,8 @@ void LogicEnemies() {
 
 		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 
-    #ifdef debug_scanlines
-	    vera_display_set_border_color(1);
+    #ifdef __CPULINES
+	    vera_display_set_border_color(WHITE);
     #endif
 
 			// FP tdx = enemy.tdx[e];
@@ -177,12 +180,12 @@ void LogicEnemies() {
 			Sprite* sprite = enemy.sprite_type[e];
 
 			if(x>=-31 && x<640 && y>=-31 && y<480) {
-#ifdef debug_scanlines
-			vera_display_set_border_color(2);
+#ifdef __CPULINES
+			vera_display_set_border_color(RED);
 #endif
 				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
-#ifdef debug_scanlines
-			vera_display_set_border_color(3);
+#ifdef __CPULINES
+			vera_display_set_border_color(PURPLE);
 #endif
 				if(!enemy.enabled[e]) {
 			    	vera_sprite_zdepth(sprite_offset, sprite->Zdepth);

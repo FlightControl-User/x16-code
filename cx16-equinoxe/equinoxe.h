@@ -100,6 +100,12 @@ typedef struct {
     unsigned char phase;
     unsigned char spawnenemycount;
     unsigned char spawnenemytype;
+    
+    unsigned int score;
+    unsigned int penalty;
+
+    unsigned char lives;
+    unsigned char respawn;
 } Stage;
 
 Stage stage;

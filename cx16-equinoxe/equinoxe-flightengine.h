@@ -157,7 +157,7 @@ typedef struct {
     unsigned char baseangle[64];
 
     unsigned char reload[64];
-    unsigned char health[64];
+    signed char health[64];
 
     unsigned char wait_animation[64];
     unsigned char speed_animation[64];
@@ -192,7 +192,7 @@ typedef struct {
 
     unsigned char firegun[4];
     unsigned char reload[4];
-    unsigned char health[4];
+    signed char health[4];
 
     unsigned char wait_animation[4];
     unsigned char speed_animation[4];
@@ -256,7 +256,7 @@ typedef struct {
     unsigned char baseangle[32];
 
     unsigned char reload[32];
-    unsigned char health[32];
+    signed char energy[32];
 
     unsigned char wait_animation[32];
     unsigned char speed_animation[32];

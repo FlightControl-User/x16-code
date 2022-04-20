@@ -9,8 +9,8 @@
 // #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
-// #define __CPULINES
-// #define __COLLISION
+#define __CPULINES
+#define __COLLISION
 // #define __FILE
 
 #include <stdlib.h>
@@ -81,30 +81,30 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 #ifdef __FLIGHT
 
-    #ifdef __CPULINES
-    vera_display_set_border_color(3);
-    #endif
+#ifdef __CPULINES
+    vera_display_set_border_color(BLUE);
+#endif
 
     ht_reset(&ht_collision);
 
-    #ifdef __CPULINES
-    vera_display_set_border_color(7);
-    #endif
+#ifdef __CPULINES
+    vera_display_set_border_color(GREEN);
+#endif
     LogicPlayer();
 
-    #ifdef __CPULINES
-    vera_display_set_border_color(6);
-    #endif
+#ifdef __CPULINES
+    vera_display_set_border_color(CYAN);
+#endif
     LogicBullets();
 
-    #ifdef __CPULINES
-    vera_display_set_border_color(1);
-    #endif
+#ifdef __CPULINES
+    vera_display_set_border_color(RED);
+#endif
     LogicEnemies();
 
-    #ifdef __CPULINES
+#ifdef __CPULINES
     vera_display_set_border_color(YELLOW);
-    #endif
+#endif
 
 #ifdef __COLLISION
     if(stage.sprite_bullet_count) {
@@ -163,7 +163,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                         y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
                                     } else {
                                         RemoveBullet(b);
-                                        RemoveEnemy(e);
+                                        RemoveEnemy(e, b);
                                         break;
                                     }
                                 }
@@ -193,7 +193,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                         y_bullet+bullet_aabb_max_y < y_player+player_aabb_min_y) {
                                     } else {
                                         RemoveBullet(b);
-                                        // RemovePlayer(p);
+                                        // RemovePlayer(p, b);
                                         break;
                                     }
                                 }
@@ -219,7 +219,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!floor_scroll_action--) {
-        floor_scroll_action = 4;
+        floor_scroll_action = 2;
 
         // Check every 16 floor_scroll_vertical the logic to initialize the scroll variables.
         if(!(BYTE0(floor_scroll_vertical) % 16) ) {

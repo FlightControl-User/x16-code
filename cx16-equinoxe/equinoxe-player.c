@@ -3,8 +3,10 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-bullet.h"
 #include "equinoxe-collision.h"
+#include "equinoxe-player.h"
 
-void InitPlayer() {
+void InitPlayer() 
+{
 
 	// player
 	unsigned char p = player_pool;
@@ -18,7 +20,6 @@ void InitPlayer() {
 
 	player.moved[p] = 2;
 
-	player.health[p] = 1;
 	player.firegun[p] = 0;
 	player.reload[p] = 0;
 
@@ -39,6 +40,8 @@ void InitPlayer() {
 	player.aabb_min_y[p] = SpritePlayer01.aabb[1];
 	player.aabb_max_x[p] = SpritePlayer01.aabb[2];
 	player.aabb_max_y[p] = SpritePlayer01.aabb[3];
+
+    player.health[p] = 100;
 
 	player_pool = (p+1)%FE_PLAYER;
 
@@ -63,6 +66,30 @@ void InitPlayer() {
 	engine_pool = (engine_pool++)%FE_ENGINE;
 
 }
+
+void RemovePlayer(unsigned char p, unsigned char b) 
+{
+    player.health[p] += bullet.energy[b];
+
+    if(player.health[p] <= 0) {
+
+        vera_sprite_offset sprite_offset = player.sprite_offset[p];
+        FreeOffset(sprite_offset, &stage.sprite_player_count);
+        vera_sprite_disable(sprite_offset);
+        player.used[p] = 0;
+        player.enabled[p] = 0;
+
+        unsigned char n = player.engine[p];
+        sprite_offset = engine.sprite_offset[n];
+        FreeOffset(sprite_offset, &stage.sprite_player_count);
+        vera_sprite_disable(sprite_offset);
+        engine.used[n] = 0;
+
+        stage.lives--;
+        stage.respawn = 64;
+    }
+}
+
 
 void LogicPlayer() {
 
