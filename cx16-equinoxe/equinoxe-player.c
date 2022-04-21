@@ -173,7 +173,7 @@ void LogicPlayer() {
 				Sprite* engine_sprite = engine.sprite_type[n];
 
 				if(playerx>-32 && playerx<640-32 && playery>-32 && playery<480-32) {
-#ifdef __collision
+#ifdef __COLLISION
 					grid_insert(&ht_collision, 1, BYTE0(playerx>>2), BYTE0(playery>>2), p);
 #endif
 

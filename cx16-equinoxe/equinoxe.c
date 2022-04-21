@@ -193,7 +193,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                         y_bullet+bullet_aabb_max_y < y_player+player_aabb_min_y) {
                                     } else {
                                         RemoveBullet(b);
-                                        // RemovePlayer(p, b);
+                                        RemovePlayer(p, b);
                                         break;
                                     }
                                 }
