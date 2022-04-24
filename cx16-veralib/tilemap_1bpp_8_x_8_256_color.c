@@ -11,8 +11,10 @@
 
 void main() {
 
+    vera_layers_reset();
+
     // Configure the VERA card to work in text, 256 mode.
-   // The color mode is here 256 colors, (256 foreground on a black transparent background).
+    // The color mode is here 256 colors, (256 foreground on a black transparent background).
     vera_layer0_mode_text( 
         0, 0x0000, 
         1, 0xF000, 
@@ -53,4 +55,10 @@ void main() {
     vera_layer1_show();
 
     while(!getin());
+
+    vera_layers_reset();
+    textcolor(WHITE);
+    bgcolor(BLUE);
+    clrscr();
+    gotoxy(0,0);
 }

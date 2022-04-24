@@ -936,6 +936,23 @@ void vera_layer1_mode_text(char mapbase_bank, unsigned int mapbase_offset, char 
     vera_layer1_set_text_color_mode( color_mode );
 }
 
+/**
+ * @brief Resets the vera back to default settings.
+ * Show Layer 1, hide layer 0.
+ * Map from bank 1, offset 0xB000, tile from bank 1, offset 0xF000.
+ * Mapbase width 128, mapbase height 64.
+ * Tilebase width 8, tilebase height 8.
+ * Color depth 4 bpp.
+ * Color mode 16C.
+ */
+void vera_layers_reset() 
+{
+    vera_layer1_mode_tile( 1, 0xB000, 1, 0XF000, VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_64, VERA_TILEBASE_WIDTH_8, VERA_SPRITE_HEIGHT_8, VERA_LAYER_COLOR_DEPTH_1BPP);
+    vera_layer1_set_text_color_mode( VERA_LAYER_CONFIG_16C );
+    vera_layer1_show();
+    vera_layer0_hide();
+}
+
 // Set a vera layer in bitmap mode and configure the:
 // - layer: Value of 0 or 1.
 // - mapbase_address: A dword typed address (4 bytes), that specifies the full address of the map base.

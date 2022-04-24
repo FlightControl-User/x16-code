@@ -104,6 +104,8 @@ inline void vera_display_set_vstop(char stop);
 
 /// --- VERA LAYERS ---
 
+void vera_layers_reset();
+
 void vera_layer0_mode_tile(char mapbase_bank, unsigned int mapbase_offset, char tilebase_bank, unsigned int tilebase_offset, char mapwidth, char mapheight, char tilewidth, char tileheight, char bpp );
 void vera_layer1_mode_tile(char mapbase_bank, unsigned int mapbase_offset, char tilebase_bank, unsigned int tilebase_offset, char mapwidth, char mapheight, char tilewidth, char tileheight, char bpp );
 
