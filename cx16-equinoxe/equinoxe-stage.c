@@ -47,6 +47,8 @@ static void StageReset(void) {
 	engine_pool = 0;
 
     bullet_count = 0;
+    player_count = 0;
+    enemy_count = 0;
 
 	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
 	stage.sprite_bullet_count = 0;

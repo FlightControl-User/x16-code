@@ -33,6 +33,7 @@ const char FILE_PALETTES_SPRITE01[] = "palsprite01";
 const char FILE_PALETTES_FLOOR01[] = "palfloor01";
 
 // Sprite constants
+const unsigned char SPRITE_MOUSE = 0;
 const unsigned char SPRITE_OFFSET_PLAYER_START = 1;
 const unsigned char SPRITE_OFFSET_PLAYER_END = 4;
 const unsigned char SPRITE_OFFSET_ENEMY_START = 5;

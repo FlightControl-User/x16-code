@@ -381,13 +381,13 @@ void main() {
 #ifdef __FLIGHT
 
     // Loading the sprites in bram.
-    for (byte i = 0; i < SPRITE_TYPES;i++) {
+    for (unsigned char i = 0; i < SPRITE_TYPES;i++) {
         sprite_load(SpriteDB[i]);
     }
 
     // Now we copy the sprites from bram to vram.
     heap_handle handle_vram_sprites = {1, (heap_handle_ptr)0x0000}; // size = 0xB000;
-    for (byte i = 0;i < SPRITE_TYPES;i++) {
+    for (unsigned char i=0; i<SPRITE_TYPES; i++) {
         sprite_cpy_vram_from_bram(SpriteDB[i], &handle_vram_sprites);
     }
 
@@ -465,6 +465,7 @@ void main() {
     CLI();
 
     cx16_mouse_config(0xFF, 80, 60);
+    // memset_vram(1, 0x0000, 0, 16);
 
     char cx16_mouse_status = cx16_mouse_get();
     game.prev_mousex = cx16_mousex;

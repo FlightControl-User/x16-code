@@ -28,7 +28,7 @@ void InitPlayer()
 	player.state_animation[p] = 3;
 
 	player.sprite_type[p] = &SpritePlayer01;
-	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
+	player.sprite_offset[p] = 0;
 	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
 
 	player.tx[p] = MAKELONG(320, 0);
@@ -65,6 +65,8 @@ void InitPlayer()
 
 	engine_pool = (engine_pool++)%FE_ENGINE;
 
+    player_count = 1;
+
 }
 
 void RemovePlayer(unsigned char p, unsigned char b) 
@@ -87,15 +89,17 @@ void RemovePlayer(unsigned char p, unsigned char b)
 
         stage.lives--;
         stage.respawn = 64;
+
+        player_count = 0;
     }
 }
 
 
 void LogicPlayer() {
 
-	if (player_pool) {
+	if(player_count) {
 
-		for(char p=0; p<FE_PLAYER-1; p++) {
+		for(char p=0; p<FE_PLAYER; p++) {
 
 #ifdef debug_scanlines
 			vera_display_set_border_color(6);
@@ -105,13 +109,13 @@ void LogicPlayer() {
 
 			if(player.used[p]) {
 
-				if (player.reload[p] > 0) {
+				if(player.reload[p] > 0) {
 					player.reload[p]--;
 				}
 
-				if (!player.wait_animation[p]) {
+				if(!player.wait_animation[p]) {
 					player.wait_animation[p] = player.speed_animation[p];
-					if (game.curr_mousex < game.prev_mousex && player.state_animation[p] > 0) {
+					if(game.curr_mousex < game.prev_mousex && player.state_animation[p] > 0) {
 						// Added fragment
 						player.state_animation[p] -= 1;
 						player.moved[p] = 2;

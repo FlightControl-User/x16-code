@@ -59,6 +59,8 @@ void AddEnemy(char t, unsigned int x, unsigned int y) {
 
 	enemy_pool = (e+1)%FE_ENEMY;
 
+    enemy_count++;
+
 }
 
 void RemoveEnemy(unsigned char e, unsigned char b) 
@@ -70,6 +72,8 @@ void RemoveEnemy(unsigned char e, unsigned char b)
         vera_sprite_disable(sprite_offset);
         enemy.used[e] = 0;
         enemy.enabled[e] = 0;
+
+        enemy_count--;
     }
 }
 
@@ -96,9 +100,9 @@ void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsign
 
 void LogicEnemies() {
 
-	if (!enemy_pool) return;
+	if (!enemy_count) return;
 
-	for(unsigned char e=0; e<FE_ENEMY-1; e++) {
+	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
 		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 

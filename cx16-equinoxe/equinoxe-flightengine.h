@@ -36,7 +36,6 @@ typedef struct {
     vera_sprite_image_offset offset;
 } sprite_list;
 
-
 #define SPRITE_PLAYER01_COUNT 7
 
 Sprite SpritePlayer01 =       { 
@@ -278,6 +277,8 @@ volatile unsigned char engine_pool;
 volatile unsigned char bullet_pool;
 
 volatile unsigned char bullet_count = 0;
+volatile unsigned char player_count = 0;
+volatile unsigned char enemy_count = 0;
 
 void Logic();
 // void Draw();

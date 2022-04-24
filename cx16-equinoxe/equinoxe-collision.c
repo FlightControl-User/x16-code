@@ -22,7 +22,7 @@ void grid_insert(ht_item_t* ht, unsigned char group, unsigned char xmin, unsigne
     ymin = ymin & 0b11110000;
 
     for(unsigned char gx=xmin; gx<=xmax; gx+=16) {
-        for(unsigned char gy=ymax; gy<=ymax; gy+=16) {
+        for(unsigned char gy=ymin; gy<=ymax; gy+=16) {
 
             // bit 0-3 = cy
             // bit 4-7 = cx

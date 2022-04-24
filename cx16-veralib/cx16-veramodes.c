@@ -15,11 +15,17 @@
 
 void main() {
 
+    unsigned char menu = 0;
+
     do {
-        vera_layer_mode_text(1, 0x00000, 0x0f800, 64, 64, 8, 8, 4);
+        vera_layer1_mode_text(
+            1, 0xB000, 1, 0xf800, 
+            VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64, 
+            VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+            VERA_LAYER_CONFIG_16C);
         vera_display_set_scale_double();
-        vera_layer_show(1);
-        screenlayer(1);
+        vera_layer1_show();
+        screenlayer1();
 
         textcolor(WHITE);
         bgcolor(BLUE);
@@ -45,7 +51,6 @@ void main() {
 
         printf( "\n0. exit.\n");
 
-        byte menu = 0;
         while(menu==0) {
             menu = getin();
         }
@@ -54,7 +59,7 @@ void main() {
         bgcolor(BLACK);
         clrscr();
 
-        switch( menu ) {
+        switch(menu) {
             case 49:
                 bitmap_320_x_240_1BPP();
                 break;
@@ -99,14 +104,7 @@ void main() {
                 break;
         }
 
-        vera_layer_hide(0);
-        vera_layer_mode_text(1, 0x00000, 0x0f800, 64, 64, 8, 8, 4);
-        vera_layer_show(1);
-
-        screenlayer(1);
-        textcolor(WHITE);
-        bgcolor(BLUE);
-        clrscr();
+        vera_layer0_hide();
 
     } while( menu != 48 );
 
@@ -114,8 +112,12 @@ void main() {
 
 void tile_16_x_16_8BPP_256_color() {
 
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
-    screenlayer(1);
+    vera_layer0_mode_text( 
+        1, 0xB000, 1, 0xF800, 
+        VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_128, 
+        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+        VERA_LAYER_CONFIG_256C);
+    screenlayer0();
     textcolor(WHITE);
     bgcolor(BLACK);
     clrscr();
@@ -139,23 +141,9 @@ void tile_16_x_16_8BPP_256_color() {
         0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
     };
 
-    // Before we can load the tiles into memory we need to re-arrange a few things!
-    // The amount of tiles is 256, the color depth is 256, so each tile is 256 bytes!
-    // That is 65356 bytes of memory, which is 64K. Yup! One memory bank in VRAM.
-    // VERA VRAM holds in bank 1 many registers that interfere loading all of this data.
-    // So it is better to load all in bank 0, but then there is an other issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x10000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x10000, 0x1F000, 128, 64, 8, 8, 1);
     vera_display_set_scale_none();
 
-    screenlayer(1);
+    screenlayer1();
     textcolor(WHITE);
     bgcolor(BLACK);
     clrscr();
@@ -163,19 +151,24 @@ void tile_16_x_16_8BPP_256_color() {
     // Now we can use the full bank 0!
     // We set the mapbase of the tile demo to output to 0x12000,
     // and the tilebase is set to 0x0000!
-    vera_layer_mode_tile(0, 0x14000, 0x00000, 64, 64, 16, 16, 8);
+    vera_layer0_mode_tile(
+        1, 0x2000, 0, 0x0000, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64, 
+        VERA_TILEBASE_WIDTH_16, HEIGHT_16, 8);
 
 
     word tilebase = 0x0000;
     memcpy_vram_ram(0, tilebase, tiles, 256);
     tilebase+=256;
-    for(byte t:1..255) {
-        for(byte p:0..255) {
-            tiles[p]+=1;
-        }
-        memcpy_vram_ram(0, tilebase, tiles, 256);
-        tilebase+=256;
-    }
+    unsigned char t = 1;
+    do {
+        unsigned char p=0;
+        do {
+            memcpy_vram_ram(0, tilebase, tiles, 256);
+            tilebase+=256;
+        } while(p<=255);
+        t++;
+    } while(t<=255);
 
     //vera_tile_area(byte layer, word tileindex, byte x, byte y, byte w, byte h, byte hflip, byte vflip, byte offset)
 
@@ -185,16 +178,20 @@ void tile_16_x_16_8BPP_256_color() {
 
     // Draw 4 squares with each tile, starting from row 4, width 1, height 1, separated by 2 characters.
     byte row = 1;
-    for(byte r:0..11) {
+    unsigned char r = 0;
+    do {
         byte column = 0;
-        for(byte c:0..19) {
+        unsigned char c=0;
+        do {
+            c++;
             vera_tile_area(0, tile, column, row, 1, 1, 0, 0, 0);
             column+=2;
             tile++;
             tile &= 0xff;
-        }
+        } while(c<=19);
+        r++;
         row += 2;
-    }
+    } while(r<=11);
 
     gotoxy(0,50);
     printf("vera in tile mode 8 x 8, color depth 8 bits per pixel.\n");
@@ -215,9 +212,9 @@ void tile_16_x_16_8BPP_256_color() {
 
     tile = 0;
     row = 0;
-    for(byte r:0..11) {
-        byte column = 0;
-        for(byte c:0..19) {
+    for(unsigned char r=0; r<11; r++) {
+        byte column = 1;
+        for(unsigned char c=0; c<19; c++) {
             vera_tile_area(0, tile, column, row, 2, 2, 0, 0, 0);
             column+=2;
             tile++;
@@ -227,8 +224,6 @@ void tile_16_x_16_8BPP_256_color() {
     }
 
     while(!getin());
-
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 
@@ -237,7 +232,6 @@ void tile_8_x_8_8BPP_256_color() {
     vera_layer_mode_tile(0, 0x04000, 0x14000, 128, 128, 8, 8, 8);
     vera_display_set_scale_none();
 
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
     screenlayer(1);
     textcolor(WHITE);
     bgcolor(BLACK);
@@ -257,13 +251,15 @@ void tile_8_x_8_8BPP_256_color() {
     word tilebase = 0x4000;
     memcpy_vram_ram(1, tilebase, tiles, 64);
     tilebase+=64;
-    for(byte t:1..255) {
-        for(byte p:0..63) {
+    unsigned char t=1;
+    do {
+        for(unsigned char p=0; p<63; p++) {
             tiles[p]+=1;
         }
         memcpy_vram_ram(1, tilebase, tiles, 64);
         tilebase+=64;
-    }
+        t++;
+    } while(t<=255);
 
     //vera_tile_area(byte layer, word tileindex, byte x, byte y, byte w, byte h, byte hflip, byte vflip, byte offset)
 
@@ -273,9 +269,9 @@ void tile_8_x_8_8BPP_256_color() {
 
     // Draw 4 squares with each tile, starting from row 4, width 1, height 1, separated by 2 characters.
     byte row = 1;
-    for(byte r:0..7) {
+    for(unsigned char r=0; r<7; r++) {
         byte column = 1;
-        for(byte c:0..31) {
+        for(unsigned char c=0; c<31; c++) {
             vera_tile_area(0, tile, column, row, 1, 1, 0, 0, 0);
             column+=2;
             tile++;
@@ -286,10 +282,10 @@ void tile_8_x_8_8BPP_256_color() {
 
     tile = 0;
     row = 20;
-    for(byte r:0..7) {
+     for(unsigned char r=0; r<7; r++) {
         byte column = 1;
-        for(byte c:0..31) {
-            vera_tile_area(0, tile, column, row, 2, 2, 0, 0, 0);
+        for(unsigned char c=0; c<31; c++) {
+           vera_tile_area(0, tile, column, row, 2, 2, 0, 0, 0);
             column+=2;
             tile++;
             tile &= 0xff;
@@ -311,8 +307,6 @@ void tile_8_x_8_8BPP_256_color() {
     printf("however, the first color will always be transparent (black).\n");
 
     while(!getin());
-
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 
@@ -321,7 +315,6 @@ void tile_16_x_16_4BPP_16_color() {
     vera_layer_mode_tile(0, 0x04000, 0x14000, 128, 128, 16, 16, 4);
     vera_display_set_scale_none();
 
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
     screenlayer(1);
     textcolor(WHITE);
     bgcolor(BLACK);
@@ -469,13 +462,13 @@ void tile_16_x_16_4BPP_16_color() {
     // Draw 4 squares with each tile, starting from row 4, width 1, height 1, separated by 2 characters.
     tile = 0;
     byte column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 1, 1, 1, 0, 0, 0);
         column+=4;
         tile++;
     }
     column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 3, 1, 1, 0, 0, 0);
         column+=4;
         tile++;
@@ -483,13 +476,13 @@ void tile_16_x_16_4BPP_16_color() {
 
     tile = 0;
     column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 5, 3, 3, 0, 0, 0);
         column+=4;
         tile++;
     }
     column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 9, 3, 3, 0, 0, 0);
         column+=4;
         tile++;
@@ -500,9 +493,9 @@ void tile_16_x_16_4BPP_16_color() {
 
     byte row = 13;
 
-    for(byte r:0..7) {
+    for(unsigned char r=0; r<7; r++) {
         byte column = 1;
-        for(byte c:0..31) {
+        for(unsigned char c=0; c<31; c++) {
             vera_tile_area(0, tile, column, row, 1, 1, 0, 0, offset);
             column+=1;
             tile++;
@@ -534,7 +527,6 @@ void tile_8_x_8_4BPP_16_color() {
     vera_layer_mode_tile(0, 0x04000, 0x14000, 128, 128, 8, 8, 4);
     vera_display_set_scale_none();
 
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
     screenlayer(1);
     textcolor(WHITE);
     bgcolor(BLACK);
@@ -584,13 +576,13 @@ void tile_8_x_8_4BPP_16_color() {
     // Draw 4 squares with each tile, starting from row 4, width 1, height 1, separated by 2 characters.
     tile = 0;
     byte column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 1, 1, 1, 0, 0, 0);
         column+=8;
         tile++;
     }
     column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 3, 1, 1, 0, 0, 0);
         column+=8;
         tile++;
@@ -598,13 +590,13 @@ void tile_8_x_8_4BPP_16_color() {
 
     tile = 0;
     column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 5, 6, 6, 0, 0, 0);
         column+=8;
         tile++;
     }
     column = 1;
-    for(byte c:0..7) {
+    for(unsigned char c=0; c<7; c++) {
         vera_tile_area(0, tile, column, 12, 6, 6, 0, 0, 0);
         column+=8;
         tile++;
@@ -615,9 +607,9 @@ void tile_8_x_8_4BPP_16_color() {
 
     byte row = 20;
 
-    for(byte r:0..7) {
+    for(unsigned char r=0; r<7; r++) {
         byte column = 1;
-        for(byte c:0..31) {
+        for(unsigned char c=0; c<31; c++) {
             vera_tile_area(0, tile, column, row, 2, 2, 0, 0, offset);
             column+=2;
             tile++;
@@ -649,7 +641,6 @@ void tile_16_x_16_2BPP_4_color() {
     vera_layer_mode_tile(0, 0x04000, 0x14000, 128, 128, 16, 16, 2);
     vera_display_set_scale_none();
 
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
     screenlayer(1);
     textcolor(WHITE);
     bgcolor(BLACK);
@@ -697,9 +688,9 @@ void tile_16_x_16_2BPP_4_color() {
 
     byte row = 10;
 
-    for(byte r:0..3) {
+    for(unsigned char r=0; r<3; r++) {
         byte column = 4;
-        for(byte c:0..16) {
+        for(unsigned char c=0; c<15; c++) {
             vera_tile_area(0, tile, column, row, 1, 1, 0, 0, offset);
             column+=2;
             offset++;
@@ -731,7 +722,6 @@ void tile_8_x_8_2BPP_4_color() {
     vera_layer_mode_tile(0, 0x04000, 0x14000, 128, 128, 8, 8, 2);
     vera_display_set_scale_none();
 
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
     screenlayer(1);
     textcolor(WHITE);
     bgcolor(BLACK);
@@ -761,9 +751,9 @@ void tile_8_x_8_2BPP_4_color() {
 
     byte row = 22;
 
-    for(byte r:0..3) {
+    for(unsigned char r=0; r<3; r++) {
         byte column = 4;
-        for(byte c:0..15) {
+        for(unsigned char c=0; c<15; c++) {
             vera_tile_area(0, tile, column, row, 3, 3, 0, 0, offset);
             column+=4;
             offset++;
@@ -795,14 +785,15 @@ void text_8_x_8_1BPP_256_color() {
 
     // Configure the VERA card to work in text, 256 mode.
     // The color mode is here 256 colors, (256 foreground on a black transparent background).
-    vera_layer_mode_text( 1, 0x00000, 0x0F800, 128, 128, 8, 8, 256 );
+    vera_layer_mode_text( 1, 0x00000, 0x1F800, 128, 128, 8, 8, 256 );
     vera_display_set_scale_none();
     screenlayer(1);
 
-    for(byte c:0..255) {
+    unsigned char c=0;
+    do {
         textcolor(c);
         printf(" ****** ");
-    }
+    } while(c<=255);
 
     vera_layer_show(1);
 
@@ -832,10 +823,11 @@ void text_8_x_8_1BPP_16_color() {
     clrscr();
 
 
-    for(byte c:0..255) {
+    unsigned char c=0;
+    do {
         bgcolor(c);
         printf(" ++++++ ");
-    }
+    } while(c<=255);
 
     vera_layer_show(1);
 
@@ -855,18 +847,8 @@ void text_8_x_8_1BPP_16_color() {
 
 void bitmap_320_x_240_1BPP() {
 
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 1);
 
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
     screenlayer(1);
 
     textcolor(WHITE);
@@ -881,7 +863,7 @@ void bitmap_320_x_240_1BPP() {
 
     vera_layer_show(0);
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,29);
@@ -912,23 +894,11 @@ void bitmap_320_x_240_1BPP() {
         x++;
         if(x>319) x=0;
     };
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_640_x_480_1BPP() {
 
     vera_display_set_scale_none();
-
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 640, 1);
 
@@ -945,7 +915,7 @@ void bitmap_640_x_480_1BPP() {
 
     vera_layer_show(0);
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,59);
@@ -976,21 +946,9 @@ void bitmap_640_x_480_1BPP() {
         x++;
         if(x>639) x=0;
     };
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_320_x_240_2BPP() {
-
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 2);
 
@@ -1007,7 +965,7 @@ void bitmap_320_x_240_2BPP() {
 
     vera_layer_show(0);
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,29);
@@ -1038,21 +996,9 @@ void bitmap_320_x_240_2BPP() {
         x++;
         if(x>319) x=0;
     };
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_640_x_480_2BPP() {
-
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 640, 2);
 
@@ -1069,7 +1015,7 @@ void bitmap_640_x_480_2BPP() {
 
     vera_layer_show(0);
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,59);
@@ -1100,22 +1046,9 @@ void bitmap_640_x_480_2BPP() {
         x++;
         if(x>639) x=0;
     };
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_320_x_240_4BPP() {
-
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 4);
 
@@ -1132,7 +1065,7 @@ void bitmap_320_x_240_4BPP() {
 
     vera_layer_show(0);
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,29);
@@ -1163,22 +1096,9 @@ void bitmap_320_x_240_4BPP() {
         x++;
         if(x>319) x=0;
     };
-
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }
 
 void bitmap_320_x_240_8BPP() {
-
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer_mode_tile(1, 0x14000, 0x1F000, 128, 64, 8, 8, 1);
 
     vera_layer_mode_bitmap(0, (dword)0x00000, 320, 8);
 
@@ -1195,7 +1115,7 @@ void bitmap_320_x_240_8BPP() {
 
     vera_layer_show(0);
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,29);
@@ -1225,6 +1145,4 @@ void bitmap_320_x_240_8BPP() {
         x++;
         if(x>319) x=0;
     };
-
-    memcpy_vram_vram(0, 0xF800, 1, 0xF000, 256*8); // We copy the 128 character set of 8 bytes each.
 }

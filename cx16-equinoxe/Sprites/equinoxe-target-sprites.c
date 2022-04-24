@@ -70,8 +70,8 @@ __export char BULLET01[] = kickasm {{{
 
 #pragma data_seg(Bullet02)
 __export char BULLET02[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/Bullets/Bullet02_16x16",1,0,16,16,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/Bullets/Bullet02_16x16",pallist,1,0,16,16,2,1,2,1)
+    .var pallist = GetPalette("cx16-equinoxe/Bullets/Bullet02_16x16",4,0,16,16,2,1,2,1)
+    .var tiledata = MakeTile("cx16-equinoxe/Bullets/Bullet02_16x16",pallist,4,0,16,16,2,1,2,1)
     .var pallistdata = MakePalette("cx16-equinoxe/Bullets/Bullet02_16x16",pallist,16)
     .for(var i=0;i<tiledata.size();i++) {
         .byte tiledata.get(i)

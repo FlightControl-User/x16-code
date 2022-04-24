@@ -14,7 +14,11 @@ void main() {
     bgcolor(BLACK);
     clrscr();
 
-    vera_layer_mode_tile(0, 0x04000, 0x14000, 128, 128, 8, 8, 2);
+    vera_layer0_mode_tile(
+        0,0x4000, 1, 0x4000, 
+        VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_128, 
+        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+        VERA_LAYER_COLOR_DEPTH_2BPP);
 
     byte tiles[64] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
                      0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,0x55,
@@ -66,5 +70,5 @@ void main() {
     printf("can be used per offset!\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!kbhit());
+    while(!getin());
 }

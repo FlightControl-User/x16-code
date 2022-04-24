@@ -17,8 +17,8 @@ void main() {
     // Configure the VERA card to work in text, 16x16 mode.
     // The color mode is here 16 colors, indicating 16x16 color mode, (16 foreground and 16 background colors).
     vera_layer1_mode_text( 
-        0, 0x0000, 
-        0, 0xF800, 
+        1, 0xB000, 
+        1, 0xF000, 
         VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_64,
         VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
         VERA_LAYER_CONFIG_16C 

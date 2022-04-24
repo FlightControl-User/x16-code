@@ -17,25 +17,9 @@
 
 void main() {
 
-    // Before we configure the bitmap pane into vera  memory we need to re-arrange a few things!
-    // It is better to load all in bank 0, but then there is an issue.
-    // So the default CX16 character set is located in bank 0, at address 0xF800.
-    // So we need to move this character set to bank 1, suggested is at address 0xF000.
-    // The CX16 by default writes textual output to layer 1 in text mode, so we need to
-    // realign the moved character set to 0xf000 as the new tile base for layer 1.
-    // We also will need to realign for layer 1 the map base from 0x00000 to 0x14000.
-    // This is now all easily done with a few statements in the new kickc vera lib ...
-    memcpy_vram_vram(1, 0xF000, 0, 0xF800, 256*8); // We copy the 128 character set of 8 bytes each.
-    vera_layer1_mode_tile(
-        1, 0x4000, 
-        1, 0xF000, 
-        VERA_LAYER_WIDTH_128, VERA_LAYER_HEIGHT_64, 
-        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
-        VERA_LAYER_COLOR_DEPTH_1BPP
-    );
-    screenlayer1();
     textcolor(WHITE);
     bgcolor(BLACK);
+
     clrscr();
     gotoxy(0,25);
     printf("vera in bitmap mode,\n");
@@ -44,14 +28,13 @@ void main() {
     printf("graphics in 2 colors (black or color).\n");
     vera_layer0_show();
 
-
     vera_layer0_mode_bitmap(
         0, 0x0000, 
         VERA_TILEBASE_WIDTH_8, 
         1
     );
 
-    bitmap_init(0, 0x00000);
+    bitmap_init(0, 0, 0x0000);
     bitmap_clear();
 
     gotoxy(0,29);
