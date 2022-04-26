@@ -2,11 +2,12 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "cx16-kickc-compile",
+            "label": "CX16-KICKC-Compile",
             "command": "cmd/cx16-kickc-compile.ps1",            
             "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}.c"
+                "${workspaceFolder}",
+                "${relativeFileDirname}",
+                "${fileBasename}"
             ],
             
             "type": "shell",
@@ -35,110 +36,12 @@
             }
         },
         {
-            "label": "cx16-kickc-compile-optimized",
-            "command": "cmd/cx16-kickc-compile-optimized.ps1",            
+            "label": "CX16-EMU-Make-Run",
+            "command": "cmd/cx16-emu-make-run.ps1",
             "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}.c"
-            ],
-            
-            "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceRoot}"
-                ],
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                }
-            }
-        },
-        {
-            "label": "cx16-kickc-compile-verbosed",
-            "command": "cmd/cx16-kickc-compile-verbosed.ps1",            
-            "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}.c"
-            ],
-            
-            "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceRoot}"
-                ],
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                }
-            }
-        },
-        {
-            "label": "cx16-cl65-compile",
-            "command": "cmd/cx16-cl65-compile.ps1",
-            "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}.c"
-            ],
-            
-            "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": {
-                "owner": "cpp",
-                "fileLocation": [
-                    "relative",
-                    "${workspaceRoot}"
-                ],
-                "pattern": {
-                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "column": 3,
-                    "severity": 4,
-                    "message": 5
-                }
-            }
-        },
-        {
-            "label": "x16-Make-Run",
-            "command": "cmd/X16-Make-Run.ps1",
-            "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}.prg"
+                "${workspaceFolder}",
+                "${relativeFileDirname}",
+                "${fileBasenameNoExtension}"
             ],
             "type": "shell",
             "presentation": {
@@ -152,11 +55,12 @@
             "problemMatcher": []
         },
         {
-            "label": "x16-Box-Make-Run",
-            "command": "cmd/x16-box-make-run.ps1",
+            "label": "CX16-BOX-Make-Run",
+            "command": "cmd/cx16-box-make-run.ps1",
             "args": [
-                "${fileDirname}",
-                "${fileBasenameNoExtension}.prg"
+                "${workspaceFolder}",
+                "${relativeFileDirname}",
+                "${fileBasenameNoExtension}"
             ],
             "type": "shell",
             "presentation": {

@@ -1,8 +1,9 @@
-echo $args[0] $args[1]
-$filedir=$args[0]
-$filename=$args[1]
+$workspacedir=$args[0]
+$dir=$args[1]
+$file=$args[2]
+echo $args[0] $args[1] $args[2]
 
-$user_dev = (Get-Location).Path
+$user_dev = ($workspacedir)
 $kickc = Get-Content Env:KICKC # Returns the environment variable of KICKC defined on the system.
 $kickc_dev = Get-Content Env:KICKCDEV # Returns the environment variable of KICKCDEV defined on the system.
 
@@ -28,7 +29,7 @@ Write-Output ("kickc_jar = " + $kickc_jar)
 cd (Get-Location).Path
 
 # Unoptimized compile
-java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -Onouplift -Xassembler=-symbolfile -vasmout "$filedir/$filename"
+java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -Onouplift -Xassembler=-symbolfile -vasmout -odir "$workspacedir/$dir/../target" "$workspacedir/$dir/$file"
 
 # Optimized compile
 #java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -vasmout -Xassembler=-symbolfile "$filedir/$filename"
