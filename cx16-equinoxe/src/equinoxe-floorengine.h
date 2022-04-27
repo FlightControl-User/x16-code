@@ -24,7 +24,7 @@ typedef struct {
 
 const byte TILE_FLOOR01_COUNT = 30;
 tile_t TileFloor01 = { 
-    "floor01", 
+    "floor01.bin", 
     TILE_FLOOR01_COUNT, 
     0, 
     32*32*TILE_FLOOR01_COUNT, 
@@ -96,10 +96,10 @@ struct TileWeight {
 
 byte const TILE_WEIGHTS = 5;
 struct TileWeight TileWeightDB[5] = {
-    { 0, 4, { 10, 11, 13, 14 } },
-    { 3, 2, { 03, 12 } },
-    { 4, 2, { 06, 09 } },
-    { 5, 6, { 01, 02, 04, 05, 07, 08 } },
+    { 5, 4, { 10, 11, 13, 14 } },
+    { 8, 2, { 03, 12 } },
+    { 9, 2, { 06, 09 } },
+    { 10, 6, { 01, 02, 04, 05, 07, 08 } },
     { 15, 1, { 15 } }
 };
 

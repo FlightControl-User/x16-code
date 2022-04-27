@@ -28,7 +28,7 @@ void InitPlayer()
 	player.state_animation[p] = 3;
 
 	player.sprite_type[p] = &SpritePlayer01;
-	player.sprite_offset[p] = 0;
+	player.sprite_offset[p] = vera_sprite_get_offset(0);
 	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
 
 	player.tx[p] = MAKELONG(320, 0);

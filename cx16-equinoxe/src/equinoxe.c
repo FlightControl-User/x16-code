@@ -1,12 +1,10 @@
 // Space flight engine for a space game written in kickc for the Commander X16.
 
 #pragma link("equinoxe.ld")
-
 #pragma encoding(petscii_mixed)
-
 #pragma var_model(mem)
 
-// #define __FLOOR
+#define __FLOOR
 #define __FLIGHT
 #define __PALETTE
 #define __CPULINES

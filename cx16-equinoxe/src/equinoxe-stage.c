@@ -5,7 +5,8 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-stage.h"
 
-void StageInit(void) {
+void StageInit(void)
+{
 	game.delegate.Logic = &Logic;
 
 	memset(&stage, 0, sizeof(Stage));
@@ -18,7 +19,9 @@ void StageInit(void) {
 	StageProgress();
 }
 
-vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count) {
+
+vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count)
+{
 
 	while(sprite_offsets[*sprite_id]) {
 		*sprite_id = ((*sprite_id) >= sprite_end)?sprite_start:(*sprite_id)+1;
@@ -31,13 +34,16 @@ vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite
 }
 
 
-void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count) {
+void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count)
+{
 	vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
 	sprite_offsets[sprite_id] = 0;
 	(*count)--;
 }
 
-static void StageReset(void) {
+
+static void StageReset(void)
+{
 
 	memset(&stage, 0, sizeof(Stage));
 
@@ -66,7 +72,9 @@ static void StageReset(void) {
 
 }
 
-void StageProgress() {
+
+void StageProgress()
+{
 	switch(stage.level) {
 		case 1:
 			stage.spawnenemycount = 120;
@@ -75,7 +83,9 @@ void StageProgress() {
 	}
 }
 
-void LogicStage() {
+
+void LogicStage()
+{
 	if(stage.spawnenemycount) {
 		if(!(game.tickstage & 0x0F)) {
 			if(stage.sprite_enemy_count<4) {
