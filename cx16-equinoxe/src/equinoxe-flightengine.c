@@ -23,22 +23,18 @@
 #include <multiply.h>
 #include <cx16-bitmap.h>
 
-#include "equinoxe.h"
+#include "equinoxe-types.h"
+#include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
-#include "equinoxe-floorengine.h"
-#include "equinoxe-player.h"
-#include "equinoxe-enemy.h"
-#include "equinoxe-fighters.h"
-#include "equinoxe-bullet.h"
 
 #include <ht.h>
 
-void sprite_cpy_vram_from_bram(Sprite* sprite, heap_handle* vram_sprites) {
+void sprite_cpy_vram_from_bram(sprite_t* sprite, heap_handle* vram_sprites) {
 
-    unsigned char SpriteCount = sprite->SpriteCount;
+    unsigned char count = sprite->count;
     unsigned int SpriteSize = sprite->SpriteSize;
 
-    for (unsigned char s=0; s<SpriteCount; s++) {
+    for (unsigned char s=0; s<count; s++) {
 
         heap_handle handle_bram = sprite->bram_handle[s];
 
@@ -50,27 +46,27 @@ void sprite_cpy_vram_from_bram(Sprite* sprite, heap_handle* vram_sprites) {
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
-void sprite_load(Sprite* sprite) 
+void sprite_load(sprite_t* sprite) 
 {
 
-    printf("loading sprites %s\n", sprite->File);
-    printf("spritecount=%u, spritesize=%u", sprite->SpriteCount, sprite->SpriteSize);
+    printf("loading sprites %s\n", sprite->file);
+    printf("spritecount=%u, spritesize=%u", sprite->count, sprite->SpriteSize);
     printf(", opening\n");
 
 
-    unsigned int status = open_file(1, 8, 0, sprite->File);
-    if (status) printf("error opening file %s\n", sprite->File);
+    unsigned int status = open_file(1, 8, 0, sprite->file);
+    if (status) printf("error opening file %s\n", sprite->file);
 
-    // printf("spritecount = %u\n", sprite->SpriteCount);
+    // printf("spritecount = %u\n", sprite->count);
 
-    for(unsigned char s=0; s<sprite->SpriteCount; s++) {
+    for(unsigned char s=0; s<sprite->count; s++) {
         printf("allocating");
         heap_handle handle_bram = heap_alloc(bins, sprite->SpriteSize);
         printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
         printf(", loading");
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, sprite->SpriteSize);
         if (!bytes_loaded) {
-            printf("error loading file %s\n", sprite->File);
+            printf("error loading file %s\n", sprite->file);
             break;
         }
         printf(" %u bytes\n", bytes_loaded);
@@ -78,7 +74,7 @@ void sprite_load(Sprite* sprite)
     }
 
     status = close_file(1, 8, 0);
-    if (status) printf("error closing file %s\n", sprite->File);
+    if (status) printf("error closing file %s\n", sprite->file);
 
     printf(", done\n");
 }
@@ -86,7 +82,7 @@ void sprite_load(Sprite* sprite)
 
 #include "equinoxe-petscii-move.c"
 
-void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
+void sprite_configure(vera_sprite_offset sprite_offset, sprite_t* sprite) {
     // vera_sprite_buffer_bpp((vera_sprite_buffer_item_t *)sprite_offset, sprite->BPP);
     // vera_sprite_buffer_height((vera_sprite_buffer_item_t *)sprite_offset, sprite->Height);
     // vera_sprite_buffer_width((vera_sprite_buffer_item_t *)sprite_offset, sprite->Width);
@@ -101,10 +97,10 @@ void sprite_configure(vera_sprite_offset sprite_offset, Sprite* sprite) {
     vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
 }
 
-inline void sprite_animate(vera_sprite_offset sprite_offset, Sprite* sprite, byte index, byte animate) {
-    byte SpriteCount = sprite->SpriteCount;
-    if(index >= SpriteCount) 
-        index = index - SpriteCount;
+inline void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate) {
+    byte count = sprite->count;
+    if(index >= count) 
+        index = index - count;
     if(!animate) {
         vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
     }
@@ -116,7 +112,7 @@ inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordi
     vera_sprite_set_xy(sprite_offset, x, y);
 }
 
-inline void sprite_enable(vera_sprite_offset sprite_offset, Sprite* sprite) {
+inline void sprite_enable(vera_sprite_offset sprite_offset, sprite_t* sprite) {
     // vera_sprite_buffer_zdepth((vera_sprite_buffer_item_t *)sprite_offset, sprite->Zdepth);
     vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
 }

@@ -7,10 +7,15 @@ diskpart /s cmd/attach.dsk
 Remove-Item -Path X:\* -Recurse
 
 echo "Copying graphics"
-copy-item  -Verbose -Recurse -Force -Path "$workspacedir/$dir/../graphics/*/*.BIN" "X:/"
+copy-item  -Verbose -Recurse -Force -Path "$workspacedir/$dir/../graphics/target/*.BIN" "X:/"
 echo "Copying Program"
-copy-item -Verbose -Path "$workspacedir/$dir/../target/*.prg" "X:/" 
+copy-item -Verbose -Path "$workspacedir/$dir/../target/*.PRG" "X:/" 
 
 diskpart /s cmd/detach.dsk
 
-x16emu -echo -sdcard "C:\SDCARD\CX16.vhd" -prg $workspacedir\$dir\..\target\$file.prg -debug -keymap fr-be
+cd $workspacedir/$dir/../target
+
+Get-ChildItem | Rename-Item -NewName { $_.Basename.ToUpper() + $_.Extension.ToUpper() }
+
+#x16emu -echo -sdcard "C:\SDCARD\CX16.vhd" -prg $workspacedir\$dir\..\target\$file.prg -debug -keymap fr-be
+x16emu -sdcard "C:\SDCARD\CX16.vhd" -keymap fr-be -prg "$file.prg"

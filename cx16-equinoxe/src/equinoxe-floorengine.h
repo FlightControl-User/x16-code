@@ -11,7 +11,7 @@ unsigned long const FLOOR_TILE_ADDRESS_VRAM = 0x02000;
 
 
 typedef struct {
-    char File[16];
+    char file[16];
     byte TileCount;
     byte TileOffset;
     word TotalSize;

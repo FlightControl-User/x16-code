@@ -15,8 +15,8 @@
 
 struct sprite {
     char File[16];
-    byte SpriteCount;
-    byte SpriteOffset;
+    byte count;
+    byte offset;
     word TotalSize;
     word SpriteSize;
     byte Height;
@@ -53,16 +53,16 @@ int main() {
     unsigned int status = load_bram(1, 8, 0, sprite->File, 1, 0xA000);
     if(status!=$ff) printf("error file %s: %x\n", sprite->File, status);
 
-    byte SpriteCount = sprite->SpriteCount;
+    byte count = sprite->count;
     word SpriteSize = sprite->SpriteSize;
-    byte SpriteOffset = sprite->SpriteOffset;
+    byte offset = sprite->offset;
 
     byte bank_vram_sprite = 0;
     word ptr_vram_sprite = 0x0000;
     byte bank_bram_sprite = 1;
     byte* ptr_bram_sprite = 0xA000;
 
-    for(byte s=0;s<SpriteCount;s++) {
+    for(byte s=0;s<count;s++) {
 
         printf("bram->vram: %x, bank_vram_sprite = %x, ptr_vram_sprite = %p, bank_bram_sprite = %x, ptr_bram_sprite = %p, SpriteSize = %x\n", s, bank_vram_sprite, ptr_vram_sprite, bank_bram_sprite, ptr_bram_sprite, SpriteSize);
         memcpy_vram_bram(bank_vram_sprite, (word)ptr_vram_sprite, bank_vram_sprite, (byte*)ptr_bram_sprite, SpriteSize);

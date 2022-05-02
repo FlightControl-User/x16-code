@@ -1,10 +1,11 @@
 #include <cx16-mouse.h>
-#include "equinoxe.h"
+#include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-bullet.h"
-#include "equinoxe-stage.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-math.h"
+#include "equinoxe-stage.h"
+
 
 void FireBullet(unsigned char p, char reload)
 {
@@ -118,7 +119,7 @@ inline void LogicBullets()
 
         if(bullet.used[b]) {
             vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
-            Sprite* sprite = bullet.sprite_type[b];
+            sprite_t* sprite = bullet.sprite_type[b];
 
 
             bullet.tx[b] += bullet.tdx[b];

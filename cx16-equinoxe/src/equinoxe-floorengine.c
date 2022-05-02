@@ -13,7 +13,7 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-#include "equinoxe.h"
+#include "equinoxe-types.h"
 #include "equinoxe-floorengine.h"
 
 #pragma data_seg(TileControl)
@@ -268,12 +268,12 @@ void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram)
 // Load the tile into bram using the new cx16 heap manager.
 void tile_load(tile_t *tile) {
 
-    printf("loading tiles %s\n", tile->File);
+    printf("loading tiles %s\n", tile->file);
     printf("tilecount=%u, tilesize=%u", tile->TileCount, tile->TileSize);
     printf(", opening\n");
 
-    unsigned int status = open_file(1, 8, 0, tile->File);
-    if (status) printf("error opening file %s\n", tile->File);
+    unsigned int status = open_file(1, 8, 0, tile->file);
+    if (status) printf("error opening file %s\n", tile->file);
 
     for(unsigned char s=0; s<tile->TileCount; s++) {
         printf("allocating");
@@ -282,7 +282,7 @@ void tile_load(tile_t *tile) {
         printf(", loading");
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, tile->TileSize);
         if (!bytes_loaded) {
-            printf("error loading file %s\n", tile->File);
+            printf("error loading file %s\n", tile->file);
             break;
         }
         printf(" %u bytes\n", bytes_loaded);
@@ -291,7 +291,7 @@ void tile_load(tile_t *tile) {
     printf(", closing");
 
     status = close_file(1, 8, 0);
-    if (status) printf("error closing file %s\n", tile->File);
+    if (status) printf("error closing file %s\n", tile->file);
 
     printf(", done\n");
 }

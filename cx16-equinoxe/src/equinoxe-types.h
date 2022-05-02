@@ -1,5 +1,5 @@
-#ifndef equinoxe_h
-#define equinoxe_h
+#ifndef equinoxe_types_h
+#define equinoxe_types_h
 
 #pragma var_model(mem)
 
@@ -9,6 +9,11 @@
 #include <fp3.h>
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
+
+#include "equinoxe-flightengine-types.h"
+#include "equinoxe-stage-types.h"
+#include "equinoxe-enemy-types.h"
+
 
 // This frees up the maximum space in VERA VRAM available for graphics.
 const word VRAM_PETSCII_MAP_SIZE = 128*64*2;
@@ -32,7 +37,7 @@ const byte HEAP_SEGMENT_BRAM_ENTITIES_BANKS = 1;
 const char FILE_PALETTES_SPRITE01[] = "palsprite01.bin";
 const char FILE_PALETTES_FLOOR01[] = "palfloor01.bin";
 
-// Sprite constants
+// sprite_t constants
 const unsigned char SPRITE_MOUSE = 0;
 const unsigned char SPRITE_OFFSET_PLAYER_START = 1;
 const unsigned char SPRITE_OFFSET_PLAYER_END = 4;
@@ -51,11 +56,6 @@ volatile word floor_scroll_vertical = 16*32;
 volatile int prev_mousex = 0;
 volatile int prev_mousey = 0;
 volatile byte floor_scroll_action = 2;
-
-
-
-// vera_sprite_buffer_item_t sprite_buffer[128];
-
 
 struct sprite_bullet {
     byte active;
@@ -86,30 +86,6 @@ typedef struct {
 
 
 
-typedef struct {
-    heap_handle fighter_list;
-    heap_handle fighter_tail;
-    heap_handle bullet_tail;
-    heap_handle bullet_list;
-    vera_sprite_id sprite_player; // Keep track of the last player sprite allocated.
-    unsigned char sprite_player_count;
-    vera_sprite_id sprite_bullet; // Keep track of the last bullet sprite allocated.
-    unsigned char sprite_bullet_count;
-    vera_sprite_id sprite_enemy;  // Keep track of the last enemy sprite allocated.
-    unsigned char sprite_enemy_count;
-    unsigned char level;
-    unsigned char phase;
-    unsigned char spawnenemycount;
-    unsigned char spawnenemytype;
-    
-    unsigned int score;
-    unsigned int penalty;
-
-    unsigned char lives;
-    unsigned char respawn;
-} Stage;
-
-Stage stage;
 
 vera_sprite_offset sprite_offsets[127] = {0};
 
@@ -135,6 +111,7 @@ static heap_segment heap_512; static heap_segment* bin512 = &heap_512;
 static heap_segment heap_1024; static heap_segment* bin1024 = &heap_1024;
 
 static heap_structure heap; static heap_structure* bins = &heap;
+
 
 #pragma data_seg(Data)
 

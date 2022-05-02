@@ -4,7 +4,7 @@
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-#define __FLOOR
+// #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
 #define __CPULINES
@@ -27,16 +27,33 @@
 #include <multiply.h>
 #include <cx16-bitmap.h>
 
-#include "equinoxe.h"
+#include "equinoxe-types.h"
+#include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-floorengine.h"
-#include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
-#include "equinoxe-fighters.h"
 #include "equinoxe-bullet.h"
+#include "equinoxe-fighters.h"
+#include "equinoxe-enemy.h"
+#include "equinoxe-player.h"
+#include "equinoxe-math.h"
 
 #include <ht.h>
 
+
+#pragma data_seg(SpriteControlEnemies)
+fe_enemy_t enemy;
+
+#pragma data_seg(SpriteControlPlayer)
+fe_player_t player;
+
+#pragma data_seg(SpriteControlEngine)
+fe_engine_t engine;
+
+#pragma data_seg(SpriteControlBullets)
+fe_bullet_t bullet;
+
+#pragma data_seg(Data)
 
 
 inline void Logic(void) {
@@ -161,7 +178,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                         y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
                                     } else {
                                         RemoveBullet(b);
-                                        RemoveEnemy(e, b);
+                                        StageHitEnemy(e, b);
                                         break;
                                     }
                                 }
@@ -325,7 +342,7 @@ void main() {
     // 
     // SpriteControlEnemies                                   00:A800 - 00:B2FF
     // SpriteControlBullets                                   00:B300 - 00:B87F
-    // SpriteControlP²layer                                    00:B900 - 00:B987
+    // SpriteControlPlayer                                    00:B900 - 00:B987
     // SpriteControlEngine                                    00:BA00 - 00:BA1F
     // Palette                                                3F:A000 - 3F:BFFF
 

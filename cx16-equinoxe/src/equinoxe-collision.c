@@ -1,4 +1,4 @@
-#include "equinoxe.h"
+#include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 #include "stdio.h"

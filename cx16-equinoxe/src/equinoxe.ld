@@ -1,9 +1,10 @@
 .file [name="%O", type="prg", segments="Program"]
-.segmentdef Program [segments="Basic, Code, Data, SpriteControl, TileControl, Hash"]
+.segmentdef Program [segments="Basic, Code, Data, EnemyControl, SpriteControl, TileControl, Hash"]
 .segmentdef Basic [start=$0801]
 .segmentdef Code [start=%P]
 .segmentdef Data [startAfter="Code", align=$100]
-.segmentdef SpriteControl [startAfter="Data", align=$100]
+.segmentdef EnemyControl [startAfter="Data", align=$100]
+.segmentdef SpriteControl [startAfter="EnemyControl", align=$100]
 .segmentdef TileControl [startAfter="SpriteControl", align=$100]
 .segmentdef Hash [startAfter="TileControl", align=$100]
 .segmentdef SpriteControlEnemies [start=$A800, min=$A800, max=$BFFF, align=$100]
@@ -14,6 +15,7 @@
 :BasicUpstart(%E)
 .segment Code
 .segment Data
+.segment EnemyControl
 .segment SpriteControl
 .segment TileControl
 .segment Hash

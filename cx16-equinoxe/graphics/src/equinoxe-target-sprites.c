@@ -36,6 +36,22 @@ __export char ENEMY01[] = kickasm {{{
     }
 };}};
 
+#pragma data_seg(Enemy03)
+__export char ENEMY03[] = kickasm {{{
+    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy03_32x32",06,0,32,32,2,1,2,1)
+    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy03_32x32",pallist,06,0,32,32,2,1,2,1)
+    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy03_32x32",pallist,16)
+    .for(var i=0;i<tiledata.size();i++) {
+        .byte tiledata.get(i)
+    }
+    .segment Palettes
+    .print "palette size = " + pallistdata.size()
+    .for(var i=0;i<pallistdata.size();i++) {
+        .byte pallistdata.get(i)
+        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
+    }
+};}};
+
 #pragma data_seg(Engine01)
 __export char ENGINE01[] = kickasm {{{
     .var pallist = GetPalette("cx16-equinoxe/graphics/engines/engine_red_16x16",16,1,16,16,2,1,2,1)

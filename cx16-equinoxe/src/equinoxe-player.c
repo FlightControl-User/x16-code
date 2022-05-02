@@ -1,9 +1,9 @@
-#include "equinoxe.h"
+#include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-bullet.h"
 #include "equinoxe-collision.h"
+#include "equinoxe-stage.h"
 #include "equinoxe-player.h"
+#include "equinoxe-bullet.h"
 
 void InitPlayer() 
 {
@@ -171,10 +171,10 @@ void LogicPlayer() {
 				signed int playery = (signed int)WORD1(player.ty[p]);
 
 				vera_sprite_offset player_sprite_offset = player.sprite_offset[p];
-				Sprite* player_sprite = player.sprite_type[p];
+				sprite_t* player_sprite = player.sprite_type[p];
 
 				vera_sprite_offset engine_sprite_offset = engine.sprite_offset[n];
-				Sprite* engine_sprite = engine.sprite_type[n];
+				sprite_t* engine_sprite = engine.sprite_type[n];
 
 				if(playerx>-32 && playerx<640-32 && playery>-32 && playery<480-32) {
 #ifdef __COLLISION

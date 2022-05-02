@@ -2,7 +2,7 @@
 #ifndef collision_h
 #define collision_h
 
-#include "equinoxe.h"
+#include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
 #include "ht.h"
 

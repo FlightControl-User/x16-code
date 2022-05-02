@@ -1,22 +1,23 @@
 #include <cx16.h>
 #include <cx16-veralib.h>
-#include "equinoxe.h"
-#include "equinoxe-player.h"
+#include "equinoxe-types.h"
+#include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-stage.h"
+
+stage_t stage;
 
 void StageInit(void)
 {
 	game.delegate.Logic = &Logic;
 
-	memset(&stage, 0, sizeof(Stage));
+	memset(&stage, 0, sizeof(stage_t));
 
 	StageReset();
 
 	stage.level = 1;
 	stage.phase = 1;
 
-	StageProgress();
 }
 
 
@@ -45,7 +46,7 @@ void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count)
 static void StageReset(void)
 {
 
-	memset(&stage, 0, sizeof(Stage));
+	memset(&stage, 0, sizeof(stage_t));
 
 	enemy_pool = 0;
 	player_pool = 0;
@@ -54,7 +55,6 @@ static void StageReset(void)
 
     bullet_count = 0;
     player_count = 0;
-    enemy_count = 0;
 
 	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
 	stage.sprite_bullet_count = 0;
@@ -63,10 +63,24 @@ static void StageReset(void)
 	stage.sprite_player = SPRITE_OFFSET_PLAYER_START;
 	stage.sprite_player_count = 0;
 
+    stage.enemy_count[0] = 16;
+    stage.enemy_spawn[0] = 2;
+    stage.enemy_sprite[0] = &SpriteEnemy01;
+    stage.enemy_flightpath[0] = enemy01_flightpath;
+
+    stage.enemy_count[1] = 16;
+    stage.enemy_spawn[1] = 2;
+    stage.enemy_sprite[1] = &SpriteEnemy03;
+    stage.enemy_flightpath[1] = enemy03_flightpath;
+
+
     stage.score = 0;
     stage.penalty = 0;
     stage.lives = 10;
     stage.respawn = 0;
+
+    stage.step = 0;
+    stage.steps = 2;
 
 	InitPlayer();
 
@@ -76,22 +90,50 @@ static void StageReset(void)
 void StageProgress()
 {
 	switch(stage.level) {
+		case 0:
+            stage.step++;
+			break;
 		case 1:
-			stage.spawnenemycount = 120;
-			stage.spawnenemytype = 1;
+            stage.step++;
 			break;
 	}
 }
 
+inline void StageAddEnemy(sprite_t* sprite, enemy_flightpath_t* flights)
+{
+    unsigned char enemies = AddEnemy(sprite, flights);
+    stage.enemy_spawn[stage.step] -= enemies;
+    stage.enemy_count[stage.step] -= enemies;
+}
+
+inline void StageRemoveEnemy(unsigned char e)
+{
+    unsigned char enemies = RemoveEnemy(e);
+    stage.enemy_spawn[stage.step] += enemies;
+}
+
+inline void StageHitEnemy(unsigned char e, unsigned char b)
+{
+    unsigned char enemies = HitEnemy(e, b);
+    stage.enemy_spawn[stage.step] += enemies;
+}
 
 void LogicStage()
 {
-	if(stage.spawnenemycount) {
-		if(!(game.tickstage & 0x0F)) {
-			if(stage.sprite_enemy_count<4) {
-        		stage.spawnenemycount -= SpawnEnemies(stage.spawnenemytype, 320, -32);
-			}
-		}
+
+
+    if(stage.step < stage.steps) {
+        if(!(game.tickstage & 0x0F)) {
+            gotoxy(0, 10);
+            printf("stage step=%03u, count=%03u, spawn=%03u", stage.step, stage.enemy_count[stage.step], stage.enemy_spawn[stage.step]);
+            if(stage.enemy_count[stage.step]) {
+                if(stage.enemy_spawn[stage.step]) {
+                    StageAddEnemy(stage.enemy_sprite[stage.step], stage.enemy_flightpath[stage.step]);
+                }
+            } else {
+                StageProgress();
+            }
+        }
     }
 
     if(stage.respawn) {
