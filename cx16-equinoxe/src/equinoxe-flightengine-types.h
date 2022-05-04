@@ -62,6 +62,7 @@ typedef struct {
 
     sprite_t* sprite_type[4];
     vera_sprite_offset sprite_offset[4];
+    unsigned char sprite_palette[4];
 
 } fe_player_t;
 
@@ -75,6 +76,7 @@ typedef struct {
 
     sprite_t* sprite_type[4];
     vera_sprite_offset sprite_offset[4];
+    unsigned char sprite_palette[4];
 
 } fe_engine_t;
 

@@ -44,6 +44,7 @@ typedef struct {
 
     sprite_t* sprite_type[32];
     vera_sprite_offset sprite_offset[32];
+    unsigned char sprite_palette[32];
 
 } fe_bullet_t;
 

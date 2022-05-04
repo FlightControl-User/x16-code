@@ -27,9 +27,14 @@ void InitPlayer()
 	player.wait_animation[p] = player.speed_animation[p];
 	player.state_animation[p] = 3;
 
-	player.sprite_type[p] = &SpritePlayer01;
+    sprite_t* sprite_player = &SpritePlayer01;
+	player.sprite_type[p] = sprite_player;
 	player.sprite_offset[p] = vera_sprite_get_offset(0);
 	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
+
+    player.sprite_palette[p] = sprite_player->PaletteOffset;
+    sprite_palette(player.sprite_offset[p], player.sprite_palette[p]);
+
 
 	player.tx[p] = MAKELONG(320, 0);
 	player.ty[p] = MAKELONG(200, 0);
@@ -59,9 +64,13 @@ void InitPlayer()
 	engine.speed_animation[n] = 1;
 	engine.wait_animation[n] = engine.speed_animation[n];
 
-	engine.sprite_type[n] = &SpriteEngine01;
+    sprite_t* sprite_engine = &SpriteEngine01;
+	engine.sprite_type[n] = sprite_engine;
 	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
 	sprite_configure(engine.sprite_offset[n], engine.sprite_type[n]);
+
+    engine.sprite_palette[n] = sprite_engine->PaletteOffset;
+    sprite_palette(engine.sprite_offset[n], engine.sprite_palette[n]);
 
 	engine_pool = (engine_pool++)%FE_ENGINE;
 
@@ -78,6 +87,7 @@ void RemovePlayer(unsigned char p, unsigned char b)
         vera_sprite_offset sprite_offset = player.sprite_offset[p];
         FreeOffset(sprite_offset, &stage.sprite_player_count);
         vera_sprite_disable(sprite_offset);
+        palette16_unuse(player.sprite_palette[p]);
         player.used[p] = 0;
         player.enabled[p] = 0;
 
@@ -85,6 +95,7 @@ void RemovePlayer(unsigned char p, unsigned char b)
         sprite_offset = engine.sprite_offset[n];
         FreeOffset(sprite_offset, &stage.sprite_player_count);
         vera_sprite_disable(sprite_offset);
+        palette16_unuse(engine.sprite_palette[n]);
         engine.used[n] = 0;
 
         stage.lives--;

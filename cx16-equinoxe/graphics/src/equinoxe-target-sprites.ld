@@ -6,7 +6,7 @@
 .file [name="ENGINE01.BIN", type="bin", segments="Engine01"]
 .file [name="BULLET01.BIN", type="bin", segments="Bullet01"]
 .file [name="BULLET02.BIN", type="bin", segments="Bullet02"]
-.file [name="PALETTES.BIN", type="bin", segments="Palettes"]
+.file [name="PALSPRITE01.BIN", type="bin", segments="Palettes"]
 .segmentdef Program [segments="Basic, Code, Data"]
 .segmentdef Basic [start=$0801]
 .segmentdef Code [start=%P]

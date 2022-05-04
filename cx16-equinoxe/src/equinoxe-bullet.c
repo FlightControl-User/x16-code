@@ -34,10 +34,14 @@ void FireBullet(unsigned char p, char reload)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_PLAYER;
 
+        sprite_t* sprite = &SpriteBullet01;
 
+        bullet.sprite_type[b] = sprite;
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
-        bullet.sprite_type[b] = &SpriteBullet01;
         sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
+
+        bullet.sprite_palette[b] = sprite->PaletteOffset;
+        sprite_palette(bullet.sprite_offset[b], bullet.sprite_palette[b]);
 
         bullet.tx[b] = MAKELONG(x, 0);
         bullet.ty[b] = MAKELONG(y, 0);
@@ -77,9 +81,14 @@ void FireBulletEnemy(unsigned char e)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_ENEMY;
 
+        sprite_t* sprite = &SpriteBullet02;
+
+        bullet.sprite_type[b] = sprite;
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
-        bullet.sprite_type[b] = &SpriteBullet02;
         sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
+
+        bullet.sprite_palette[b] = sprite->PaletteOffset;
+        sprite_palette(bullet.sprite_offset[b], bullet.sprite_palette[b]);
 
         bullet.tx[b] = MAKELONG(ex, 0);
         bullet.ty[b] = MAKELONG(ey, 0);
@@ -106,6 +115,7 @@ void RemoveBullet(unsigned char b)
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
     FreeOffset(sprite_offset, &stage.sprite_bullet_count);
     vera_sprite_disable(sprite_offset);
+    palette16_unuse(bullet.sprite_palette[b]);
     bullet.used[b] = 0;
     bullet.enabled[b] = 0;
 }

@@ -10,6 +10,7 @@
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
 
+#include "equinoxe-palette-types.h"
 #include "equinoxe-flightengine-types.h"
 #include "equinoxe-stage-types.h"
 #include "equinoxe-enemy-types.h"
@@ -33,9 +34,10 @@ const byte HEAP_SEGMENT_BRAM_SPRITES_BANKS = 10;
 const byte HEAP_SEGMENT_BRAM_ENTITIES_BANK = 30;
 const byte HEAP_SEGMENT_BRAM_ENTITIES_BANKS = 1;
 
-// File declarations
-const char FILE_PALETTES_SPRITE01[] = "palsprite01.bin";
-const char FILE_PALETTES_FLOOR01[] = "palfloor01.bin";
+
+const bram_bank_t   BRAM_PALETTE_BANK = 63;
+const bram_ptr_t    BRAM_PALETTE_PTR = (bram_ptr_t)0XA000;
+
 
 // sprite_t constants
 const unsigned char SPRITE_MOUSE = 0;

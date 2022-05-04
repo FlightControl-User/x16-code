@@ -28,6 +28,7 @@
 #include <cx16-bitmap.h>
 
 #include "equinoxe-types.h"
+#include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-floorengine.h"
@@ -376,20 +377,9 @@ void main() {
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
 
 #ifdef __PALETTE
-    // Load the palettes in main banked memory.
-    heap_handle handle_bram_palettes = {63, (bram_ptr_t)0xA000}; // size = 0x2000;
 
-    unsigned int palette_loaded = 0;
-
-    unsigned int floor_palette_loaded = load_file(1, 8, 0, FILE_PALETTES_FLOOR01, handle_bram_palettes.bank, handle_bram_palettes.ptr+palette_loaded);
-    if(!floor_palette_loaded) printf("error file_palettes");
-    palette_loaded += floor_palette_loaded;
-
-    unsigned int sprite_palette_loaded = load_file(1, 8, 0, FILE_PALETTES_SPRITE01, handle_bram_palettes.bank, handle_bram_palettes.ptr+palette_loaded);
-    if(!sprite_palette_loaded) printf("error file_palettes");
-    palette_loaded += sprite_palette_loaded;
-
-    memcpy_vram_bram(VERA_PALETTE_BANK, (word)VERA_PALETTE_PTR+(word)32, handle_bram_palettes.bank, handle_bram_palettes.ptr, palette_loaded);
+    palette_load(0);
+    palette_vram_init();
 
 #endif
 
@@ -455,6 +445,9 @@ void main() {
 
     // Initialize stage
 
+    while(!getin());
+    clrscr();
+
 #ifdef __FLIGHT
 
     StageInit();
@@ -469,8 +462,6 @@ void main() {
     vera_display_set_vstop(236);
     #endif
 
-    while(!getin());
-    clrscr();
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();

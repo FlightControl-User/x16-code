@@ -54,8 +54,10 @@ unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flightpath)
 
 	enemy.sprite_type[e] = sprite;
 	enemy.sprite_offset[e] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
-
 	sprite_configure(enemy.sprite_offset[e], enemy.sprite_type[e]);
+
+    enemy.sprite_palette[e] = sprite->PaletteOffset;
+    sprite_palette(enemy.sprite_offset[e], enemy.sprite_palette[e]);
 
 	enemy.tx[e] = 0;
 	enemy.ty[e] = 0;
@@ -77,6 +79,7 @@ unsigned char RemoveEnemy(unsigned char e)
     vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
     FreeOffset(sprite_offset, &stage.sprite_enemy_count);
     vera_sprite_disable(sprite_offset);
+    palette16_unuse(enemy.sprite_palette[e]);
     enemy.used[e] = 0;
     enemy.enabled[e] = 0;
     return 1;

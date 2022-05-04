@@ -84,6 +84,7 @@ typedef struct {
 
     sprite_t* sprite_type[64];
     vera_sprite_offset sprite_offset[64];
+    unsigned char sprite_palette[64];
 
 } fe_enemy_t;
 

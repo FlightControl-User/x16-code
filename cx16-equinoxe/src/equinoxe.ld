@@ -7,6 +7,7 @@
 .segmentdef SpriteControl [startAfter="EnemyControl", align=$100]
 .segmentdef TileControl [startAfter="SpriteControl", align=$100]
 .segmentdef Hash [startAfter="TileControl", align=$100]
+.segmentdef Palette [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef SpriteControlEnemies [start=$A800, min=$A800, max=$BFFF, align=$100]
 .segmentdef SpriteControlBullets [startAfter="SpriteControlEnemies", min=$A800, max=$BFFF, align=$100]
 .segmentdef SpriteControlPlayer  [startAfter="SpriteControlBullets", min=$A800, max=$BFFF, align=$100]

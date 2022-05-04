@@ -24,7 +24,7 @@ sprite_t SpritePlayer01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 9, 
+    VERA_SPRITE_4BPP, 0, 
     0, {2,2,32-2,32-2}, {0x0}, {0x0} 
 };
 heap_handle sprite_player_01[SPRITE_PLAYER01_COUNT];
@@ -36,7 +36,7 @@ sprite_t SpriteEnemy01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 10, 
+    VERA_SPRITE_4BPP, 1, 
     0, {2,2,32-2,32-2}, {0x0}, { 0x0 } 
 };
 heap_handle sprite_enemy_01[SPRITE_ENEMY01_COUNT];
@@ -48,7 +48,7 @@ sprite_t SpriteEnemy03 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 11, 
+    VERA_SPRITE_4BPP, 2, 
     1, {6,5,25,26}, {0x0}, {0x0} 
 };
 heap_handle sprite_enemy_03[SPRITE_ENEMY03_COUNT];
@@ -60,7 +60,7 @@ sprite_t SpriteEngine01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 11, 
+    VERA_SPRITE_4BPP, 3, 
     0, {0,0,0,0}, {0x0}, { 0x0 } 
 };
 heap_handle sprite_engine_01[SPRITE_ENGINE01_COUNT];
@@ -72,7 +72,7 @@ sprite_t SpriteBullet01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 
+    VERA_SPRITE_4BPP, 4, 
     0, {0,0,1,4}, {0x0}, { 0x0 } };
 heap_handle sprite_bullet_01[SPRITE_BULLET01_COUNT];
 
@@ -83,7 +83,7 @@ sprite_t SpriteBullet02 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 
+    VERA_SPRITE_4BPP, 5, 
     0, {0,0,1,4}, {0x0}, { 0x0 } };
 heap_handle sprite_bullet_02[SPRITE_BULLET02_COUNT];
 
@@ -139,6 +139,7 @@ void Logic();
 void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate);
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
 void sprite_configure(vera_sprite_offset sprite_offset, sprite_t* sprite);
+void sprite_palette(vera_sprite_offset sprite_offset, unsigned char bram_index);
 void sprite_enable(vera_sprite_offset sprite_offset, sprite_t* sprite);
 void sprite_disable(vera_sprite_offset sprite_offset);
 void sprite_collision(vera_sprite_offset sprite_offset, byte mask);

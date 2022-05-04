@@ -24,6 +24,7 @@
 #include <cx16-bitmap.h>
 
 #include "equinoxe-types.h"
+#include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
 
@@ -94,7 +95,11 @@ void sprite_configure(vera_sprite_offset sprite_offset, sprite_t* sprite) {
     vera_sprite_width(sprite_offset, sprite->Width);
     vera_sprite_hflip(sprite_offset, sprite->Hflip);
     vera_sprite_vflip(sprite_offset, sprite->Vflip);
-    vera_sprite_palette_offset(sprite_offset, sprite->PaletteOffset);
+}
+
+void sprite_palette(vera_sprite_offset sprite_offset, unsigned char bram_index)
+{
+    vera_sprite_palette_offset(sprite_offset, palette16_use(bram_index));
 }
 
 inline void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate) {
