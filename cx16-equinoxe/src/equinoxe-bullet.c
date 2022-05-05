@@ -125,7 +125,7 @@ inline void LogicBullets()
 {
     if(!stage.sprite_bullet_count) return;
 
-    for(unsigned char b=0; b<FE_BULLET-1; b++) {
+    for(unsigned char b=0; b<FE_BULLET; b++) {
 
         if(bullet.used[b]) {
             vera_sprite_offset sprite_offset = bullet.sprite_offset[b];

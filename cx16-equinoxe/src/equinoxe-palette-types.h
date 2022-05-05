@@ -28,6 +28,7 @@ typedef struct {
 
 // Manage used and free palette offsets for dynamic palette loading and switching in vram from bram palette data.
 typedef struct {
+    unsigned char bram_index[16];
     unsigned char used[16];
     vram_offset_t offset[16];
 } PALETTE_VRAM_INDEX;

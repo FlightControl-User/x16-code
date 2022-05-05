@@ -82,8 +82,11 @@ unsigned char palette16_alloc()
     for(unsigned char i=5; i<16; i++) {
         if(palette_index >= 16)
             palette_index=5;
-        if(!palette_vram_index.used[palette_index])
+        gotoxy(40,9);
+        printf("alloc i=%03u, u=%03u", palette_index, palette_vram_index.used[palette_index]);
+        if(!palette_vram_index.used[palette_index]) {
             return palette_index; // We use the free palette slot.
+        }
         palette_index++;
     }
     return 0;
@@ -95,6 +98,9 @@ unsigned int palette16_use(char bram_index)
     if(!vram_index) {
         vram_index = palette16_alloc();
         if(vram_index) {
+            if(palette_vram_index.bram_index[vram_index])
+                palette_bram_index.vram_index[palette_vram_index.bram_index[vram_index]] = 0;
+            palette_vram_index.bram_index[vram_index] = bram_index;
             memcpy_vram_bram(VERA_PALETTE_BANK, palette_vram_index.offset[vram_index], BRAM_PALETTE_BANK, (bram_ptr_t)&palette_bram.palette_16[bram_index], 32);
             palette_bram_index.vram_index[bram_index] = vram_index;
         }
@@ -102,7 +108,7 @@ unsigned int palette16_use(char bram_index)
 
     palette_vram_index.used[vram_index]++;
     gotoxy(40, 10+vram_index);
-    printf("memcpy v=%03u, us=%03u, b=%03u, i=%03u", vram_index, palette_vram_index.used[vram_index], bram_index, palette_bram_index.vram_index[bram_index]);
+    printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette_vram_index.used[vram_index], bram_index, palette_bram_index.vram_index[bram_index]);
     return vram_index;
 }
 
@@ -111,7 +117,7 @@ void palette16_unuse(char bram_index)
     unsigned char vram_index = palette_bram_index.vram_index[bram_index];
     palette_vram_index.used[vram_index]--;
     gotoxy(40, 10+vram_index);
-    printf("memcpy v=%03u, us=%03u, b=%03u, i=%03u", vram_index, palette_vram_index.used[vram_index], bram_index, palette_bram_index.vram_index[bram_index]);
+    printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette_vram_index.used[vram_index], bram_index, palette_bram_index.vram_index[bram_index]);
 }
 
 void palette64_use(char bram_index)
