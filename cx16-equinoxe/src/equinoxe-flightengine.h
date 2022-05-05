@@ -72,7 +72,7 @@ sprite_t SpriteBullet01 =       {
     VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 3, 
+    VERA_SPRITE_4BPP, 4, 
     0, {0,0,1,4}, {0x0}, { 0x0 } };
 heap_handle sprite_bullet_01[SPRITE_BULLET01_COUNT];
 

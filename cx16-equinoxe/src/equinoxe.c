@@ -4,7 +4,7 @@
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-// #define __FLOOR
+#define __FLOOR
 #define __FLIGHT
 #define __PALETTE
 #define __CPULINES
@@ -136,7 +136,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
                 ht_key_t ht_key_bullet = grid_key(3, gx, gy);
                 ht_index_t ht_index_bullet_init = ht_get(&ht_collision, ht_key_bullet);
-                
+
                 if(ht_index_bullet_init) {
 
                     ht_key_t ht_key_enemy = grid_key(2, gx, gy);
@@ -238,7 +238,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!floor_scroll_action--) {
-        floor_scroll_action = 2;
+        floor_scroll_action = 1;
 
         // Check every 16 floor_scroll_vertical the logic to initialize the scroll variables.
         if(!(BYTE0(floor_scroll_vertical) % 16) ) {

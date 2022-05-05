@@ -4,6 +4,7 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-stage.h"
+#include "equinoxe-palette.h"
 
 stage_t stage;
 
@@ -83,7 +84,9 @@ static void StageReset(void)
     stage.steps = 2;
 
 	InitPlayer();
-
+    
+    palette64_use(0);
+    
 }
 
 
