@@ -112,8 +112,8 @@ inline heap_offset  heap_vram_unpack_offset(heap_vram_packed vram_packed) {
  * @param size 
  * @return heap_size_packed 
  */
-inline heap_size_packed heap_size_pack(heap_size_large size) {
-    return (heap_size_packed)cx16_size_pack(size);
+inline vera_heap_size_packed_t heap_size_pack(heap_size_large size) {
+    return (vera_heap_size_packed_t)cx16_size_pack(size);
 }
 
 /**
@@ -122,14 +122,14 @@ inline heap_size_packed heap_size_pack(heap_size_large size) {
  * @param size_packed 
  * @return heap_size 
  */
-inline heap_size heap_size_unpack(heap_size_packed size_packed) {
+inline heap_size heap_size_unpack(vera_heap_size_packed_t size_packed) {
     return (heap_size)cx16_size_unpack(size_packed);
 }
 
 /**
 * Get header pointer and bank in bram.
 */
-inline heap_index_ptr heap_get(heap_handle handle) {
+inline heap_index_ptr vera_heap_get(vera_heap_handle_t handle) {
 
 	byte bank = cx16_bram_unpack_bank(handle);
 	cx16_bram_bank_set(bank);
@@ -139,27 +139,27 @@ inline heap_index_ptr heap_get(heap_handle handle) {
 /**
 * Get data handle packed without resetting the banks.
 */
-inline heap_handle heap_data_packed_get(heap_handle heapIndex) {
+inline vera_heap_handle_t vera_heap_data_packed_get(vera_heap_handle_t heapIndex) {
 
 	// printf("handle = %x\n", handle);
-	return heap_get(heapIndex)->data;
+	return vera_heap_get(heapIndex)->data;
 }
 
 /**
 * Set data handle packed without resetting the banks.
 */
-inline void heap_data_packed_set(heap_handle heapIndex, heap_handle data) {
+inline void vera_heap_data_packed_set(vera_heap_handle_t heapIndex, vera_heap_handle_t data) {
 
-	heap_get(heapIndex)->data = data;
+	vera_heap_get(heapIndex)->data = data;
 }
 
 /**
 * Get data handle.
 */
-heap_handle heap_data_get(heap_handle heapIndex) {
+vera_heap_handle_t heap_data_get(vera_heap_handle_t heapIndex) {
 
 	cx16_bank old_bank = cx16_bram_bank_get();
-	heap_handle data_handle = heap_data_packed_get(heapIndex);
+	vera_heap_handle_t data_handle = vera_heap_data_packed_get(heapIndex);
 	cx16_bram_bank_set(old_bank);
 	return data_handle;
 }
@@ -169,12 +169,12 @@ heap_handle heap_data_get(heap_handle heapIndex) {
 /**
 * Get data header pointer and bank or prepare vera registers.
 */
-heap_bank heap_data_bank(heap_handle handle) {
+heap_bank heap_data_bank(vera_heap_handle_t handle) {
 
 	cx16_bank old_bank = cx16_bram_bank_get();
 	// printf("handle = %x\n", handle);
-	heap_handle data_handle = heap_data_packed_get(handle);
-	heap_index_info header_info = heap_get(handle)->size;
+	vera_heap_handle_t data_handle = vera_heap_data_packed_get(handle);
+	heap_index_info header_info = vera_heap_get(handle)->size;
 	header_info &= heap_type_mask;
 	cx16_bram_bank_set(old_bank);
 
@@ -194,10 +194,10 @@ heap_bank heap_data_bank(heap_handle handle) {
 /**
 * Get data header pointer and bank or prepare vera registers.
 */
-heap_ptr heap_data_ptr(heap_handle handle) {
+heap_ptr heap_data_ptr(vera_heap_handle_t handle) {
 
-	heap_handle data_handle = heap_data_packed_get(handle);
-	heap_index_info header_info = heap_get(handle)->size;
+	vera_heap_handle_t data_handle = vera_heap_data_packed_get(handle);
+	heap_index_info header_info = vera_heap_get(handle)->size;
 	header_info &= heap_type_mask;
 
 	// Data blocks in bram or in vram are handled differently.
@@ -216,18 +216,18 @@ heap_ptr heap_data_ptr(heap_handle handle) {
 /**
 * Set the next handle in the index block to the next header block.
 */
-void heap_next_set(heap_handle handle, heap_handle next) {
+void heap_next_set(vera_heap_handle_t handle, vera_heap_handle_t next) {
 
-		heap_index_ptr header_ptr = heap_get(handle);
+		heap_index_ptr header_ptr = vera_heap_get(handle);
 		header_ptr->next = next;
 }
 
 /**
 * Set the prev handle in the index block to the next header block.
 */
-void heap_prev_set(heap_handle handle, heap_handle prev) {
+void heap_prev_set(vera_heap_handle_t handle, vera_heap_handle_t prev) {
 
-		heap_index_ptr header_ptr = heap_get(handle);
+		heap_index_ptr header_ptr = vera_heap_get(handle);
 		header_ptr->prev = prev;
 }
 
@@ -235,24 +235,24 @@ void heap_prev_set(heap_handle handle, heap_handle prev) {
 /**
 * Get the next handle in the index block.
 */
-heap_handle heap_next_get(heap_handle handle) {
+vera_heap_handle_t heap_next_get(vera_heap_handle_t handle) {
 
-		return heap_get(handle)->next;
+		return vera_heap_get(handle)->next;
 }
 
 /**
 * Get the prev handle in the index block.
 */
-heap_handle heap_prev_get(heap_handle handle) {
+vera_heap_handle_t heap_prev_get(vera_heap_handle_t handle) {
 
-		return heap_get(handle)->prev;
+		return vera_heap_get(handle)->prev;
 }
 
 /**
 * Set the packed size of a heap memory block.
 */
-inline void heap_size_packed_set(heap_handle heapIndex, heap_size_packed size) {
-	heap_index_ptr index_ptr = heap_get(heapIndex);
+inline void heap_size_packed_set(vera_heap_handle_t heapIndex, vera_heap_size_packed_t size) {
+	heap_index_ptr index_ptr = vera_heap_get(heapIndex);
 	heap_index_info header_info = index_ptr->size;
 	header_info &= ~heap_size_mask;
 	size |= header_info;
@@ -262,17 +262,17 @@ inline void heap_size_packed_set(heap_handle heapIndex, heap_size_packed size) {
 /**
 * Get the packed size of a heap memory block.
 */
-inline heap_size_packed heap_size_packed_get(heap_handle heapIndex) {
-	return (heap_size_packed)(heap_get(heapIndex)->size) & heap_size_mask;
+inline vera_heap_size_packed_t vera_heap_size_packed_get(vera_heap_handle_t heapIndex) {
+	return (vera_heap_size_packed_t)(vera_heap_get(heapIndex)->size) & heap_size_mask;
 }
 
 
 /**
 * Get the size of a heap memory block.
 */
-heap_size_packed heap_size_get(heap_handle heapIndex) {
+vera_heap_size_packed_t heap_size_get(vera_heap_handle_t heapIndex) {
 	char oldbank = cx16_bram_bank_get();
-	heap_size_packed size = heap_size_packed_get(heapIndex) << 3;
+	vera_heap_size_packed_t size = vera_heap_size_packed_get(heapIndex) << 3;
 	cx16_bram_bank_set(oldbank);
 	return size;
 }
@@ -280,16 +280,16 @@ heap_size_packed heap_size_get(heap_handle heapIndex) {
 /**
  * Search index for occurrance.
  */
-heap_handle heap_index_find(heap_handle list, heap_handle index) {
+vera_heap_handle_t vera_heap_index_find(vera_heap_handle_t list, vera_heap_handle_t index) {
 
-	heap_handle anchor = list;
-	heap_handle end = list;
+	vera_heap_handle_t anchor = list;
+	vera_heap_handle_t end = list;
 
 	do {
 		// O(n) search.
-		heap_handle data = heap_data_packed_get(anchor); 
+		vera_heap_handle_t data = vera_heap_data_packed_get(anchor); 
 		if (index != data) {
-			anchor = heap_get(anchor)->next;
+			anchor = vera_heap_get(anchor)->next;
 			continue;
 		}
 
@@ -303,30 +303,30 @@ heap_handle heap_index_find(heap_handle list, heap_handle index) {
 /**
 * Insert index in list at sorted position.
 */
-heap_handle heap_list_insert_at(heap_handle *list, heap_handle index, heap_handle at) {
+vera_heap_handle_t heap_list_insert_at(vera_heap_handle_t *list, vera_heap_handle_t index, vera_heap_handle_t at) {
 
 	// Missing ASM fragment Fragment not found _deref_pwuz1_neq_vwuc1_then_la1. Attempted variations _deref_pwuz1_neq_vwuc1_then_la1 _deref_pwuz1_neq_vduc1_then_la1 _deref_pwuz1_neq_vdsc1_then_la1
 	// if (*list == 0xffff) {
 	if (!(*list)) {
 		// empty list
 		*list = index;
-		heap_get(*list)->prev = index;
-		heap_get(*list)->next = index;
+		vera_heap_get(*list)->prev = index;
+		vera_heap_get(*list)->next = index;
 	}
 
 
 
-	heap_handle prev = heap_get(at)->prev;
-	heap_handle curr = at;
+	vera_heap_handle_t prev = vera_heap_get(at)->prev;
+	vera_heap_handle_t curr = at;
 
 	// Add index to list at last position.
-	heap_get(index)->prev = prev;
-	heap_get(prev)->next = index;
-	heap_get(index)->next = curr;
-	heap_get(curr)->prev = index;
+	vera_heap_get(index)->prev = prev;
+	vera_heap_get(prev)->next = index;
+	vera_heap_get(index)->next = curr;
+	vera_heap_get(curr)->prev = index;
 
-	heap_handle dataList = heap_data_packed_get(*list);
-	heap_handle dataIndex = heap_data_packed_get(index);
+	vera_heap_handle_t dataList = vera_heap_data_packed_get(*list);
+	vera_heap_handle_t dataIndex = vera_heap_data_packed_get(index);
 	if(dataIndex>dataList) {
 		*list = index;
 	}
@@ -337,30 +337,30 @@ heap_handle heap_list_insert_at(heap_handle *list, heap_handle index, heap_handl
 /**
 * Insert index in list at sorted position.
 */
-heap_handle heap_list_insert(heap_handle *list, heap_handle index) {
+vera_heap_handle_t heap_list_insert(vera_heap_handle_t *list, vera_heap_handle_t index) {
 
 	// Missing ASM fragment Fragment not found _deref_pwuz1_neq_vwuc1_then_la1. Attempted variations _deref_pwuz1_neq_vwuc1_then_la1 _deref_pwuz1_neq_vduc1_then_la1 _deref_pwuz1_neq_vdsc1_then_la1
 	// if (*list == 0xffff) {
 	if (!(*list)) {
 		// empty list
 		*list = index;
-		heap_get(*list)->prev = *list;
-		heap_get(*list)->next = *list;
+		vera_heap_get(*list)->prev = *list;
+		vera_heap_get(*list)->next = *list;
 	}
 
 
 
-	heap_handle last = heap_get(*list)->prev;
-	heap_handle first = *list;
+	vera_heap_handle_t last = vera_heap_get(*list)->prev;
+	vera_heap_handle_t first = *list;
 
 	// Add index to list at last position.
-	heap_get(index)->prev = last;
-	heap_get(last)->next = index;
-	heap_get(index)->next = first;
-	heap_get(first)->prev = index;
+	vera_heap_get(index)->prev = last;
+	vera_heap_get(last)->next = index;
+	vera_heap_get(index)->next = first;
+	vera_heap_get(first)->prev = index;
 
-	heap_handle dataList = heap_data_packed_get(*list);
-	heap_handle dataIndex = heap_data_packed_get(index);
+	vera_heap_handle_t dataList = vera_heap_data_packed_get(*list);
+	vera_heap_handle_t dataIndex = vera_heap_data_packed_get(index);
 	if(dataIndex>dataList) {
 		*list = index;
 	}
@@ -373,7 +373,7 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index) {
 /**
 * Remove header from List
 */
-heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
+vera_heap_handle_t vera_heap_list_remove(vera_heap_handle_t *list, vera_heap_handle_t index) {
 
 	if (!*list) {
 		// empty list
@@ -381,65 +381,65 @@ heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
 	}
 
 	// The free makes the list empty!
-	if (*list == heap_get(*list)->next) {
+	if (*list == vera_heap_get(*list)->next) {
 		*list = 0; // We initialize the start of the list to null.
 		return 0; 
 	}
 
 	// The free changes the first header of the list!
 	if (index == *list) { 
-		*list = heap_get(*list)->next;
+		*list = vera_heap_get(*list)->next;
 	}
 
-	heap_get(heap_get(index)->prev)->next = heap_get(index)->next;
-	heap_get(heap_get(index)->next)->prev = heap_get(index)->prev;
+	vera_heap_get(vera_heap_get(index)->prev)->next = vera_heap_get(index)->next;
+	vera_heap_get(vera_heap_get(index)->next)->prev = vera_heap_get(index)->prev;
 	return 0;
 
 }
 
-heap_handle heap_heap_insert(struct HEAP_SEGMENT* s, heap_handle heapIndex, heap_size_packed size) {
+vera_heap_handle_t heap_heap_insert(struct HEAP_SEGMENT* s, vera_heap_handle_t heapIndex, vera_heap_size_packed_t size) {
 	heap_list_insert(&s->heapList, heapIndex);
 	heap_size_packed_set(heapIndex, size & heap_size_mask);
 	s->heapCount++;
 	return heapIndex;
 }
 
-heap_handle heap_heap_insert_at(struct HEAP_SEGMENT* s, heap_handle heapIndex, heap_handle at, heap_size_packed size) {
+vera_heap_handle_t heap_heap_insert_at(struct HEAP_SEGMENT* s, vera_heap_handle_t heapIndex, vera_heap_handle_t at, vera_heap_size_packed_t size) {
 	heap_list_insert_at(&s->heapList, heapIndex, at);
 	heap_size_packed_set(heapIndex, size & heap_size_mask);
 	s->heapCount++;
 	return heapIndex;
 }
 
-heap_handle heap_heap_remove(struct HEAP_SEGMENT* s, heap_handle heapIndex) {
+vera_heap_handle_t heap_heap_remove(struct HEAP_SEGMENT* s, vera_heap_handle_t heapIndex) {
 	s->heapCount--;
-	return heap_list_remove(&s->heapList, heapIndex);
+	return vera_heap_list_remove(&s->heapList, heapIndex);
 }
 
-heap_handle heap_free_insert(struct HEAP_SEGMENT* s, heap_handle freeIndex, heap_handle data, heap_size_packed size) {
+vera_heap_handle_t heap_free_insert(struct HEAP_SEGMENT* s, vera_heap_handle_t freeIndex, vera_heap_handle_t data, vera_heap_size_packed_t size) {
 	heap_list_insert(&s->freeList, freeIndex);
-	heap_data_packed_set(freeIndex, data);
+	vera_heap_data_packed_set(freeIndex, data);
 	heap_size_packed_set(freeIndex, size);
 	s->freeCount++;
 	return freeIndex;
 }
 
-heap_handle heap_free_remove(struct HEAP_SEGMENT* s, heap_handle freeIndex) {
+vera_heap_handle_t vera_heap_free_remove(struct HEAP_SEGMENT* s, vera_heap_handle_t freeIndex) {
 	s->freeCount--;
-	return heap_list_remove(&s->freeList, freeIndex);
+	return vera_heap_list_remove(&s->freeList, freeIndex);
 }
 
-heap_handle heap_idle_insert(struct HEAP_SEGMENT* s, heap_handle Index) {
+vera_heap_handle_t vera_heap_idle_insert(struct HEAP_SEGMENT* s, vera_heap_handle_t Index) {
 	heap_list_insert(&s->idleList, Index);
-	heap_data_packed_set(Index, 0);
+	vera_heap_data_packed_set(Index, 0);
 	heap_size_packed_set(Index, 0);
 	s->idleCount++;
 	return Index;
 }
 
-heap_handle heap_idle_remove(struct HEAP_SEGMENT* s, heap_handle Index) {
+vera_heap_handle_t heap_idle_remove(struct HEAP_SEGMENT* s, vera_heap_handle_t Index) {
 	s->idleCount--;
-	return heap_list_remove(&s->idleList, Index);
+	return vera_heap_list_remove(&s->idleList, Index);
 }
 
 
@@ -448,16 +448,16 @@ heap_handle heap_idle_remove(struct HEAP_SEGMENT* s, heap_handle Index) {
 /**
  * Returns total allocation size, aligned to 8 bytes;
  */
-inline heap_size_packed heap_alloc_size_get(heap_size size) {
-	return (heap_size_packed)((size - 1) >> 3) + 1;
+inline vera_heap_size_packed_t heap_alloc_size_get(heap_size size) {
+	return (vera_heap_size_packed_t)((size - 1) >> 3) + 1;
 }
 
 
-heap_handle heap_index_add(struct HEAP_SEGMENT* s) {
+vera_heap_handle_t heap_index_add(struct HEAP_SEGMENT* s) {
 
 	// TODO: Search idle list.
 
-	heap_handle index = s->idleList;
+	vera_heap_handle_t index = s->idleList;
 
 	if(index) {
 		heap_idle_remove(s, index);
@@ -469,7 +469,7 @@ heap_handle heap_index_add(struct HEAP_SEGMENT* s) {
 		// We adjust to the next header position.
 		// Missing ASM fragment Fragment not found _deref_pwuc1=_deref_pwuc1_plus_1. Attempted variations _deref_pwuc1=_deref_pwuc1_plus_1
 		// s->HeaderPosition += 1; // add 8 aligned bytes
-		heap_handle HeaderPosition = s->HeaderPosition;
+		vera_heap_handle_t HeaderPosition = s->HeaderPosition;
 		HeaderPosition += 1; 
 		s->HeaderPosition = HeaderPosition; // add 8 aligned bytes 
 	}
@@ -480,25 +480,25 @@ heap_handle heap_index_add(struct HEAP_SEGMENT* s) {
 }
 
 
-heap_handle heap_header_add(struct HEAP_SEGMENT* s, heap_size_packed size) {
+vera_heap_handle_t heap_header_add(struct HEAP_SEGMENT* s, vera_heap_size_packed_t size) {
 
 
 	// Add a new index.
-	heap_handle index = heap_index_add(s);
+	vera_heap_handle_t index = heap_index_add(s);
 
 	// Decrease the current heap position handle with the size needed to be newly allocated.
-	heap_handle heap_position = s->HeapPosition;
+	vera_heap_handle_t heap_position = s->HeapPosition;
 	heap_position -= size;
 	s->HeapPosition = heap_position;
 
 	// The data handle of the header gets appointed with the current heap position handle.
-	heap_data_packed_set(index, s->HeapPosition);
+	vera_heap_data_packed_set(index, s->HeapPosition);
 	heap_heap_insert(s, index, size);
 
 	// We fill out the header info with the type of heap, and the size information of the heap data.
 	heap_index_info header_info = s->HeapType; // We add the heaptype to validate at each header block move the type of heap we are dealing with.
 	header_info |= size;
-	heap_get(index)->size = header_info;
+	vera_heap_get(index)->size = header_info;
 
 	return index;
 }
@@ -506,21 +506,21 @@ heap_handle heap_header_add(struct HEAP_SEGMENT* s, heap_size_packed size) {
 /**
  * Splits the header on two, returns the pointer to the smaller sub-header.
  */
-heap_handle heap_header_split(struct HEAP_SEGMENT* s, heap_handle freeHeap, heap_size_packed size) {
+vera_heap_handle_t vera_heap_header_split(struct HEAP_SEGMENT* s, vera_heap_handle_t freeHeap, vera_heap_size_packed_t size) {
 
-	heap_handle heapIndex = heap_index_add(s);
-	heap_handle freeIndex = heap_index_add(s);
+	vera_heap_handle_t heapIndex = heap_index_add(s);
+	vera_heap_handle_t freeIndex = heap_index_add(s);
 
 	// printf("Split: freeHeap = %x\n", freeHeap);
 	// Add the freeBlock to the freeList
-	heap_handle dataIndex = heap_data_packed_get(freeHeap);
-	heap_size_packed sizeHeap = heap_size_packed_get(freeHeap);
-	heap_data_packed_set(heapIndex, dataIndex);
-	heap_heap_insert_at(s, heapIndex, heap_get(freeHeap)->next, size);
+	vera_heap_handle_t dataIndex = vera_heap_data_packed_get(freeHeap);
+	vera_heap_size_packed_t sizeHeap = vera_heap_size_packed_get(freeHeap);
+	vera_heap_data_packed_set(heapIndex, dataIndex);
+	heap_heap_insert_at(s, heapIndex, vera_heap_get(freeHeap)->next, size);
 
-	heap_data_packed_set(freeHeap, dataIndex + size);
+	vera_heap_data_packed_set(freeHeap, dataIndex + size);
 
-	heap_size_packed sizeFree = sizeHeap - size;
+	vera_heap_size_packed_t sizeFree = sizeHeap - size;
 	heap_free_insert(s, freeIndex, freeHeap, sizeFree);
 	heap_size_packed_set(freeHeap, sizeFree);
 
@@ -531,20 +531,19 @@ heap_handle heap_header_split(struct HEAP_SEGMENT* s, heap_handle freeHeap, heap
  * Whether the free memory block can be split. 
  * A spllit can occur when the free memory block is larger than the required size to be allocated.
  */
-heap_size_packed heap_header_can_split(heap_handle freeHeap, heap_size_packed sizeRequired) {
-	heap_size_packed sizeFree = heap_size_packed_get(freeHeap);
+vera_heap_size_packed_t vera_heap_header_can_split(vera_heap_handle_t freeHeap, vera_heap_size_packed_t sizeRequired) {
+	vera_heap_size_packed_t sizeFree = vera_heap_size_packed_get(freeHeap);
 	return sizeFree - sizeRequired;
 }
 
 /**
  * Allocates a header from the list, splitting if needed.
  */
-heap_handle heap_header_list_allocate(struct HEAP_SEGMENT* s, heap_handle freeHeap, heap_size_packed sizeRequired) {
-
+vera_heap_handle_t heap_header_list_allocate(struct HEAP_SEGMENT* s, vera_heap_handle_t freeHeap, vera_heap_size_packed_t sizeRequired) {
 
 	// Split the larger header, reusing the free part.
-	if (heap_header_can_split(freeHeap, sizeRequired)) {
-		freeHeap = heap_header_split(s, freeHeap, sizeRequired);
+	if (vera_heap_header_can_split(freeHeap, sizeRequired)) {
+		freeHeap = vera_heap_header_split(s, freeHeap, sizeRequired);
 	}
 
 	heap_size_packed_set(freeHeap, sizeRequired);
@@ -558,31 +557,31 @@ heap_handle heap_header_list_allocate(struct HEAP_SEGMENT* s, heap_handle freeHe
 /**
  * First-fit algorithm.
  */
-heap_handle heap_header_find_free(struct HEAP_SEGMENT* s, heap_size_packed sizeRequired) {
+vera_heap_handle_t heap_header_find_free(struct HEAP_SEGMENT* s, vera_heap_size_packed_t sizeRequired) {
 
 	if (!s->freeList) {
 		return 0;
 	}
 
-	heap_handle freeIndex = s->freeList;
-	heap_handle end = s->freeList;
+	vera_heap_handle_t freeIndex = s->freeList;
+	vera_heap_handle_t end = s->freeList;
 
 	do {
 
 		// O(n) search.
-		heap_size_packed freeSize = heap_size_packed_get(freeIndex);
+		vera_heap_size_packed_t freeSize = vera_heap_size_packed_get(freeIndex);
 		if (freeSize < sizeRequired) {
-			freeIndex = heap_get(freeIndex)->next;
+			freeIndex = vera_heap_get(freeIndex)->next;
 			continue;
 		}
 
 		// Found the header:
 		// printf("Found FreeIndex = %x, size = %x, block_size = %x\n", freeIndex, size, block_size);
-		heap_handle freeHeap = heap_data_packed_get(freeIndex);
+		vera_heap_handle_t freeHeap = vera_heap_data_packed_get(freeIndex);
 
 		// Clean Free Index
-		heap_free_remove(s, freeIndex);
-		heap_idle_insert(s, freeIndex);
+		vera_heap_free_remove(s, freeIndex);
+		vera_heap_idle_insert(s, freeIndex);
 	
 		return heap_header_list_allocate(s, freeHeap, sizeRequired);
 	} while (freeIndex != end);
@@ -594,22 +593,22 @@ heap_handle heap_header_find_free(struct HEAP_SEGMENT* s, heap_size_packed sizeR
  * Coalesces two adjacent blocks to the left.
  * The free header remains free, and the header to the left becomes unused.
  */
-heap_handle heap_coalesce_low(struct HEAP_SEGMENT* s, heap_handle freeIndex, heap_handle index) {
+vera_heap_handle_t heap_coalesce_low(struct HEAP_SEGMENT* s, vera_heap_handle_t freeIndex, vera_heap_handle_t index) {
 
-	heap_handle freeHeap = heap_data_packed_get(freeIndex);
+	vera_heap_handle_t freeHeap = vera_heap_data_packed_get(freeIndex);
 
-	heap_size_packed sizeFree = heap_size_packed_get(freeHeap);
-	heap_handle data = heap_data_packed_get(freeHeap);
-	heap_handle lowdata = heap_data_packed_get(index);
+	vera_heap_size_packed_t sizeFree = vera_heap_size_packed_get(freeHeap);
+	vera_heap_handle_t data = vera_heap_data_packed_get(freeHeap);
+	vera_heap_handle_t lowdata = vera_heap_data_packed_get(index);
 	// Detach freeBlock from freeList and add to idleList.
-	heap_free_remove(s, freeIndex);
-	heap_idle_insert(s, freeIndex);
+	vera_heap_free_remove(s, freeIndex);
+	vera_heap_idle_insert(s, freeIndex);
 	heap_heap_remove(s, freeHeap);
-	heap_idle_insert(s, freeHeap);
+	vera_heap_idle_insert(s, freeHeap);
 
-	heap_size_packed_set(index, heap_size_packed_get(index) + sizeFree);
+	heap_size_packed_set(index, vera_heap_size_packed_get(index) + sizeFree);
 
-	heap_data_packed_set(index, data);
+	vera_heap_data_packed_set(index, data);
 
 	// printf("coalesce low: lowdata = %x, data = %x, freeIndex = %x, index = %x\n", lowdata, data, freeIndex, index);
 
@@ -620,22 +619,22 @@ heap_handle heap_coalesce_low(struct HEAP_SEGMENT* s, heap_handle freeIndex, hea
  * Coalesces two adjacent blocks to the right.
  * The free header remains free, and the header to the right becomes unused.
  */
-heap_handle heap_coalesce_high(struct HEAP_SEGMENT* s, heap_handle index, heap_handle freeIndex) {
+vera_heap_handle_t heap_coalesce_high(struct HEAP_SEGMENT* s, vera_heap_handle_t index, vera_heap_handle_t freeIndex) {
 
-	heap_handle freeData = heap_data_packed_get(freeIndex);
+	vera_heap_handle_t freeData = vera_heap_data_packed_get(freeIndex);
 
-	heap_handle sizeFree = heap_size_packed_get(freeData);
+	vera_heap_handle_t sizeFree = vera_heap_size_packed_get(freeData);
 
-	heap_handle data = heap_data_packed_get(freeData);
-	heap_handle lowdata = heap_data_packed_get(index);
+	vera_heap_handle_t data = vera_heap_data_packed_get(freeData);
+	vera_heap_handle_t lowdata = vera_heap_data_packed_get(index);
 
 	// Detach freeBlock from freeList and add to unusedList.
 	heap_heap_remove(s, freeData);
-	heap_idle_insert(s, freeData);
-	heap_free_remove(s, freeIndex);
-	heap_idle_insert(s, freeIndex);
+	vera_heap_idle_insert(s, freeData);
+	vera_heap_free_remove(s, freeIndex);
+	vera_heap_idle_insert(s, freeIndex);
 
-	heap_size_packed_set(index, heap_size_packed_get(index) + sizeFree);
+	heap_size_packed_set(index, vera_heap_size_packed_get(index) + sizeFree);
 
 	// printf("coalesce high: lowdata = %x, data = %x, freeIndex = %x, index = %x\n", lowdata, data, freeIndex, index);
 
@@ -645,16 +644,16 @@ heap_handle heap_coalesce_high(struct HEAP_SEGMENT* s, heap_handle index, heap_h
 /**
  * Whether we should merge this header to the left.
  */
-heap_handle heap_can_coalesce_low(struct HEAP_SEGMENT* s, heap_handle index) {
+vera_heap_handle_t heap_can_coalesce_low(struct HEAP_SEGMENT* s, vera_heap_handle_t index) {
 
-	heap_handle next = heap_get(index)->next;
-	heap_handle free = heap_index_find(s->freeList, next);
+	vera_heap_handle_t next = vera_heap_get(index)->next;
+	vera_heap_handle_t free = vera_heap_index_find(s->freeList, next);
 
 
 	if(free) {
-		heap_handle data = heap_data_packed_get(next);
-		heap_handle size = heap_size_packed_get(next);
-		if(heap_data_packed_get(index) == data+size) {
+		vera_heap_handle_t data = vera_heap_data_packed_get(next);
+		vera_heap_handle_t size = vera_heap_size_packed_get(next);
+		if(vera_heap_data_packed_get(index) == data+size) {
 			return free;
 		}
 	}
@@ -665,15 +664,15 @@ heap_handle heap_can_coalesce_low(struct HEAP_SEGMENT* s, heap_handle index) {
 /**
  * Whether we should merge this header to the right.
  */
-heap_handle heap_can_coalesce_high(struct HEAP_SEGMENT* s, heap_handle index) {
+vera_heap_handle_t heap_can_coalesce_high(struct HEAP_SEGMENT* s, vera_heap_handle_t index) {
 
-	heap_handle prev = heap_get(index)->prev;
-	heap_handle free = heap_index_find(s->freeList, prev);
+	vera_heap_handle_t prev = vera_heap_get(index)->prev;
+	vera_heap_handle_t free = vera_heap_index_find(s->freeList, prev);
 
 	if(free) {
-		heap_handle data = heap_data_packed_get(index);
-		heap_handle size = heap_size_packed_get(index);
-		if(heap_data_packed_get(prev) == data+size) {
+		vera_heap_handle_t data = vera_heap_data_packed_get(index);
+		vera_heap_handle_t size = vera_heap_size_packed_get(index);
+		if(vera_heap_data_packed_get(prev) == data+size) {
 			return free;
 		}
 	}
@@ -685,7 +684,7 @@ heap_handle heap_can_coalesce_high(struct HEAP_SEGMENT* s, heap_handle index) {
 /**
  * Tries to find a header that fits.
  */
-heap_handle heap_header_find(struct HEAP_SEGMENT* s, heap_size_packed size) {
+vera_heap_handle_t heap_header_find(struct HEAP_SEGMENT* s, vera_heap_size_packed_t size) {
 	return heap_header_find_free(s, size);
 }
 
@@ -728,7 +727,7 @@ void heap_segment_init(struct HEAP_SEGMENT* s) {
 heap_address heap_segment_bram(
 	heap_segment segment, 
 	heap_bram_packed heapFloorBram,
-	heap_size_packed heapSizeBram
+	vera_heap_size_packed_t heapSizeBram
 	) {
 
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
@@ -793,9 +792,9 @@ heap_address heap_segment_bram(
 heap_address heap_segment_vram_ceil(
 	heap_segment segment, 
 	heap_vram_packed heapCeilVram,
-	heap_size_packed heapSizeVram,
+	vera_heap_size_packed_t heapSizeVram,
 	heap_bram_packed indexFloorBram,
-	heap_size_packed indexSizeBram
+	vera_heap_size_packed_t indexSizeBram
 	) {
 
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
@@ -856,9 +855,9 @@ heap_address heap_segment_vram_ceil(
 heap_address heap_segment_vram_floor(
 	heap_segment segment, 
 	heap_vram_packed heapFloorVram,
-	heap_size_packed heapSizeVram,
+	vera_heap_size_packed_t heapSizeVram,
 	heap_bram_packed indexFloorBram,
-	heap_size_packed indexSizeBram
+	vera_heap_size_packed_t indexSizeBram
 	) {
 
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
@@ -888,32 +887,32 @@ heap_address heap_segment_vram_floor(
  * When the size of the memory block is enquired, an 8 byte aligned value will be returned.
  * @return heap_handle The handle referring to the free record in the index.
  */
-heap_handle heap_alloc(heap_segment segment, heap_size size) {
+vera_heap_handle_t heap_alloc(heap_segment segment, heap_size size) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
 	heap_bank bank_old = cx16_bram_bank_get();
 
 	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
-	heap_size_packed sizePacked = heap_alloc_size_get(size);
+	vera_heap_size_packed_t sizePacked = heap_alloc_size_get(size);
 
 	// Traverse the blocks list, searching for a header of
 	// the appropriate size.
 
 	{
-		heap_handle index = heap_header_find(s, sizePacked);
+		vera_heap_handle_t index = heap_header_find(s, sizePacked);
 		if (index) {
 			s->freeSize -= sizePacked;
-			return (heap_handle)index;
+			return (vera_heap_handle_t)index;
 		}
 	}
 
 	// No free heap found, request to map more memory.
-	heap_handle heapIndex = heap_header_add(s, sizePacked);
+	vera_heap_handle_t heapIndex = heap_header_add(s, sizePacked);
 	s->heapSize += sizePacked;
 
 	cx16_bram_bank_set(bank_old);
 
-	return (heap_handle)heapIndex;
+	return (vera_heap_handle_t)heapIndex;
 }
 
 /**
@@ -923,15 +922,15 @@ heap_handle heap_alloc(heap_segment segment, heap_size size) {
  * @param handle The handle referring to the heap memory block.
  * @return heap_handle 
  */
-heap_handle heap_free(heap_segment segment, heap_handle handle) {
+vera_heap_handle_t heap_free(heap_segment segment, vera_heap_handle_t handle) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
 	heap_bank bank_old = cx16_bram_bank_get();
-	heap_size_packed freeSize = heap_size_packed_get(handle);
+	vera_heap_size_packed_t freeSize = vera_heap_size_packed_get(handle);
 	s->freeSize += freeSize;
 
 	{
-		heap_handle freeIndex = heap_can_coalesce_low(s, handle);
+		vera_heap_handle_t freeIndex = heap_can_coalesce_low(s, handle);
 		// printf("Can coalesce %x low %x\n", freeIndex, index);
 		if (freeIndex) {
 			heap_coalesce_low(s, freeIndex, handle);
@@ -940,42 +939,42 @@ heap_handle heap_free(heap_segment segment, heap_handle handle) {
 
 
 	{
-		heap_handle freeIndex = heap_can_coalesce_high(s, handle);
+		vera_heap_handle_t freeIndex = heap_can_coalesce_high(s, handle);
 		if (freeIndex) {
 			heap_coalesce_high(s, handle, freeIndex);
 		}
 	}
 
-	heap_handle freeIndex = heap_index_add(s);
-	heap_free_insert(s, freeIndex, handle, heap_size_packed_get(handle));
+	vera_heap_handle_t freeIndex = heap_index_add(s);
+	heap_free_insert(s, freeIndex, handle, vera_heap_size_packed_get(handle));
 
-	*(char*)heap_data_ptr(heap_data_packed_get(handle)) = 0;
+	*(char*)heap_data_ptr(vera_heap_data_packed_get(handle)) = 0;
 
 	cx16_bram_bank_set(bank_old);
 
 	return freeIndex;
 }
 
-void heap_print_bram(char prefix, heap_handle list) {
+void heap_print_bram(char prefix, vera_heap_handle_t list) {
 
 	if (!list) return;
-	heap_handle header = list;
-	heap_handle end = list;
+	vera_heap_handle_t header = list;
+	vera_heap_handle_t end = list;
 
 	do {
 		heap_ptr ptr = heap_data_ptr(header);
-		heap_size_packed size = heap_size_get(header);
+		vera_heap_size_packed_t size = heap_size_get(header);
 		size = size / 8;
 		word wptr = (word)ptr;
 		wptr = wptr - 0xA000;
 		wptr = wptr / 8;
-		for(heap_size_packed p = 0; p<size; p++) {
+		for(vera_heap_size_packed_t p = 0; p<size; p++) {
 			byte y = (byte)((wptr+p) / 64);
 			byte x = (byte)((wptr+p) % 64);
 			gotoxy(63-x,15-y);
 			printf("%c", prefix);
 		}
-		header = heap_get(header)->next;
+		header = vera_heap_get(header)->next;
 	} while (header != end);
 }
 
@@ -986,17 +985,17 @@ void heap_print_bram(char prefix, heap_handle list) {
  * @param prefix The chain code.
  * @param list The index list with packed next and prev pointers.
  */
-void heap_dump_index_print(char prefix, heap_handle list) {
+void vera_heap_dump_index_print(char prefix, vera_heap_handle_t list) {
 
 	if (!list) return;
-	heap_handle anchor_index = list;
-	heap_handle end_index = list;
+	vera_heap_handle_t anchor_index = list;
+	vera_heap_handle_t end_index = list;
 	do {
 		printf("%c:", prefix);
-		printf("%05x[%05x,%06u", anchor_index, heap_data_packed_get(anchor_index), heap_size_get(anchor_index) );
-		printf(",%05x,%05x", heap_get(anchor_index)->next, heap_get(anchor_index)->prev );
+		printf("%05x[%05x,%06u", anchor_index, vera_heap_data_packed_get(anchor_index), heap_size_get(anchor_index) );
+		printf(",%05x,%05x", vera_heap_get(anchor_index)->next, vera_heap_get(anchor_index)->prev );
 		printf("]\n");
-		anchor_index = heap_get(anchor_index)->next;
+		anchor_index = vera_heap_get(anchor_index)->next;
 	} while (anchor_index != end_index);
 }
 
@@ -1021,9 +1020,9 @@ void heap_dump_index(heap_segment segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
 	printf("list  heap:%05x free:%05x idle:%05x\n", s->heapList, s->freeList, s->idleList);
-	heap_dump_index_print('i', s->idleList);
-	heap_dump_index_print('f', s->freeList);
-	heap_dump_index_print('h', s->heapList);
+	vera_heap_dump_index_print('i', s->idleList);
+	vera_heap_dump_index_print('f', s->freeList);
+	vera_heap_dump_index_print('h', s->heapList);
 }
 
 /**
@@ -1046,7 +1045,7 @@ void heap_dump(heap_segment segment) {
  */
 heap_size_large heap_free_size(heap_segment segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
-	heap_size_packed freeSize = s->freeSize;
+	vera_heap_size_packed_t freeSize = s->freeSize;
 	return (heap_size_large)freeSize<<3;
 }
 
@@ -1058,8 +1057,8 @@ heap_size_large heap_free_size(heap_segment segment) {
  */
 heap_size_large heap_alloc_size(heap_segment segment) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
-	heap_size_packed freeSize = s->freeSize;
-	heap_size_packed heapSize = s->heapSize;
+	vera_heap_size_packed_t freeSize = s->freeSize;
+	vera_heap_size_packed_t heapSize = s->heapSize;
 	return (heap_size_large)(heapSize-freeSize)<<3;
 }
 

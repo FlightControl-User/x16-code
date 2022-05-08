@@ -15,8 +15,8 @@ typedef unsigned int    heap_vram_packed; 	///< Packed pointer to a location in 
 typedef unsigned char   heap_bank; 			///< A bank representation for banked ram or banked vera ram.
 
 typedef unsigned int 	heap_address;       ///< Represents an address.
-typedef unsigned int 	heap_handle;        ///< Generic handle for heap references.
-typedef unsigned int 	heap_size_packed;   ///< The size packed in a word, shifted 3 bits to the right.
+typedef unsigned int 	vera_heap_handle_t;        ///< Generic handle for heap references.
+typedef unsigned int 	vera_heap_size_packed_t;   ///< The size packed in a word, shifted 3 bits to the right.
 typedef unsigned int 	heap_size;          ///< The size in real buytes, max word size.
 typedef unsigned long 	heap_size_large;    ///< The size in real buytes, max dword size.
 typedef unsigned int 	heap_count;         ///< Counters.
@@ -50,19 +50,19 @@ struct HEAP_SEGMENT {
 
 	unsigned int HeapType;
 
-	heap_handle HeapFloor;
-	heap_handle HeapCeil;
-	heap_handle HeapSize;
-	heap_handle HeaderFloor;
-	heap_handle HeaderCeil;
-	heap_handle HeaderSize;
+	vera_heap_handle_t HeapFloor;
+	vera_heap_handle_t HeapCeil;
+	vera_heap_handle_t HeapSize;
+	vera_heap_handle_t HeaderFloor;
+	vera_heap_handle_t HeaderCeil;
+	vera_heap_handle_t HeaderSize;
 
-	heap_handle freeList;
-	heap_handle idleList;
-	heap_handle heapList;
+	vera_heap_handle_t freeList;
+	vera_heap_handle_t idleList;
+	vera_heap_handle_t heapList;
 	
-	heap_handle HeaderPosition;
-	heap_handle HeapPosition;
+	vera_heap_handle_t HeaderPosition;
+	vera_heap_handle_t HeapPosition;
 
 	unsigned int heapCount;
 	unsigned int freeCount;
@@ -80,10 +80,10 @@ typedef unsigned char heap_segment;
  * Contains condensed pointers to next and previous header blocks.
  */
 struct HEAP_INDEX {
-	heap_handle data;
-	heap_size_packed size;
-	heap_handle next;
-	heap_handle prev;
+	vera_heap_handle_t data;
+	vera_heap_size_packed_t size;
+	vera_heap_handle_t next;
+	vera_heap_handle_t prev;
 };
 
 typedef struct HEAP_INDEX heap_index;
@@ -100,41 +100,41 @@ inline heap_offset       heap_vram_unpack_offset(cx16_vram_packed vram_packed);
 heap_address heap_segment_bram(
 	heap_segment Segment, 
 	cx16_vram_packed HeapFloorBram,
-	heap_size_packed HeapSizeBram
+	vera_heap_size_packed_t HeapSizeBram
 	);
 
 heap_address heap_segment_vram_floor(
 	heap_segment Segment, 
 	cx16_vram_packed HeapFloorVram,
-	heap_size_packed HeapSizeVram,
+	vera_heap_size_packed_t HeapSizeVram,
 	cx16_bram_packed HeaderFloorBram,
-	heap_size_packed HeaderSizeBram
+	vera_heap_size_packed_t HeaderSizeBram
 	);
 
 heap_address heap_segment_vram_ceil(
 	heap_segment Segment, 
 	cx16_vram_packed HeapCeilVram,
-	heap_size_packed HeapSizeVram,
+	vera_heap_size_packed_t HeapSizeVram,
 	cx16_bram_packed HeaderFloorBram,
-	heap_size_packed HeaderSizeBram
+	vera_heap_size_packed_t HeaderSizeBram
 	);
 
-heap_handle heap_alloc(heap_segment segment, heap_size size);
-heap_handle heap_free(heap_segment segment, heap_handle handle);
+vera_heap_handle_t heap_alloc(heap_segment segment, heap_size size);
+vera_heap_handle_t heap_free(heap_segment segment, vera_heap_handle_t handle);
 
 heap_ptr heap_data_ptr(
-	heap_handle handle
+	vera_heap_handle_t handle
 	);
 
-heap_handle heap_data_get(heap_handle indexHeap);
-heap_size_packed heap_size_get(heap_handle indexHeap);
+vera_heap_handle_t heap_data_get(vera_heap_handle_t indexHeap);
+vera_heap_size_packed_t heap_size_get(vera_heap_handle_t indexHeap);
 
 heap_bank heap_data_bank(
-	heap_handle handle
+	vera_heap_handle_t handle
 	);
 
-heap_handle heap_data_get(
-	heap_handle handle
+vera_heap_handle_t heap_data_get(
+	vera_heap_handle_t handle
 	);
 
 dword heap_segment_vram_floor_ulong(struct HEAP_SEGMENT* Segment);
