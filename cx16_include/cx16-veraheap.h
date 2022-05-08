@@ -11,6 +11,7 @@
 
 #include <cx16.h>
 
+
 typedef unsigned int vera_heap_bank_t;
 typedef unsigned int vera_heap_handle_t;
 
@@ -88,6 +89,7 @@ vera_heap_handle_t vera_heap_free(vera_heap_segment_index_t s, vera_heap_handle_
 
 
 
+#ifdef VERAHEAP_DEBUG
 void vera_heap_dump(vera_heap_segment_index_t s);
 void vera_heap_dump_stats(vera_heap_segment_index_t s);
 void vera_heap_dump_index(vera_heap_segment_index_t s);
@@ -97,3 +99,4 @@ unsigned int vera_heap_free_size(vera_heap_segment_index_t s);
 unsigned int vera_heap_alloc_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_free_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_idle_count(vera_heap_segment_index_t s);
+#endif
