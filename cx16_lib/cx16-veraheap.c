@@ -17,38 +17,104 @@
 
 // #pragma data_seg(VeraHeap)
 // __address(0xA000) vera_heap_directory_t vera_heap_index;
-vera_heap_directory_t vera_heap_index;
+vera_heap_directory_t vera_heap_directory;
 // #pragma data_seg(Data)
 
 vera_heap_segment_t vera_heap_segment;
 
-vera_heap_handle_t vera_heap_pack(vram_bank_t vram_bank, vram_offset_t vram_offset)
+inline vera_heap_handle_t vera_heap_pack(vram_bank_t vram_bank, vram_offset_t vram_offset)
 {
     return MAKEWORD(vram_bank<<5, 0) | (vram_offset>>3);
 }
 
 inline vram_bank_t vera_heap_get_bank(vera_heap_handle_t index)
 {
-    return BYTE1(vera_heap_index.data[index])>>5;
+    return BYTE1(vera_heap_directory.data[index])>>5;
 }
 
 
-inline vram_bank_t vera_heap_get_offset(vera_heap_handle_t index)
+inline vram_offset_t vera_heap_get_offset(vera_heap_handle_t index)
 {
-    return vera_heap_index.data[index] << 3;
+    return vera_heap_directory.data[index] << 3;
 }
 
-inline vera_heap_handle_t vera_heap_set_handle(vera_heap_handle_t index, vram_bank_t vram_bank, vram_offset_t vram_offset)
+inline vram_bank_t vera_heap_get_bank(vera_heap_handle_t index)
 {
-    vera_heap_handle_t handle = vera_heap_pack(vram_bank, vram_offset);
-    vera_heap_index.data[index] = handle;
-    return handle;
+    return BYTE1(vera_heap_directory.data[index]) >> 5;
 }
 
-vera_heap_size_t vera_heap_get_size(vera_heap_handle_t index)
+inline vera_heap_data_packed_t vera_heap_set_offset_packed(vera_heap_handle_t index, vram_bank_t vram_bank, vram_offset_t vram_offset)
 {
-    vera_heap_size_packed_t size = vera_heap_index.size[index]; 
+    vera_heap_data_packed_t data_packed = vera_heap_pack(vram_bank, vram_offset);
+    vera_heap_directory.data[index] = data_packed;
+    return data_packed;
+}
+
+inline vera_heap_size_t vera_heap_get_size_packed(vera_heap_handle_t index)
+{
+    vera_heap_size_packed_t size = vera_heap_directory.size[index]; 
+    return vera_heap_directory.size[index];
+}
+
+inline vera_heap_size_t vera_heap_get_size(vera_heap_handle_t index)
+{
+    vera_heap_size_packed_t size = vera_heap_directory.size[index] << 3; 
     return size << 3;
+}
+
+inline vera_heap_size_packed_t vera_heap_set_size_packed(vera_heap_handle_t index, vera_heap_size_t size)
+{
+    vera_heap_size_packed_t size_packed = size >> 3;
+    vera_heap_directory.size[index] = size_packed;
+    return size_packed;
+}
+
+
+inline vera_heap_handle_t vera_heap_get_next(vera_heap_handle_t index)
+{
+    return vera_heap_directory.next[index];
+}
+
+
+inline vera_heap_handle_t vera_heap_set_next(vera_heap_handle_t index, vera_heap_handle_t next)
+{
+    vera_heap_directory.next[index] = next;
+}
+
+
+inline vera_heap_handle_t vera_heap_get_prev(vera_heap_handle_t index)
+{
+    return vera_heap_directory.prev[index];
+}
+
+
+inline vera_heap_handle_t vera_heap_set_prev(vera_heap_handle_t index, vera_heap_handle_t prev)
+{
+    vera_heap_directory.prev[index] = prev;
+}
+
+
+inline vera_heap_handle_t vera_heap_get_left(vera_heap_handle_t index)
+{
+    return vera_heap_directory.left[index];
+}
+
+
+inline vera_heap_handle_t vera_heap_set_left(vera_heap_handle_t index, vera_heap_handle_t left)
+{
+    vera_heap_directory.left[index] = left;
+}
+
+
+inline vera_heap_handle_t vera_heap_get_right(vera_heap_handle_t index)
+{
+    return vera_heap_directory.right[index];
+}
+
+
+inline vera_heap_handle_t vera_heap_set_right(vera_heap_handle_t index, vera_heap_handle_t right)
+{
+    vera_heap_directory.right[index] = right;
 }
 
 
@@ -60,25 +126,25 @@ vera_heap_handle_t vera_heap_list_insert_at(vera_heap_handle_t list, vera_heap_h
 	if(list == VERAHEAP_NULL) {
 		// empty list
 		list = index;
-        vera_heap_index.prev[index] = index;
-        vera_heap_index.next[index] = index;
+        vera_heap_directory.prev[index] = index;
+        vera_heap_directory.next[index] = index;
 	}
 
     if(at==VERAHEAP_NULL) {
         at=list;
     }
 
-	vera_heap_handle_t last = vera_heap_index.prev[at];
+	vera_heap_handle_t last = vera_heap_directory.prev[at];
 	vera_heap_handle_t first = at;
 
 	// Add index to list at last position.
-	vera_heap_index.prev[index] = last;
-	vera_heap_index.next[last] = index;
-	vera_heap_index.next[index] = first;
-	vera_heap_index.prev[first] = index;
+	vera_heap_directory.prev[index] = last;
+	vera_heap_directory.next[last] = index;
+	vera_heap_directory.next[index] = first;
+	vera_heap_directory.prev[first] = index;
 
-	vera_heap_handle_t dataList = vera_heap_index.data[list];
-	vera_heap_handle_t dataIndex = vera_heap_index.data[index];
+	vera_heap_handle_t dataList = vera_heap_directory.data[list];
+	vera_heap_handle_t dataIndex = vera_heap_directory.data[index];
 
 	if(dataIndex>dataList) {
 		list = index;
@@ -100,26 +166,26 @@ vera_heap_handle_t vera_heap_list_remove(vera_heap_handle_t list, vera_heap_hand
 	}
 
 	// The free makes the list empty!
-	if(list == vera_heap_index.next[list]) {
+	if(list == vera_heap_directory.next[list]) {
 		list = 0; // We initialize the start of the list to null.
 #ifdef VERAHEAP_DEBUG
         printf("list is null\n");
 #endif
-        vera_heap_index.next[index] = VERAHEAP_NULL;
-        vera_heap_index.prev[index] = VERAHEAP_NULL;
+        vera_heap_directory.next[index] = VERAHEAP_NULL;
+        vera_heap_directory.prev[index] = VERAHEAP_NULL;
 		return VERAHEAP_NULL; 
 	}
 
-    vera_heap_handle_t next = vera_heap_index.next[index];
-    vera_heap_handle_t prev = vera_heap_index.prev[index];
+    vera_heap_handle_t next = vera_heap_directory.next[index];
+    vera_heap_handle_t prev = vera_heap_directory.prev[index];
 
     // TODO, why can't this be coded in one statement ...
-    vera_heap_index.next[prev] = next;
-    vera_heap_index.prev[next] = prev;
+    vera_heap_directory.next[prev] = next;
+    vera_heap_directory.prev[next] = prev;
 
 	// The free changes the first header of the list!
 	if(index == list) { 
-		list = vera_heap_index.next[list];
+		list = vera_heap_directory.next[list];
 	}
 
 	return list;
@@ -127,7 +193,7 @@ vera_heap_handle_t vera_heap_list_remove(vera_heap_handle_t list, vera_heap_hand
 
 vera_heap_handle_t vera_heap_heap_insert_at(vera_heap_segment_index_t s, vera_heap_handle_t heapIndex, vera_heap_handle_t at, vera_heap_size_packed_t size) {
 	vera_heap_segment.heap_list[s] = vera_heap_list_insert_at(vera_heap_segment.heap_list[s], heapIndex, at);
-    vera_heap_index.size[heapIndex] = size;
+    vera_heap_directory.size[heapIndex] = size;
 	vera_heap_segment.heapCount[s]++;
 	return vera_heap_segment.heap_list[s];
 }
@@ -139,8 +205,8 @@ void vera_heap_heap_remove(vera_heap_segment_index_t s, vera_heap_handle_t heapI
 
 vera_heap_handle_t vera_heap_free_insert(vera_heap_segment_index_t s, vera_heap_handle_t freeIndex, vera_heap_handle_t data, vera_heap_size_packed_t size) {
 	vera_heap_segment.free_list[s] = vera_heap_list_insert_at(vera_heap_segment.free_list[s], freeIndex, vera_heap_segment.free_list[s]);
-    vera_heap_index.data[freeIndex] = data;
-    vera_heap_index.size[freeIndex] = size;
+    vera_heap_directory.data[freeIndex] = data;
+    vera_heap_directory.size[freeIndex] = size;
 	vera_heap_segment.freeCount[s]++;
 	return vera_heap_segment.free_list[s];
 }
@@ -152,8 +218,8 @@ void vera_heap_free_remove(vera_heap_segment_index_t s, vera_heap_handle_t free_
 
 vera_heap_handle_t vera_heap_idle_insert(vera_heap_segment_index_t s, vera_heap_handle_t index) {
 	vera_heap_segment.idle_list[s] = vera_heap_list_insert_at(vera_heap_segment.idle_list[s], index, vera_heap_segment.idle_list[s]);
-    vera_heap_index.data[index] = 0;
-    vera_heap_index.size[index] = 0;
+    vera_heap_directory.data[index] = 0;
+    vera_heap_directory.size[index] = 0;
 	vera_heap_segment.idleCount[s]++;
 	return vera_heap_segment.idle_list[s];
 }
@@ -202,8 +268,8 @@ vera_heap_handle_t vera_heap_heap_add(vera_heap_segment_index_t s, vera_heap_siz
 	vera_heap_handle_t index = vera_heap_index_add(s);
 
 	// The data handle of the header gets appointed with the current heap position handle.
-    vera_heap_index.data[index] = vera_heap_segment.heap_position[s];
-    vera_heap_index.size[index] = size; // packed size!
+    vera_heap_directory.data[index] = vera_heap_segment.heap_position[s];
+    vera_heap_directory.size[index] = size; // packed size!
 	vera_heap_heap_insert_at(s, index, vera_heap_segment.heap_list[s], size); // TODO, not kosher
 
 	// Decrease the current heap position handle with the size needed to be newly allocated.
@@ -225,17 +291,17 @@ vera_heap_handle_t vera_heap_header_split(vera_heap_segment_index_t s, vera_heap
 	// Add the freeBlock to the freeList
 
     // The free block is reduced in size with the required size.
-	vera_heap_size_packed_t free_size = vera_heap_index.size[free_index];
-	vera_heap_data_packet_t free_data = vera_heap_index.data[free_index];
-    vera_heap_index.size[free_index] = free_size-required_size;
-    vera_heap_index.data[free_index] += required_size;
+	vera_heap_size_packed_t free_size = vera_heap_directory.size[free_index];
+	vera_heap_data_packed_t free_data = vera_heap_directory.data[free_index];
+    vera_heap_directory.size[free_index] = free_size-required_size;
+    vera_heap_directory.data[free_index] += required_size;
 
     // We create a new heap block with the required size.
     // The data is the offset in vram.
 	vera_heap_handle_t heap_index = vera_heap_index_add(s);
 
     // TODO - need to optimize the data and the size in the vera_heap_heap_insert_at call. This is messy.
-    vera_heap_index.data[heap_index] = free_data;
+    vera_heap_directory.data[heap_index] = free_data;
 	vera_heap_heap_insert_at(s, heap_index, VERAHEAP_NULL, required_size);
 
     
@@ -252,7 +318,7 @@ vera_heap_handle_t vera_heap_header_split(vera_heap_segment_index_t s, vera_heap
  * A spllit can occur when the free memory block is larger than the required size to be allocated.
  */
 vera_heap_size_packed_t vera_heap_header_can_split(vera_heap_handle_t free_index, vera_heap_size_packed_t required_size) {
-	vera_heap_size_packed_t free_size = vera_heap_index.size[free_index];
+	vera_heap_size_packed_t free_size = vera_heap_directory.size[free_index];
 #ifdef VERAHEAP_DEBUG
     printf("\n > can split: i=%04x, fs=%u, rs=%u", free_index, free_size, required_size);
 #endif
@@ -297,14 +363,14 @@ vera_heap_handle_t vera_heap_alloc_using_free(vera_heap_segment_index_t s, vera_
 	do {
 
 		// O(n) search.
-		vera_heap_size_packed_t free_size = vera_heap_index.size[free_index];
+		vera_heap_size_packed_t free_size = vera_heap_directory.size[free_index];
 
 #ifdef VERAHEAP_DEBUG
         printf(", fs(%u)=%u", free_index, free_size);
 #endif
 
 		if (free_size < requested_size) {
-			free_index = vera_heap_index.next[free_index];
+			free_index = vera_heap_directory.next[free_index];
 			continue;
 		}
 
@@ -330,7 +396,7 @@ vera_heap_handle_t vera_heap_can_coalesce_left(vera_heap_segment_index_t s, vera
     printf(" > coa left: hi=%04x, fi=%04x\n", heap_index, free_index);
 #endif
 
-    vera_heap_data_packet_t heap_offset = vera_heap_index.data[heap_index];
+    vera_heap_data_packed_t heap_offset = vera_heap_directory.data[heap_index];
 
 #ifdef VERAHEAP_DEBUG
     printf(" > coa left search: ");
@@ -338,8 +404,8 @@ vera_heap_handle_t vera_heap_can_coalesce_left(vera_heap_segment_index_t s, vera
 
 	do {
 		// O(n) search.
-		vera_heap_data_packet_t free_offset = vera_heap_index.data[free_index];
-        vera_heap_size_packed_t free_size = vera_heap_index.size[free_index];
+		vera_heap_data_packed_t free_offset = vera_heap_directory.data[free_index];
+        vera_heap_size_packed_t free_size = vera_heap_directory.size[free_index];
         free_offset += free_size;
 #ifdef VERAHEAP_DEBUG
         printf(" > fo=%04x, ho=%04x", free_offset, heap_offset);
@@ -352,7 +418,7 @@ vera_heap_handle_t vera_heap_can_coalesce_left(vera_heap_segment_index_t s, vera
 		}
 
 		// Found no occurrance:
-        free_index = vera_heap_index.next[free_index];
+        free_index = vera_heap_directory.next[free_index];
 	} while (free_index != end_index);
 
     // A free_index is not found, we cannot coalesce.
@@ -377,15 +443,15 @@ vera_heap_handle_t heap_can_coalesce_right(vera_heap_segment_index_t s, vera_hea
     printf(" > coa right: hi=%04x, fi=%04x\n", heap_index, free_index);
 #endif
 
-    vera_heap_data_packet_t heap_offset = vera_heap_index.data[heap_index];
-    heap_offset += vera_heap_index.size[heap_index];
+    vera_heap_data_packed_t heap_offset = vera_heap_directory.data[heap_index];
+    heap_offset += vera_heap_directory.size[heap_index];
 
 #ifdef VERAHEAP_DEBUG
     printf(" > coa right search: ");
 #endif
 	do {
 		// O(n) search.
-		vera_heap_data_packet_t free_offset = vera_heap_index.data[free_index];
+		vera_heap_data_packed_t free_offset = vera_heap_directory.data[free_index];
 #ifdef VERAHEAP_DEBUG
         printf(" > fo=%04x, ho=%04x", free_offset, heap_offset);
 #endif
@@ -397,7 +463,7 @@ vera_heap_handle_t heap_can_coalesce_right(vera_heap_segment_index_t s, vera_hea
 		}
 
 		// Found no occurrance:
-        free_index = vera_heap_index.next[free_index];
+        free_index = vera_heap_directory.next[free_index];
 	} while (free_index != end_index);
 
 #ifdef VERAHEAP_DEBUG
@@ -420,10 +486,10 @@ vera_heap_handle_t heap_coalesce_left(vera_heap_segment_index_t s, vera_heap_han
 #ifdef VERAHEAP_DEBUG
     printf("> coa left: ");
 #endif
-	vera_heap_handle_t left_offset = vera_heap_index.data[left_index];
-	vera_heap_size_packed_t left_size = vera_heap_index.size[left_index];
+	vera_heap_handle_t left_offset = vera_heap_directory.data[left_index];
+	vera_heap_size_packed_t left_size = vera_heap_directory.size[left_index];
 
-	vera_heap_size_packed_t middle_size = vera_heap_index.size[middle_index];
+	vera_heap_size_packed_t middle_size = vera_heap_directory.size[middle_index];
 
 	// Detach freeBlock from freeList and add to idleList.
 	vera_heap_free_remove(s, middle_index);
@@ -434,7 +500,7 @@ vera_heap_handle_t heap_coalesce_left(vera_heap_segment_index_t s, vera_heap_han
     printf("> removed free, inserted idle \n");
 #endif
 
-    vera_heap_index.size[left_index] = middle_size + left_size;
+    vera_heap_directory.size[left_index] = middle_size + left_size;
 
 	return left_index;
 }
@@ -446,17 +512,17 @@ vera_heap_handle_t heap_coalesce_left(vera_heap_segment_index_t s, vera_heap_han
  */
 vera_heap_handle_t heap_coalesce_right(vera_heap_segment_index_t s, vera_heap_handle_t middle_index, vera_heap_handle_t right_index) {
 
-	vera_heap_handle_t right_offset = vera_heap_index.data[right_index];
-	vera_heap_handle_t right_size = vera_heap_index.size[right_index];
+	vera_heap_handle_t right_offset = vera_heap_directory.data[right_index];
+	vera_heap_handle_t right_size = vera_heap_directory.size[right_index];
 
-    vera_heap_handle_t middle_offset = vera_heap_index.data[middle_index];
-	vera_heap_handle_t middle_size = vera_heap_index.size[middle_index];
+    vera_heap_handle_t middle_offset = vera_heap_directory.data[middle_index];
+	vera_heap_handle_t middle_size = vera_heap_directory.size[middle_index];
 
 	// Detach freeBlock from freeList and add to unusedList.
 	vera_heap_free_remove(s, right_index);
 	vera_heap_idle_insert(s, right_index);
 
-    vera_heap_index.size[middle_index] = middle_size + right_size;
+    vera_heap_directory.size[middle_index] = middle_size + right_size;
 
 	// printf("coalesce high: lowdata = %x, data = %x, freeIndex = %x, index = %x\n", lowdata, data, freeIndex, index);
 
@@ -529,10 +595,10 @@ vera_heap_segment_index_t vera_heap_segment_init(
 
     vera_heap_handle_t free_index = vera_heap_index_add(s);
     free_index = vera_heap_list_insert_at(s, vera_heap_segment.free_list[s], 0);
-    vera_heap_index.data[free_index] = vera_heap_segment.floor[s];
-    vera_heap_index.size[free_index] = vera_heap_segment.ceil[s] - vera_heap_segment.floor[s];
-    vera_heap_index.next[free_index] = 0;
-    vera_heap_index.prev[free_index] = 0;
+    vera_heap_directory.data[free_index] = vera_heap_segment.floor[s];
+    vera_heap_directory.size[free_index] = vera_heap_segment.ceil[s] - vera_heap_segment.floor[s];
+    vera_heap_directory.next[free_index] = 0;
+    vera_heap_directory.prev[free_index] = 0;
     vera_heap_segment.free_list[s] = free_index;
 	bank_set_bram(bank_old);
 
@@ -604,8 +670,8 @@ vera_heap_handle_t vera_heap_free(vera_heap_segment_index_t s, vera_heap_handle_
     bank_set_bram(vera_heap_segment.bram_bank);
 
 
-	vera_heap_size_packed_t heap_size = vera_heap_index.size[heap_index];
-	vera_heap_handle_t heap_offset = vera_heap_index.data[heap_index];
+	vera_heap_size_packed_t heap_size = vera_heap_directory.size[heap_index];
+	vera_heap_handle_t heap_offset = vera_heap_directory.data[heap_index];
 
 #ifdef VERAHEAP_DEBUG
     printf("removing heap hi=%04x\n", heap_index);

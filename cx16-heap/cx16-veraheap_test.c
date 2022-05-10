@@ -1,5 +1,7 @@
 // #pragma var_model(mem)
 
+#define VERAHEAP_DEBUG
+
 #include <stdlib.h>
 #include <cx16.h>
 #include <cx16-veraheap.h>

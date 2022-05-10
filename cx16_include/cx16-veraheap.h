@@ -12,16 +12,19 @@
 #include <cx16.h>
 
 
-typedef unsigned int vera_heap_bank_t;
+typedef unsigned char vera_heap_bank_t;
+typedef unsigned int vera_heap_offset_t;
 typedef unsigned int vera_heap_handle_t;
 
 typedef unsigned int vera_heap_data_t;
-typedef unsigned int vera_heap_data_packet_t;
+typedef unsigned int vera_heap_data_packed_t;
 
 typedef unsigned int vera_heap_size_t;
 typedef unsigned int vera_heap_size_packed_t;
 
 typedef unsigned char vera_heap_segment_index_t;
+
+typedef unsigned char vera_heap_index_t;
 
 
 #define VERAHEAP_ERROR      0xFFFF
@@ -38,13 +41,15 @@ typedef unsigned char vera_heap_segment_index_t;
  * Contains condensed pointers to next and previous header blocks.
  */
 typedef struct {
-	vram_offset_t data[VERAHEAP_INDEXES];
+	vera_heap_data_packed_t data[VERAHEAP_INDEXES];
 	vera_heap_size_packed_t size[VERAHEAP_INDEXES];
 	vera_heap_handle_t next[VERAHEAP_INDEXES];
 	vera_heap_handle_t prev[VERAHEAP_INDEXES];
+	vera_heap_handle_t right[VERAHEAP_INDEXES];
+	vera_heap_handle_t left[VERAHEAP_INDEXES];
 } vera_heap_directory_t;
 
-extern vera_heap_directory_t vera_heap_index;
+extern vera_heap_directory_t vera_heap_directory;
 
 
 #ifndef VERAHEAP_SEGMENTS
@@ -64,12 +69,12 @@ typedef struct {
 
     unsigned char index_bank;
 
-    vera_heap_handle_t  heap_list[VERAHEAP_SEGMENTS];
-    vera_heap_handle_t  free_list[VERAHEAP_SEGMENTS];
-    vera_heap_handle_t  idle_list[VERAHEAP_SEGMENTS];
+    vera_heap_index_t  heap_list[VERAHEAP_SEGMENTS];
+    vera_heap_index_t  free_list[VERAHEAP_SEGMENTS];
+    vera_heap_index_t  idle_list[VERAHEAP_SEGMENTS];
 
-	vera_heap_handle_t  heap_position[VERAHEAP_SEGMENTS];
-	vera_heap_handle_t  index_position[VERAHEAP_SEGMENTS];
+	vera_heap_index_t  heap_position[VERAHEAP_SEGMENTS];
+	vera_heap_index_t  index_position[VERAHEAP_SEGMENTS];
 
 	unsigned int heapCount[VERAHEAP_SEGMENTS];
 	unsigned int freeCount[VERAHEAP_SEGMENTS];
