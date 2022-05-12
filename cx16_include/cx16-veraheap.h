@@ -11,6 +11,8 @@
 
 #include <cx16.h>
 
+#define VERAHEAP_DEBUG
+
 
 typedef unsigned char vera_heap_bank_t;
 typedef unsigned int vera_heap_offset_t;
@@ -19,19 +21,16 @@ typedef unsigned int vera_heap_handle_t;
 typedef unsigned int vera_heap_data_t;
 typedef unsigned int vera_heap_data_packed_t;
 
-typedef unsigned int vera_heap_size_t;
+typedef unsigned long vera_heap_size_t;
 typedef unsigned int vera_heap_size_packed_t;
 
 typedef unsigned char vera_heap_segment_index_t;
-
-typedef unsigned char vera_heap_index_t;
-
 
 #define VERAHEAP_ERROR      0xFFFF
 #define VERAHEAP_NULL       0xFFFF
 
 #ifndef VERAHEAP_INDEXES
-    #define VERAHEAP_INDEXES 256
+    #define VERAHEAP_INDEXES 512
 #endif
 
 /**
@@ -47,9 +46,9 @@ typedef struct {
 	vera_heap_handle_t prev[VERAHEAP_INDEXES];
 	vera_heap_handle_t right[VERAHEAP_INDEXES];
 	vera_heap_handle_t left[VERAHEAP_INDEXES];
-} vera_heap_directory_t;
+} vera_heap_index_t;
 
-extern vera_heap_directory_t vera_heap_directory;
+extern vera_heap_index_t vera_heap_index;
 
 
 #ifndef VERAHEAP_SEGMENTS
@@ -69,12 +68,12 @@ typedef struct {
 
     unsigned char index_bank;
 
-    vera_heap_index_t  heap_list[VERAHEAP_SEGMENTS];
-    vera_heap_index_t  free_list[VERAHEAP_SEGMENTS];
-    vera_heap_index_t  idle_list[VERAHEAP_SEGMENTS];
+    vera_heap_handle_t  heap_list[VERAHEAP_SEGMENTS];
+    vera_heap_handle_t  free_list[VERAHEAP_SEGMENTS];
+    vera_heap_handle_t  idle_list[VERAHEAP_SEGMENTS];
 
-	vera_heap_index_t  heap_position[VERAHEAP_SEGMENTS];
-	vera_heap_index_t  index_position[VERAHEAP_SEGMENTS];
+	vera_heap_handle_t  heap_position[VERAHEAP_SEGMENTS];
+	vera_heap_handle_t  index_position[VERAHEAP_SEGMENTS];
 
 	unsigned int heapCount[VERAHEAP_SEGMENTS];
 	unsigned int freeCount[VERAHEAP_SEGMENTS];
@@ -88,7 +87,7 @@ void vera_heap_bram_bank_init(bram_bank_t bram_bank);
 
 vera_heap_segment_index_t vera_heap_segment_init(vera_heap_segment_index_t s, vram_bank_t vram_bank_floor, vram_offset_t vram_offset_floor, vram_bank_t vram_bank_ceil, vram_offset_t vram_offset_ceil);
 
-vera_heap_handle_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t size);
+vera_heap_handle_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_packed_t size);
 vera_heap_handle_t vera_heap_free(vera_heap_segment_index_t s, vera_heap_handle_t handle);
 
 
