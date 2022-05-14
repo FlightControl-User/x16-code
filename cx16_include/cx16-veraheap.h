@@ -1,3 +1,6 @@
+#ifndef __CX16_VERAHEAP_H__
+#define __CX16_VERAHEAP_H__
+
 /**
  * @file cx16-heap.h
  * @author Sven VAn de Velde (sven.van.de.velde@outlook.com)
@@ -10,8 +13,6 @@
  */
 
 #include <cx16.h>
-
-#define VERAHEAP_DEBUG
 
 
 typedef unsigned char vera_heap_bank_t;
@@ -87,7 +88,7 @@ void vera_heap_bram_bank_init(bram_bank_t bram_bank);
 
 vera_heap_segment_index_t vera_heap_segment_init(vera_heap_segment_index_t s, vram_bank_t vram_bank_floor, vram_offset_t vram_offset_floor, vram_bank_t vram_bank_ceil, vram_offset_t vram_offset_ceil);
 
-vera_heap_handle_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_packed_t size);
+vera_heap_handle_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t size);
 vera_heap_handle_t vera_heap_free(vera_heap_segment_index_t s, vera_heap_handle_t handle);
 
 
@@ -98,9 +99,11 @@ void vera_heap_dump(vera_heap_segment_index_t s);
 void vera_heap_dump_stats(vera_heap_segment_index_t s);
 void vera_heap_dump_index(vera_heap_segment_index_t s);
 
-unsigned int vera_heap_alloc_size(vera_heap_segment_index_t s);
-unsigned int vera_heap_free_size(vera_heap_segment_index_t s);
+vera_heap_size_t vera_heap_alloc_size(vera_heap_segment_index_t s);
+vera_heap_size_t vera_heap_free_size(vera_heap_segment_index_t s);
 unsigned int vera_heap_alloc_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_free_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_idle_count(vera_heap_segment_index_t s);
+#endif
+
 #endif

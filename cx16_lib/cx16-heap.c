@@ -531,7 +531,7 @@ vera_heap_handle_t vera_heap_header_split(struct HEAP_SEGMENT* s, vera_heap_hand
  * Whether the free memory block can be split. 
  * A spllit can occur when the free memory block is larger than the required size to be allocated.
  */
-vera_heap_size_packed_t vera_heap_header_can_split(vera_heap_handle_t freeHeap, vera_heap_size_packed_t sizeRequired) {
+vera_heap_size_packed_t vera_heap_can_split_free(vera_heap_handle_t freeHeap, vera_heap_size_packed_t sizeRequired) {
 	vera_heap_size_packed_t sizeFree = vera_heap_size_packed_get(freeHeap);
 	return sizeFree - sizeRequired;
 }
@@ -542,7 +542,7 @@ vera_heap_size_packed_t vera_heap_header_can_split(vera_heap_handle_t freeHeap, 
 vera_heap_handle_t heap_header_list_allocate(struct HEAP_SEGMENT* s, vera_heap_handle_t freeHeap, vera_heap_size_packed_t sizeRequired) {
 
 	// Split the larger header, reusing the free part.
-	if (vera_heap_header_can_split(freeHeap, sizeRequired)) {
+	if (vera_heap_can_split_free(freeHeap, sizeRequired)) {
 		freeHeap = vera_heap_header_split(s, freeHeap, sizeRequired);
 	}
 

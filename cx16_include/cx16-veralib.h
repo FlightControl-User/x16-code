@@ -1,3 +1,6 @@
+#ifndef __CX16_VERALIB_H__
+#define __CX16_VERALIB_H__
+
 /**
  * @file cx16-veralib.h
  * @author Sven Van de Velde (sven.van.de.velde@telenet.be)
@@ -273,3 +276,4 @@ inline void vera_sprite_buffer_palette_offset(vera_sprite_buffer_item_t *sprite_
 inline void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct VERA_SPRITE sprite_attr);
 inline void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct VERA_SPRITE *sprite_attr);
 
+#endif
