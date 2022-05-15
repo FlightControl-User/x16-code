@@ -1,4 +1,4 @@
-// #pragma var_model(mem)
+// #pragma var_model(mem) 
 
 #define VERAHEAP_DEBUG
 #define VERAHEAP_DUMP
@@ -16,11 +16,11 @@ void main() {
 
     clrscr();
     printf("UC01 - Allocate handle 1, 8 bytes\n\n");
-	__mem vera_heap_handle_t h1 = vera_heap_alloc(s, 8);
+	vera_heap_handle_t h1 = vera_heap_alloc(s, 8);
 
     clrscr();
     printf("UC02 - Allocate handle 2, 16 bytes\n\n");
-	__mem vera_heap_handle_t h2 = vera_heap_alloc(s, 16);
+	vera_heap_handle_t h2 = vera_heap_alloc(s, 16);
     
     clrscr();
     printf("UC03 - Allocate handle 3, 8 bytes\n\n");
@@ -79,15 +79,15 @@ void main() {
 
     clrscr();
     printf("UC13 - Allocate handle 8, 8 bytes\n\n");
-	__mem vera_heap_handle_t h8 = vera_heap_alloc(s, 8);
+	vera_heap_handle_t h8 = vera_heap_alloc(s, 8);
 
     clrscr();
     printf("UC14 - Allocate handle 9, 32 bytes\n\n");
-	__mem vera_heap_handle_t h9 = vera_heap_alloc(s, 32);
+	vera_heap_handle_t h9 = vera_heap_alloc(s, 32);
 
     clrscr();
     printf("UC15 - Allocate handle 10, 8 bytes\n\n");
-	__mem vera_heap_handle_t h10 = vera_heap_alloc(s, 8);
+	vera_heap_handle_t h10 = vera_heap_alloc(s, 8);
 
     clrscr();
     printf("UC16 - Free handle 9, 32 bytes\n\n");
@@ -95,6 +95,6 @@ void main() {
 
     clrscr();
     printf("UC17 - Allocate handle 11, 24 bytes\n\n");
-	__mem vera_heap_handle_t h11 = vera_heap_alloc(s, 24);
+	vera_heap_handle_t h11 = vera_heap_alloc(s, 24);
 
 }
