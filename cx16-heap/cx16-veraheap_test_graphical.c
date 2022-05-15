@@ -1,6 +1,6 @@
 #pragma var_model(mem) 
 
-#define VERAHEAP_DEBUG
+// #define VERAHEAP_DEBUG
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -37,7 +37,7 @@ void main() {
     
     // clrscr();
     
-    unsigned char weight[4] = { 31, 255, 63, 7 };
+    unsigned char weight[4] = { 31, 255, 3, 3 };
     unsigned int sizes[4] = { 256, 512, 1024, 2048 };
     unsigned char color[4] = { LIGHT_GREY, GREY, DARK_GREY, BLACK };
 
@@ -50,9 +50,9 @@ void main() {
         vera_heap_data_packed_t addr = 0;
         vera_heap_size_packed_t size = 0;
 
-        textcolor(BLACK);
-        vera_heap_dump_xy(0, 34);
-        vera_heap_dump_stats(s2);
+        // textcolor(BLACK);
+        // vera_heap_dump_xy(0, 34);
+        // vera_heap_dump_stats(s2);
 
         if(!s2_handles[h]) {
             unsigned int s = 0;
@@ -70,10 +70,10 @@ void main() {
                 size = vera_heap_get_size_packed(s2, index);
                 size = size >> 3;
                 unsigned char code;
-                if(size==1) code=0;
-                if(size==2) code=1;
-                if(size==4) code=2;
-                if(size==8) code=3;
+                if(size==4) code=0;
+                if(size==8) code=1;
+                if(size==16) code=2;
+                if(size==32) code=3;
                 textcolor(color[code]);
             } else {
                 gotoxy(10, 33);
@@ -102,7 +102,11 @@ void main() {
 
         for(unsigned int p=0; p<size; p++) {
             gotoxy(x++, y);
-            printf("%c", 160);
+            if(p==0) {
+                printf("%c", 108);
+            } else {
+                printf("%c", 121);
+            }
             if(!(x % 64)) {
                 y+=1;
                 x=0;
