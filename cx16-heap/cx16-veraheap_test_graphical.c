@@ -48,7 +48,7 @@ void main() {
         y++;
     }
     
-    unsigned char weight[4] = { 31, 255, 3, 1 };
+    unsigned char weight[4] = { 31, 255, 7, 3 };
     unsigned int sizes[4] = { 256, 512, 1024, 2048 };
     unsigned char color[4] = { LIGHT_GREY, GREY, DARK_GREY, BLACK };
 
