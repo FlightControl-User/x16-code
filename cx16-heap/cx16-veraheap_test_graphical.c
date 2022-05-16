@@ -36,16 +36,27 @@ void main() {
     // while(!getin());
     
     // clrscr();
+
+    unsigned long vram = 0x00000;
+    unsigned char y = 4;
+    while(vram < (unsigned long)0x1B000) {
+        gotoxy(2, y);
+        printf("%05x", vram);
+        vram += 0x1000;
+        gotoxy(74, y);
+        printf("%05x", vram-(unsigned long)1);
+        y++;
+    }
     
-    unsigned char weight[4] = { 31, 255, 3, 3 };
+    unsigned char weight[4] = { 31, 255, 3, 1 };
     unsigned int sizes[4] = { 256, 512, 1024, 2048 };
     unsigned char color[4] = { LIGHT_GREY, GREY, DARK_GREY, BLACK };
 
     while(!getin()) {
 
         unsigned int h = rand() % 256;
-        if(h>=255)
-            h=254;
+        if(h>=192)
+            h=192;
 
         vera_heap_data_packed_t addr = 0;
         vera_heap_size_packed_t size = 0;
@@ -101,7 +112,8 @@ void main() {
         unsigned char x = (unsigned char)(addr % 64);
 
         for(unsigned int p=0; p<size; p++) {
-            gotoxy(x++, y);
+            gotoxy(x+8, y+4);
+            x++;
             if(p==0) {
                 printf("%c", 108);
             } else {

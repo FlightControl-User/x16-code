@@ -18,7 +18,12 @@
 typedef unsigned char vera_heap_bank_t;
 typedef unsigned int vera_heap_offset_t;
 typedef unsigned int vera_heap_handle_t;
+
+#ifdef VERAHEAP_WORD
+typedef unsigned int vera_heap_index_t;
+#else
 typedef unsigned char vera_heap_index_t;
+#endif
 
 typedef unsigned int vera_heap_data_t;
 typedef unsigned int vera_heap_data_packed_t;
@@ -28,11 +33,21 @@ typedef unsigned int vera_heap_size_packed_t;
 
 typedef unsigned char vera_heap_segment_index_t;
 
-#define VERAHEAP_ERROR      (vera_heap_index_t)0xFF
-#define VERAHEAP_NULL       (vera_heap_index_t)0xFF
+#ifdef VERAHEAP_WORD
+    #define VERAHEAP_ERROR      (vera_heap_index_t)0xFFFF
+    #define VERAHEAP_NULL       (vera_heap_index_t)0xFFFF
+#else
+    #define VERAHEAP_ERROR      (vera_heap_index_t)0xFF
+    #define VERAHEAP_NULL       (vera_heap_index_t)0xFF
+#endif
 
-#ifndef VERAHEAP_INDEXES
-    #define VERAHEAP_INDEXES 256
+
+#ifndef VERAHEAP_INDEXES 
+    #ifdef VERAHEAP_WORD
+        #define VERAHEAP_INDEXES 512
+    #else
+        #define VERAHEAP_INDEXES 256
+    #endif
 #endif
 
 /**
