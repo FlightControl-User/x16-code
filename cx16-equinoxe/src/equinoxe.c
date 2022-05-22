@@ -7,8 +7,8 @@
 // #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
-// #define __CPULINES
-// #define __COLLISION
+#define __CPULINES
+#define __COLLISION
 // #define __FILE
 
 #include <stdlib.h>
@@ -26,8 +26,6 @@
 #include <mos6522.h>
 #include <multiply.h>
 #include <cx16-veraheap.h>
-
-
 
 #include "equinoxe-types.h"
 #include "equinoxe.h"
@@ -72,9 +70,9 @@ unsigned int collisions = 0;
 __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
-    bram_bank_t oldbank = bank_get_bram();
 
-    bank_set_bram(0);
+    bank_push_bram(); bank_set_bram(2);
+
     bank_set_brom(CX16_ROM_KERNAL);
 
     char cx16_mouse_status = cx16_mouse_get();
@@ -317,8 +315,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_sprite_buffer_write(sprite_buffer);
 
-    bank_set_bram(oldbank);
-    // gotoxy(curx, cury);
+    bank_pull_bram();
 }
 
 void main() {
@@ -346,10 +343,6 @@ void main() {
     // SPRITES                          00:A000 - 01:B000
     // PETSCII                          01:B000 - 01:F800     
     // 
-    // SpriteControlEnemies                                   00:A800 - 00:B2FF
-    // SpriteControlBullets                                   00:B300 - 00:B87F
-    // SpriteControlPlayer                                    00:B900 - 00:B987
-    // SpriteControlEngine                                    00:BA00 - 00:BA1F
     // VeraHeap                                               01:A000 - 01:BFFF
     // SpriteControl                                          02:A000 - 02:BFFF
     // Palette                                                3F:A000 - 3F:BFFF

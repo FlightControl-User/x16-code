@@ -10,7 +10,7 @@
 
 void player_init()
 {
-    bank_push_bram(FE_PLAYER_BANK);
+    bank_push_bram(); bank_set_bram(FE_PLAYER_BANK);
 
     memset(&player, 0, sizeof(fe_player_t));
     memset(&engine, 0, sizeof(fe_engine_t));
@@ -21,7 +21,7 @@ void player_init()
 void InitPlayer() 
 {
 
-    bank_push_bram(FE_PLAYER_BANK);
+    bank_push_bram(); bank_set_bram(FE_PLAYER_BANK);
 
 	// player
 	unsigned char p = player_pool;
@@ -47,7 +47,9 @@ void InitPlayer()
     sprite_vram_allocate(sprite_player, vera_heap_segment_sprites);
 
 
-	player.sprite_offset[p] = vera_sprite_get_offset(0);
+    // printf("player after allocate: bank=%u. ", bank_get_bram());
+
+	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
 	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
 
     player.sprite_palette[p] = sprite_player->PaletteOffset;
@@ -103,7 +105,7 @@ void InitPlayer()
 void RemovePlayer(unsigned char p, unsigned char b) 
 {
 
-    bank_push_bram(FE_PLAYER_BANK);
+    bank_push_bram(); bank_set_bram(FE_PLAYER_BANK);
 
     player.health[p] += bullet.energy[b];
 
@@ -135,7 +137,7 @@ void RemovePlayer(unsigned char p, unsigned char b)
 
 void LogicPlayer() {
 
-    bank_push_bram(FE_PLAYER_BANK);
+    bank_push_bram(); bank_set_bram(FE_PLAYER_BANK);
 
 	if(player_count) {
 
@@ -224,9 +226,11 @@ void LogicPlayer() {
 				    	vera_sprite_zdepth(engine_sprite_offset, engine_sprite->Zdepth);
 						player.enabled[p] = 1;
 					}
+
 					if(player.wait_animation[p]) {
 						vera_sprite_set_xy(player_sprite_offset, playerx, playery);
 					} else {
+                        // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image_offset[player.state_animation[p]]);
 						vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, player_sprite->vram_image_offset[player.state_animation[p]]);
 					}
 					if(engine.wait_animation[n]) {

@@ -35,7 +35,7 @@
 void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
 {
 
-    printf("sprite alloc = %s", sprite->file);
+    // printf("sprite alloc = %s", sprite->file);
 
     if(!sprite->used) {
 
@@ -51,11 +51,11 @@ void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
             sprite->vera_heap_index[sprite_index] = vera_heap_alloc(segment, sprite_size);
             vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, sprite->vera_heap_index[sprite_index]);
             vram_offset_t vram_offset = vera_heap_data_get_offset(segment, sprite->vera_heap_index[sprite_index]);
-            printf(", bank = %x, offset = %x", vram_bank, vram_offset);
+            // printf(", bank = %x, offset = %x", vram_bank, vram_offset);
 
             sprite->vram_image_offset[sprite_index] = vera_sprite_get_image_offset(vram_bank, vram_offset);
 
-            printf(", image offset=%x", sprite->vram_image_offset[sprite_index]);
+            // printf(", image offset=%x", sprite->vram_image_offset[sprite_index]);
 
             // vera_heap_dump(vera_heap_segment_sprites, 0, 20);
 
@@ -63,7 +63,7 @@ void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
         }
     }
     sprite->used++;
-    printf(", used=%x. ", sprite->used);
+    // printf(", used=%x. ", sprite->used);
 }
 
 
@@ -72,13 +72,13 @@ void sprite_vram_free(sprite_t* sprite, vera_heap_segment_index_t segment)
 
     sprite->used--;
 
-    printf("sprite free=%s", sprite->file);
+    // printf("sprite free=%s", sprite->file);
     
     if(!sprite->used) {
         unsigned char sprite_count = sprite->count;
         unsigned int sprite_size = sprite->SpriteSize;
 
-        printf("sprite free=%s, used=%x          ", sprite->file, sprite->used);
+        // printf("sprite free=%s, used=%x          ", sprite->file, sprite->used);
 
         for (unsigned char sprite_index=0; sprite_index < sprite_count; sprite_index++) {
 
@@ -87,7 +87,7 @@ void sprite_vram_free(sprite_t* sprite, vera_heap_segment_index_t segment)
             sprite->vera_heap_index[sprite_index] = 0;
         }
     }
-    printf(", used=%x. ", sprite->used);
+    // printf(", used=%x. ", sprite->used);
 }
 
 
@@ -98,7 +98,7 @@ void sprite_load(sprite_t* sprite)
 
     printf("loading sprites %s\n", sprite->file);
     printf("spritecount=%u, spritesize=%u", sprite->count, sprite->SpriteSize);
-    printf(", opening\n");
+    // printf(", opening\n");
 
 
     unsigned int status = open_file(1, 8, 0, sprite->file);
@@ -107,10 +107,10 @@ void sprite_load(sprite_t* sprite)
     // printf("spritecount = %u\n", sprite->count);
 
     for(unsigned char s=0; s<sprite->count; s++) {
-        printf("allocating");
+        // printf("allocating");
         fb_heap_handle_t handle_bram = heap_alloc(bins, sprite->SpriteSize);
-        printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
-        printf(", loading");
+        // printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
+        // printf(", loading");
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, sprite->SpriteSize);
         if (!bytes_loaded) {
             printf("error loading file %s\n", sprite->file);

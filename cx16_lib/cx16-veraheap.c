@@ -41,20 +41,18 @@ vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, v
 
 vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
-    bram_bank_t bram_bank = bank_get_bram();
-    bank_set_bram(vera_heap_segment.bram_bank);
+    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
     vram_bank_t vram_bank = vera_heap_index.data1[index] >> 5;
-    bank_set_bram(bram_bank); 
+    bank_pull_bram();
     return vram_bank;
 }
 
 
 vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
-    bram_bank_t bram_bank = bank_get_bram();
-    bank_set_bram(vera_heap_segment.bram_bank);
+    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
     vram_offset_t vram_offset = (vram_offset_t)vera_heap_get_data_packed(s, index) << 3;
-    bank_set_bram(vera_heap_segment.bram_bank);
+    bank_pull_bram();
     return vram_offset;
 }
 
@@ -674,9 +672,7 @@ vera_heap_segment_index_t vera_heap_segment_init(
 vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t size) 
 {
 
-	bram_bank_t bank_old = bank_get_bram();
-
-    bank_set_bram(vera_heap_segment.bram_bank);
+    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
 
 	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
 	vera_heap_size_packed_t packed_size = vera_heap_alloc_size_get(size);
@@ -696,11 +692,12 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
         // No free index found! this means out of memory!
     }
 
-	bank_set_bram(bank_old);
 
 #ifdef VERAHEAP_DEBUG
         printf("\n > returning heap index %03x.\n", heap_index);
 #endif
+
+	bank_pull_bram();
 
 	return heap_index;
 }
@@ -714,9 +711,7 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
  */
 void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index) 
 {
-	vram_bank_t bank_old = bank_get_bram();
-
-    bank_set_bram(vera_heap_segment.bram_bank);
+    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
 
 	vera_heap_size_packed_t free_size = vera_heap_get_size_packed(s, free_index);
 
@@ -746,9 +741,7 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
     vera_heap_segment.freeSize[s] += free_size;
     vera_heap_segment.heapSize[s] -= free_size;
 
-	bank_set_bram(bank_old);
-
-	// return free_index;
+    bank_pull_bram();
 }
 
 
