@@ -11,9 +11,9 @@
 
 #include "equinoxe-palette-types.h"
 
-extern PALETTE_BRAM palette_bram; // List of palette definitions.
+extern palette_bram_t palette_bram; // List of palette definitions.
 
-extern PALETTE_FILES palette_files[16];
+extern palette_files_t palette_files[16];
 
 void palette_vram_init();
 void palette_load(unsigned char level);

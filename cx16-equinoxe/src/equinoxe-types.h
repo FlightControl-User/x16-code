@@ -9,6 +9,7 @@
 #include <fp3.h>
 #include <cx16-fb.h>
 #include <cx16-veralib.h>
+#include <cx16-veraheap-typedefs.h>
 
 #include "equinoxe-palette-types.h"
 #include "equinoxe-flightengine-types.h"
@@ -98,19 +99,19 @@ volatile unsigned char sprite_collided = 0;
 volatile byte state_game = 0;
 
 
-volatile heap_handle player_handle;
-volatile heap_handle enemy_handle;
-volatile heap_handle engine_handle;
+volatile fb_heap_handle_t player_handle;
+volatile fb_heap_handle_t enemy_handle;
+volatile fb_heap_handle_t engine_handle;
 
 volatile Game game;
 
 // #pragma data_seg(Heap)
 
-static heap_segment heap_64; static heap_segment* bin64 = &heap_64;
-static heap_segment heap_128; static heap_segment* bin128 = &heap_128;
-static heap_segment heap_256; static heap_segment* bin256 = &heap_256;
-static heap_segment heap_512; static heap_segment* bin512 = &heap_512;
-static heap_segment heap_1024; static heap_segment* bin1024 = &heap_1024;
+static fb_heap_segment_t heap_64; static fb_heap_segment_t* bin64 = &heap_64;
+static fb_heap_segment_t heap_128; static fb_heap_segment_t* bin128 = &heap_128;
+static fb_heap_segment_t heap_256; static fb_heap_segment_t* bin256 = &heap_256;
+static fb_heap_segment_t heap_512; static fb_heap_segment_t* bin512 = &heap_512;
+static fb_heap_segment_t heap_1024; static fb_heap_segment_t* bin1024 = &heap_1024;
 
 static heap_structure heap; static heap_structure* bins = &heap;
 

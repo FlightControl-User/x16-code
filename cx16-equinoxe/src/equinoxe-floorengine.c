@@ -233,7 +233,7 @@ void tile_background() {
 //     }
 // }
 
-void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram) 
+void tile_cpy_vram_from_bram(tile_t *tile, fb_heap_handle_t handle_vram) 
 {
 
     unsigned char TileCount = tile->TileCount;
@@ -246,7 +246,7 @@ void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram)
 
         printf("handle_vram=%02x:%04p", handle_vram.bank, handle_vram.ptr);
 
-        heap_handle handle_bram = tile->handle_bram[t];
+        fb_heap_handle_t handle_bram = tile->handle_bram[t];
         printf(", handle_bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
 
         memcpy_vram_bram(handle_vram.bank, (vram_offset_t)handle_vram.ptr, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, TileSize);
@@ -277,7 +277,7 @@ void tile_load(tile_t *tile) {
 
     for(unsigned char s=0; s<tile->TileCount; s++) {
         printf("allocating");
-        heap_handle handle_bram = heap_alloc(bins, tile->TileSize);
+        fb_heap_handle_t handle_bram = heap_alloc(bins, tile->TileSize);
         printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
         printf(", loading");
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, tile->TileSize);

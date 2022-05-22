@@ -50,6 +50,7 @@ typedef struct {
 
 extern fe_bullet_t bullet;
 
+void bullet_init();
 void FireBullet(unsigned char p, char reload);
 void FireBulletEnemy(unsigned char e);
 void RemoveBullet(unsigned char b); 

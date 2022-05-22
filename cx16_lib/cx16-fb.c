@@ -21,28 +21,28 @@
 // Get a pointer to the block using a client pointer
 #define GET_BLOCK_PTR(_client_ptr_)    ((void*)(_client_ptr_ ? ((void*)((char*)_client_ptr_)) : (void*)NULL))
 
-heap_handle heap_new(heap_segment* self);
-void heap_push(heap_segment* self, heap_handle handle);
-heap_handle heap_pop(heap_segment* self);
+fb_heap_handle_t heap_new(fb_heap_segment_t* self);
+void heap_push(fb_heap_segment_t* self, fb_heap_handle_t handle);
+fb_heap_handle_t heap_pop(fb_heap_segment_t* self);
 
 
 #ifdef debug_heap
-void heap_debug(heap_handle handle) 
+void heap_debug(fb_heap_handle_t handle) 
 {
     printf("%2x:%4p", handle.bank, handle.ptr);
 }
 #endif
 
-inline heap_handle_ptr heap_ptr(heap_handle handle) 
+inline fb_heap_handle_ptr_t heap_ptr(fb_heap_handle_t handle) 
 {
     BRAM = handle.bank;
     return handle.ptr;
 }
 
-heap_handle heap_handle_add_bram(heap_handle handle, unsigned int add) 
+fb_heap_handle_t heap_handle_add_bram(fb_heap_handle_t handle, unsigned int add) 
 {
     handle.ptr = (void*)((char*)handle.ptr + add % 0x2000);
-    handle.bank += (heap_bank)(add / 0x2000);
+    handle.bank += (fb_heap_bank_t)(add / 0x2000);
     if(handle.ptr >= 0xC000) {
         handle.ptr = (void*)((char*)handle.ptr - 0x2000);
         handle.bank++;
@@ -50,7 +50,7 @@ heap_handle heap_handle_add_bram(heap_handle handle, unsigned int add)
     return handle;
 }
 
-heap_handle heap_handle_add_vram(heap_handle handle, unsigned int add) 
+fb_heap_handle_t heap_handle_add_vram(fb_heap_handle_t handle, unsigned int add) 
 {
     handle.ptr = (void*)((char*)handle.ptr + add);
     if(handle.ptr < add) {
@@ -59,27 +59,27 @@ heap_handle heap_handle_add_vram(heap_handle handle, unsigned int add)
     return handle;
 }
 
-// inline bool heap_handle_is_not_null(heap_handle handle) 
+// inline bool heap_handle_is_not_null(fb_heap_handle_t handle) 
 // {
 //     return handle.bank || handle.ptr;
 // }
 
-// inline bool heap_handle_is_null(heap_handle handle) 
+// inline bool heap_handle_is_null(fb_heap_handle_t handle) 
 // {
 //     return !handle.bank && !handle.ptr;
 // }
 
-// inline bool heap_handle_lt_handle(heap_handle handle1, heap_handle handle2) 
+// inline bool heap_handle_lt_handle(fb_heap_handle_t handle1, fb_heap_handle_t handle2) 
 // {
 //     return (handle1.bank < handle2.bank) || (handle1.bank == handle2.bank && handle1.ptr < handle2.ptr);
 // }
 
-// inline bool heap_handle_eq_handle(heap_handle handle1, heap_handle handle2) 
+// inline bool heap_handle_eq_handle(fb_heap_handle_t handle1, fb_heap_handle_t handle2) 
 // {
 //     return (handle1.bank == handle2.bank && handle1.ptr == handle2.ptr);
 // }
 
-// inline bool heap_handle_ne_handle(heap_handle handle1, heap_handle handle2) 
+// inline bool heap_handle_ne_handle(fb_heap_handle_t handle1, fb_heap_handle_t handle2) 
 // {
 //     return (handle1.bank != handle2.bank || handle1.ptr != handle2.ptr);
 // }
@@ -89,18 +89,18 @@ heap_handle heap_handle_add_vram(heap_handle handle, unsigned int add)
  * @brief 
  * 
  * @param self 
- * @return heap_handle 
+ * @return fb_heap_handle_t 
  */
-heap_handle heap_new(heap_segment* self)
+fb_heap_handle_t heap_new(fb_heap_segment_t* self)
 {
-    heap_handle handle = heap_null;
+    fb_heap_handle_t handle = heap_null;
 
     #ifdef debug_heap
         printf("heap_new: pool="); heap_debug(self->pool); printf(", ceil="); heap_debug(self->ceil);
     #endif
         
-    heap_handle pool = self->pool;
-    heap_handle ceil = self->ceil;
+    fb_heap_handle_t pool = self->pool;
+    fb_heap_handle_t ceil = self->ceil;
     if(heap_handle_lt_handle(pool, ceil)) {
         #ifdef debug_heap
             printf(", block_size=%u", self->block_size);
@@ -122,14 +122,14 @@ heap_handle heap_new(heap_segment* self)
  * @param self 
  * @param handle 
  */
-void heap_push(heap_segment* self, heap_handle handle)
+void heap_push(fb_heap_segment_t* self, fb_heap_handle_t handle)
 {
     if (heap_handle_is_null(handle))
         return;
 
     // Point client block's next pointer to head
-    heap_handle head = self->head;
-    ((heap_block*)heap_ptr(handle))->next = head;
+    fb_heap_handle_t head = self->head;
+    ((fb_heap_block_t*)heap_ptr(handle))->next = head;
 
     // The client block is now the new head
     self->head = handle;
@@ -139,15 +139,15 @@ void heap_push(heap_segment* self, heap_handle handle)
  * @brief 
  * 
  * @param self 
- * @return heap_handle 
+ * @return fb_heap_handle_t 
  */
-heap_handle heap_pop(heap_segment* self) {
-    heap_handle handle = heap_null;
+fb_heap_handle_t heap_pop(fb_heap_segment_t* self) {
+    fb_heap_handle_t handle = heap_null;
 
-    heap_handle head = self->head;
+    fb_heap_handle_t head = self->head;
     if(heap_handle_is_not_null(head)) {
         handle = head;
-        head = ((heap_block*)heap_ptr(head))->next;
+        head = ((fb_heap_block_t*)heap_ptr(head))->next;
     }
 
     self->head = head;
@@ -160,11 +160,11 @@ heap_handle heap_pop(heap_segment* self) {
  * 
  * @param self 
  * @param size 
- * @return heap_handle 
+ * @return fb_heap_handle_t 
  */
-heap_handle heap_segment_alloc(heap_segment* self, size_t size)
+fb_heap_handle_t heap_segment_alloc(fb_heap_segment_t* self, size_t size)
 {
-    heap_handle pBlock = heap_pop(self);
+    fb_heap_handle_t pBlock = heap_pop(self);
 
     if (heap_handle_is_null(pBlock))
     {
@@ -194,15 +194,15 @@ heap_handle heap_segment_alloc(heap_segment* self, size_t size)
  * @param segment 
  * @param num 
  * @param size 
- * @return heap_handle 
+ * @return fb_heap_handle_t 
  */
-heap_handle heap_calloc(heap_segment* segment, size_t num, size_t size)
+fb_heap_handle_t heap_calloc(fb_heap_segment_t* segment, size_t num, size_t size)
 {
     // Compute the total size of the block
     size_t n = num * size;
 
     // Allocate the memory
-    heap_handle handle = heap_segment_alloc(segment, n);
+    fb_heap_handle_t handle = heap_segment_alloc(segment, n);
 
     if (heap_handle_is_not_null(handle))
     {
@@ -219,7 +219,7 @@ heap_handle heap_calloc(heap_segment* segment, size_t num, size_t size)
  * @param self 
  * @param handle_free 
  */
-void heap_segment_free(heap_segment* self, heap_handle handle_free) 
+void heap_segment_free(fb_heap_segment_t* self, fb_heap_handle_t handle_free) 
 {
     if(heap_handle_is_null(handle_free))
         return;
@@ -231,12 +231,12 @@ void heap_segment_free(heap_segment* self, heap_handle handle_free)
     self->blocks_in_use--;
 } 
 
-void heap_segment_reset(heap_structure* structure, heap_segment* segment, heap_size size, unsigned int blocks, size_t total)
+void heap_segment_reset(heap_structure* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total)
 {
-    memset(segment, 0, sizeof(heap_segment));
+    memset(segment, 0, sizeof(fb_heap_segment_t));
 
-    heap_handle ceil = structure->ceil; 
-    heap_handle base = structure->base; 
+    fb_heap_handle_t ceil = structure->ceil; 
+    fb_heap_handle_t base = structure->base; 
 
     segment->pool = base;
     segment->floor = base;
@@ -247,7 +247,7 @@ void heap_segment_reset(heap_structure* structure, heap_segment* segment, heap_s
     segment->head = heap_null;
 }
 
-void heap_segment_base(heap_structure* structure, heap_bank bank, heap_handle_ptr ptr)
+void heap_segment_base(heap_structure* structure, fb_heap_bank_t bank, fb_heap_handle_ptr_t ptr)
 {
     structure->base.bank = bank;
     structure->base.ptr = ptr;
@@ -255,18 +255,18 @@ void heap_segment_base(heap_structure* structure, heap_bank bank, heap_handle_pt
     structure->ceil.ptr = ptr;
 }
 
-void heap_segment_define(heap_structure* structure, heap_segment* segment, heap_size size, unsigned int blocks, size_t total)
+void heap_segment_define(heap_structure* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total)
 {
-    memset(segment, 0, sizeof(heap_segment));
+    memset(segment, 0, sizeof(fb_heap_segment_t));
 
-    heap_handle ceil = structure->ceil; 
+    fb_heap_handle_t ceil = structure->ceil; 
     if(heap_handle_is_null(structure->base)) {
-        structure->base = (heap_handle){1,0xA000}; // The default start of the heap is at BRAM bank 1.
+        structure->base = (fb_heap_handle_t){1,0xA000}; // The default start of the heap is at BRAM bank 1.
     } else {
         structure->base = ceil;
     }
 
-    heap_handle base = structure->base; 
+    fb_heap_handle_t base = structure->base; 
 
     segment->pool = base;
     segment->floor = base;
@@ -276,16 +276,16 @@ void heap_segment_define(heap_structure* structure, heap_segment* segment, heap_
     segment->block_max = blocks;
     segment->head = heap_null;
     
-    heap_handle seg_ceil = segment->ceil; 
+    fb_heap_handle_t seg_ceil = segment->ceil; 
     structure->ceil = seg_ceil;
     structure->segment[structure->segments] = segment;
     structure->segments++;
 }
 
-heap_handle heap_alloc(heap_structure* self, heap_size size) 
+fb_heap_handle_t heap_alloc(heap_structure* self, fb_heap_size_t size) 
 {
     for(char s=0; s<self->segments;s++) {
-        heap_segment* segment=self->segment[s];
+        fb_heap_segment_t* segment=self->segment[s];
         if(segment->block_size>=size) {
             return heap_segment_alloc(segment, size);
         }
@@ -294,16 +294,16 @@ heap_handle heap_alloc(heap_structure* self, heap_size size)
     return heap_null;
 }
 
-void heap_free(heap_structure* self, heap_handle handle) {
+void heap_free(heap_structure* self, fb_heap_handle_t handle) {
 
     for(char s=0; s<self->segments;s++) {
-        heap_segment* segment=self->segment[s];
-        heap_bank bank = handle.bank;
-        heap_handle_ptr ptr = handle.ptr;
-        heap_bank floor_bank = segment->floor.bank;
-        heap_handle_ptr floor_ptr = segment->floor.ptr;
-        heap_bank ceil_bank = segment->ceil.bank;
-        heap_handle_ptr ceil_ptr = segment->ceil.ptr;
+        fb_heap_segment_t* segment=self->segment[s];
+        fb_heap_bank_t bank = handle.bank;
+        fb_heap_handle_ptr_t ptr = handle.ptr;
+        fb_heap_bank_t floor_bank = segment->floor.bank;
+        fb_heap_handle_ptr_t floor_ptr = segment->floor.ptr;
+        fb_heap_bank_t ceil_bank = segment->ceil.bank;
+        fb_heap_handle_ptr_t ceil_ptr = segment->ceil.ptr;
         if( bank >= floor_bank && ptr >= floor_ptr &&
             bank <= ceil_bank && ptr < ceil_ptr ) {
             heap_segment_free(segment, handle);
@@ -311,7 +311,7 @@ void heap_free(heap_structure* self, heap_handle handle) {
         }
     }
 
-    // heap_segment* segment=self->segment[handle.s];
+    // fb_heap_segment_t* segment=self->segment[handle.s];
     // heap_segment_free(segment, handle);
 }
 
@@ -320,14 +320,14 @@ void heap_print(heap_structure* self)
 {
     printf("\n");
     for(char s=0; s<self->segments;s++) {
-        heap_segment* segment = self->segment[s];
+        fb_heap_segment_t* segment = self->segment[s];
         printf("heap statistics: size=%x, allocated=%u, max=%u, free=%u", segment->block_size, segment->blocks_in_use, segment->blocks_in_use_max, segment->blocks_in_use_max-segment->blocks_in_use);
         printf(", free blocks:\n");
 
-        heap_handle handle = segment->head;
+        fb_heap_handle_t handle = segment->head;
         while(heap_handle_is_not_null(handle)) {
             printf("%2x:%4p ", handle.bank, handle.ptr);
-            handle = ((heap_block*)heap_ptr(handle))->next;
+            handle = ((fb_heap_block_t*)heap_ptr(handle))->next;
         }
         printf("\n");
 
@@ -341,12 +341,12 @@ void heap_print(heap_structure* self)
  * 
  * @param list A list anchor defined and maintained by the programmer.
  * @param index The handle of the item to be inserted.
- * @return heap_handle 
+ * @return fb_heap_handle_t 
  */
-heap_handle heap_list_insert(heap_handle *list, heap_handle index) 
+fb_heap_handle_t heap_list_insert(fb_heap_handle_t *list, fb_heap_handle_t index) 
 {
 
-	heap_bank old_bank =  bank_get_bram();
+	fb_heap_bank_t old_bank =  bank_get_bram();
 
 	if (heap_handle_is_null(*list)) {
 		// empty list
@@ -357,8 +357,8 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index)
 		return index;
 	}
 
-	heap_handle last = ((heap_list_ptr)heap_ptr(*list))->prev;
-	heap_handle first = *list;
+	fb_heap_handle_t last = ((heap_list_ptr)heap_ptr(*list))->prev;
+	fb_heap_handle_t first = *list;
 
 	// Add index to list at last position.
 	((heap_list_ptr)heap_ptr(index))->prev = last;
@@ -366,8 +366,8 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index)
 	((heap_list_ptr)heap_ptr(last))->next = index;
 	((heap_list_ptr)heap_ptr(first))->prev = index;
 
-	// heap_handle dataList = heap_data_packed_get(*list);
-	// heap_handle dataIndex = heap_data_packed_get(index);
+	// fb_heap_handle_t dataList = heap_data_packed_get(*list);
+	// fb_heap_handle_t dataIndex = heap_data_packed_get(index);
 	// if(dataIndex>dataList) {
 	// 	*list = index;
 	// }
@@ -377,9 +377,9 @@ heap_handle heap_list_insert(heap_handle *list, heap_handle index)
 	return index;
 }
 
-heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
+fb_heap_handle_t heap_list_remove(fb_heap_handle_t *list, fb_heap_handle_t index) {
 
-	heap_bank old_bank = bank_get_bram();
+	fb_heap_bank_t old_bank = bank_get_bram();
 
 	if (heap_handle_is_null(*list)) {
 		// empty list
@@ -388,8 +388,8 @@ heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
 	}
 
 	// The free makes the list empty!
-	heap_handle next = ((heap_list_ptr)heap_ptr(*list))->next;
-	heap_handle curr = *list;
+	fb_heap_handle_t next = ((heap_list_ptr)heap_ptr(*list))->next;
+	fb_heap_handle_t curr = *list;
 	if (heap_handle_eq_handle(next, curr)) {
 		*list = heap_null; // We initialize the start of the list to null.
 		bank_set_bram(old_bank);
@@ -402,8 +402,8 @@ heap_handle heap_list_remove(heap_handle *list, heap_handle index) {
 	}
 
 
-	heap_handle next_index = ((heap_list_ptr)heap_ptr(index))->next;
-	heap_handle prev_index = ((heap_list_ptr)heap_ptr(index))->prev;
+	fb_heap_handle_t next_index = ((heap_list_ptr)heap_ptr(index))->next;
+	fb_heap_handle_t prev_index = ((heap_list_ptr)heap_ptr(index))->prev;
 
 	((heap_list_ptr)heap_ptr(prev_index))->next = next_index;
 	((heap_list_ptr)heap_ptr(next_index))->prev = prev_index;

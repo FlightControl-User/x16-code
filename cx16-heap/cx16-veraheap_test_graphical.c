@@ -1,6 +1,6 @@
-#pragma var_model(mem) 
+// #pragma var_model(mem) 
 
-// #define VERAHEAP_DEBUG
+#define VERAHEAP_DEBUG
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -52,7 +52,7 @@ void main() {
     unsigned int sizes[4] = { 256, 512, 1024, 2048 };
     unsigned char color[4] = { LIGHT_GREY, GREY, DARK_GREY, BLACK };
 
-    while(!getin()) {
+    while(1) {
 
         unsigned int h = rand() % 256;
         if(h>=192)
@@ -61,9 +61,9 @@ void main() {
         vera_heap_data_packed_t addr = 0;
         vera_heap_size_packed_t size = 0;
 
-        // textcolor(BLACK);
-        // vera_heap_dump_xy(0, 34);
-        // vera_heap_dump_stats(s2);
+        textcolor(BLACK);
+        vera_heap_dump_xy(0, 34);
+        vera_heap_dump_stats(s2);
 
         if(!s2_handles[h]) {
             unsigned int s = 0;
@@ -124,5 +124,6 @@ void main() {
                 x=0;
             }
         }
+        while(!getin());
     }
 }

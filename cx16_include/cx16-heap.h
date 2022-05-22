@@ -12,12 +12,12 @@
 typedef unsigned int    heap_packed; 		///< Packed pointer to a banked location in various rams.
 typedef unsigned int    heap_bram_packed; 	///< Packed pointer to a location in banked ram between A000 and C000.
 typedef unsigned int    heap_vram_packed; 	///< Packed pointer to a location in banked vera ram.
-typedef unsigned char   heap_bank; 			///< A bank representation for banked ram or banked vera ram.
+typedef unsigned char   fb_heap_bank_t; 			///< A bank representation for banked ram or banked vera ram.
 
 typedef unsigned int 	heap_address;       ///< Represents an address.
 typedef unsigned int 	vera_heap_handle_t;        ///< Generic handle for heap references.
 typedef unsigned int 	vera_heap_size_packed_t;   ///< The size packed in a word, shifted 3 bits to the right.
-typedef unsigned int 	heap_size;          ///< The size in real buytes, max word size.
+typedef unsigned int 	fb_heap_size_t;          ///< The size in real buytes, max word size.
 typedef unsigned long 	heap_size_large;    ///< The size in real buytes, max dword size.
 typedef unsigned int 	heap_count;         ///< Counters.
 typedef unsigned int 	heap_index_info;
@@ -91,9 +91,9 @@ typedef struct HEAP_INDEX* heap_index_ptr;
 
 inline heap_bram_packed  heap_bram_pack(cx16_bank bank, cx16_ptr ptr);
 inline heap_vram_packed  heap_vram_pack(cx16_bank bank, cx16_offset offset);
-inline heap_bank         heap_bram_unpack_bank(cx16_bram_packed bram_packed);
+inline fb_heap_bank_t         heap_bram_unpack_bank(cx16_bram_packed bram_packed);
 inline heap_ptr          heap_bram_unpack_ptr(cx16_bram_packed bram_packed);
-inline heap_bank         heap_vram_unpack_bank(cx16_vram_packed vram_packed);
+inline fb_heap_bank_t         heap_vram_unpack_bank(cx16_vram_packed vram_packed);
 inline heap_offset       heap_vram_unpack_offset(cx16_vram_packed vram_packed);
 
 
@@ -119,7 +119,7 @@ heap_address heap_segment_vram_ceil(
 	vera_heap_size_packed_t HeaderSizeBram
 	);
 
-vera_heap_handle_t heap_alloc(heap_segment segment, heap_size size);
+vera_heap_handle_t heap_alloc(heap_segment segment, fb_heap_size_t size);
 vera_heap_handle_t heap_free(heap_segment segment, vera_heap_handle_t handle);
 
 heap_ptr heap_data_ptr(
@@ -129,7 +129,7 @@ heap_ptr heap_data_ptr(
 vera_heap_handle_t heap_data_get(vera_heap_handle_t indexHeap);
 vera_heap_size_packed_t heap_size_get(vera_heap_handle_t indexHeap);
 
-heap_bank heap_data_bank(
+fb_heap_bank_t heap_data_bank(
 	vera_heap_handle_t handle
 	);
 

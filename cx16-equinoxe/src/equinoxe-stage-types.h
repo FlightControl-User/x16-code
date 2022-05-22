@@ -7,10 +7,10 @@
 
 #define STAGES 2
 typedef struct {
-    heap_handle fighter_list;
-    heap_handle fighter_tail;
-    heap_handle bullet_tail;
-    heap_handle bullet_list;
+    fb_heap_handle_t fighter_list;
+    fb_heap_handle_t fighter_tail;
+    fb_heap_handle_t bullet_tail;
+    fb_heap_handle_t bullet_list;
     vera_sprite_id sprite_player; // Keep track of the last player sprite allocated.
     unsigned char sprite_player_count;
     vera_sprite_id sprite_bullet; // Keep track of the last bullet sprite allocated.

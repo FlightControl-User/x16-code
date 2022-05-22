@@ -29,7 +29,7 @@ Write-Output ("kickc_jar = " + $kickc_jar)
 cd (Get-Location).Path
 
 # Unoptimized compile
-java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -vasmout -Onouplift -odir "$workspacedir/$dir/../target" "$workspacedir/$dir/$file"
+java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -v -Onouplift -vasmout -odir "$workspacedir/$dir/../target" "$workspacedir/$dir/$file"
 
 # Optimized compile
 #java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" -L "$kickc_stdlib"   -F "$kickc_fragment_home" -P "$kickc_platform_home" -t=cx16 -a -Sc -Si -vasmout -Xassembler=-symbolfile "$filedir/$filename"

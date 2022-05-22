@@ -1,19 +1,26 @@
 #include <cx16-mouse.h>
 #include "equinoxe-types.h"
+#include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-bullet.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
 
+void bullet_init()
+{
+    bank_push_bram(FE_BULLET_BANK);
+    memset(&bullet, 0, sizeof(fe_bullet_t));
+    bank_pull_bram();
+}
 
 void FireBullet(unsigned char p, char reload)
 {
+    bank_push_bram(FE_BULLET_BANK);
 
     if(stage.sprite_bullet_count<FE_BULLET) {
 
-        gotoxy(0,2);
-        printf("bullet count = %03u", stage.sprite_bullet_count);
+        printf("player bullet=%03u. ", stage.sprite_bullet_count);
 
         unsigned char b = bullet_pool;
 
@@ -35,8 +42,9 @@ void FireBullet(unsigned char p, char reload)
         bullet.side[b] = SIDE_PLAYER;
 
         sprite_t* sprite = &SpriteBullet01;
-
         bullet.sprite_type[b] = sprite;
+        sprite_vram_allocate(sprite, vera_heap_segment_sprites);
+
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
         sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
 
@@ -57,17 +65,21 @@ void FireBullet(unsigned char p, char reload)
 
         bullet_pool = (b+1)%FE_BULLET;
     }
+    bank_pull_bram();
 }
 
 void FireBulletEnemy(unsigned char e)
 {
+    bank_push_bram(FE_BULLET_BANK);
+
     if(stage.sprite_bullet_count<FE_BULLET) {
 
-        gotoxy(0,2);
-        printf("bullet count = %03u", stage.sprite_bullet_count);
 
+    
         unsigned char b = bullet_pool;
 
+        printf("enemy bullet=%03u, b=%u, bram=%u. ", stage.sprite_bullet_count, b, bank_get_bram());
+    
         while(bullet.used[b]) {
             b = (b+1)%FE_BULLET;
         }
@@ -84,6 +96,8 @@ void FireBulletEnemy(unsigned char e)
         sprite_t* sprite = &SpriteBullet02;
 
         bullet.sprite_type[b] = sprite;
+        sprite_vram_allocate(sprite, vera_heap_segment_sprites);
+
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
         sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
 
@@ -107,23 +121,29 @@ void FireBulletEnemy(unsigned char e)
 
         bullet_pool = (b+1)%FE_BULLET;
     }
+    bank_pull_bram();
 }
 
 
 void RemoveBullet(unsigned char b) 
 {
+    bank_push_bram(FE_BULLET_BANK);
+
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
     FreeOffset(sprite_offset, &stage.sprite_bullet_count);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(bullet.sprite_palette[b]);
+    sprite_vram_free(bullet.sprite_type[b], vera_heap_segment_sprites);
     bullet.used[b] = 0;
     bullet.enabled[b] = 0;
+
+    bank_pull_bram();
 }
 
 
-inline void LogicBullets()
+void LogicBullets()
 {
-    if(!stage.sprite_bullet_count) return;
+    bank_push_bram(FE_BULLET_BANK);
 
     for(unsigned char b=0; b<FE_BULLET; b++) {
 
@@ -144,8 +164,8 @@ inline void LogicBullets()
                 if(!bullet.enabled[b]) {
                     vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
                     bullet.enabled[b] = 1;
-                }            
-                vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->offset_image[0]);
+                }
+                vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->vram_image_offset[bullet.state_animation[b]]);
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             }
 
@@ -155,4 +175,6 @@ inline void LogicBullets()
         }
         
     }
+
+    bank_pull_bram();
 }

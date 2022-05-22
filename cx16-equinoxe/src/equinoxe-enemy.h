@@ -50,6 +50,7 @@ extern fe_enemy_t enemy;
 
 #pragma data_seg(Data)
 
+void enemy_init();
 unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flights); 
 unsigned char HitEnemy(unsigned char e, unsigned char b);
 unsigned char RemoveEnemy(unsigned char e);

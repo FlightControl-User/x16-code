@@ -16,20 +16,40 @@
 #pragma data_seg(SpriteControl)
 
 #define SPRITE_PLAYER01_COUNT 7
+#define SPRITE_ENEMY01_COUNT 12
+#define SPRITE_ENEMY03_COUNT 6
+#define SPRITE_ENGINE01_COUNT 16
+#define SPRITE_BULLET01_COUNT 1
+#define SPRITE_BULLET02_COUNT 1
+
+
+ vera_heap_index_t player01_vera_heap_index[SPRITE_PLAYER01_COUNT];
+ vera_heap_index_t enemy01_vera_heap_index[SPRITE_ENEMY01_COUNT];
+ vera_heap_index_t enemy03_vera_heap_index[SPRITE_ENEMY03_COUNT];
+ vera_heap_index_t engine01_vera_heap_index[SPRITE_ENGINE01_COUNT];
+ vera_heap_index_t bullet01_vera_heap_index[SPRITE_BULLET01_COUNT];
+ vera_heap_index_t bullet02_vera_heap_index[SPRITE_BULLET02_COUNT];
+
+vera_sprite_image_offset player01_vram_image_offset[SPRITE_PLAYER01_COUNT];
+vera_sprite_image_offset enemy01_vram_image_offset[SPRITE_ENEMY01_COUNT];
+vera_sprite_image_offset enemy03_vram_image_offset[SPRITE_ENEMY03_COUNT];
+vera_sprite_image_offset engine01_vram_image_offset[SPRITE_ENGINE01_COUNT];
+vera_sprite_image_offset bullet01_vram_image_offset[SPRITE_BULLET01_COUNT];
+vera_sprite_image_offset bullet02_vram_image_offset[SPRITE_BULLET02_COUNT];
+
 
 sprite_t SpritePlayer01 =       { 
-    "player01.bin", 
-    SPRITE_PLAYER01_COUNT, 
+    "player01.bin", SPRITE_PLAYER01_COUNT, 
     0, 32*32*SPRITE_PLAYER01_COUNT/2, 512, 
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 0, 
-    0, {2,2,32-2,32-2}, {0x0}, {0x0} 
+    0, {2,2,32-2,32-2}, 0, 
+    {0x0}, {0x0}, {0x0} 
+    // &player01_vera_heap_index, &player01_vram_image_offset 
 };
-heap_handle sprite_player_01[SPRITE_PLAYER01_COUNT];
 
-#define SPRITE_ENEMY01_COUNT 12
 sprite_t SpriteEnemy01 =       { 
     "enemy01.bin", SPRITE_ENEMY01_COUNT, 
     7, 32*32*SPRITE_ENEMY01_COUNT/2, 512, 
@@ -37,11 +57,11 @@ sprite_t SpriteEnemy01 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 1, 
-    0, {2,2,32-2,32-2}, {0x0}, { 0x0 } 
+    0, {2,2,32-2,32-2}, 0, 
+    {0x0}, {0x0}, {0x0} 
+    // &enemy01_vera_heap_index, &enemy01_vram_image_offset 
 };
-heap_handle sprite_enemy_01[SPRITE_ENEMY01_COUNT];
 
-#define SPRITE_ENEMY03_COUNT 6
 sprite_t SpriteEnemy03 =       { 
     "enemy03.bin", SPRITE_ENEMY03_COUNT, 
     7+12, 32*32*SPRITE_ENEMY03_COUNT/2, 512, 
@@ -49,11 +69,11 @@ sprite_t SpriteEnemy03 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 2, 
-    1, {6,5,25,26}, {0x0}, {0x0} 
+    1, {6,5,25,26}, 0, 
+    {0x0}, {0x0}, {0x0} 
+    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
-heap_handle sprite_enemy_03[SPRITE_ENEMY03_COUNT];
 
-#define SPRITE_ENGINE01_COUNT 16
 sprite_t SpriteEngine01 =       { 
     "engine01.bin", SPRITE_ENGINE01_COUNT, 
     7+12+6, 16*16*SPRITE_ENGINE01_COUNT/2, 128, 
@@ -61,11 +81,11 @@ sprite_t SpriteEngine01 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 3, 
-    0, {0,0,0,0}, {0x0}, { 0x0 } 
+    0, {0,0,0,0}, 0, 
+    {0x0}, {0x0}, {0x0} 
+    // &engine01_vera_heap_index, &engine01_vram_image_offset 
 };
-heap_handle sprite_engine_01[SPRITE_ENGINE01_COUNT];
 
-#define SPRITE_BULLET01_COUNT 1
 sprite_t SpriteBullet01 =       { 
     "bullet01.bin", SPRITE_BULLET01_COUNT, 
     7+12+16+16, 16*16*SPRITE_BULLET01_COUNT/2, 128, 
@@ -73,8 +93,10 @@ sprite_t SpriteBullet01 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 4, 
-    0, {0,0,1,4}, {0x0}, { 0x0 } };
-heap_handle sprite_bullet_01[SPRITE_BULLET01_COUNT];
+    0, {0,0,1,4}, 0, 
+    {0x0}, {0x0}, {0x0} 
+    // &bullet01_vera_heap_index, &bullet01_vram_image_offset 
+};
 
 #define SPRITE_BULLET02_COUNT 1
 sprite_t SpriteBullet02 =       { 
@@ -84,8 +106,10 @@ sprite_t SpriteBullet02 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 5, 
-    0, {0,0,1,4}, {0x0}, { 0x0 } };
-heap_handle sprite_bullet_02[SPRITE_BULLET02_COUNT];
+    0, {0,0,1,4}, 0, 
+    {0x0}, {0x0}, {0x0} 
+    // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
+};
 
 byte const SPRITE_TYPES = 6;
 byte const SPRITE_PLAYER01 = 0;
@@ -123,6 +147,11 @@ const unsigned char FE_ENGINE_LO = 0;
 const unsigned char FE_ENGINE_HI = 3;
 
 
+const unsigned char FE_ENEMY_BANK = 2;
+const unsigned char FE_PLAYER_BANK = 2;
+const unsigned char FE_ENGINE_BANK = 2;
+const unsigned char FE_BULLET_BANK = 2;
+
 
 
 volatile unsigned char enemy_pool;
@@ -136,7 +165,7 @@ volatile unsigned char player_count = 0;
 void Logic();
 // void Draw();
 
-void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate);
+// void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate);
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
 void sprite_configure(vera_sprite_offset sprite_offset, sprite_t* sprite);
 void sprite_palette(vera_sprite_offset sprite_offset, unsigned char bram_index);
@@ -144,5 +173,7 @@ void sprite_enable(vera_sprite_offset sprite_offset, sprite_t* sprite);
 void sprite_disable(vera_sprite_offset sprite_offset);
 void sprite_collision(vera_sprite_offset sprite_offset, byte mask);
 
+void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment);
+void sprite_vram_free(sprite_t* sprite, vera_heap_segment_index_t segment);
 
 #endif

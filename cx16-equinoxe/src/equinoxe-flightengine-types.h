@@ -22,17 +22,12 @@ typedef struct {
     unsigned char PaletteOffset; 
     unsigned char reverse;
     unsigned char aabb[4];
-    heap_handle bram_handle[16];
-    vera_sprite_image_offset offset_image[16];
+    unsigned char used;
+    fb_heap_handle_t bram_handle[16];
+    vera_heap_index_t vera_heap_index[16];
+    vera_sprite_image_offset vram_image_offset[16];
 } sprite_t;
 
-
-typedef struct {
-    heap_handle next;
-    heap_handle prev;
-    heap_handle handle;
-    vera_sprite_image_offset offset;
-} sprite_list;
 
 typedef struct {
 

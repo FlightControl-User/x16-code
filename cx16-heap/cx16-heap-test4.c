@@ -24,7 +24,7 @@ void handles() {
 }
 
 heap_handle heapalloc(heap_segment_id s1, word i) {
-	heap_size size = heap_sizes[i];
+	fb_heap_size_t size = heap_sizes[i];
 	heap_handle h = heap_alloc(s1, size);
 	printf("\nAllocate %u:%04x - ", i, h);
 	heap_handles[i] = h;

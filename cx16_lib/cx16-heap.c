@@ -29,7 +29,7 @@ inline cx16_offset       cx16_vram_unpack_offset(cx16_vram_packed vram_packed);
  * Get vram floor unsigned long defined for a segment.
  */
  dword heap_segment_vram_floor_ulong(struct HEAP_SEGMENT* segment) {
-	heap_bank bank = cx16_vram_unpack_bank(segment->HeapFloor);
+	fb_heap_bank_t bank = cx16_vram_unpack_bank(segment->HeapFloor);
 	dword ulong = ((dword)bank)*0x10000;
 	heap_offset offset = cx16_vram_unpack_offset(segment->HeapFloor);
 	ulong = ulong + (word)offset;
@@ -47,7 +47,7 @@ inline cx16_offset       cx16_vram_unpack_offset(cx16_vram_packed vram_packed);
  * @param ptr The 16 bit pointer in banked ram between 0xA000 and 0xBFFF.
  * @return heap_bram_packed 
  */
-inline heap_bram_packed heap_bram_pack(heap_bank bank, heap_ptr ptr) {
+inline heap_bram_packed heap_bram_pack(fb_heap_bank_t bank, heap_ptr ptr) {
     return cx16_bram_pack(bank, ptr);
 }
 
@@ -55,10 +55,10 @@ inline heap_bram_packed heap_bram_pack(heap_bank bank, heap_ptr ptr) {
  * @brief Return from a packed banked ram pointer the embedded bank in an 8-bit byte.
  * 
  * @param bram_packed The packed banked ram pointer.
- * @return heap_bank The 8 bit bank.
+ * @return fb_heap_bank_t The 8 bit bank.
  */
-inline heap_bank heap_bram_unpack_bank(heap_bram_packed bram_packed) {
-    return (heap_bank)cx16_bram_unpack_bank(bram_packed);
+inline fb_heap_bank_t heap_bram_unpack_bank(heap_bram_packed bram_packed) {
+    return (fb_heap_bank_t)cx16_bram_unpack_bank(bram_packed);
 }
 
 /**
@@ -82,7 +82,7 @@ inline heap_ptr heap_bram_unpack_ptr(heap_bram_packed bram_packed) {
  * @param offset The 16 bit offset in vram.
  * @return heap_vram_packed The packed vera ram address.
  */
-inline heap_vram_packed heap_vram_pack(heap_bank bank, heap_offset offset) {
+inline heap_vram_packed heap_vram_pack(fb_heap_bank_t bank, heap_offset offset) {
     return (heap_vram_packed)cx16_vram_pack(bank, offset);
 }
 
@@ -90,10 +90,10 @@ inline heap_vram_packed heap_vram_pack(heap_bank bank, heap_offset offset) {
  * @brief Return from a packed vera ram address the embedded bank in an 8-bit byte.
  * 
  * @param vram_packed The packed vera ram address.
- * @return heap_bank The 8 bit bank.
+ * @return fb_heap_bank_t The 8 bit bank.
  */
-inline heap_bank heap_vram_unpack_bank(heap_vram_packed vram_packed) {
-    return (heap_bank)cx16_vram_unpack_bank(vram_packed);
+inline fb_heap_bank_t heap_vram_unpack_bank(heap_vram_packed vram_packed) {
+    return (fb_heap_bank_t)cx16_vram_unpack_bank(vram_packed);
 }
 
 /**
@@ -120,10 +120,10 @@ inline vera_heap_size_packed_t heap_size_pack(heap_size_large size) {
  * @brief 
  * 
  * @param size_packed 
- * @return heap_size 
+ * @return fb_heap_size_t 
  */
-inline heap_size heap_size_unpack(vera_heap_size_packed_t size_packed) {
-    return (heap_size)cx16_size_unpack(size_packed);
+inline fb_heap_size_t heap_size_unpack(vera_heap_size_packed_t size_packed) {
+    return (fb_heap_size_t)cx16_size_unpack(size_packed);
 }
 
 /**
@@ -169,7 +169,7 @@ vera_heap_handle_t heap_data_get(vera_heap_handle_t heapIndex) {
 /**
 * Get data header pointer and bank or prepare vera registers.
 */
-heap_bank heap_data_bank(vera_heap_handle_t handle) {
+fb_heap_bank_t heap_data_bank(vera_heap_handle_t handle) {
 
 	cx16_bank old_bank = cx16_bram_bank_get();
 	// printf("handle = %x\n", handle);
@@ -203,7 +203,7 @@ heap_ptr heap_data_ptr(vera_heap_handle_t handle) {
 	// Data blocks in bram or in vram are handled differently.
 	// We only need to bank if the data is in bram, otherwise the programmer will handle it.
 	if(header_info == heap_type_bram) {
-		// cx16_bram_bank_set((heap_bank)(>data_handle) >> 2);
+		// cx16_bram_bank_set((fb_heap_bank_t)(>data_handle) >> 2);
 		byte bank = cx16_bram_unpack_bank(data_handle);
 		cx16_bram_bank_set(bank);
 		return (heap_ptr)cx16_bram_unpack_ptr(data_handle);
@@ -448,7 +448,7 @@ vera_heap_handle_t heap_idle_remove(struct HEAP_SEGMENT* s, vera_heap_handle_t I
 /**
  * Returns total allocation size, aligned to 8 bytes;
  */
-inline vera_heap_size_packed_t heap_alloc_size_get(heap_size size) {
+inline vera_heap_size_packed_t heap_alloc_size_get(fb_heap_size_t size) {
 	return (vera_heap_size_packed_t)((size - 1) >> 3) + 1;
 }
 
@@ -887,10 +887,10 @@ heap_address heap_segment_vram_floor(
  * When the size of the memory block is enquired, an 8 byte aligned value will be returned.
  * @return heap_handle The handle referring to the free record in the index.
  */
-vera_heap_handle_t heap_alloc(heap_segment segment, heap_size size) {
+vera_heap_handle_t heap_alloc(heap_segment segment, fb_heap_size_t size) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
-	heap_bank bank_old = cx16_bram_bank_get();
+	fb_heap_bank_t bank_old = cx16_bram_bank_get();
 
 	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
 	vera_heap_size_packed_t sizePacked = heap_alloc_size_get(size);
@@ -925,7 +925,7 @@ vera_heap_handle_t heap_alloc(heap_segment segment, heap_size size) {
 vera_heap_handle_t heap_free(heap_segment segment, vera_heap_handle_t handle) {
 	struct HEAP_SEGMENT* s = &heap_segments[segment];
 
-	heap_bank bank_old = cx16_bram_bank_get();
+	fb_heap_bank_t bank_old = cx16_bram_bank_get();
 	vera_heap_size_packed_t freeSize = vera_heap_size_packed_get(handle);
 	s->freeSize += freeSize;
 

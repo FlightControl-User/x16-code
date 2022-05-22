@@ -69,6 +69,8 @@ static void StageReset(void)
     stage.enemy_sprite[0] = &SpriteEnemy01;
     stage.enemy_flightpath[0] = enemy01_flightpath;
 
+    
+
     stage.enemy_count[1] = 16;
     stage.enemy_spawn[1] = 2;
     stage.enemy_sprite[1] = &SpriteEnemy03;
@@ -127,8 +129,8 @@ void LogicStage()
 
     if(stage.step < stage.steps) {
         if(!(game.tickstage & 0x0F)) {
-            gotoxy(0, 10);
-            printf("stage step=%03u, count=%03u, spawn=%03u", stage.step, stage.enemy_count[stage.step], stage.enemy_spawn[stage.step]);
+            // gotoxy(0, 10);
+            // printf("stage step=%03u, count=%03u, spawn=%03u", stage.step, stage.enemy_count[stage.step], stage.enemy_spawn[stage.step]);
             if(stage.enemy_count[stage.step]) {
                 if(stage.enemy_spawn[stage.step]) {
                     StageAddEnemy(stage.enemy_sprite[stage.step], stage.enemy_flightpath[stage.step]);

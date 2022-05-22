@@ -17,7 +17,7 @@ typedef struct {
     word TotalSize;
     word TileSize;
     byte PaletteOffset; 
-    heap_handle handle_bram[64];
+    fb_heap_handle_t handle_bram[64];
 } tile_t;
 
 
@@ -133,7 +133,7 @@ void floor_init();
 void floor_paint_segment(unsigned char row, unsigned char column); 
 
 void vera_tile_cell(unsigned char row, unsigned char column);
-void tile_cpy_vram_from_bram(tile_t *tile, heap_handle handle_vram);
+void tile_cpy_vram_from_bram(tile_t *tile, fb_heap_handle_t handle_vram);
 void tile_load(tile_t *tile);
 
 

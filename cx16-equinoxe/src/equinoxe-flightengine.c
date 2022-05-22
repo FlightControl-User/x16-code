@@ -22,29 +22,75 @@
 #include <mos6522.h>
 #include <multiply.h>
 #include <cx16-bitmap.h>
+#include <cx16-veraheap.h>
 
 #include "equinoxe-types.h"
+#include "equinoxe.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
 
 #include <ht.h>
 
-void sprite_cpy_vram_from_bram(sprite_t* sprite, heap_handle* vram_sprites) {
+void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
+{
 
-    unsigned char count = sprite->count;
-    unsigned int SpriteSize = sprite->SpriteSize;
+    printf("sprite alloc = %s", sprite->file);
 
-    for (unsigned char s=0; s<count; s++) {
+    if(!sprite->used) {
 
-        heap_handle handle_bram = sprite->bram_handle[s];
+        unsigned char sprite_count = sprite->count;
+        unsigned int sprite_size = sprite->SpriteSize;
 
-        memcpy_vram_bram(vram_sprites->bank, (vram_offset_t)vram_sprites->ptr, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, SpriteSize);
+        for (unsigned char sprite_index=0; sprite_index < sprite_count; sprite_index++) {
 
-        sprite->offset_image[s] = vera_sprite_get_image_offset(vram_sprites->bank, (vram_offset_t)vram_sprites->ptr);
-        *vram_sprites = heap_handle_add_vram(*vram_sprites, SpriteSize);
+            fb_heap_handle_t handle_bram = sprite->bram_handle[sprite_index];
+
+
+            // Otherwise it won't compile!
+            sprite->vera_heap_index[sprite_index] = vera_heap_alloc(segment, sprite_size);
+            vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, sprite->vera_heap_index[sprite_index]);
+            vram_offset_t vram_offset = vera_heap_data_get_offset(segment, sprite->vera_heap_index[sprite_index]);
+            printf(", bank = %x, offset = %x", vram_bank, vram_offset);
+
+            sprite->vram_image_offset[sprite_index] = vera_sprite_get_image_offset(vram_bank, vram_offset);
+
+            printf(", image offset=%x", sprite->vram_image_offset[sprite_index]);
+
+            // vera_heap_dump(vera_heap_segment_sprites, 0, 20);
+
+            memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, sprite_size);
+        }
     }
+    sprite->used++;
+    printf(", used=%x. ", sprite->used);
 }
+
+
+void sprite_vram_free(sprite_t* sprite, vera_heap_segment_index_t segment)
+{
+
+    sprite->used--;
+
+    printf("sprite free=%s", sprite->file);
+    
+    if(!sprite->used) {
+        unsigned char sprite_count = sprite->count;
+        unsigned int sprite_size = sprite->SpriteSize;
+
+        printf("sprite free=%s, used=%x          ", sprite->file, sprite->used);
+
+        for (unsigned char sprite_index=0; sprite_index < sprite_count; sprite_index++) {
+
+            fb_heap_handle_t handle_bram = sprite->bram_handle[sprite_index];
+            vera_heap_free(segment, sprite->vera_heap_index[sprite_index]);
+            sprite->vera_heap_index[sprite_index] = 0;
+        }
+    }
+    printf(", used=%x. ", sprite->used);
+}
+
+
 
 // Load the sprite into bram using the new cx16 heap manager.
 void sprite_load(sprite_t* sprite) 
@@ -62,7 +108,7 @@ void sprite_load(sprite_t* sprite)
 
     for(unsigned char s=0; s<sprite->count; s++) {
         printf("allocating");
-        heap_handle handle_bram = heap_alloc(bins, sprite->SpriteSize);
+        fb_heap_handle_t handle_bram = heap_alloc(bins, sprite->SpriteSize);
         printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
         printf(", loading");
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, sprite->SpriteSize);
@@ -102,15 +148,15 @@ void sprite_palette(vera_sprite_offset sprite_offset, unsigned char bram_index)
     vera_sprite_palette_offset(sprite_offset, palette16_use(bram_index));
 }
 
-inline void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate) {
-    byte count = sprite->count;
-    if(index >= count) 
-        index = index - count;
-    if(!animate) {
-        vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
-    }
-    // vera_sprite_buffer_set_image_offset((vera_sprite_buffer_item_t *)sprite_offset, sprite->offset_image[index]);
-}
+// inline void sprite_animate(vera_sprite_offset sprite_offset, sprite_t* sprite, byte index, byte animate) {
+//     byte count = sprite->count;
+//     if(index >= count) 
+//         index = index - count;
+//     if(!animate) {
+//         vera_sprite_set_image_offset(sprite_offset, sprite->offset_image[index]);
+//     }
+//     // vera_sprite_buffer_set_image_offset((vera_sprite_buffer_item_t *)sprite_offset, sprite->offset_image[index]);
+// }
 
 inline void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
     // vera_sprite_buffer_xy((vera_sprite_buffer_item_t *)sprite_offset, x, y);

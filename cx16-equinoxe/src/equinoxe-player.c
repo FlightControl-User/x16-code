@@ -1,12 +1,27 @@
 #include "equinoxe-types.h"
+#include "equinoxe.h"
+#include "equinoxe-flightengine-types.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-player.h"
 #include "equinoxe-bullet.h"
 
+
+void player_init()
+{
+    bank_push_bram(FE_PLAYER_BANK);
+
+    memset(&player, 0, sizeof(fe_player_t));
+    memset(&engine, 0, sizeof(fe_engine_t));
+
+    bank_pull_bram();
+}
+
 void InitPlayer() 
 {
+
+    bank_push_bram(FE_PLAYER_BANK);
 
 	// player
 	unsigned char p = player_pool;
@@ -29,6 +44,9 @@ void InitPlayer()
 
     sprite_t* sprite_player = &SpritePlayer01;
 	player.sprite_type[p] = sprite_player;
+    sprite_vram_allocate(sprite_player, vera_heap_segment_sprites);
+
+
 	player.sprite_offset[p] = vera_sprite_get_offset(0);
 	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
 
@@ -66,6 +84,8 @@ void InitPlayer()
 
     sprite_t* sprite_engine = &SpriteEngine01;
 	engine.sprite_type[n] = sprite_engine;
+    sprite_vram_allocate(sprite_engine, vera_heap_segment_sprites);
+
 	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
 	sprite_configure(engine.sprite_offset[n], engine.sprite_type[n]);
 
@@ -76,10 +96,15 @@ void InitPlayer()
 
     player_count = 1;
 
+    bank_pull_bram();
+
 }
 
 void RemovePlayer(unsigned char p, unsigned char b) 
 {
+
+    bank_push_bram(FE_PLAYER_BANK);
+
     player.health[p] += bullet.energy[b];
 
     if(player.health[p] <= 0) {
@@ -103,10 +128,14 @@ void RemovePlayer(unsigned char p, unsigned char b)
 
         player_count = 0;
     }
+
+    bank_pull_bram();
 }
 
 
 void LogicPlayer() {
+
+    bank_push_bram(FE_PLAYER_BANK);
 
 	if(player_count) {
 
@@ -115,8 +144,6 @@ void LogicPlayer() {
 #ifdef debug_scanlines
 			vera_display_set_border_color(6);
 #endif
-
-			byte bank = bank_get_bram();
 
 			if(player.used[p]) {
 
@@ -200,12 +227,12 @@ void LogicPlayer() {
 					if(player.wait_animation[p]) {
 						vera_sprite_set_xy(player_sprite_offset, playerx, playery);
 					} else {
-						vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, player_sprite->offset_image[player.state_animation[p]]);
+						vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, player_sprite->vram_image_offset[player.state_animation[p]]);
 					}
-					if(engine.wait_animation[p]) {
+					if(engine.wait_animation[n]) {
 						vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
 					} else {
-						vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, engine_sprite->offset_image[engine.state_animation[n]]);
+						vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, engine_sprite->vram_image_offset[engine.state_animation[n]]);
 					}
 				} else {
 					if(player.enabled[p]) {
@@ -214,9 +241,9 @@ void LogicPlayer() {
 						player.enabled[p] = 0;
 					}
 				}
-
-				
 			}
 		}
 	}
+
+    bank_pull_bram();
 }

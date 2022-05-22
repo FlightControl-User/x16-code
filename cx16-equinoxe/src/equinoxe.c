@@ -2,13 +2,13 @@
 
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
-#pragma var_model(mem)
+// #pragma var_model(mem)
 
-#define __FLOOR
+// #define __FLOOR
 #define __FLIGHT
 #define __PALETTE
-#define __CPULINES
-#define __COLLISION
+// #define __CPULINES
+// #define __COLLISION
 // #define __FILE
 
 #include <stdlib.h>
@@ -25,9 +25,12 @@
 #include <division.h>
 #include <mos6522.h>
 #include <multiply.h>
-#include <cx16-bitmap.h>
+#include <cx16-veraheap.h>
+
+
 
 #include "equinoxe-types.h"
+#include "equinoxe.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
@@ -55,7 +58,6 @@ fe_engine_t engine;
 fe_bullet_t bullet;
 
 #pragma data_seg(Data)
-
 
 inline void Logic(void) {
     LogicPlayer();
@@ -327,7 +329,7 @@ void main() {
     ht_init(&ht_collision);
 
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(bins, 32, (heap_handle_ptr)0xA000); // We set the heap to start in BRAM, bank 32. 
+    heap_segment_base(bins, 32, (fb_heap_handle_ptr_t)0xA000); // We set the heap to start in BRAM, bank 32. 
     heap_segment_define(bins, bin64, 64, 128, 64*128);
     heap_segment_define(bins, bin128, 128, 64, 128*364);
     heap_segment_define(bins, bin256, 256, 64, 256*64);
@@ -341,14 +343,25 @@ void main() {
     // -------------------------        -----------------     -----------------
     // FLOOR MAP                        00:0000 - 00:2000     
     // FLOOR TILE                       00:2000 - 00:A000
-    // SPRITES                          01:0000 - 01:B000
+    // SPRITES                          00:A000 - 01:B000
     // PETSCII                          01:B000 - 01:F800     
     // 
     // SpriteControlEnemies                                   00:A800 - 00:B2FF
     // SpriteControlBullets                                   00:B300 - 00:B87F
     // SpriteControlPlayer                                    00:B900 - 00:B987
     // SpriteControlEngine                                    00:BA00 - 00:BA1F
+    // VeraHeap                                               01:A000 - 01:BFFF
+    // SpriteControl                                          02:A000 - 02:BFFF
     // Palette                                                3F:A000 - 3F:BFFF
+
+    vera_heap_bram_bank_init(1);
+    vera_heap_segment_init(vera_heap_tiles, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
+    vera_heap_segment_init(vera_heap_segment_sprites, 0, 0xA000, 1, 0xB000); // SPRITES segment for sprites of various sizes
+
+    // Initialize the usage of the control blocks
+    player_init();
+    enemy_init();
+    bullet_init();
 
     petscii();
     // vera_layer1_show();
@@ -393,12 +406,6 @@ void main() {
         sprite_load(SpriteDB[i]);
     }
 
-    // Now we copy the sprites from bram to vram.
-    heap_handle handle_vram_sprites = {1, (heap_handle_ptr)0x0000}; // size = 0xB000;
-    for (unsigned char i=0; i<SPRITE_TYPES; i++) {
-        sprite_cpy_vram_from_bram(SpriteDB[i], &handle_vram_sprites);
-    }
-
 #endif
 
     // Tested
@@ -415,7 +422,7 @@ void main() {
     clrscr();
 
     // TODO: rework handle_vram_tiles to const
-    heap_handle handle_vram_tiles = {0, (heap_handle_ptr)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
+    fb_heap_handle_t handle_vram_tiles = {0, (fb_heap_handle_ptr_t)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
     for(unsigned char type=0; type<TILE_TYPES; type++) {
         tile_cpy_vram_from_bram(TileDB[type], handle_vram_tiles);
     }

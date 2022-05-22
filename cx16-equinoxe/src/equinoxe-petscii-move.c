@@ -1,10 +1,10 @@
 void petscii() {
 
     // Tiles must be aligned to 2048 bytes, to allocate the tile map first. Note that the size parameter does the actual alignment to 2048 bytes.
-    heap_handle handle_vram_petscii_tile = {1, (heap_handle_ptr)0xF000};
+    fb_heap_handle_t handle_vram_petscii_tile = {1, (fb_heap_handle_ptr_t)0xF000};
 
     // Maps must be aligned to 512 bytes, so allocate the map second.
-    heap_handle handle_vram_petscii_map =  {1, (heap_handle_ptr)0xB000};
+    fb_heap_handle_t handle_vram_petscii_map =  {1, (fb_heap_handle_ptr_t)0xB000};
 
     // memcpy_vram_vram(handle_vram_petscii_tile.bank, (word)handle_vram_petscii_tile.ptr, 0, VERA_PETSCII_TILE, VERA_PETSCII_TILE_SIZE);
 
@@ -22,6 +22,7 @@ void petscii() {
     clrscr();
     vera_layer1_show();
     vera_layer0_hide();
+    scroll(0);
 
 }
 
