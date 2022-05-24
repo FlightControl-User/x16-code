@@ -10,7 +10,6 @@
 typedef struct {
     char file[16];
     unsigned char count;
-    unsigned char offset;
     unsigned int TotalSize;
     unsigned int SpriteSize;
     unsigned char Height;
@@ -25,7 +24,7 @@ typedef struct {
     unsigned char used;
     fb_heap_handle_t bram_handle[16];
     vera_heap_index_t vera_heap_index[16];
-    vera_sprite_image_offset vram_image_offset[16];
+    vera_sprite_image_offset vram_image_offset[16]; // For performance reasons.
 } sprite_t;
 
 
@@ -74,5 +73,14 @@ typedef struct {
     unsigned char sprite_palette[4];
 
 } fe_engine_t;
+
+// To store the position of the control blocks in the engine parts.
+typedef struct {
+    bram_bank_t bram_bank;
+    unsigned char enemy_pool;
+    unsigned char player_pool;
+    unsigned char engine_pool;
+    unsigned char bullet_pool;
+} fe_t;
 
 #endif

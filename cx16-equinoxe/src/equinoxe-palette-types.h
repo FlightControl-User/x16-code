@@ -42,3 +42,11 @@ typedef struct {
     char* file_palette16;
     char* file_palette64;
 } palette_files_t;
+
+typedef unsigned char palette_index_t;
+typedef struct {
+    bram_bank_t bram_bank;
+    palette_index_t index;
+    palette_vram_index_t vram_index;
+    palette_bram_index_t bram_index;
+} palette_t;

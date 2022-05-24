@@ -1,10 +1,13 @@
 // #pragma var_model(mem) 
 
+#pragma link("cx16-veraheap_test_graphical.ld")
+
 #define VERAHEAP_DEBUG
 
 #include <stdlib.h>
 #include <cx16.h>
 #include <cx16-veraheap.h>
+#include <conio.h>
 #include <cx16-conio.h>
 
 #pragma encoding(screencode_mixed)
@@ -13,6 +16,7 @@
 void main() {
 
     vera_heap_bram_bank_init(1);
+    bank_set_bram(1);
 
     vera_heap_segment_index_t s1 = vera_heap_segment_init(0, 0, 0x0000, 0, 0x8000);
     vera_heap_segment_index_t s2 = vera_heap_segment_init(1, 0, 0x0000, 1, 0xB000);
@@ -52,6 +56,7 @@ void main() {
     unsigned int sizes[4] = { 256, 512, 1024, 2048 };
     unsigned char color[4] = { LIGHT_GREY, GREY, DARK_GREY, BLACK };
 
+    
     while(1) {
 
         unsigned int h = rand() % 256;

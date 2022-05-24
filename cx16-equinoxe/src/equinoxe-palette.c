@@ -26,6 +26,7 @@
 #include <cx16-bitmap.h>
 
 #include "equinoxe-types.h"
+#include "equinoxe.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
@@ -49,20 +50,21 @@ palette_files_t palette_files[] = {
     { "palsprite01.bin", "palfloor01.bin" }
 };
 
-palette_vram_index_t palette_vram_index;
-palette_bram_index_t palette_bram_index;
+palette_t palette;
+// palette.vram_index_t palette.vram_index;
+// palette.bram_index_t palette.bram_index;
 
-volatile unsigned char palette_index;
-
-void palette_vram_init()
+void palette_init(bram_bank_t bram_bank)
 {
-    for(unsigned int i=0; i<16; i++) {
-        palette_vram_index.offset[i] = (vram_offset_t)(VERA_PALETTE_PTR+(i*32));
-        palette_vram_index.used[i] = 0;
-    }
-    palette_vram_index.used[0] = 1;
+    palette.bram_bank = bram_bank;
 
-    palette_index = 5;
+    for(unsigned int i=0; i<16; i++) {
+        palette.vram_index.offset[i] = (vram_offset_t)(VERA_PALETTE_PTR+(i*32));
+        palette.vram_index.used[i] = 0;
+    }
+    palette.vram_index.used[0] = 1;
+
+    palette.index = 5; // this needs to be revisited, a hardcoding that is meant to skip the tiles, but this will vary during play.
 }
 
 void palette_load(unsigned char level)
@@ -71,8 +73,8 @@ void palette_load(unsigned char level)
     // printf("%s, %s, ", palette_files[level].file_palette64, palette_files[level].file_palette16);
 
     // Load the palettes in main banked memory.
-    unsigned int floor_palette_loaded = load_file(1, 8, 0, palette_files[level].file_palette64, BRAM_PALETTE_BANK, (bram_ptr_t)palette_bram.palette_64);
-    unsigned int sprite_palette_loaded = load_file(1, 8, 0, palette_files[level].file_palette16, BRAM_PALETTE_BANK, (bram_ptr_t)palette_bram.palette_16);
+    unsigned int floor_palette_loaded = load_file(1, 8, 0, palette_files[level].file_palette64, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_64);
+    unsigned int sprite_palette_loaded = load_file(1, 8, 0, palette_files[level].file_palette16, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_16);
 
     // printf("%u, %u\n", floor_palette_loaded, sprite_palette_loaded);
 }
@@ -81,55 +83,55 @@ void palette_load(unsigned char level)
 unsigned char palette16_alloc()
 {
     for(unsigned char i=5; i<16; i++) {
-        if(palette_index >= 16)
-            palette_index=5;
+        if(palette.index >= 16)
+            palette.index=5;
         // gotoxy(40,9);
-        // printf("alloc i=%03u, u=%03u", palette_index, palette_vram_index.used[palette_index]);
-        if(!palette_vram_index.used[palette_index]) {
-            return palette_index; // We use the free palette slot.
+        // printf("alloc i=%03u, u=%03u", palette.index, palette.vram_index.used[palette.index]);
+        if(!palette.vram_index.used[palette.index]) {
+            return palette.index; // We use the free palette slot.
         }
-        palette_index++;
+        palette.index++;
     }
     return 0;
 }
 
 unsigned int palette16_use(char bram_index)
 {
-    unsigned char vram_index = palette_bram_index.vram_index[bram_index];
+    unsigned char vram_index = palette.bram_index.vram_index[bram_index];
     if(!vram_index) {
         vram_index = palette16_alloc();
         if(vram_index) {
-            if(palette_vram_index.bram_index[vram_index])
-                palette_bram_index.vram_index[palette_vram_index.bram_index[vram_index]] = 0;
-            palette_vram_index.bram_index[vram_index] = bram_index;
-            memcpy_vram_bram(VERA_PALETTE_BANK, palette_vram_index.offset[vram_index], BRAM_PALETTE_BANK, (bram_ptr_t)&palette_bram.palette_16[bram_index], 32);
-            palette_bram_index.vram_index[bram_index] = vram_index;
+            if(palette.vram_index.bram_index[vram_index])
+                palette.bram_index.vram_index[palette.vram_index.bram_index[vram_index]] = 0;
+            palette.vram_index.bram_index[vram_index] = bram_index;
+            memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[vram_index], BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[bram_index], 32);
+            palette.bram_index.vram_index[bram_index] = vram_index;
         }
     }
 
-    palette_vram_index.used[vram_index]++;
+    palette.vram_index.used[vram_index]++;
     // gotoxy((unsigned char)40, (unsigned char)10+vram_index);
-    // printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette_vram_index.used[vram_index], bram_index, palette_bram_index.vram_index[bram_index]);
+    // printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette.vram_index.used[vram_index], bram_index, palette.bram_index.vram_index[bram_index]);
     return vram_index;
 }
 
 void palette16_unuse(char bram_index)
 {
-    unsigned char vram_index = palette_bram_index.vram_index[bram_index];
-    palette_vram_index.used[vram_index]--;
+    unsigned char vram_index = palette.bram_index.vram_index[bram_index];
+    palette.vram_index.used[vram_index]--;
     // gotoxy(40, 10+vram_index);
-    // printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette_vram_index.used[vram_index], bram_index, palette_bram_index.vram_index[bram_index]);
+    // printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette.vram_index.used[vram_index], bram_index, palette.bram_index.vram_index[bram_index]);
 }
 
 void palette64_use(char bram_index)
 {
-    memcpy_vram_bram(VERA_PALETTE_BANK, palette_vram_index.offset[1], BRAM_PALETTE_BANK, (bram_ptr_t)&palette_bram.palette_64[bram_index], 32*4);
+    memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[1], BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_64[bram_index], 32*4);
 }
 
 void palette16_free(char bram_index)
 {
-    unsigned char vram_index = palette_bram_index.vram_index[bram_index];
-    palette_vram_index.used[vram_index] = 0;
-    palette_bram_index.vram_index[bram_index] = 0;
+    unsigned char vram_index = palette.bram_index.vram_index[bram_index];
+    palette.vram_index.used[vram_index] = 0;
+    palette.bram_index.vram_index[bram_index] = 0;
 }
 

@@ -9,6 +9,8 @@
  * 
  */
 
+#include <cx16.h>
+
 typedef unsigned int    heap_packed; 		///< Packed pointer to a banked location in various rams.
 typedef unsigned int    heap_bram_packed; 	///< Packed pointer to a location in banked ram between A000 and C000.
 typedef unsigned int    heap_vram_packed; 	///< Packed pointer to a location in banked vera ram.

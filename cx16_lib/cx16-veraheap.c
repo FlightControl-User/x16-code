@@ -16,16 +16,17 @@
 
 #include <cx16-veraheap.h>
 
+
+
 #pragma data_seg(VeraHeap)
 vera_heap_map_t  vera_heap_index; // The heap index is located in BRAM.
 
 #pragma data_seg(Data)
-
 vera_heap_segment_t vera_heap_segment; // The segment managmeent is in main memory.
 
 
-volatile unsigned char vera_heap_dump_x = 0;
-volatile unsigned char vera_heap_dump_y = 0;
+volatile unsigned char dx = 0;
+volatile unsigned char dy = 0;
 
 vera_heap_data_packed_t vera_heap_data_pack(vram_bank_t vram_bank, vram_offset_t vram_offset)
 {
@@ -104,9 +105,17 @@ vera_heap_size_t vera_heap_size_unpack(vera_heap_size_packed_t size)
     return (vera_heap_size_t)size << 3; // free flag is automatically removed
 }
 
+vera_heap_size_int_t vera_heap_get_size_int(vera_heap_segment_index_t s, vera_heap_index_t index)
+{
+    return vera_heap_get_size_packed(s, index) << 3;
+}
+
 vera_heap_size_t vera_heap_get_size(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
-    return vera_heap_get_size_packed(s, index) << 3; // free flag is automatically removed
+    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
+    vera_heap_size_t size = vera_heap_get_size_packed(s, index) << 3;
+    bank_pull_bram();
+    return size;
 }
 
 void vera_heap_set_size(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_size_t size)
@@ -302,7 +311,7 @@ vera_heap_index_t vera_heap_index_add(vera_heap_segment_index_t s) {
 		index = vera_heap_segment.index_position;
 
 		// We adjust to the next index position.
-		vera_heap_segment.index_position++;
+		vera_heap_segment.index_position += 1;
 	}
 
 	// TODO: out of memory check.
@@ -582,6 +591,7 @@ vera_heap_index_t vera_heap_coalesce(vera_heap_segment_index_t s, vera_heap_inde
 void vera_heap_bram_bank_init(bram_bank_t bram_bank)
 {
     vera_heap_segment.bram_bank = bram_bank;
+    vera_heap_segment.index_position = 0;
 }
 
 /**
@@ -626,7 +636,6 @@ vera_heap_segment_index_t vera_heap_segment_init(
     vera_heap_segment.ceil[s]  = vera_heap_data_pack(vram_bank_ceil, vram_offset_ceil);
 
     vera_heap_segment.heap_offset[s] = 0;
-    vera_heap_segment.index_position = 0;
 
     vera_heap_size_packed_t free_size = vera_heap_segment.ceil[s];
     free_size -= vera_heap_segment.floor[s];
@@ -643,12 +652,12 @@ vera_heap_segment_index_t vera_heap_segment_init(
     bank_set_bram(vera_heap_segment.bram_bank);
 
     vera_heap_index_t free_index = vera_heap_index_add(s);
-    free_index = vera_heap_list_insert_at(s, vera_heap_segment.free_list[s], free_index, 0);
+    free_index = vera_heap_list_insert_at(s, vera_heap_segment.free_list[s], free_index, free_index);
     vera_heap_set_data_packed(s, free_index, vera_heap_segment.floor[s]);
     vera_heap_set_size_packed(s, free_index, vera_heap_segment.ceil[s] - vera_heap_segment.floor[s]);
     vera_heap_set_free(s, free_index);
-    vera_heap_set_next(s, free_index, 0);
-    vera_heap_set_prev(s, free_index, 0);
+    vera_heap_set_next(s, free_index, free_index);
+    vera_heap_set_prev(s, free_index, free_index);
 
     vera_heap_segment.freeCount[s]++;
     vera_heap_segment.free_list[s] = free_index;
@@ -678,7 +687,7 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
 	vera_heap_size_packed_t packed_size = vera_heap_alloc_size_get(size);
 
 #ifdef VERAHEAP_DEBUG
-    printf("\n > Allocate size %05x", size);
+    printf("\n > Allocate segment %02x, size %05x", s, size);
 #endif
 
 	// Traverse the blocks list, searching for a header of
@@ -746,55 +755,69 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
 
 
 /**
- * @brief Print an index list.
- * 
- * @param prefix The chain code.
- * @param list The index list with packed next and prev pointers.
+ * @brief Print the heap graphically in a block of 64 characters wide and 32 characters high.
+ * One block represents 64 bytes in vram.
  */
-void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, char prefix, vera_heap_index_t list, unsigned int list_count)
+void vera_heap_dump_graphic_print(volatile vera_heap_segment_index_t s, volatile unsigned char dx, volatile unsigned char dy)
 {
 
-	if (list == VERAHEAP_NULL) return;
 
-	vera_heap_index_t index = list;	
-    vera_heap_index_t prev_index = list;
-	vera_heap_index_t end_index = list;
+    volatile vera_heap_index_t list = vera_heap_segment.heap_list[s];
 
-    unsigned count = 0;
+	if (list == VERAHEAP_NULL) {
+        return;
+    }
 
+    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
+
+	volatile vera_heap_index_t index = vera_heap_segment.heap_list[s];	
+	volatile vera_heap_index_t end_index = vera_heap_segment.heap_list[s];
+
+    volatile unsigned char heap_count = vera_heap_segment.heapCount[s];
+
+    volatile char count = 0;
+
+    gotoxy(dx, dy++);
 
 	do {
 
-        // unsigned char y = (unsigned char)(addr / 64);
-        // unsigned char x = (unsigned char)(addr % 64);
+        volatile vera_heap_data_packed_t offset = vera_heap_get_data_packed(s, index);
+        offset = offset >> 3;
+        volatile vera_heap_size_packed_t size = vera_heap_get_size_packed(s, index);
+        size = size >> 3;
 
-        // for(unsigned int p=0; p<size; p++) {
-        //     gotoxy(x+8, y+4);
-        //     x++;
-        //     if(p==0) {
-        //         printf("%c", 108);
-        //     } else {
-        //         printf("%c", 121);
-        //     }
-        //     if(!(x % 64)) {
-        //         y+=1;
-        //         x=0;
-        //     }
-        // }
 
-        gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
-		printf("%03x %c  ", index, prefix);
-		printf("%x%04x %05x  ", vera_heap_data_get_bank(s, index), vera_heap_data_get_offset(s, index), vera_heap_get_size(s, index));
-		printf("%03x  %03x  ", vera_heap_get_next(s, index), vera_heap_get_prev(s, index));
-		printf("%03x  %03x  ", vera_heap_get_left(s, index), vera_heap_get_right(s, index));
+        volatile unsigned char x = dx + ((unsigned char)(offset % 64));
+        volatile unsigned char y = dy + ((unsigned char)(offset / 64));
+
+        for(volatile unsigned char p = 0; p < size; p++) {
+
+            gotoxy(x, y);
+            x++;
+            if(p==0) {
+                printf("%c", 108);
+            } else {
+                printf("%c", 121);
+            }
+            if(!(x % 64)) {
+                y+=1;
+                x=0;
+            }
+            
+        }
+
 		index = vera_heap_get_next(s, index);
-        if(++count > list_count && index!=end_index) {
-            gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
-            printf("ABORT i: %03x e:%03x, l:%03x\n", index, end_index, list);
+        if(++count > heap_count && index!=end_index) {
+            gotoxy(dx, dy++);
+            printf("ABORT i: %03x e:%03x, l:%03x, c=%x, hc=%x, b=%x\n", index, end_index, list, count, heap_count, bank_get_bram());
             break;
         }
-        prev_index = index;
+
 	} while (index != end_index);
+
+    
+    bank_pull_bram();
+
 }
 
 
@@ -804,7 +827,7 @@ void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, char prefix, vera
  * @param prefix The chain code.
  * @param list The index list with packed next and prev pointers.
  */
-void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_heap_index_t list, unsigned int list_count)
+void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_heap_index_t list, unsigned int heap_count)
 {
 
 	if (list == VERAHEAP_NULL) return;
@@ -815,14 +838,14 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
     unsigned count = 0;
 
 	do {
-        gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+        gotoxy(dx, dy++);
 		printf("%03x %c  ", index, prefix);
 		printf("%x%04x %05x  ", vera_heap_data_get_bank(s, index), vera_heap_data_get_offset(s, index), vera_heap_get_size(s, index));
 		printf("%03x  %03x  ", vera_heap_get_next(s, index), vera_heap_get_prev(s, index));
 		printf("%03x  %03x  ", vera_heap_get_left(s, index), vera_heap_get_right(s, index));
 		index = vera_heap_get_next(s, index);
-        if(++count > list_count && index!=end_index) {
-            gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+        if(++count > heap_count && index!=end_index) {
+            gotoxy(dx, dy++);
             printf("ABORT i: %03x e:%03x, l:%03x\n", index, end_index, list);
             break;
         }
@@ -838,11 +861,11 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
  */
 void vera_heap_dump_stats(vera_heap_segment_index_t s)
 {
-    gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+    gotoxy(dx, dy++);
 	printf("size  heap:%05x, free:%05x                      ", vera_heap_alloc_size(s), vera_heap_free_size(s));
-    gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+    gotoxy(dx, dy++);
 	printf("count  heap:%04u  free:%04u  idle:%04u             ", vera_heap_alloc_count(s), vera_heap_free_count(s), vera_heap_idle_count(s));
-    gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+    gotoxy(dx, dy++);
 	printf("list   heap:%03x   free:%03x   idle:%03x             ", vera_heap_segment.heap_list[s], vera_heap_segment.free_list[s], vera_heap_segment.idle_list[s]);
 }
 
@@ -858,9 +881,9 @@ void vera_heap_dump_index(vera_heap_segment_index_t s)
     bank_set_bram(vera_heap_segment.bram_bank);
 
 
-    gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+    gotoxy(dx, dy++);
     printf("#   T  OFFS  SIZE   N    P    L    R");
-    gotoxy(vera_heap_dump_x, vera_heap_dump_y++);
+    gotoxy(dx, dy++);
     printf("--- -  ----- -----  ---  ---  ---  ---");
 	vera_heap_dump_index_print(s, 'I', vera_heap_segment.idle_list[s], vera_heap_segment.idleCount[s]);
 	vera_heap_dump_index_print(s, 'F', vera_heap_segment.free_list[s], vera_heap_segment.freeCount[s]);
@@ -871,8 +894,8 @@ void vera_heap_dump_index(vera_heap_segment_index_t s)
 
 void vera_heap_dump_xy(unsigned char x, unsigned char y) 
 {
-    vera_heap_dump_x = x;
-    vera_heap_dump_y = y;
+    dx = x;
+    dy = y;
 }
 
 /**

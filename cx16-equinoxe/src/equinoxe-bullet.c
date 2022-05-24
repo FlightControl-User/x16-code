@@ -9,20 +9,20 @@
 
 void bullet_init()
 {
-    bank_push_bram(); bank_set_bram(FE_BULLET_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
     memset(&bullet, 0, sizeof(fe_bullet_t));
     bank_pull_bram();
 }
 
 void FireBullet(unsigned char p, char reload)
 {
-    bank_push_bram(); bank_set_bram(FE_BULLET_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     if(stage.sprite_bullet_count<FE_BULLET) {
 
         // printf("player bullet=%03u. ", stage.sprite_bullet_count);
 
-        unsigned char b = bullet_pool;
+        unsigned char b = fe.bullet_pool;
 
         while(bullet.used[b]) {
             b = (b+1)%FE_BULLET;
@@ -43,7 +43,7 @@ void FireBullet(unsigned char p, char reload)
 
         sprite_t* sprite = &SpriteBullet01;
         bullet.sprite_type[b] = sprite;
-        sprite_vram_allocate(sprite, vera_heap_segment_sprites);
+        sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
         sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
@@ -63,20 +63,18 @@ void FireBullet(unsigned char p, char reload)
 
         bullet.energy[b] = -50;
 
-        bullet_pool = (b+1)%FE_BULLET;
+        fe.bullet_pool = (b+1)%FE_BULLET;
     }
     bank_pull_bram();
 }
 
 void FireBulletEnemy(unsigned char e)
 {
-    bank_push_bram(); bank_set_bram(FE_BULLET_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     if(stage.sprite_bullet_count<FE_BULLET) {
 
-
-    
-        unsigned char b = bullet_pool;
+        unsigned char b = fe.bullet_pool;
 
         // printf("enemy bullet=%03u, b=%u, bram=%u. ", stage.sprite_bullet_count, b, bank_get_bram());
     
@@ -96,7 +94,7 @@ void FireBulletEnemy(unsigned char e)
         sprite_t* sprite = &SpriteBullet02;
 
         bullet.sprite_type[b] = sprite;
-        sprite_vram_allocate(sprite, vera_heap_segment_sprites);
+        sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
         sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
@@ -119,7 +117,7 @@ void FireBulletEnemy(unsigned char e)
 
         bullet.energy[b] = -25;
 
-        bullet_pool = (b+1)%FE_BULLET;
+        fe.bullet_pool = (b+1)%FE_BULLET;
     }
     bank_pull_bram();
 }
@@ -127,13 +125,13 @@ void FireBulletEnemy(unsigned char e)
 
 void RemoveBullet(unsigned char b) 
 {
-    bank_push_bram(); bank_set_bram(FE_BULLET_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
     FreeOffset(sprite_offset, &stage.sprite_bullet_count);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(bullet.sprite_palette[b]);
-    sprite_vram_free(bullet.sprite_type[b], vera_heap_segment_sprites);
+    sprite_vram_free(bullet.sprite_type[b], VERA_HEAP_SEGMENT_SPRITES);
     bullet.used[b] = 0;
     bullet.enabled[b] = 0;
 
@@ -143,7 +141,7 @@ void RemoveBullet(unsigned char b)
 
 void LogicBullets()
 {
-    bank_push_bram(); bank_set_bram(FE_BULLET_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     for(unsigned char b=0; b<FE_BULLET; b++) {
 

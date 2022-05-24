@@ -12,12 +12,13 @@ unsigned long const FLOOR_TILE_ADDRESS_VRAM = 0x02000;
 
 typedef struct {
     char file[16];
-    byte TileCount;
+    byte count;
     byte TileOffset;
     word TotalSize;
     word TileSize;
     byte PaletteOffset; 
-    fb_heap_handle_t handle_bram[64];
+    fb_heap_handle_t bram_handle[64];
+    vera_heap_index_t vera_heap_index[16];
 } tile_t;
 
 
@@ -30,7 +31,7 @@ tile_t TileFloor01 = {
     32*32*TILE_FLOOR01_COUNT, 
     1024, 
     0, 
-    {0x0} 
+    {0x0}, {0x0} 
 };
 
 byte const TILE_TYPES = 1;
@@ -133,7 +134,7 @@ void floor_init();
 void floor_paint_segment(unsigned char row, unsigned char column); 
 
 void vera_tile_cell(unsigned char row, unsigned char column);
-void tile_cpy_vram_from_bram(tile_t *tile, fb_heap_handle_t handle_vram);
+void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment);
 void tile_load(tile_t *tile);
 
 

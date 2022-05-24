@@ -30,6 +30,7 @@ typedef unsigned int vera_heap_data_packed_t;
 typedef unsigned char vera_heap_index_data_packed_t;
 
 typedef unsigned long vera_heap_size_t;
+typedef unsigned int vera_heap_size_int_t;
 typedef unsigned int vera_heap_size_packed_t;
 typedef unsigned char vera_heap_index_size_packed_t;
 
@@ -77,19 +78,22 @@ typedef struct {
 typedef struct {
 
 
-    vera_heap_bank_t                 vram_bank_floor[VERAHEAP_SEGMENTS];
-    vera_heap_offset_t               vram_offset_floor[VERAHEAP_SEGMENTS];
+    vera_heap_bank_t            bram_bank;
+	vera_heap_index_t           index_position;
+
+    vera_heap_bank_t            vram_bank_floor[VERAHEAP_SEGMENTS];
+    vera_heap_offset_t          vram_offset_floor[VERAHEAP_SEGMENTS];
     vera_heap_data_packed_t     floor[VERAHEAP_SEGMENTS];
 
-    vera_heap_bank_t                 vram_bank_ceil[VERAHEAP_SEGMENTS];
-    vera_heap_offset_t               vram_offset_ceil[VERAHEAP_SEGMENTS];
+    vera_heap_bank_t            vram_bank_ceil[VERAHEAP_SEGMENTS];
+    vera_heap_offset_t          vram_offset_ceil[VERAHEAP_SEGMENTS];
     vera_heap_data_packed_t     ceil[VERAHEAP_SEGMENTS];
 
     unsigned char               index_bank;
 
-    vera_heap_index_t heap_list[VERAHEAP_SEGMENTS];
-    vera_heap_index_t free_list[VERAHEAP_SEGMENTS];
-    vera_heap_index_t idle_list[VERAHEAP_SEGMENTS];
+    vera_heap_index_t           heap_list[VERAHEAP_SEGMENTS];
+    vera_heap_index_t           free_list[VERAHEAP_SEGMENTS];
+    vera_heap_index_t           idle_list[VERAHEAP_SEGMENTS];
 
 	vera_heap_data_packed_t     heap_offset[VERAHEAP_SEGMENTS];
 
@@ -98,9 +102,6 @@ typedef struct {
     unsigned int                idleCount[VERAHEAP_SEGMENTS];
 	unsigned int                heapSize[VERAHEAP_SEGMENTS];
 	unsigned int                freeSize[VERAHEAP_SEGMENTS];
-
-    vera_heap_bank_t                 bram_bank;
-	vera_heap_index_t           index_position;
 
 } vera_heap_segment_t;
 

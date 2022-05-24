@@ -16,7 +16,7 @@ volatile unsigned char shoot = 12;
 
 void enemy_init()
 {
-    bank_push_bram(); bank_set_bram(FE_ENEMY_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
     
     memset(&enemy, 0, sizeof(fe_enemy_t));
 
@@ -27,9 +27,9 @@ void enemy_init()
 unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flightpath) 
 {
 
-    bank_push_bram(); bank_set_bram(FE_ENEMY_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
-	unsigned char e = enemy_pool;
+	unsigned char e = fe.enemy_pool;
 
 	while(enemy.used[e]) {
 		e = (e+1)%FE_ENEMY;
@@ -65,7 +65,7 @@ unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flightpath)
     enemy.flightpath[e] = flightpath;
 
 	enemy.sprite_type[e] = sprite;
-    sprite_vram_allocate(sprite, vera_heap_segment_sprites);
+    sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
 
 	enemy.sprite_offset[e] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
 	sprite_configure(enemy.sprite_offset[e], enemy.sprite_type[e]);
@@ -83,7 +83,7 @@ unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flightpath)
 	enemy.aabb_max_x[e] = sprite->aabb[2];
 	enemy.aabb_max_y[e] = sprite->aabb[3];
 
-	enemy_pool = (e+1)%FE_ENEMY;
+	fe.enemy_pool = (e+1)%FE_ENEMY;
 
     bank_pull_bram();
     return 1;
@@ -92,13 +92,13 @@ unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flightpath)
 unsigned char RemoveEnemy(unsigned char e) 
 {
 
-    bank_push_bram(); bank_set_bram(FE_ENEMY_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
     FreeOffset(sprite_offset, &stage.sprite_enemy_count);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(enemy.sprite_palette[e]);
-    sprite_vram_free(enemy.sprite_type[e], vera_heap_segment_sprites);
+    sprite_vram_free(enemy.sprite_type[e], VERA_HEAP_SEGMENT_SPRITES);
     enemy.used[e] = 0;
     enemy.enabled[e] = 0;
 
@@ -108,7 +108,7 @@ unsigned char RemoveEnemy(unsigned char e)
 
 unsigned char HitEnemy(unsigned char e, unsigned char b) 
 {
-    bank_push_bram(); bank_set_bram(FE_ENEMY_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     enemy.health[e] += bullet.energy[b];
     if(enemy.health[e] <= 0) {
@@ -144,7 +144,7 @@ void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsign
 
 void LogicEnemies() {
 
-    bank_push_bram(); bank_set_bram(FE_ENEMY_BANK);
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
@@ -208,7 +208,7 @@ void LogicEnemies() {
 				case ENEMY_ACTION_END:
                     enemy_action_end_t* action_end = (enemy_action_end_t*)flight.action;
                     // printf(", end e=%03u    ", action_end->explode );
-                    StageRemoveEnemy(e);
+                    stage_enemy_remove(e);
 					break;
 				}
 			} else {

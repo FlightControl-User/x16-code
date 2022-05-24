@@ -32,6 +32,32 @@
 
 #include <ht.h>
 
+#pragma data_seg(SpriteControlEnemies)
+fe_enemy_t enemy;
+
+#pragma data_seg(SpriteControlPlayer)
+fe_player_t player;
+
+#pragma data_seg(SpriteControlEngine)
+fe_engine_t engine;
+
+#pragma data_seg(SpriteControlBullets)
+fe_bullet_t bullet;
+
+#pragma data_seg(Data)
+fe_t fe; // Flight engine control.
+
+
+
+void fe_init(bram_bank_t bram_bank)
+{
+    fe.bram_bank = bram_bank;
+
+    player_init();
+    enemy_init();
+    bullet_init();
+}
+
 void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
 {
 
@@ -57,7 +83,7 @@ void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
 
             // printf(", image offset=%x", sprite->vram_image_offset[sprite_index]);
 
-            // vera_heap_dump(vera_heap_segment_sprites, 0, 20);
+            // vera_heap_dump(VERA_HEAP_SEGMENT_SPRITES, 0, 20);
 
             memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, sprite_size);
         }
@@ -116,7 +142,7 @@ void sprite_load(sprite_t* sprite)
             printf("error loading file %s\n", sprite->file);
             break;
         }
-        printf(" %u bytes\n", bytes_loaded);
+        printf(" %u bytes", bytes_loaded);
         sprite->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
     }
 
@@ -127,7 +153,6 @@ void sprite_load(sprite_t* sprite)
 }
 
 
-#include "equinoxe-petscii-move.c"
 
 void sprite_configure(vera_sprite_offset sprite_offset, sprite_t* sprite) {
     // vera_sprite_buffer_bpp((vera_sprite_buffer_item_t *)sprite_offset, sprite->BPP);

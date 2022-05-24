@@ -2,14 +2,16 @@
 
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
-// #pragma var_model(mem)
+#pragma var_model(mem)
 
-// #define __FLOOR
+#define __FLOOR
 #define __FLIGHT
 #define __PALETTE
 #define __CPULINES
 #define __COLLISION
 // #define __FILE
+
+// #define __HEAP_DEBUG
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -43,22 +45,9 @@
 #include <ht.h>
 
 
-#pragma data_seg(SpriteControlEnemies)
-fe_enemy_t enemy;
-
-#pragma data_seg(SpriteControlPlayer)
-fe_player_t player;
-
-#pragma data_seg(SpriteControlEngine)
-fe_engine_t engine;
-
-#pragma data_seg(SpriteControlBullets)
-fe_bullet_t bullet;
-
-#pragma data_seg(Data)
 
 inline void Logic(void) {
-    LogicPlayer();
+    player_logic();
     LogicBullets();
     LogicEnemies();
 }
@@ -71,29 +60,39 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
 
-    bank_push_bram(); bank_set_bram(2);
+    // save vera registers on the stack! the interrupt modifies the control registers and data registers!
+
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
+
+    asm {
+        lda $9f25
+        pha
+        lda $9f24
+        pha
+        lda $9f23
+        pha
+        lda $9f22
+        pha
+        lda $9f21
+        pha
+        lda $9f20
+        pha
+    }
 
     bank_set_brom(CX16_ROM_KERNAL);
 
     char cx16_mouse_status = cx16_mouse_get();
     game.prev_mousex = game.curr_mousex;
     game.prev_mousey = game.curr_mousey;
-    game.curr_mousex = cx16_mousex;
-    game.curr_mousey = cx16_mousey;
+    game.curr_mousex = cx16_mouse.x;
+    game.curr_mousey = cx16_mouse.y;
     game.status_mouse = cx16_mouse_status;
 
     if(!(game.ticksync & 0x01)) {
-        LogicStage();
+        stage_logic();
         game.tickstage++;
     }
     game.ticksync++;
-
-
-    // volatile void (*fn)();
-    // fn = game.delegate.Logic;
-    // (*fn)();
-    // fn = game.delegate.Draw;
-    // (*fn)();
 
 #ifdef __FLIGHT
 
@@ -106,7 +105,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 #ifdef __CPULINES
     vera_display_set_border_color(GREEN);
 #endif
-    LogicPlayer();
+    player_logic();
 
 #ifdef __CPULINES
     vera_display_set_border_color(CYAN);
@@ -181,7 +180,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                             y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
                                         } else {
                                             RemoveBullet(b);
-                                            StageHitEnemy(e, b);
+                                            stage_enemy_hit(e, b);
                                             break;
                                         }
                                     }
@@ -211,7 +210,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                             y_bullet+bullet_aabb_max_y < y_player+player_aabb_min_y) {
                                         } else {
                                             RemoveBullet(b);
-                                            RemovePlayer(p, b);
+                                            player_remove(p, b);
                                             break;
                                         }
                                     }
@@ -306,6 +305,11 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
 
     #ifdef __CPULINES
+    vera_display_set_border_color(1);
+    #endif
+
+
+    #ifdef __CPULINES
     vera_display_set_border_color(0);
     #endif
 
@@ -315,13 +319,34 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_sprite_buffer_write(sprite_buffer);
 
+    asm {
+        pla
+        sta $9f20
+        pla
+        sta $9f21
+        pla
+        sta $9f22
+        pla
+        sta $9f23
+        pla
+        sta $9f24
+        pla
+        sta $9f25
+    }
+
     bank_pull_bram();
+
 }
+
+#include "equinoxe-petscii.c"
 
 void main() {
 
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
+
+    petscii();
+    scroll(1);
 
     ht_init(&ht_collision);
 
@@ -333,30 +358,21 @@ void main() {
     heap_segment_define(bins, bin512, 512, 64, 512*64);
     heap_segment_define(bins, bin1024, 1024, 63, 1024*63);
 
-    // Memory is managed as follows:
-    // ------------------------------------------------------------------------
-    //
-    // SEGMENT                          VRAM                  BRAM
-    // -------------------------        -----------------     -----------------
-    // FLOOR MAP                        00:0000 - 00:2000     
-    // FLOOR TILE                       00:2000 - 00:A000
-    // SPRITES                          00:A000 - 01:B000
-    // PETSCII                          01:B000 - 01:F800     
-    // 
-    // VeraHeap                                               01:A000 - 01:BFFF
-    // SpriteControl                                          02:A000 - 02:BFFF
-    // Palette                                                3F:A000 - 3F:BFFF
 
-    vera_heap_bram_bank_init(1);
-    vera_heap_segment_init(vera_heap_tiles, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
-    vera_heap_segment_init(vera_heap_segment_sprites, 0, 0xA000, 1, 0xB000); // SPRITES segment for sprites of various sizes
+    vera_heap_bram_bank_init(BRAM_VERAHEAP);
+
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0xA000, 1, 0xB000); // SPRITES segment for sprites of various sizes
+
+#ifdef __PALETTE
+    palette_init(BRAM_PALETTE);
+    palette_load(0); // Todo, what is this level thing ... All palettes to be loaded.
+#endif
+
+    fe_init(BRAM_FLIGHTENGINE);
 
     // Initialize the usage of the control blocks
-    player_init();
-    enemy_init();
-    bullet_init();
 
-    petscii();
     // vera_layer1_show();
 
     // vera_layer0_mode_bitmap( 
@@ -385,12 +401,6 @@ void main() {
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
 
-#ifdef __PALETTE
-
-    palette_load(0);
-    palette_vram_init();
-
-#endif
 
 #ifdef __FLIGHT
 
@@ -417,7 +427,7 @@ void main() {
     // TODO: rework handle_vram_tiles to const
     fb_heap_handle_t handle_vram_tiles = {0, (fb_heap_handle_ptr_t)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
     for(unsigned char type=0; type<TILE_TYPES; type++) {
-        tile_cpy_vram_from_bram(TileDB[type], handle_vram_tiles);
+        tile_vram_allocate(TileDB[type], VERA_HEAP_SEGMENT_TILES);
     }
 
     while(!getin());
@@ -444,27 +454,22 @@ void main() {
 
     vera_sprites_show();
 
-    bank_set_bram(0);
-
-    // Initialize stage
-
-    while(!getin());
-    clrscr();
-
 #ifdef __FLIGHT
-
-    StageInit();
-
+    // Initialize stage
+    stage_init();
 #endif
 
-    #ifdef __CPULINES
+#ifdef __CPULINES
     // Set border to measure scan lines
     vera_display_set_hstart(2);
     vera_display_set_hstop(158);
     vera_display_set_vstart(2);
     vera_display_set_vstop(236);
-    #endif
+#endif
 
+    scroll(0);
+    while(!getin());
+    clrscr();
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
@@ -477,10 +482,10 @@ void main() {
     // memset_vram(1, 0x0000, 0, 16);
 
     char cx16_mouse_status = cx16_mouse_get();
-    game.prev_mousex = cx16_mousex;
-    game.prev_mousey = cx16_mousey;
-    game.curr_mousex = cx16_mousex;
-    game.curr_mousey = cx16_mousey;
+    game.prev_mousex = cx16_mouse.x;
+    game.prev_mousey = cx16_mouse.y;
+    game.curr_mousex = cx16_mouse.x;
+    game.curr_mousey = cx16_mouse.y;
 
     vera_layer0_set_vertical_scroll(0);
 
@@ -489,6 +494,10 @@ void main() {
         // grid_print(&ht_collision);
         // SEI();
         // printf("floor_scroll_vertical:%02u\n",floor_scroll_vertical);
+        // CLI();
+        // SEI();
+        // vera_heap_dump_graphic_print(VERA_HEAP_SEGMENT_SPRITES, 0, 0);
+        // vera_heap_dump(VERA_HEAP_SEGMENT_SPRITES, 0, 0);
         // CLI();
     }; 
 

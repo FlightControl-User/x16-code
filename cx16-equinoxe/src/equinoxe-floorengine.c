@@ -16,7 +16,7 @@
 #include "equinoxe-types.h"
 #include "equinoxe-floorengine.h"
 
-#pragma data_seg(TileControl)
+// #pragma data_seg(TileControl)
 
 void vera_tile_clear() {
 
@@ -226,41 +226,43 @@ void tile_background() {
 //         byte TileOffset = Tile->TileOffset;
 //         // gotoxy(0, 30+i);
 //         printf("t:%u bram:%x:%p, vram:", i, (Tile->bram_handle).bank, Tile->bram_handle.ptr));
-//         for(byte j=0;j<Tile->TileCount;j++) {
+//         for(byte j=0;j<Tile->count;j++) {
 //             struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+j)];
 //             printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
 //         }
 //     }
 // }
 
-void tile_cpy_vram_from_bram(tile_t *tile, fb_heap_handle_t handle_vram) 
+void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment) 
 {
 
-    unsigned char TileCount = tile->TileCount;
-    unsigned int TileSize = tile->TileSize;
-    word TileOffset = tile->TileOffset;
+    unsigned char tile_count = tile->count;
+    unsigned int tile_size = tile->TileSize;
+    word tile_offset = tile->TileOffset;
 
-    printf("copying to vram, count=%u\n", tile->TileCount);
+    printf("copying to vram, count=%u\n", tile->count);
 
-    for(unsigned int t=0; t<TileCount; t++) {
+    for(unsigned int t=0; t<tile_count; t++) {
 
-        printf("handle_vram=%02x:%04p", handle_vram.bank, handle_vram.ptr);
 
-        fb_heap_handle_t handle_bram = tile->handle_bram[t];
-        printf(", handle_bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
+        fb_heap_handle_t handle_bram = tile->bram_handle[t];
+        printf("handle_bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
 
-        memcpy_vram_bram(handle_vram.bank, (vram_offset_t)handle_vram.ptr, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, TileSize);
+        tile->vera_heap_index[t] = vera_heap_alloc(segment, tile_size);
+        vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, tile->vera_heap_index[t]);
+        vram_offset_t vram_offset = vera_heap_data_get_offset(segment, tile->vera_heap_index[t]);
+
+        printf(", handle_vram=%02x:%04p", vram_bank, vram_offset);
+
+        memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, tile_size);
 
         // struct TilePart *TilePart = &TilePartDB[TileOffset+t];
         // TODO: make shorter, missing fragments.
-        word Offset = ((vram_offset_t)handle_vram.ptr - (word)0x2000);
+        word Offset = (vram_offset - (word)0x2000);
         // Offset = Offset >> 4;
         // Offset = Offset >> 4;
-        TilePartDB.TileOffset[TileOffset+t] = BYTE1(Offset);
-        handle_vram = heap_handle_add_vram(handle_vram, TileSize);
-        printf("\n");
+        TilePartDB.TileOffset[tile_offset+t] = BYTE1(Offset);
     }
-    printf("\n");
 }
 
 
@@ -269,26 +271,26 @@ void tile_cpy_vram_from_bram(tile_t *tile, fb_heap_handle_t handle_vram)
 void tile_load(tile_t *tile) {
 
     printf("loading tiles %s\n", tile->file);
-    printf("tilecount=%u, tilesize=%u", tile->TileCount, tile->TileSize);
-    printf(", opening\n");
+    printf("tilecount=%u, tilesize=%u", tile->count, tile->TileSize);
+    // printf(", opening\n");
 
     unsigned int status = open_file(1, 8, 0, tile->file);
     if (status) printf("error opening file %s\n", tile->file);
 
-    for(unsigned char s=0; s<tile->TileCount; s++) {
-        printf("allocating");
+    for(unsigned char s=0; s<tile->count; s++) {
+        // printf("allocating");
         fb_heap_handle_t handle_bram = heap_alloc(bins, tile->TileSize);
-        printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
-        printf(", loading");
+        // printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
+        // printf(", loading");
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, tile->TileSize);
         if (!bytes_loaded) {
             printf("error loading file %s\n", tile->file);
             break;
         }
-        printf(" %u bytes\n", bytes_loaded);
-        tile->handle_bram[s] = handle_bram; // TODO: rework this to map into banked memory.
+        printf(" %u bytes", bytes_loaded);
+        tile->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
     }
-    printf(", closing");
+    // printf(", closing");
 
     status = close_file(1, 8, 0);
     if (status) printf("error closing file %s\n", tile->file);

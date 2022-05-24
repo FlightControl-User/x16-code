@@ -48,7 +48,7 @@ typedef struct {
     fb_heap_handle_t base;
     unsigned char segments;
     fb_heap_segment_t* segment[4];
-} heap_structure;
+} heap_structure_t;
 
 typedef struct {
 	fb_heap_handle_t next;
@@ -102,9 +102,9 @@ typedef fb_heap_list_t* heap_list_ptr;
 
 
 
-void heap_segment_base(heap_structure* structure, fb_heap_bank_t bank, fb_heap_handle_ptr_t ptr);
-void heap_segment_define(heap_structure* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total);
-void heap_segment_reset(heap_structure* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total);
+void heap_segment_base(heap_structure_t* structure, fb_heap_bank_t bank, fb_heap_handle_ptr_t ptr);
+void heap_segment_define(heap_structure_t* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total);
+void heap_segment_reset(heap_structure_t* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total);
 
 fb_heap_handle_ptr_t heap_ptr(fb_heap_handle_t handle);
 fb_heap_handle_t heap_handle_add_bram(fb_heap_handle_t handle, unsigned int add); 
@@ -112,9 +112,9 @@ fb_heap_handle_t heap_handle_add_vram(fb_heap_handle_t handle, unsigned int add)
 fb_heap_handle_t heap_segment_alloc(fb_heap_segment_t* self, size_t size);
 fb_heap_handle_t heap_calloc(fb_heap_segment_t* segment, size_t num, size_t size);
 void heap_segment_free(fb_heap_segment_t* self, fb_heap_handle_t handle_free);
-void heap_print(heap_structure* self);
-fb_heap_handle_t heap_alloc(heap_structure* self, fb_heap_size_t size); 
-void heap_free(heap_structure* self, fb_heap_handle_t handle_free); 
+void heap_print(heap_structure_t* self);
+fb_heap_handle_t heap_alloc(heap_structure_t* self, fb_heap_size_t size); 
+void heap_free(heap_structure_t* self, fb_heap_handle_t handle_free); 
 
 
 fb_heap_handle_t heap_list_insert(fb_heap_handle_t *list, fb_heap_handle_t index);

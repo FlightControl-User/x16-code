@@ -8,13 +8,13 @@
 
 stage_t stage;
 
-void StageInit(void)
+void stage_init(void)
 {
 	game.delegate.Logic = &Logic;
 
 	memset(&stage, 0, sizeof(stage_t));
 
-	StageReset();
+	stage_reset();
 
 	stage.level = 1;
 	stage.phase = 1;
@@ -44,18 +44,14 @@ void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count)
 }
 
 
-static void StageReset(void)
+static void stage_reset(void)
 {
 
+    enemy_init();
+    player_init();
+    bullet_init();
+
 	memset(&stage, 0, sizeof(stage_t));
-
-	enemy_pool = 0;
-	player_pool = 0;
-	bullet_pool = 0;
-	engine_pool = 0;
-
-    bullet_count = 0;
-    player_count = 0;
 
 	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
 	stage.sprite_bullet_count = 0;
@@ -85,14 +81,14 @@ static void StageReset(void)
     stage.step = 0;
     stage.steps = 2;
 
-	InitPlayer();
+	player_add();
     
     palette64_use(0);
     
 }
 
 
-void StageProgress()
+void stage_progress()
 {
 	switch(stage.level) {
 		case 0:
@@ -104,26 +100,26 @@ void StageProgress()
 	}
 }
 
-inline void StageAddEnemy(sprite_t* sprite, enemy_flightpath_t* flights)
+inline void stage_enemy_add(sprite_t* sprite, enemy_flightpath_t* flights)
 {
     unsigned char enemies = AddEnemy(sprite, flights);
     stage.enemy_spawn[stage.step] -= enemies;
     stage.enemy_count[stage.step] -= enemies;
 }
 
-inline void StageRemoveEnemy(unsigned char e)
+inline void stage_enemy_remove(unsigned char e)
 {
     unsigned char enemies = RemoveEnemy(e);
     stage.enemy_spawn[stage.step] += enemies;
 }
 
-inline void StageHitEnemy(unsigned char e, unsigned char b)
+inline void stage_enemy_hit(unsigned char e, unsigned char b)
 {
     unsigned char enemies = HitEnemy(e, b);
     stage.enemy_spawn[stage.step] += enemies;
 }
 
-void LogicStage()
+void stage_logic()
 {
 
 
@@ -133,10 +129,10 @@ void LogicStage()
             // printf("stage step=%03u, count=%03u, spawn=%03u", stage.step, stage.enemy_count[stage.step], stage.enemy_spawn[stage.step]);
             if(stage.enemy_count[stage.step]) {
                 if(stage.enemy_spawn[stage.step]) {
-                    StageAddEnemy(stage.enemy_sprite[stage.step], stage.enemy_flightpath[stage.step]);
+                    stage_enemy_add(stage.enemy_sprite[stage.step], stage.enemy_flightpath[stage.step]);
                 }
             } else {
-                StageProgress();
+                stage_progress();
             }
         }
     }
@@ -144,7 +140,7 @@ void LogicStage()
     if(stage.respawn) {
         stage.respawn--;
         if(!stage.respawn) {
-            InitPlayer();
+            player_add();
         }
     }
 }

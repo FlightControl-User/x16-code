@@ -26,7 +26,7 @@ void heap_push(fb_heap_segment_t* self, fb_heap_handle_t handle);
 fb_heap_handle_t heap_pop(fb_heap_segment_t* self);
 
 
-#ifdef debug_heap
+#ifdef __HEAP_DEBUG
 void heap_debug(fb_heap_handle_t handle) 
 {
     printf("%2x:%4p", handle.bank, handle.ptr);
@@ -95,21 +95,21 @@ fb_heap_handle_t heap_new(fb_heap_segment_t* self)
 {
     fb_heap_handle_t handle = heap_null;
 
-    #ifdef debug_heap
+    #ifdef __HEAP_DEBUG
         printf("heap_new: pool="); heap_debug(self->pool); printf(", ceil="); heap_debug(self->ceil);
     #endif
         
     fb_heap_handle_t pool = self->pool;
     fb_heap_handle_t ceil = self->ceil;
     if(heap_handle_lt_handle(pool, ceil)) {
-        #ifdef debug_heap
+        #ifdef __HEAP_DEBUG
             printf(", block_size=%u", self->block_size);
         #endif
         handle = heap_handle_add_bram(self->pool, self->block_size);
         self->pool = handle;
     }
 
-    #ifdef debug_heap
+    #ifdef __HEAP_DEBUG
         printf(", pool="); heap_debug(self->pool); printf(", handle="); heap_debug(handle); printf("\n");
     #endif
 
@@ -165,6 +165,13 @@ fb_heap_handle_t heap_pop(fb_heap_segment_t* self) {
 fb_heap_handle_t heap_segment_alloc(fb_heap_segment_t* self, size_t size)
 {
     fb_heap_handle_t pBlock = heap_pop(self);
+
+    #ifdef __HEAP_DEBUG
+        printf("segment_alloc: pool="); heap_debug(self->pool); printf(", ceil="); heap_debug(self->ceil);
+        printf("pblock ="); heap_debug(pBlock);
+        printf("\n");
+    #endif
+        
 
     if (heap_handle_is_null(pBlock))
     {
@@ -231,7 +238,7 @@ void heap_segment_free(fb_heap_segment_t* self, fb_heap_handle_t handle_free)
     self->blocks_in_use--;
 } 
 
-void heap_segment_reset(heap_structure* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total)
+void heap_segment_reset(heap_structure_t* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total)
 {
     memset(segment, 0, sizeof(fb_heap_segment_t));
 
@@ -247,7 +254,7 @@ void heap_segment_reset(heap_structure* structure, fb_heap_segment_t* segment, f
     segment->head = heap_null;
 }
 
-void heap_segment_base(heap_structure* structure, fb_heap_bank_t bank, fb_heap_handle_ptr_t ptr)
+void heap_segment_base(heap_structure_t* structure, fb_heap_bank_t bank, fb_heap_handle_ptr_t ptr)
 {
     structure->base.bank = bank;
     structure->base.ptr = ptr;
@@ -255,8 +262,13 @@ void heap_segment_base(heap_structure* structure, fb_heap_bank_t bank, fb_heap_h
     structure->ceil.ptr = ptr;
 }
 
-void heap_segment_define(heap_structure* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total)
+void heap_segment_define(heap_structure_t* structure, fb_heap_segment_t* segment, fb_heap_size_t size, unsigned int blocks, size_t total)
 {
+
+    #ifdef __HEAP_DEBUG
+        printf("segment_define: structure ceil="); heap_debug(structure->ceil);
+    #endif
+
     memset(segment, 0, sizeof(fb_heap_segment_t));
 
     fb_heap_handle_t ceil = structure->ceil; 
@@ -282,7 +294,7 @@ void heap_segment_define(heap_structure* structure, fb_heap_segment_t* segment, 
     structure->segments++;
 }
 
-fb_heap_handle_t heap_alloc(heap_structure* self, fb_heap_size_t size) 
+fb_heap_handle_t heap_alloc(heap_structure_t* self, fb_heap_size_t size) 
 {
     for(char s=0; s<self->segments;s++) {
         fb_heap_segment_t* segment=self->segment[s];
@@ -294,7 +306,7 @@ fb_heap_handle_t heap_alloc(heap_structure* self, fb_heap_size_t size)
     return heap_null;
 }
 
-void heap_free(heap_structure* self, fb_heap_handle_t handle) {
+void heap_free(heap_structure_t* self, fb_heap_handle_t handle) {
 
     for(char s=0; s<self->segments;s++) {
         fb_heap_segment_t* segment=self->segment[s];
@@ -316,7 +328,7 @@ void heap_free(heap_structure* self, fb_heap_handle_t handle) {
 }
 
 
-void heap_print(heap_structure* self) 
+void heap_print(heap_structure_t* self) 
 {
     printf("\n");
     for(char s=0; s<self->segments;s++) {
