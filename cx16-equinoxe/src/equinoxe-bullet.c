@@ -28,8 +28,8 @@ void FireBullet(unsigned char p, char reload)
             b = (b+1)%FE_BULLET;
         }
 
-        unsigned int x = (unsigned int)game.curr_mousex;
-        unsigned int y = (unsigned int)game.curr_mousey;
+        unsigned int x = (unsigned int)cx16_mouse.x;
+        unsigned int y = (unsigned int)cx16_mouse.y;
 
         if(player.firegun[p])
             x += (signed char)16;
@@ -84,8 +84,8 @@ void FireBulletEnemy(unsigned char e)
 
         unsigned int ex = (unsigned int)WORD1(enemy.tx[e]);
         unsigned int ey = (unsigned int)WORD1(enemy.ty[e]);
-        unsigned int px = (unsigned int)game.curr_mousex;
-        unsigned int py = (unsigned int)game.curr_mousey;
+        unsigned int px = (unsigned int)cx16_mouse.x;
+        unsigned int py = (unsigned int)cx16_mouse.y;
 
         bullet.used[b] = 1;
         bullet.enabled[b] = 0;

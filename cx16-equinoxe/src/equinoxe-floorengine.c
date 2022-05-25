@@ -16,7 +16,7 @@
 #include "equinoxe-types.h"
 #include "equinoxe-floorengine.h"
 
-// #pragma data_seg(TileControl)
+#pragma data_seg(TileControl)
 
 void vera_tile_clear() {
 
@@ -35,8 +35,9 @@ void vera_tile_clear() {
 void vera_tile_cell(unsigned char row, unsigned char column) 
 {
 
-    unsigned int mapbase_offset = FLOOR_MAP_BANK_VRAM;
-    unsigned char mapbase_bank = FLOOR_MAP_OFFSET_VRAM;
+    unsigned int mapbase_offset = FLOOR_MAP_OFFSET_VRAM;
+    unsigned char mapbase_bank = FLOOR_MAP_BANK_VRAM;
+
     byte shift = vera_layer0_get_rowshift();
     mapbase_offset += ((word)row << shift);
     mapbase_offset += column*8;
@@ -44,61 +45,22 @@ void vera_tile_cell(unsigned char row, unsigned char column)
     byte sr = ( (row % 4) / 2 ) * 2;
     byte r = (row % 2) * 2;
 
-    // for(byte x=0; x<TILES;x++) {
-        word segment = (word)TileFloor[TileFloorIndex].floortile[column];
-        segment = segment << 2;
-        vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset,VERA_INC_1);
-        for(byte sc=0;sc<2;sc++) {
-            byte s = sc + sr;
-            unsigned char composition = TileSegmentDB.composition[segment+s];
-            tile_t *tile = TilePartDB.Tile[composition]; 
-            word TileOffset = TilePartDB.TileOffset[composition];
-            byte TilePaletteOffset = tile->PaletteOffset << 4; 
-            for(byte c=0;c<2;c++) {
-                word Offset = TileOffset + r + c;
-                *VERA_DATA0 = BYTE0(Offset);
-                *VERA_DATA0 = TilePaletteOffset | BYTE1(Offset);
-            }
-        }
-    // }
-}
-
-/*
-void vera_tile_element(byte x, byte y, word Segment ) {
-
-    byte resolution = 2;
-
-    struct TileSegment *TileSegment = &(TileSegmentDB[Segment]);
-
-    x = x << resolution;
-    y = y << resolution;
-
-    unsigned int mapbase_offset = FLOOR_MAP_BANK_VRAM;
-    unsigned char mapbase_bank = FLOOR_MAP_OFFSET_VRAM;
-    byte shift = vera_layer0_get_rowshift();
-    word rowskip = vera_layer0_get_rowskip();
-    mapbase_offset += ((word)y << shift);
-    mapbase_offset += (x << 1); // 2 bytes per tile (one index + one palette)
-
-    for(byte sr=0;sr<4;sr+=2) {
-        for(byte r=0;r<4;r+=2) {
-            vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
-            for(byte sc=0;sc<2;sc++) {
-                for(byte c=0;c<2;c++) {
-                    byte s = sc + sr;
-                    struct TilePart *TilePart = &TilePartDB[(word)TileSegment->Composition[s]];
-                    tile_t *tile = TilePart->Tile; 
-                    word TileOffset = TilePart->TileOffset;
-                    word Offset = TileOffset + r + c;
-                    *VERA_DATA0 = BYTE0(Offset);
-                    *VERA_DATA0 = tile->PaletteOffset << 4 | BYTE1(Offset);
-                }
-            }
-        mapbase_offset += rowskip;
+    word segment = (word)TileFloor[TileFloorIndex].floortile[column];
+    segment = segment << 2;
+    vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset,VERA_INC_1);
+    for(byte sc=0;sc<2;sc++) {
+        byte s = sc + sr;
+        unsigned char composition = TileSegmentDB.composition[segment+s];
+        tile_t *tile = TilePartDB.Tile[composition]; 
+        word TileOffset = TilePartDB.TileOffset[composition];
+        byte TilePaletteOffset = tile->PaletteOffset << 4; 
+        for(byte c=0;c<2;c++) {
+            word Offset = TileOffset + r + c;
+            *VERA_DATA0 = BYTE0(Offset);
+            *VERA_DATA0 = TilePaletteOffset | BYTE1(Offset);
         }
     }
 }
-*/
 
 
 void floor_init() {
@@ -191,12 +153,14 @@ void floor_paint_segment(unsigned char row, unsigned char column)
 
     TileFloor[TileFloorNew].floortile[column] = Tile;
 
-    // gotoxy(column<<2+10, row);
-    // printf("%2u", Tile);
-    // if(!column) {
-    //     gotoxy(0, row);
-    //     printf("row %2u %1u", row, TileFloorIndex);
-    // }
+#ifdef __FLOOR_DEBUG
+    gotoxy(column<<2+10, row);
+    printf("%2u", Tile);
+    if(!column) {
+        gotoxy(0, row);
+        printf("row %2u %1u", row, TileFloorIndex);
+    }
+#endif
 }
 
 void tile_background() {
@@ -248,6 +212,7 @@ void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment)
         fb_heap_handle_t handle_bram = tile->bram_handle[t];
         printf("handle_bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
 
+        // Dynamic allocation of tiles in vera vram.
         tile->vera_heap_index[t] = vera_heap_alloc(segment, tile_size);
         vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, tile->vera_heap_index[t]);
         vram_offset_t vram_offset = vera_heap_data_get_offset(segment, tile->vera_heap_index[t]);
@@ -256,11 +221,12 @@ void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment)
 
         memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, tile_size);
 
-        // struct TilePart *TilePart = &TilePartDB[TileOffset+t];
-        // TODO: make shorter, missing fragments.
+        // The offset starts at 0x2000.
+        // Each tile is 0x0400 bytes large.
+        // So we shift each tile 10 bits to get the tile index.
+        // However, we only need to shift with 2 bits and then take the high byte.
         word Offset = (vram_offset - (word)0x2000);
-        // Offset = Offset >> 4;
-        // Offset = Offset >> 4;
+        // Offset >>= 2; 
         TilePartDB.TileOffset[tile_offset+t] = BYTE1(Offset);
     }
 }

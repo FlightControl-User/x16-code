@@ -18,7 +18,7 @@ typedef struct {
     word TileSize;
     byte PaletteOffset; 
     fb_heap_handle_t bram_handle[64];
-    vera_heap_index_t vera_heap_index[16];
+    vera_heap_index_t vera_heap_index[64];
 } tile_t;
 
 
@@ -35,7 +35,7 @@ tile_t TileFloor01 = {
 };
 
 byte const TILE_TYPES = 1;
-__mem tile_t *TileDB[1] = { &TileFloor01 };
+volatile tile_t *TileDB[1] = { &TileFloor01 };
 
 struct TilePart {
     tile_t *Tile[64];
@@ -106,14 +106,17 @@ struct TileWeight TileWeightDB[5] = {
 
 // Work variables
 
-unsigned char const TILE_FLOOR_COUNT = TILE_FLOOR01_COUNT; 
 
-unsigned char const TILES = 16; 
-volatile unsigned char TileFloorIndex = 0;
 typedef struct {
     char floortile[16];
 } tilefloor_t;
 
+
+#pragma data_seg(Data)
+
+unsigned char const TILES = 16; 
+unsigned char const TILE_FLOOR_COUNT = TILE_FLOOR01_COUNT; 
+volatile unsigned char TileFloorIndex = 0;
 volatile tilefloor_t TileFloor[2];
 
 // This is a performance improvement tactic.
@@ -128,7 +131,9 @@ volatile unsigned int floor_cpy_map_src = FLOOR_CPY_MAP_31;
 volatile unsigned char floor_tile_row = FLOOR_TILE_ROW_31;
 volatile unsigned char floor_tile_column = 16;
 
-#pragma data_seg(Data)
+volatile unsigned int floor_scroll_vertical = 16*32;
+volatile unsigned char floor_scroll_action = 2;
+
 
 void floor_init();
 void floor_paint_segment(unsigned char row, unsigned char column); 

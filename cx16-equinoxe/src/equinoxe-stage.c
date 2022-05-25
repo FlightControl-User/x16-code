@@ -83,7 +83,6 @@ static void stage_reset(void)
 
 	player_add();
     
-    palette64_use(0);
     
 }
 

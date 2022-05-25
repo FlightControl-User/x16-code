@@ -137,6 +137,11 @@ const unsigned char FE_ENGINE = 4;
 
 extern fe_t fe; // used for storing the positions of the control blocks pools.
 
+extern fe_player_t player;
+extern fe_engine_t engine;
+extern fe_enemy_t enemy;
+extern fe_bullet_t bullet;
+
 void Logic();
 // void Draw();
 

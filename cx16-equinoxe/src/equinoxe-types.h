@@ -48,11 +48,6 @@ typedef struct {
 
 typedef struct {
 	Delegate delegate;
-    int curr_mousex;
-    int curr_mousey;
-    int prev_mousex;
-    int prev_mousey;
-    char status_mouse;
     unsigned char ticksync;
     unsigned char tickstage;
 } Game;

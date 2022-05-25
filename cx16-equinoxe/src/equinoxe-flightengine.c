@@ -73,7 +73,7 @@ void sprite_vram_allocate(sprite_t* sprite, vera_heap_segment_index_t segment)
             fb_heap_handle_t handle_bram = sprite->bram_handle[sprite_index];
 
 
-            // Otherwise it won't compile!
+            // Dynamic allocation of sprites in vera vram.
             sprite->vera_heap_index[sprite_index] = vera_heap_alloc(segment, sprite_size);
             vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, sprite->vera_heap_index[sprite_index]);
             vram_offset_t vram_offset = vera_heap_data_get_offset(segment, sprite->vera_heap_index[sprite_index]);

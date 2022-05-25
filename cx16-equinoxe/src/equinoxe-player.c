@@ -1,3 +1,5 @@
+#include <cx16-mouse.h>
+
 #include "equinoxe-types.h"
 #include "equinoxe.h"
 #include "equinoxe-flightengine-types.h"
@@ -149,12 +151,12 @@ void player_logic() {
 
             if(!player.wait_animation[p]) {
                 player.wait_animation[p] = player.speed_animation[p];
-                if(game.curr_mousex < game.prev_mousex && player.state_animation[p] > 0) {
+                if(cx16_mouse.x < cx16_mouse.px && player.state_animation[p] > 0) {
                     // Added fragment
                     player.state_animation[p] -= 1;
                     player.moved[p] = 2;
                 }
-                if (game.curr_mousex > game.prev_mousex && player.state_animation[p] < 6) {
+                if (cx16_mouse.x > cx16_mouse.px && player.state_animation[p] < 6) {
                     player.state_animation[p] += 1;
                     player.moved[p] = 2;
                 }
@@ -186,20 +188,20 @@ void player_logic() {
             }
             engine.wait_animation[n]--;
             
-            if (game.status_mouse == 1 && player.reload[p] <= 0)
+            if (cx16_mouse.status == 1 && player.reload[p] <= 0)
             {
                 FireBullet(p, 8);
             }
 
-            // player.tdx[p] = MAKELONG((word)(game.curr_mousex - game.prev_mousex),0);
-            // player.tdy[p] = MAKELONG((word)(game.curr_mousey - game.prev_mousey),0);
+            // player.tdx[p] = MAKELONG((word)(cx16_mouse.x - cx16_mouse.px),0);
+            // player.tdy[p] = MAKELONG((word)(cx16_mouse.y - game.prev_mousey),0);
             
             // // Added fragment
             // player.tx[p] += player.tdx[p];
             // player.ty[p] += player.tdy[p];
 
-            player.tx[p] = MAKELONG((word)(game.curr_mousex),0);
-            player.ty[p] = MAKELONG((word)(game.curr_mousey),0);
+            player.tx[p] = MAKELONG((word)(cx16_mouse.x),0);
+            player.ty[p] = MAKELONG((word)(cx16_mouse.y),0);
 
             signed int playerx = (signed int)WORD1(player.tx[p]);
             signed int playery = (signed int)WORD1(player.ty[p]);

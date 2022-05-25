@@ -5,9 +5,11 @@
 #pragma var_model(mem)
 
 #define __FLOOR
+// #define __FLOOR_DEBUG
+
 #define __FLIGHT
 #define __PALETTE
-#define __CPULINES
+// #define __CPULINES
 #define __COLLISION
 // #define __FILE
 
@@ -44,8 +46,6 @@
 
 #include <ht.h>
 
-
-
 inline void Logic(void) {
     player_logic();
     LogicBullets();
@@ -64,29 +64,21 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
 
-    asm {
-        lda $9f25
-        pha
-        lda $9f24
-        pha
-        lda $9f23
-        pha
-        lda $9f22
-        pha
-        lda $9f21
-        pha
-        lda $9f20
-        pha
-    }
+    // asm {
+    //     lda $9f24
+    //     pha
+    //     lda $9f23
+    //     pha
+    //     lda $9f22
+    //     pha
+    //     lda $9f25
+    //     pha
+    // }
 
     bank_set_brom(CX16_ROM_KERNAL);
 
-    char cx16_mouse_status = cx16_mouse_get();
-    game.prev_mousex = game.curr_mousex;
-    game.prev_mousey = game.curr_mousey;
-    game.curr_mousex = cx16_mouse.x;
-    game.curr_mousey = cx16_mouse.y;
-    game.status_mouse = cx16_mouse_status;
+    // cx16_mouse_scan();
+    cx16_mouse_get();
 
     if(!(game.ticksync & 0x01)) {
         stage_logic();
@@ -319,22 +311,19 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_sprite_buffer_write(sprite_buffer);
 
-    asm {
-        pla
-        sta $9f20
-        pla
-        sta $9f21
-        pla
-        sta $9f22
-        pla
-        sta $9f23
-        pla
-        sta $9f24
-        pla
-        sta $9f25
-    }
+    // asm {
+    //     pla
+    //     sta $9f25
+    //     pla
+    //     sta $9f22
+    //     pla
+    //     sta $9f23
+    //     pla
+    //     sta $9f24
+    // }
 
     bank_pull_bram();
+
 
 }
 
@@ -454,7 +443,7 @@ void main() {
 
     vera_sprites_show();
 
-#ifdef __FLIGHT
+#if defined(__FLIGHT) || defined(__FLOOR)
     // Initialize stage
     stage_init();
 #endif
@@ -468,6 +457,9 @@ void main() {
 #endif
 
     scroll(0);
+
+    palette64_use(0);
+
     while(!getin());
     clrscr();
 
@@ -481,11 +473,7 @@ void main() {
     cx16_mouse_config(0xFF, 80, 60);
     // memset_vram(1, 0x0000, 0, 16);
 
-    char cx16_mouse_status = cx16_mouse_get();
-    game.prev_mousex = cx16_mouse.x;
-    game.prev_mousey = cx16_mouse.y;
-    game.curr_mousex = cx16_mouse.x;
-    game.curr_mousey = cx16_mouse.y;
+    cx16_mouse_get();
 
     vera_layer0_set_vertical_scroll(0);
 
