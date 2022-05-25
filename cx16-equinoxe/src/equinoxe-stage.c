@@ -65,13 +65,21 @@ static void stage_reset(void)
     stage.enemy_sprite[0] = &SpriteEnemy01;
     stage.enemy_flightpath[0] = enemy01_flightpath;
 
-    
 
     stage.enemy_count[1] = 16;
-    stage.enemy_spawn[1] = 2;
-    stage.enemy_sprite[1] = &SpriteEnemy03;
-    stage.enemy_flightpath[1] = enemy03_flightpath;
+    stage.enemy_spawn[1] = 3;
+    stage.enemy_sprite[1] = &SpriteEnemy02;
+    stage.enemy_flightpath[1] = enemy02_flightpath;
 
+    stage.enemy_count[2] = 16;
+    stage.enemy_spawn[2] = 4;
+    stage.enemy_sprite[2] = &SpriteEnemy03;
+    stage.enemy_flightpath[2] = enemy03_flightpath;
+
+    stage.enemy_count[3] = 32;
+    stage.enemy_spawn[3] = 8;
+    stage.enemy_sprite[3] = &SpriteEnemy04;
+    stage.enemy_flightpath[3] = enemy04_flightpath;
 
     stage.score = 0;
     stage.penalty = 0;
@@ -79,7 +87,7 @@ static void stage_reset(void)
     stage.respawn = 0;
 
     stage.step = 0;
-    stage.steps = 2;
+    stage.steps = 4;
 
 	player_add();
     
@@ -94,6 +102,9 @@ void stage_progress()
             stage.step++;
 			break;
 		case 1:
+            stage.step++;
+			break;
+		case 2:
             stage.step++;
 			break;
 	}

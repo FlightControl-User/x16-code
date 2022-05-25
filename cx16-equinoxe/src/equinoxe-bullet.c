@@ -41,6 +41,7 @@ void FireBullet(unsigned char p, char reload)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_PLAYER;
 
+
         sprite_t* sprite = &SpriteBullet01;
         bullet.sprite_type[b] = sprite;
         sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
@@ -60,6 +61,14 @@ void FireBullet(unsigned char p, char reload)
         bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
         bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
         bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
+
+        bullet.wait_animation[b] = 2;
+        bullet.speed_animation[b] = 4;
+        bullet.state_animation[b] = 0;
+        bullet.reverse_animation[b] = sprite->reverse;
+        bullet.start_animation[b] = 0;
+        bullet.stop_animation[b] = sprite->count-1;
+        bullet.direction_animation[b] = 1;
 
         bullet.energy[b] = -50;
 
@@ -115,6 +124,15 @@ void FireBulletEnemy(unsigned char e)
         bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
         bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
 
+        bullet.wait_animation[b] = 2;
+        bullet.speed_animation[b] = 4;
+        bullet.state_animation[b] = 0;
+        bullet.reverse_animation[b] = sprite->reverse;
+        bullet.start_animation[b] = 0;
+        bullet.stop_animation[b] = sprite->count-1;
+        bullet.direction_animation[b] = 1;
+
+
         bullet.energy[b] = -25;
 
         fe.bullet_pool = (b+1)%FE_BULLET;
@@ -156,6 +174,27 @@ void LogicBullets()
             signed int x = (signed int)WORD1(bullet.tx[b]);
             signed int y = (signed int)WORD1(bullet.ty[b]);
 
+			if (!bullet.wait_animation[b]) {
+				bullet.wait_animation[b] = bullet.speed_animation[b];
+                bullet.state_animation[b] += bullet.direction_animation[b];
+                if(bullet.direction_animation[b]>0) {
+                    if(bullet.state_animation[b] >= bullet.stop_animation[b]) {
+                        if(bullet.reverse_animation[b]) {
+                            bullet.direction_animation[b] = -1;                            
+                        } else {
+                            bullet.state_animation[b] = bullet.start_animation[b];
+                        }
+                    }
+                }
+ 
+                if(bullet.direction_animation[b]<0) {
+                    if(bullet.state_animation[b] <= bullet.start_animation[b]) {
+                        bullet.direction_animation[b] = 1;                            
+                    }
+                }
+			}
+			bullet.wait_animation[b]--;
+
             if(y < -32 || x < -32 || x > 640 || y > 480) {
                 RemoveBullet(b);
             } else {
@@ -163,7 +202,11 @@ void LogicBullets()
                     vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
                     bullet.enabled[b] = 1;
                 }
-                vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->vram_image_offset[bullet.state_animation[b]]);
+				if(bullet.wait_animation[b]) {
+					vera_sprite_set_xy(sprite_offset, x, y);
+				} else {
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->vram_image_offset[bullet.state_animation[b]]);
+				}
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             }
 

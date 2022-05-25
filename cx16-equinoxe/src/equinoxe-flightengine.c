@@ -123,7 +123,7 @@ void sprite_load(sprite_t* sprite)
 {
 
     printf("loading sprites %s\n", sprite->file);
-    printf("spritecount=%u, spritesize=%u", sprite->count, sprite->SpriteSize);
+    printf("spritecount=%x, spritesize=%x", sprite->count, sprite->SpriteSize);
     // printf(", opening\n");
 
 
@@ -132,19 +132,21 @@ void sprite_load(sprite_t* sprite)
 
     // printf("spritecount = %u\n", sprite->count);
 
+    unsigned int total_loaded = 0;
+
     for(unsigned char s=0; s<sprite->count; s++) {
         // printf("allocating");
         fb_heap_handle_t handle_bram = heap_alloc(bins, sprite->SpriteSize);
-        // printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
-        // printf(", loading");
+        printf(" %1x%04p", handle_bram.bank, handle_bram.ptr);
         unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, sprite->SpriteSize);
         if (!bytes_loaded) {
             printf("error loading file %s\n", sprite->file);
             break;
         }
-        printf(" %u bytes", bytes_loaded);
         sprite->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
+        total_loaded += bytes_loaded;
     }
+    printf(", %x bytes loaded", total_loaded);
 
     status = close_file(1, 8, 0);
     if (status) printf("error closing file %s\n", sprite->file);

@@ -11,7 +11,7 @@ __export char BITMAP_FLOOR01[] = kickasm {{{
     .for(var i=0;i<tiledata.size();i++) {
         .byte tiledata.get(i)
     }
-    .segment Palettes
+    .segment palettes
     .print "palette size = " + pallistdata.size()
     .for(var i=0;i<pallistdata.size();i++) {
         .byte pallistdata.get(i)

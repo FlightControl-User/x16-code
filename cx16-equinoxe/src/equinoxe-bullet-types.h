@@ -37,6 +37,10 @@ typedef struct {
     unsigned char wait_animation[32];
     unsigned char speed_animation[32];
     unsigned char state_animation[32];
+    unsigned char reverse_animation[32];
+    signed char direction_animation[32];
+    unsigned char start_animation[32];
+    unsigned char stop_animation[32];
 
     sprite_t* sprite_type[32];
     vera_sprite_offset sprite_offset[32];

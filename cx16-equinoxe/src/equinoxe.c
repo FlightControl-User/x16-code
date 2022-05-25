@@ -344,7 +344,7 @@ void main() {
     heap_segment_define(bins, bin64, 64, 128, 64*128);
     heap_segment_define(bins, bin128, 128, 64, 128*364);
     heap_segment_define(bins, bin256, 256, 64, 256*64);
-    heap_segment_define(bins, bin512, 512, 64, 512*64);
+    heap_segment_define(bins, bin512, 512, 96, 512*96);
     heap_segment_define(bins, bin1024, 1024, 63, 1024*63);
 
 

@@ -1,7 +1,7 @@
 void main() {}
 
-#pragma data_seg(Palettes)
-__export char PALETTES[] = 
+#pragma data_seg(palettes)
+__export char palettes[] = 
 
 kickasm {{
     .function GetPalette(tile,count,start,width,height,hstep,vstep,hinc,vinc) {

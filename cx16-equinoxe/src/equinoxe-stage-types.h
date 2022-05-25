@@ -5,7 +5,7 @@
 #include "equinoxe-flightengine-types.h"
 #include "equinoxe-enemy-types.h"
 
-#define STAGES 2
+#define STAGES 32
 typedef struct {
     fb_heap_handle_t fighter_list;
     fb_heap_handle_t fighter_tail;
