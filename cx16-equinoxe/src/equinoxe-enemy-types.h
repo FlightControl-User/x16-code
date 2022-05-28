@@ -1,42 +1,12 @@
-#ifndef equinoxe_enemy_types_h
-#define equinoxe_enemy_types_h
+#include <cx16.h>
+#include <string.h>
+#include <ht.h>
+#include <fp3.h>
+#include <cx16-fb.h>
+#include <cx16-veralib.h>
+#include <cx16-veraheap-typedefs.h>
 
-#include "equinoxe-types.h"
-
-typedef struct {
-     signed int x;
-     signed int y;
-     signed char dx;
-     signed char dy;
-} enemy_action_start_t;
-
-typedef struct {
-     unsigned int flight;
-     signed char turn;
-     unsigned char speed;
-} enemy_action_move_t;
-
-typedef struct {
-     signed char turn;
-     unsigned char radius;
-     unsigned char speed;
-} enemy_action_turn_t;
-
-typedef struct {
-     unsigned char explode;
-} enemy_action_end_t;
-
-typedef union {
-    enemy_action_start_t start;
-    enemy_action_move_t move;
-    enemy_action_turn_t turn;
-} enemy_action_t;
-
-typedef struct {
-    void* action;
-    unsigned char type;
-    unsigned char next;
-} enemy_flightpath_t;
+#include "equinoxe-stage-types.h"
 
 typedef struct {
 
@@ -80,12 +50,10 @@ typedef struct {
     unsigned char stop_animation[64];
 
     unsigned char action[64];
-    enemy_flightpath_t* flightpath[64];
+    stage_flightpath_t* flightpath[64];
 
     sprite_t* sprite_type[64];
     vera_sprite_offset sprite_offset[64];
     unsigned char sprite_palette[64];
 
 } fe_enemy_t;
-
-#endif

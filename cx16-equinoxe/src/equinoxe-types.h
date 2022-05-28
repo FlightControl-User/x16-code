@@ -55,7 +55,7 @@ typedef struct {
 
 
 
-vera_sprite_offset sprite_offsets[127] = {0};
+vera_sprite_offset sprite_offsets[127] = { 0 };
 
 
 volatile unsigned char sprite_collided = 0;

@@ -1,9 +1,8 @@
-#ifndef equinoxe_stage_types_h
-#define equinoxe_stage_types_h
+#include <cx16-fb.h>
+#include <cx16-veralib.h>
 
-#include "equinoxe-types.h"
-#include "equinoxe-flightengine-types.h"
-#include "equinoxe-enemy-types.h"
+#include "levels/equinoxe-level-types.h"
+
 
 #define STAGES 32
 typedef struct {
@@ -24,7 +23,7 @@ typedef struct {
     unsigned char enemy_count[STAGES];
     unsigned char enemy_spawn[STAGES];
     sprite_t* enemy_sprite[STAGES];
-    enemy_flightpath_t* enemy_flightpath[STAGES];
+    stage_flightpath_t* enemy_flightpath[STAGES];
     unsigned char spawnenemytype;
     
     unsigned int score;
@@ -33,5 +32,3 @@ typedef struct {
     unsigned char lives;
     unsigned char respawn;
 } stage_t;
-
-#endif

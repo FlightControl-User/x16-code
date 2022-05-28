@@ -9,7 +9,7 @@
 
 #define __FLIGHT
 #define __PALETTE
-// #define __CPULINES
+#define __CPULINES
 #define __COLLISION
 // #define __FILE
 
@@ -31,8 +31,7 @@
 #include <multiply.h>
 #include <cx16-veraheap.h>
 
-#include "equinoxe-types.h"
-#include "equinoxe.h"
+
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
@@ -43,6 +42,7 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-player.h"
 #include "equinoxe-math.h"
+#include "equinoxe.h"
 
 #include <ht.h>
 
@@ -64,16 +64,16 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
 
-    // asm {
-    //     lda $9f24
-    //     pha
-    //     lda $9f23
-    //     pha
-    //     lda $9f22
-    //     pha
-    //     lda $9f25
-    //     pha
-    // }
+    asm {
+        lda $9f20
+        pha
+        lda $9f21
+        pha
+        lda $9f22
+        pha
+        lda $9f25
+        pha
+    }
 
     bank_set_brom(CX16_ROM_KERNAL);
 
@@ -311,16 +311,16 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_sprite_buffer_write(sprite_buffer);
 
-    // asm {
-    //     pla
-    //     sta $9f25
-    //     pla
-    //     sta $9f22
-    //     pla
-    //     sta $9f23
-    //     pla
-    //     sta $9f24
-    // }
+    asm {
+        pla
+        sta $9f25
+        pla
+        sta $9f22
+        pla
+        sta $9f21
+        pla
+        sta $9f20 
+    }
 
     bank_pull_bram();
 
@@ -344,9 +344,8 @@ void main() {
     heap_segment_define(bins, bin64, 64, 128, 64*128);
     heap_segment_define(bins, bin128, 128, 64, 128*364);
     heap_segment_define(bins, bin256, 256, 64, 256*64);
-    heap_segment_define(bins, bin512, 512, 96, 512*96);
+    heap_segment_define(bins, bin512, 512, 64, 512*64);
     heap_segment_define(bins, bin1024, 1024, 63, 1024*63);
-
 
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
@@ -359,6 +358,11 @@ void main() {
 #endif
 
     fe_init(BRAM_FLIGHTENGINE);
+
+#if defined(__FLIGHT) || defined(__FLOOR)
+    // Initialize stage
+    stage_init(BRAM_STAGE);
+#endif
 
     // Initialize the usage of the control blocks
 
@@ -443,11 +447,6 @@ void main() {
 
     vera_sprites_show();
 
-#if defined(__FLIGHT) || defined(__FLOOR)
-    // Initialize stage
-    stage_init();
-#endif
-
 #ifdef __CPULINES
     // Set border to measure scan lines
     vera_display_set_hstart(2);
@@ -462,6 +461,12 @@ void main() {
 
     while(!getin());
     clrscr();
+
+#if defined(__FLIGHT) || defined(__FLOOR)
+    // Initialize stage
+    stage_reset();
+#endif
+
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();

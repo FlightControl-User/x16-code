@@ -46,7 +46,7 @@ sprite_t SpritePlayer01 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 0, 
     0, {2,2,32-2,32-2}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &player01_vera_heap_index, &player01_vram_image_offset 
 };
 
@@ -58,7 +58,7 @@ sprite_t SpriteEnemy01 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 1, 
     0, {2,2,32-2,32-2}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &enemy01_vera_heap_index, &enemy01_vram_image_offset 
 };
 
@@ -70,7 +70,7 @@ sprite_t SpriteEnemy02 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 2, 
     1, {6,5,25,26}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -82,7 +82,7 @@ sprite_t SpriteEnemy03 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 3, 
     1, {4,4,32-4,32-4}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -94,7 +94,7 @@ sprite_t SpriteEnemy04 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 4, 
     1, {6,5,25,26}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -106,7 +106,7 @@ sprite_t SpriteEngine01 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 5, 
     0, {0,0,0,0}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &engine01_vera_heap_index, &engine01_vram_image_offset 
 };
 
@@ -118,7 +118,7 @@ sprite_t SpriteBullet01 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 6, 
     0, {0,0,1,4}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &bullet01_vera_heap_index, &bullet01_vram_image_offset 
 };
 
@@ -130,7 +130,7 @@ sprite_t SpriteBullet02 =       {
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 7, 
     0, {0,0,1,4}, 0, 
-    {0x0}, {0x0}, {0x0} 
+    { { 0, 0 } }, { 0 }, { 0 } 
     // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
 };
 

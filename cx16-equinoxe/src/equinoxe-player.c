@@ -46,6 +46,9 @@ void player_add()
 
     sprite_t* sprite_player = &SpritePlayer01;
 	player.sprite_type[p] = sprite_player;
+
+    // printf("bank before=%x", bank_get_bram());
+
     sprite_vram_allocate(sprite_player, VERA_HEAP_SEGMENT_SPRITES);
 
 
@@ -136,6 +139,7 @@ void player_remove(unsigned char p, unsigned char b)
 void player_logic() {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
+
 
     for(char p=0; p<FE_PLAYER; p++) {
 

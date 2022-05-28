@@ -31,7 +31,7 @@ tile_t TileFloor01 = {
     32*32*TILE_FLOOR01_COUNT, 
     1024, 
     0, 
-    {0x0}, {0x0} 
+    { { 0,0 } }, { 0 } 
 };
 
 byte const TILE_TYPES = 1;

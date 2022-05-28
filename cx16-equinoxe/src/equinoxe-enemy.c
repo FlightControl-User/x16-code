@@ -10,6 +10,7 @@
 #include "equinoxe-fighters.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-bullet.h"
+#include "equinoxe-bank.h"
 #include <ht.h>
 
 volatile unsigned char shoot = 12;
@@ -24,7 +25,7 @@ void enemy_init()
 }
 
 
-unsigned char AddEnemy(sprite_t* sprite, enemy_flightpath_t* flightpath) 
+unsigned char AddEnemy(sprite_t* sprite, stage_flightpath_t* flightpath) 
 {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
@@ -162,54 +163,80 @@ void LogicEnemies() {
             // printf("e=%02u, f=%03u", e, enemy.flight[e]);            
 
 			if(!enemy.flight[e]) {
-                enemy_flightpath_t* flightpath = enemy.flightpath[e];
+                stage_flightpath_t* flightpath = enemy.flightpath[e];
                 unsigned char action = enemy.action[e];
-                enemy_flightpath_t flight = flightpath[action];
-                unsigned char type = flight.type;
-
-                // printf(", a=%03u, at=%03u", action, type);
+                bank_push_bram(); bank_set_bram(BRAM_STAGE);
+                stage_flightpath_t flightnode = flightpath[action];
+                unsigned char type = flightnode.type;
+                unsigned char next = flightnode.next;
+                bank_pull_bram();
 
 				switch(type) {
-				case ENEMY_ACTION_START:
-                    enemy_action_start_t* action_start = (enemy_action_start_t*)(flight.action);
+
+				case STAGE_ACTION_START: {
+
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
+                    stage_action_start_t* action_start = (stage_action_start_t*)(flightnode.action);
                     signed int x = action_start->x;
                     signed int y = action_start->y;
+                    signed char dx = action_start->dx;
+                    signed char dy = action_start->dy;
+                    bank_pull_bram();
+
                     // printf(", start x/y=%03i/%03i, p=%x    ", x, y, (word)flight.action);
                     enemy.tx[e] = MAKELONG((word)x,0);
                     enemy.ty[e] = MAKELONG((word)y,0);
-                    enemy.action[e] = flight.next;
-                    signed char dx = action_start->dx;
-                    signed char dy = action_start->dy;
+                    enemy.action[e] = next;
                     x += dx;
                     y += dy;
+
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
                     action_start->x = x;
                     action_start->y = y;
+                    bank_pull_bram();
 					break;
-				case ENEMY_ACTION_MOVE:
-                    enemy_action_move_t* action_move = (enemy_action_move_t*)flight.action;
+                    }
+
+				case STAGE_ACTION_MOVE: {
+
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
+                    stage_action_move_t* action_move = (stage_action_move_t*)flightnode.action;
+                    unsigned int flight = action_move->flight;
+                    signed char turn = action_move->turn;
+                    unsigned char speed = action_move->speed;
                     // printf(", move f=%03u, t=%03u, s=%03u", action_move->flight, (unsigned char)action_move->turn, action_move->speed );
-					MoveEnemy( e, 
-                        action_move->flight, 
-                        (unsigned char)action_move->turn, 
-                        action_move->speed
-                    );
-                    enemy.action[e] = flight.next;
+                    bank_pull_bram();
+
+					MoveEnemy(e, flight, (unsigned char)turn, speed);
+                    enemy.action[e] = next;
 					break;
-				case ENEMY_ACTION_TURN:
-                    enemy_action_turn_t* action_turn = (enemy_action_turn_t*)flight.action;
+                    }
+
+				case STAGE_ACTION_TURN: {
+
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
+                    stage_action_turn_t* action_turn = (stage_action_turn_t*)flightnode.action;
+                    signed char turn = action_turn->turn;
+                    unsigned char radius = action_turn->radius;
+                    unsigned char speed = action_turn->speed;
                     // printf(", move t=%03u, r=%03u, s=%03u    ", (unsigned char)action_turn->turn, action_turn->radius, action_turn->speed );
-					ArcEnemy( e, 
-                        (unsigned char)action_turn->turn, 
-                        action_turn->radius, 
-                        action_turn->speed
-                    );
-                    enemy.action[e] = flight.next;
+                    bank_pull_bram();
+
+					ArcEnemy( e, (unsigned char)turn, radius, speed);
+                    enemy.action[e] = next;
 					break;
-				case ENEMY_ACTION_END:
-                    enemy_action_end_t* action_end = (enemy_action_end_t*)flight.action;
+                    }
+
+				case STAGE_ACTION_END: {
+
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
+                    stage_action_end_t* action_end = (stage_action_end_t*)flightnode.action;
                     // printf(", end e=%03u    ", action_end->explode );
+                    bank_pull_bram();
+
                     stage_enemy_remove(e);
 					break;
+                    }
 				}
 			} else {
 				enemy.flight[e]--;
