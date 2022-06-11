@@ -21,7 +21,9 @@
                 "__ma=",
                 "__address(size)=",
                 "__interrupt(rom_sys_cx16)=",
-                "__export="
+                "__export=",
+                "true=1",
+                "false=0"
             ],
             "windowsSdkVersion": "10.0.19041.0",
             "compilerPath": "",

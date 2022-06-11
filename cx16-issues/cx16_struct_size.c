@@ -13,8 +13,8 @@ typedef struct {
     fp_t numbers[16];
 } sprite_t;
 
-__export sprite_t sprite = { "sprite1.bin", { {0,0}} };
-__export sprite_t sprite2 = { "sprite2.bin", { {0, 0} } };
+__export sprite_bram_t sprite = { "sprite1.bin", {{0,0}} };
+__export sprite_bram_t sprite2 = { "sprite2.bin", { {0, 0} } };
 
 
 void main() {

@@ -8,7 +8,7 @@
 void bullet_init();
 void FireBullet(unsigned char p, char reload);
 void FireBulletEnemy(unsigned char e);
-void RemoveBullet(unsigned char b); 
+void bullet_remove(unsigned char b); 
 
 void LogicBullets();
 

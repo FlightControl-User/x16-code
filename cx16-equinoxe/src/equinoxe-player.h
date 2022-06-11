@@ -1,5 +1,6 @@
-#ifndef equinoxe_player_h
-#define equinoxe_player_h
+#include "equinoxe.h"
+
+#ifdef __PLAYER
 
 #include "equinoxe-types.h"
 

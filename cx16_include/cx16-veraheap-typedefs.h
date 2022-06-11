@@ -1,6 +1,3 @@
-#ifndef __CX16_VERAHEAP_TYPEDEFS_H__
-#define __CX16_VERAHEAP_TYPEDEFS_H__
-
 /**
  * @file cx16-heap.h
  * @author Sven VAn de Velde (sven.van.de.velde@outlook.com)
@@ -105,6 +102,3 @@ typedef struct {
 
 } vera_heap_segment_t;
 
-
-
-#endif

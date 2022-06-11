@@ -690,9 +690,6 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
     printf("\n > Allocate segment %02x, size %05x", s, size);
 #endif
 
-	// Traverse the blocks list, searching for a header of
-	// the appropriate size.
-
     vera_heap_index_t heap_index = vera_heap_alloc_using_free(s, packed_size);
     if(heap_index != VERAHEAP_NULL) {
         vera_heap_segment.freeSize[s] -= packed_size;

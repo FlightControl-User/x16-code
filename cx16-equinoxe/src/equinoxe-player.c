@@ -8,7 +8,10 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-player.h"
 #include "equinoxe-bullet.h"
+#include "levels/equinoxe-levels.h"
 
+
+#ifdef __PLAYER
 
 void player_init()
 {
@@ -44,32 +47,17 @@ void player_add()
 	player.wait_animation[p] = player.speed_animation[p];
 	player.state_animation[p] = 3;
 
-    sprite_t* sprite_player = &SpritePlayer01;
-	player.sprite_type[p] = sprite_player;
-
-    // printf("bank before=%x", bank_get_bram());
-
-    sprite_vram_allocate(sprite_player, VERA_HEAP_SEGMENT_SPRITES);
-
-
-    // printf("player after allocate: bank=%u. ", bank_get_bram());
+    unsigned char s = fe_sprite_vram_allocate(&sprite_player_01);
+    player.sprite[p] = s;
 
 	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
-	sprite_configure(player.sprite_offset[p], player.sprite_type[p]);
-
-    player.sprite_palette[p] = sprite_player->PaletteOffset;
-    sprite_palette(player.sprite_offset[p], player.sprite_palette[p]);
+	fe_sprite_configure(player.sprite_offset[p], s);
 
 
 	player.tx[p] = MAKELONG(320, 0);
 	player.ty[p] = MAKELONG(200, 0);
 	player.tdx[p] = 0;
 	player.tdy[p] = 0;
-
-	player.aabb_min_x[p] = SpritePlayer01.aabb[0];
-	player.aabb_min_y[p] = SpritePlayer01.aabb[1];
-	player.aabb_max_x[p] = SpritePlayer01.aabb[2];
-	player.aabb_max_y[p] = SpritePlayer01.aabb[3];
 
     player.health[p] = 100;
 
@@ -89,17 +77,15 @@ void player_add()
 	engine.speed_animation[n] = 1;
 	engine.wait_animation[n] = engine.speed_animation[n];
 
-    sprite_t* sprite_engine = &SpriteEngine01;
-	engine.sprite_type[n] = sprite_engine;
-    sprite_vram_allocate(sprite_engine, VERA_HEAP_SEGMENT_SPRITES);
+    unsigned char cn = fe_sprite_vram_allocate(&sprite_engine_01);
+    engine.sprite[n] = cn;
 
 	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
-	sprite_configure(engine.sprite_offset[n], engine.sprite_type[n]);
-
-    engine.sprite_palette[n] = sprite_engine->PaletteOffset;
-    sprite_palette(engine.sprite_offset[n], engine.sprite_palette[n]);
+	fe_sprite_configure(engine.sprite_offset[n], cn);
 
 	fe.engine_pool = (fe.engine_pool++)%FE_ENGINE;
+
+    // stage.player_xor = player_checkxor();
 
     bank_pull_bram();
 
@@ -117,7 +103,8 @@ void player_remove(unsigned char p, unsigned char b)
         vera_sprite_offset sprite_offset = player.sprite_offset[p];
         FreeOffset(sprite_offset, &stage.sprite_player_count);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(player.sprite_palette[p]);
+        palette16_unuse(fe_sprite.palette_offset[player.sprite[p]]);
+        fe_sprite_vram_free(player.sprite[p]);
         player.used[p] = 0;
         player.enabled[p] = 0;
 
@@ -125,12 +112,15 @@ void player_remove(unsigned char p, unsigned char b)
         sprite_offset = engine.sprite_offset[n];
         FreeOffset(sprite_offset, &stage.sprite_player_count);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(engine.sprite_palette[n]);
+        palette16_unuse(fe_sprite.palette_offset[engine.sprite[n]]);
+        fe_sprite_vram_free(engine.sprite[n]);
         engine.used[n] = 0;
 
         stage.lives--;
         stage.respawn = 64;
     }
+
+    // stage.player_xor = player_checkxor();
 
     bank_pull_bram();
 }
@@ -139,6 +129,11 @@ void player_remove(unsigned char p, unsigned char b)
 void player_logic() {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
+
+    // unsigned char xor = player_checkxor();
+    // if(stage.player_xor != xor) {
+    //     printf("p-xor %02x<>%02x", xor, stage.player_xor);
+    // }
 
 
     for(char p=0; p<FE_PLAYER; p++) {
@@ -192,10 +187,12 @@ void player_logic() {
             }
             engine.wait_animation[n]--;
             
+#ifdef __BULLET
             if (cx16_mouse.status == 1 && player.reload[p] <= 0)
             {
                 FireBullet(p, 8);
             }
+#endif
 
             // player.tdx[p] = MAKELONG((word)(cx16_mouse.x - cx16_mouse.px),0);
             // player.tdy[p] = MAKELONG((word)(cx16_mouse.y - game.prev_mousey),0);
@@ -211,10 +208,7 @@ void player_logic() {
             signed int playery = (signed int)WORD1(player.ty[p]);
 
             vera_sprite_offset player_sprite_offset = player.sprite_offset[p];
-            sprite_t* player_sprite = player.sprite_type[p];
-
             vera_sprite_offset engine_sprite_offset = engine.sprite_offset[n];
-            sprite_t* engine_sprite = engine.sprite_type[n];
 
             if(playerx>-32 && playerx<640-32 && playery>-32 && playery<480-32) {
 #ifdef __COLLISION
@@ -222,21 +216,21 @@ void player_logic() {
 #endif
 
                 if(!player.enabled[p]) {
-                    vera_sprite_zdepth(player_sprite_offset, player_sprite->Zdepth);
-                    vera_sprite_zdepth(engine_sprite_offset, engine_sprite->Zdepth);
+                    vera_sprite_zdepth(player_sprite_offset, fe_sprite.zdepth[player.sprite[p]]);
+                    vera_sprite_zdepth(engine_sprite_offset, fe_sprite.zdepth[engine.sprite[n]]);
                     player.enabled[p] = 1;
                 }
 
                 if(player.wait_animation[p]) {
                     vera_sprite_set_xy(player_sprite_offset, playerx, playery);
                 } else {
-                    // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image_offset[player.state_animation[p]]);
-                    vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, player_sprite->vram_image_offset[player.state_animation[p]]);
+                    // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image[player.state_animation[p]]);
+                    vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, fe_sprite.image[(unsigned int)player.sprite[p]*16+player.state_animation[p]]);
                 }
                 if(engine.wait_animation[n]) {
                     vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
                 } else {
-                    vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, engine_sprite->vram_image_offset[engine.state_animation[n]]);
+                    vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, fe_sprite.image[(unsigned int)engine.sprite[n]*16+engine.state_animation[n]]);
                 }
             } else {
                 if(player.enabled[p]) {
@@ -248,5 +242,24 @@ void player_logic() {
         }
     }
 
+    // stage.player_xor = player_checkxor();
+
     bank_pull_bram();
 }
+
+char player_checkxor()
+{
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    unsigned char xor = 0;
+    unsigned char* p = (char*)&player;
+    unsigned int s = sizeof(fe_player_t);
+    for(unsigned int i=0; i<s; i++) {
+        xor ^= (unsigned char)*p;
+        p++;
+    }
+    bank_pull_bram();
+    return xor;
+}
+
+
+#endif // __PLAYER

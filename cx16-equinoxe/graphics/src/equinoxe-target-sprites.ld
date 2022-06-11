@@ -5,9 +5,14 @@
 .file [name="ENEMY02.BIN", type="bin", segments="enemy02"]
 .file [name="ENEMY03.BIN", type="bin", segments="enemy03"]
 .file [name="ENEMY04.BIN", type="bin", segments="enemy04"]
+.file [name="ENEMY05.BIN", type="bin", segments="enemy05"]
+.file [name="ENEMY06.BIN", type="bin", segments="enemy06"]
+.file [name="ENEMY07.BIN", type="bin", segments="enemy07"]
 .file [name="ENGINE01.BIN", type="bin", segments="engine01"]
 .file [name="BULLET01.BIN", type="bin", segments="bullet01"]
 .file [name="BULLET02.BIN", type="bin", segments="bullet02"]
+.file [name="BULLET03.BIN", type="bin", segments="bullet01"]
+.file [name="BULLET04.BIN", type="bin", segments="bullet02"]
 .file [name="PALSPRITE01.BIN", type="bin", segments="palettes"]
 .segmentdef Program [segments="Basic, Code, Data"]
 .segmentdef Basic [start=$0801]
@@ -20,7 +25,12 @@
 .segmentdef enemy02 
 .segmentdef enemy03 
 .segmentdef enemy04
+.segmentdef enemy05
+.segmentdef enemy06
+.segmentdef enemy07
 .segmentdef engine01 
 .segmentdef bullet01 
 .segmentdef bullet02 
+.segmentdef bullet03 
+.segmentdef bullet04 
 .segmentdef palettes

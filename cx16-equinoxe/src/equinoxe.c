@@ -4,16 +4,8 @@
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-#define __FLOOR
-// #define __FLOOR_DEBUG
+#define __MAIN
 
-#define __FLIGHT
-#define __PALETTE
-#define __CPULINES
-#define __COLLISION
-// #define __FILE
-
-// #define __HEAP_DEBUG
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -32,6 +24,7 @@
 #include <cx16-veraheap.h>
 
 
+#include "equinoxe-types.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
@@ -42,15 +35,10 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-player.h"
 #include "equinoxe-math.h"
+#include "levels/equinoxe-levels.h"
 #include "equinoxe.h"
 
 #include <ht.h>
-
-inline void Logic(void) {
-    player_logic();
-    LogicBullets();
-    LogicEnemies();
-}
 
 unsigned int collisions = 0;
 
@@ -62,20 +50,51 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // save vera registers on the stack! the interrupt modifies the control registers and data registers!
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
 
-    asm {
-        lda $9f20
-        pha
-        lda $9f21
-        pha
-        lda $9f22
-        pha
-        lda $9f25
-        pha
-    }
 
     bank_set_brom(CX16_ROM_KERNAL);
+    bank_push_bram();
+    bank_set_bram(255);
+
+#ifdef __ENGINE_DEBUG
+
+    char stack_entry;
+    {
+    char x = wherex();
+    char y = wherey();
+    gotoxy(0,58);
+
+    static volatile char stack_max = 0;
+    static volatile char stack_min = 255;
+#ifndef __INTELLISENSE__
+    asm {
+        tsx
+        stx stack_entry
+    }
+#endif
+    printf("stack %x", stack_entry);
+    if(stack_min>stack_entry) stack_min=stack_entry;
+    printf(", min %x", stack_min);
+    if(stack_max<stack_entry) stack_max=stack_entry;
+    printf(", max %x", stack_max);
+    printf(", bram %x", bank_get_bram());
+    gotoxy(x,y);
+    }
+
+#endif
+
+// #ifndef __INTELLISENSE__
+//     asm {
+//         lda $9f20
+//         pha
+//         lda $9f21
+//         pha
+//         lda $9f22
+//         pha
+//         lda $9f25
+//         pha
+//     }
+// #endif
 
     // cx16_mouse_scan();
     cx16_mouse_get();
@@ -97,17 +116,26 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 #ifdef __CPULINES
     vera_display_set_border_color(GREEN);
 #endif
+
+#ifdef __PLAYER
     player_logic();
+#endif
 
 #ifdef __CPULINES
     vera_display_set_border_color(CYAN);
 #endif
+
+#ifdef __BULLET
     LogicBullets();
+#endif
 
 #ifdef __CPULINES
     vera_display_set_border_color(RED);
 #endif
+
+#ifdef __ENEMY
     LogicEnemies();
+#endif
 
 #ifdef __CPULINES
     vera_display_set_border_color(YELLOW);
@@ -122,6 +150,9 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         // Each "grid" cell is 16x16 pixels.
         // Note that this resolution reduction is ONLY for the spacial grid map, to base
         // the collision calculations on 8 bits instead of 16 bit numbers.
+
+        bank_push_bram(); bank_set_bram(fe.bram_bank);
+
         for(unsigned char gx=0; gx<640>>2; gx+=64>>2) {
             for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
 
@@ -145,10 +176,13 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                             signed int x_bullet = (signed int)WORD1(bullet.tx[b]);
                             signed int y_bullet = (signed int)WORD1(bullet.ty[b]);
 
-                            unsigned char bullet_aabb_min_x = bullet.aabb_min_x[b];
-                            unsigned char bullet_aabb_min_y = bullet.aabb_min_y[b];
-                            unsigned char bullet_aabb_max_x = bullet.aabb_max_x[b];
-                            unsigned char bullet_aabb_max_y = bullet.aabb_max_y[b];
+                            unsigned char bc = bullet.sprite[b]; // Which sprite is it in the cache...
+                            unsigned char bco = bc*16;
+
+                            unsigned char bullet_aabb_min_x = fe_sprite.aabb[bco];
+                            unsigned char bullet_aabb_min_y = fe_sprite.aabb[bco+1];
+                            unsigned char bullet_aabb_max_x = fe_sprite.aabb[bco+2];
+                            unsigned char bullet_aabb_max_y = fe_sprite.aabb[bco+3];
 
                             if(bullet.side[b] == SIDE_PLAYER) {
 
@@ -161,18 +195,21 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                         signed int x_enemy = (signed int)WORD1(enemy.tx[e]);
                                         signed int y_enemy = (signed int)WORD1(enemy.ty[e]);
 
-                                        unsigned char enemy_aabb_min_x = enemy.aabb_min_x[e];
-                                        unsigned char enemy_aabb_min_y = enemy.aabb_min_y[e];
-                                        unsigned char enemy_aabb_max_x = enemy.aabb_max_x[e];
-                                        unsigned char enemy_aabb_max_y = enemy.aabb_max_y[e];
+                                        unsigned char ec = enemy.sprite[e]; // Which sprite is it in the cache...
+                                        unsigned char eco = ec*16;
+
+                                        unsigned char enemy_aabb_min_x = fe_sprite.aabb[eco];
+                                        unsigned char enemy_aabb_min_y = fe_sprite.aabb[eco+1];
+                                        unsigned char enemy_aabb_max_x = fe_sprite.aabb[eco+2];
+                                        unsigned char enemy_aabb_max_y = fe_sprite.aabb[eco+3];
 
                                         if(x_bullet+bullet_aabb_min_x > x_enemy+enemy_aabb_max_x || 
-                                            y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
-                                            x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
-                                            y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
+                                           y_bullet+bullet_aabb_min_y > y_enemy+enemy_aabb_max_y || 
+                                           x_bullet+bullet_aabb_max_x < x_enemy+enemy_aabb_min_x || 
+                                           y_bullet+bullet_aabb_max_y < y_enemy+enemy_aabb_min_y) {
                                         } else {
-                                            RemoveBullet(b);
-                                            stage_enemy_hit(e, b);
+                                            bullet_remove(b);
+                                            stage_enemy_hit(enemy.wave[e], e, b);
                                             break;
                                         }
                                     }
@@ -191,17 +228,20 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                                         signed int x_player = (signed int)WORD1(player.tx[p]);
                                         signed int y_player = (signed int)WORD1(player.ty[p]);
 
-                                        unsigned char player_aabb_min_x = player.aabb_min_x[p];
-                                        unsigned char player_aabb_min_y = player.aabb_min_y[p];
-                                        unsigned char player_aabb_max_x = player.aabb_max_x[p];
-                                        unsigned char player_aabb_max_y = player.aabb_max_y[p];
+                                        unsigned char pc = player.sprite[p]; // Which sprite is it in the cache...
+                                        unsigned char pco = pc*16;
+
+                                        unsigned char player_aabb_min_x = fe_sprite.aabb[pco];
+                                        unsigned char player_aabb_min_y = fe_sprite.aabb[pco+1];
+                                        unsigned char player_aabb_max_x = fe_sprite.aabb[pco+2];
+                                        unsigned char player_aabb_max_y = fe_sprite.aabb[pco+3];
 
                                         if(x_bullet+bullet_aabb_min_x > x_player+player_aabb_max_x || 
                                             y_bullet+bullet_aabb_min_y > y_player+player_aabb_max_y || 
                                             x_bullet+bullet_aabb_max_x < x_player+player_aabb_min_x || 
                                             y_bullet+bullet_aabb_max_y < y_player+player_aabb_min_y) {
                                         } else {
-                                            RemoveBullet(b);
+                                            bullet_remove(b);
                                             player_remove(p, b);
                                             break;
                                         }
@@ -216,6 +256,8 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
                 }
             }   
         }
+        bank_pull_bram();
+
     }
 #endif // __COLLISION
 
@@ -294,16 +336,9 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
 #endif
 
+
+
     // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
-
-    #ifdef __CPULINES
-    vera_display_set_border_color(1);
-    #endif
-
-
-    #ifdef __CPULINES
-    vera_display_set_border_color(0);
-    #endif
 
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
@@ -311,19 +346,72 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 
     // vera_sprite_buffer_write(sprite_buffer);
 
+// #ifndef __INTELLISENSE__
+//     asm {
+//         pla
+//         sta $9f25
+//         pla
+//         sta $9f22
+//         pla
+//         sta $9f21
+//         pla
+//         sta $9f20 
+//     }
+// #endif
+
+#ifdef __ENGINE_DEBUG
+
+#ifdef __CPULINES
+    vera_display_set_border_color(LIGHT_GREY);
+#endif
+    static volatile char stack_diff = 0;
+    static volatile char stack_diff_max = 0;
+    static volatile char stack_diff_min = 255;
+
+    {
+    char x = wherex();
+    char y = wherey();
+    gotoxy(0,59);
+
+    char stack_exit;
+    static volatile char stack_max = 0;
+    static volatile char stack_min = 255;
+#ifndef __INTELLISENSE__
     asm {
-        pla
-        sta $9f25
-        pla
-        sta $9f22
-        pla
-        sta $9f21
-        pla
-        sta $9f20 
+        tsx
+        stx stack_exit
     }
+#endif
+    printf("stack %x", stack_exit);
+    if(stack_min>stack_exit) stack_min=stack_exit;
+    printf(", min %x", stack_min);
+    if(stack_max<stack_exit) stack_max=stack_exit;
+    printf(", max %x", stack_max);
+    printf(", bram %x", bank_get_bram());
+    stack_diff = stack_entry - stack_exit;
+    if(stack_diff_min>stack_diff) stack_diff_min = stack_diff;
+    if(stack_diff_max<stack_diff) stack_diff_max = stack_diff;
+
+    printf(", diff %u", stack_entry - stack_exit);
+    printf(", min %u", stack_diff_min);
+    printf(", max %u", stack_diff_max);
+
+    gotoxy(0,57);
+    printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.sprite_player, stage.sprite_player_count, stage.sprite_bullet, stage.sprite_bullet_count, stage.sprite_enemy, stage.sprite_enemy_count);
+
+    gotoxy(0,56);
+    printf("enemy xor %x size %05u", stage.enemy_xor, sizeof(fe_enemy_t));
+
+    gotoxy(x,y);
+    }
+#endif // __ENGINE_DEBUG
+
 
     bank_pull_bram();
 
+#ifdef __CPULINES
+    vera_display_set_border_color(BLACK);
+#endif
 
 }
 
@@ -344,7 +432,7 @@ void main() {
     heap_segment_define(bins, bin64, 64, 128, 64*128);
     heap_segment_define(bins, bin128, 128, 64, 128*364);
     heap_segment_define(bins, bin256, 256, 64, 256*64);
-    heap_segment_define(bins, bin512, 512, 64, 512*64);
+    heap_segment_define(bins, bin512, 512, 127, 512*127);
     heap_segment_define(bins, bin1024, 1024, 63, 1024*63);
 
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
@@ -395,14 +483,6 @@ void main() {
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
 
 
-#ifdef __FLIGHT
-
-    // Loading the sprites in bram.
-    for (unsigned char i = 0; i < SPRITE_TYPES;i++) {
-        sprite_load(SpriteDB[i]);
-    }
-
-#endif
 
     // Tested
 
@@ -449,23 +529,23 @@ void main() {
 
 #ifdef __CPULINES
     // Set border to measure scan lines
-    vera_display_set_hstart(2);
-    vera_display_set_hstop(158);
-    vera_display_set_vstart(2);
-    vera_display_set_vstop(236);
+    vera_display_set_hstart(1);
+    vera_display_set_hstop(159);
+    vera_display_set_vstart(0);
+    vera_display_set_vstop(238);
 #endif
 
     scroll(0);
 
     palette64_use(0);
 
-    while(!getin());
-    clrscr();
-
 #if defined(__FLIGHT) || defined(__FLOOR)
     // Initialize stage
     stage_reset();
 #endif
+
+    while(!getin());
+    clrscr();
 
 
     // Enable VSYNC IRQ (also set line bit 8 to 0)

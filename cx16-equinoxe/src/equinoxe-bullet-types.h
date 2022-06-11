@@ -2,15 +2,12 @@
 
 typedef struct {
 
+    vera_sprite_offset sprite_offset[32];
+
     FP tx[32];
     FP ty[32];
     FP tdx[32];
     FP tdy[32];
-
-    unsigned char aabb_min_x[32];
-    unsigned char aabb_min_y[32];
-    unsigned char aabb_max_x[32];
-    unsigned char aabb_max_y[32];
 
     unsigned char used[32];
 
@@ -42,9 +39,7 @@ typedef struct {
     unsigned char start_animation[32];
     unsigned char stop_animation[32];
 
-    sprite_t* sprite_type[32];
-    vera_sprite_offset sprite_offset[32];
-    unsigned char sprite_palette[32];
+    fe_sprite_index_t sprite[32];
 
 } fe_bullet_t;
 

@@ -1,7 +1,13 @@
-#pragma link("equinoxe-levels.ld")
 
-#pragma data_seg(level01)
+#ifndef __MAIN
+    #pragma link("equinoxe-levels.ld")
+    #pragma var_model(mem)
+#endif
 
-#include "equinoxe-level01.h"
+#pragma data_seg(levels)
 
-void main() {}
+#include "equinoxe-levels.h"
+
+#ifndef __MAIN
+    void main() {}
+#endif

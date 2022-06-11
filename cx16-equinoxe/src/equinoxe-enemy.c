@@ -10,7 +10,6 @@
 #include "equinoxe-fighters.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-bullet.h"
-#include "equinoxe-bank.h"
 #include <ht.h>
 
 volatile unsigned char shoot = 12;
@@ -21,11 +20,16 @@ void enemy_init()
     
     memset(&enemy, 0, sizeof(fe_enemy_t));
 
+    enemy.cs1 = 255;
+    enemy.cs2 = 255;
+    enemy.cs3 = 255;
+    enemy.cs4 = 255;
+
     bank_pull_bram();
 }
 
 
-unsigned char AddEnemy(sprite_t* sprite, stage_flightpath_t* flightpath) 
+unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_t* flightpath, signed int x, signed int y) 
 {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
@@ -39,7 +43,12 @@ unsigned char AddEnemy(sprite_t* sprite, stage_flightpath_t* flightpath)
 	enemy.used[e] = 1;
 	enemy.enabled[e] = 0;
 
-	enemy.type[e] = entity_type_enemy;
+    enemy.wave[e] = w;
+
+    fe_sprite_index_t s = fe_sprite_vram_allocate(sprite);
+
+    enemy.sprite[e] = s;
+
 	enemy.side[e] = SIDE_ENEMY;
 	enemy.move[e] = 0;
 	enemy.moved[e] = 0;
@@ -55,9 +64,9 @@ unsigned char AddEnemy(sprite_t* sprite, stage_flightpath_t* flightpath)
 	enemy.wait_animation[e] = 4;
 	enemy.speed_animation[e] = 4;
 	enemy.state_animation[e] = 0;
-    enemy.reverse_animation[e] = sprite->reverse;
+    enemy.reverse_animation[e] = fe_sprite.reverse[s];
     enemy.start_animation[e] = 0;
-    enemy.stop_animation[e] = sprite->count-1;
+    enemy.stop_animation[e] = fe_sprite.count[s]-1;
     enemy.direction_animation[e] = 1;
 
 	enemy.health[e] = 100;
@@ -65,26 +74,19 @@ unsigned char AddEnemy(sprite_t* sprite, stage_flightpath_t* flightpath)
 
     enemy.flightpath[e] = flightpath;
 
-	enemy.sprite_type[e] = sprite;
-    sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
 
 	enemy.sprite_offset[e] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
-	sprite_configure(enemy.sprite_offset[e], enemy.sprite_type[e]);
+	fe_sprite_configure(enemy.sprite_offset[e], s);
 
-    enemy.sprite_palette[e] = sprite->PaletteOffset;
-    sprite_palette(enemy.sprite_offset[e], enemy.sprite_palette[e]);
-
-	enemy.tx[e] = 0;
-	enemy.ty[e] = 0;
+	enemy.tx[e] = MAKELONG((unsigned int)x, 0);
+	enemy.ty[e] = MAKELONG((unsigned int)y, 0);
 	enemy.tdx[e] = 0;
 	enemy.tdy[e] = 0;
 	
-	enemy.aabb_min_x[e] = sprite->aabb[0];
-	enemy.aabb_min_y[e] = sprite->aabb[1];
-	enemy.aabb_max_x[e] = sprite->aabb[2];
-	enemy.aabb_max_y[e] = sprite->aabb[3];
-
 	fe.enemy_pool = (e+1)%FE_ENEMY;
+
+    // stage.enemy_xor = enemy_checkxor();
+
 
     bank_pull_bram();
     return 1;
@@ -98,8 +100,8 @@ unsigned char RemoveEnemy(unsigned char e)
     vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
     FreeOffset(sprite_offset, &stage.sprite_enemy_count);
     vera_sprite_disable(sprite_offset);
-    palette16_unuse(enemy.sprite_palette[e]);
-    sprite_vram_free(enemy.sprite_type[e], VERA_HEAP_SEGMENT_SPRITES);
+    palette16_unuse(fe_sprite.palette_offset[enemy.sprite[e]]);
+    fe_sprite_vram_free(enemy.sprite[e]);
     enemy.used[e] = 0;
     enemy.enabled[e] = 0;
 
@@ -147,6 +149,11 @@ void LogicEnemies() {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
 
+    // unsigned char xor = enemy_checkxor();
+    // if(stage.enemy_xor != xor) {
+    //     printf("xor %x <> %x", xor, stage.enemy_xor);
+    // }
+
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
 		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
@@ -172,30 +179,6 @@ void LogicEnemies() {
                 bank_pull_bram();
 
 				switch(type) {
-
-				case STAGE_ACTION_START: {
-
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
-                    stage_action_start_t* action_start = (stage_action_start_t*)(flightnode.action);
-                    signed int x = action_start->x;
-                    signed int y = action_start->y;
-                    signed char dx = action_start->dx;
-                    signed char dy = action_start->dy;
-                    bank_pull_bram();
-
-                    // printf(", start x/y=%03i/%03i, p=%x    ", x, y, (word)flight.action);
-                    enemy.tx[e] = MAKELONG((word)x,0);
-                    enemy.ty[e] = MAKELONG((word)y,0);
-                    enemy.action[e] = next;
-                    x += dx;
-                    y += dy;
-
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
-                    action_start->x = x;
-                    action_start->y = y;
-                    bank_pull_bram();
-					break;
-                    }
 
 				case STAGE_ACTION_MOVE: {
 
@@ -234,7 +217,7 @@ void LogicEnemies() {
                     // printf(", end e=%03u    ", action_end->explode );
                     bank_pull_bram();
 
-                    stage_enemy_remove(e);
+                    stage_enemy_remove(enemy.wave[e], e);
 					break;
                     }
 				}
@@ -297,7 +280,6 @@ void LogicEnemies() {
 			signed int y = (signed int)WORD1(enemy.ty[e]);
 
 			vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
-			sprite_t* sprite = enemy.sprite_type[e];
 
 			if(x>=-31 && x<640 && y>=-31 && y<480) {
 #ifdef __CPULINES
@@ -308,19 +290,22 @@ void LogicEnemies() {
 			vera_display_set_border_color(PURPLE);
 #endif
 				if(!enemy.enabled[e]) {
-			    	vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
+			    	vera_sprite_zdepth(sprite_offset, fe_sprite.zdepth[enemy.sprite[e]]);
 					enemy.enabled[e] = 1;
 				}
 
 				if(enemy.wait_animation[e]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->vram_image_offset[enemy.state_animation[e]]);
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.image[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
 				}
+
+#ifdef __BULLET                
 				unsigned int r = rand();
-				if(r>=65200) {
+				if(r>=65300) {
 					FireBulletEnemy(e);
 				}
+#endif
 			} else {
 				if(enemy.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);
@@ -330,6 +315,30 @@ void LogicEnemies() {
 		}
 	}
 
+    // stage.enemy_xor = enemy_checkxor();
+
+    // if(enemy.cs1 != 255)
+    //     printf("error checksum cs1!");
+    // if(enemy.cs2 != 255)
+    //     printf("error checksum cs2!");
+    // if(enemy.cs3 != 255)
+    //     printf("error checksum cs3!");
+    // if(enemy.cs4 != 255)
+    //     printf("error checksum cs4!");
+
     bank_pull_bram();
 }
 
+char enemy_checkxor()
+{
+    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    unsigned char xor = 0;
+    unsigned char* p = (char*)&enemy;
+    unsigned int s = sizeof(fe_enemy_t);
+    for(unsigned int i=0; i<s; i++) {
+        xor ^= (unsigned char)*p;
+        p++;
+    }
+    bank_pull_bram();
+    return xor;
+}

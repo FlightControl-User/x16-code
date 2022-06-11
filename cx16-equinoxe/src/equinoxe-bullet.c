@@ -42,32 +42,23 @@ void FireBullet(unsigned char p, char reload)
         bullet.side[b] = SIDE_PLAYER;
 
 
-        sprite_t* sprite = &SpriteBullet01;
-        bullet.sprite_type[b] = sprite;
-        sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
+        fe_sprite_index_t s = fe_sprite_vram_allocate(&sprite_bullet_01);
+        bullet.sprite[b] = s;
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
-        sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
-
-        bullet.sprite_palette[b] = sprite->PaletteOffset;
-        sprite_palette(bullet.sprite_offset[b], bullet.sprite_palette[b]);
+        fe_sprite_configure(bullet.sprite_offset[b], s);
 
         bullet.tx[b] = MAKELONG(x, 0);
         bullet.ty[b] = MAKELONG(y, 0);
         bullet.tdx[b] = MAKELONG(0, 0);
         bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
 
-        bullet.aabb_min_x[b] = SpriteBullet01.aabb[0];
-        bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
-        bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
-        bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
-
         bullet.wait_animation[b] = 2;
         bullet.speed_animation[b] = 4;
         bullet.state_animation[b] = 0;
-        bullet.reverse_animation[b] = sprite->reverse;
+        bullet.reverse_animation[b] = fe_sprite.reverse[s];
         bullet.start_animation[b] = 0;
-        bullet.stop_animation[b] = sprite->count-1;
+        bullet.stop_animation[b] = fe_sprite.count[s]-1;
         bullet.direction_animation[b] = 1;
 
         bullet.energy[b] = -50;
@@ -100,16 +91,11 @@ void FireBulletEnemy(unsigned char e)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_ENEMY;
 
-        sprite_t* sprite = &SpriteBullet02;
-
-        bullet.sprite_type[b] = sprite;
-        sprite_vram_allocate(sprite, VERA_HEAP_SEGMENT_SPRITES);
+        fe_sprite_index_t s = fe_sprite_vram_allocate(&sprite_bullet_02);
+        bullet.sprite[b] = s;
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
-        sprite_configure(bullet.sprite_offset[b], bullet.sprite_type[b]);
-
-        bullet.sprite_palette[b] = sprite->PaletteOffset;
-        sprite_palette(bullet.sprite_offset[b], bullet.sprite_palette[b]);
+        fe_sprite_configure(bullet.sprite_offset[b], s);
 
         bullet.tx[b] = MAKELONG(ex, 0);
         bullet.ty[b] = MAKELONG(ey, 0);
@@ -119,19 +105,13 @@ void FireBulletEnemy(unsigned char e)
         bullet.tdx[b] = math_vecx(angle-16, 3);
         bullet.tdy[b] = math_vecy(angle-16, 3); 
 
-        bullet.aabb_min_x[b] = SpriteBullet01.aabb[0];
-        bullet.aabb_min_y[b] = SpriteBullet01.aabb[1];
-        bullet.aabb_max_x[b] = SpriteBullet01.aabb[2];
-        bullet.aabb_max_y[b] = SpriteBullet01.aabb[3];
-
         bullet.wait_animation[b] = 2;
         bullet.speed_animation[b] = 4;
         bullet.state_animation[b] = 0;
-        bullet.reverse_animation[b] = sprite->reverse;
+        bullet.reverse_animation[b] = fe_sprite.reverse[s];
         bullet.start_animation[b] = 0;
-        bullet.stop_animation[b] = sprite->count-1;
+        bullet.stop_animation[b] = fe_sprite.count[s]-1;
         bullet.direction_animation[b] = 1;
-
 
         bullet.energy[b] = -25;
 
@@ -141,17 +121,18 @@ void FireBulletEnemy(unsigned char e)
 }
 
 
-void RemoveBullet(unsigned char b) 
+void bullet_remove(unsigned char b) 
 {
     bank_push_bram(); bank_set_bram(fe.bram_bank);
 
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
     FreeOffset(sprite_offset, &stage.sprite_bullet_count);
     vera_sprite_disable(sprite_offset);
-    palette16_unuse(bullet.sprite_palette[b]);
-    sprite_vram_free(bullet.sprite_type[b], VERA_HEAP_SEGMENT_SPRITES);
+    palette16_unuse(fe_sprite.palette_offset[bullet.sprite[b]]);
+    fe_sprite_vram_free(bullet.sprite[b]);
     bullet.used[b] = 0;
     bullet.enabled[b] = 0;
+    bullet.sprite[b] = 255;
 
     bank_pull_bram();
 }
@@ -165,8 +146,6 @@ void LogicBullets()
 
         if(bullet.used[b]) {
             vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
-            sprite_t* sprite = bullet.sprite_type[b];
-
 
             bullet.tx[b] += bullet.tdx[b];
             bullet.ty[b] += bullet.tdy[b];
@@ -196,16 +175,16 @@ void LogicBullets()
 			bullet.wait_animation[b]--;
 
             if(y < -32 || x < -32 || x > 640 || y > 480) {
-                RemoveBullet(b);
+                bullet_remove(b);
             } else {
                 if(!bullet.enabled[b]) {
-                    vera_sprite_zdepth(sprite_offset, sprite->Zdepth);
+                    vera_sprite_zdepth(sprite_offset, fe_sprite.zdepth[bullet.sprite[b]]);
                     bullet.enabled[b] = 1;
                 }
 				if(bullet.wait_animation[b]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite->vram_image_offset[bullet.state_animation[b]]);
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.image[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
 				}
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             }

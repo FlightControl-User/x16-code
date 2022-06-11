@@ -9,6 +9,7 @@
 #include <cx16-veralib.h>
 #include <cx16-veraheap-typedefs.h>
 
+#include "equinoxe-bank.h"
 #include "equinoxe-palette-types.h"
 #include "equinoxe-flightengine-types.h"
 #include "equinoxe-stage-types.h"
@@ -16,7 +17,7 @@
 #include "equinoxe-bullet-types.h"
 
 
-// sprite_t constants
+// sprite_bram_t constants
 const unsigned char SPRITE_OFFSET_PLAYER_START = 1;
 const unsigned char SPRITE_OFFSET_PLAYER_END = 4;
 const unsigned char SPRITE_OFFSET_ENEMY_START = 5;
