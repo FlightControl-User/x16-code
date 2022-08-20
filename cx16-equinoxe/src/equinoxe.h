@@ -5,7 +5,7 @@
 
 #define __PALETTE
 
-// #define __FLOOR
+#define __FLOOR
 
 #define __FLIGHT
 #define __COLLISION
