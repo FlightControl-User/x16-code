@@ -8,6 +8,13 @@
 typedef unsigned char fe_sprite_index_t;
 
 typedef struct {
+    unsigned char used[128];
+    vera_sprite_image_offset vram_image_offset[128];
+    vera_heap_handle_t vram_handle[128];
+    unsigned int id[128];
+} fe_vram_sprite_cache_t;
+
+typedef struct {
     unsigned char used[16];
     void* sprite_bram[16];
     unsigned char count[16];
@@ -21,8 +28,6 @@ typedef struct {
     unsigned char reverse[16];
     unsigned char palette_offset[16];
     unsigned char file[16*16];
-    vera_sprite_image_offset image[16*16];
-    vera_heap_handle_t vram_handle[16*16];
     unsigned char aabb[16*4];
 } fe_sprite_cache_t;
 
@@ -41,6 +46,7 @@ typedef struct {
     unsigned char reverse;
     unsigned char aabb[4];
     fb_heap_handle_t bram_handle[16];
+    unsigned int id[16];
     fe_sprite_index_t sprite_cache;
 } sprite_bram_t;
 

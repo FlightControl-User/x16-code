@@ -31,7 +31,11 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-bank.h"
 
-#include <ht.h>
+#include <vram_cache.h>
+
+// Hash table to capture the cache of objects currently in vram and in use.
+vram_cache_item_t vram_cache;
+
 
 #pragma data_seg(SpriteControlEnemies)
 fe_enemy_t enemy;
@@ -46,7 +50,9 @@ fe_engine_t engine;
 fe_bullet_t bullet;
 
 #pragma data_seg(fe_sprite_cache)
-fe_sprite_cache_t fe_sprite; // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
+// Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
+fe_sprite_cache_t fe_sprite; 
+fe_vram_sprite_cache_t vram_sprite_cache;
 
 #pragma data_seg(Data)
 fe_t fe; // Flight engine control.
@@ -101,8 +107,40 @@ void fe_sprite_debug()
 }
 
 
+vera_sprite_image_offset fe_sprite_vram_image_copy(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index) {
+
+    // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
+    // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
+
+    unsigned int image_index = fe_sprite_index*16+fe_sprite_image_index; 
+
+    if(!fe_sprite.vram_image_used[fe_sprite_image_index]) {
+
+        // in this case, we can allocate on the vram heap a new image with the required dimensions.
+        // and we copy from bram the image to vram.
+
+        fb_heap_handle_t handle_bram = fe_sprite.sprite_bram[fe_sprite_index]->bram_handle[fe_sprite_image_index];
+
+        // Dynamic allocation of sprites in vera vram.
+        vera_heap_handle_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[fe_sprite_index]);
+        vram_bank_t   vram_bank   = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+
+        fe_sprite.vram_handle[image_index] = vram_handle;
+
+        // printf(", vram bank = %x, offset = %x", vram_bank, vram_offset);
+
+        fe_sprite.vram_image_offset[image_index] = vera_sprite_get_image_offset(vram_bank, vram_offset);
+
+        memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[fe_sprite_index]);
+
+        fe_sprite.vram_image_used[image_index] = 1;
+
+    }
+}
+
 // todo, need to detach vram allocation from cache management.
-fe_sprite_index_t fe_sprite_vram_allocate(sprite_bram_t* sprite_bram)
+fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
 {
 
     bank_push_bram(); bank_set_bram(fe.bram_sprite_control);
@@ -189,45 +227,9 @@ fe_sprite_index_t fe_sprite_vram_allocate(sprite_bram_t* sprite_bram)
 }
 
 
-void fe_sprite_vram_free(unsigned char s)
+void fe_sprite_cache_free(fe_sprite_index_t fe_sprite_index)
 {
-    fe_sprite.used[s]--;
-
-    // printf("free cache %u, used %u", s, fe_sprite.used[s]);
-    
-    // if(!fe_sprite.used[s]) {
-        
-    //     unsigned char sprite_count = fe_sprite.count[s];
-    //     unsigned int sprite_size = fe_sprite.size[s];
-
-    //     for (unsigned int si=0; si < sprite_count; si++) {
-    //         // todo rework i to faster code
-    //         unsigned int i = s*16+si;
-    //         vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, fe_sprite.vram_handle[i]);
-    //         fe_sprite.image[i] = 0;
-    //         fe_sprite.vram_handle[i] = 0; 
-    //     }
-
-    //     bank_push_bram(); bank_set_bram(fe.bram_sprite_control);
-    //     sprite_bram_t* sprite_bram = (sprite_bram_t*)fe_sprite.sprite_bram[s];
-    //     // printf(", cache %p", sprite_bram);
-    //     sprite_bram->sprite_cache = 255; // Reset the indication that this sprite in bram is cached.
-    //     bank_pull_bram();
-        
-    //     fe_sprite.sprite_bram[s] = (void*)NULL; // Clear the pointer to the sprite in bram completely.
-
-    //     fe_sprite.count[s] = 0;
-    //     fe_sprite.size[s] = 0;
-    //     fe_sprite.zdepth[s] = 0;
-    //     fe_sprite.bpp[s] = 0;
-    //     fe_sprite.height[s] = 0;
-    //     fe_sprite.width[s] = 0;
-    //     fe_sprite.hflip[s] = 0;
-    //     fe_sprite.vflip[s] = 0;
-    //     fe_sprite.reverse[s] = 0;
-    //     fe_sprite.palette_offset[s] = 0;
-    // }
-    // // printf(". ");
+    fe_sprite.used[fe_sprite_index]--;
 
 #ifdef __CACHE_DEBUG
     fe_sprite_debug();
