@@ -45,7 +45,7 @@ unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_
 
     enemy.wave[e] = w;
 
-    fe_sprite_index_t s = fe_sprite_vram_allocate(sprite);
+    fe_sprite_index_t s = fe_sprite_cache_copy(sprite);
 
     enemy.sprite[e] = s;
 
@@ -101,7 +101,7 @@ unsigned char RemoveEnemy(unsigned char e)
     FreeOffset(sprite_offset, &stage.sprite_enemy_count);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(fe_sprite.palette_offset[enemy.sprite[e]]);
-    fe_sprite_vram_free(enemy.sprite[e]);
+    fe_sprite_cache_free(enemy.sprite[e]);
     enemy.used[e] = 0;
     enemy.enabled[e] = 0;
 
@@ -297,7 +297,8 @@ void LogicEnemies() {
 				if(enemy.wait_animation[e]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.image[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
+					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.vram_image_offset[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite_vram_image_copy(enemy.sprite[e], enemy.state_animation[e]));
 				}
 
 #ifdef __BULLET                

@@ -52,8 +52,11 @@ typedef struct {
     stage_playbook_t* playbook;
 } stage_script_t;
 
-const unsigned char STAGE_ACTION_INIT = 0;
-const unsigned char STAGE_ACTION_START = 1;
-const unsigned char STAGE_ACTION_MOVE = 2;
-const unsigned char STAGE_ACTION_TURN = 3;
-const unsigned char STAGE_ACTION_END = 255; 
+
+enum STAGE_ACTION {
+    STAGE_ACTION_INIT = 0,
+    STAGE_ACTION_START = 1,
+    STAGE_ACTION_MOVE = 2,
+    STAGE_ACTION_TURN = 3,
+    STAGE_ACTION_END = 255
+};

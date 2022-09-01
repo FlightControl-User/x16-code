@@ -42,7 +42,7 @@ void FireBullet(unsigned char p, char reload)
         bullet.side[b] = SIDE_PLAYER;
 
 
-        fe_sprite_index_t s = fe_sprite_vram_allocate(&sprite_bullet_01);
+        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_bullet_01);
         bullet.sprite[b] = s;
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
@@ -91,7 +91,7 @@ void FireBulletEnemy(unsigned char e)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_ENEMY;
 
-        fe_sprite_index_t s = fe_sprite_vram_allocate(&sprite_bullet_02);
+        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_bullet_02);
         bullet.sprite[b] = s;
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
@@ -129,7 +129,7 @@ void bullet_remove(unsigned char b)
     FreeOffset(sprite_offset, &stage.sprite_bullet_count);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(fe_sprite.palette_offset[bullet.sprite[b]]);
-    fe_sprite_vram_free(bullet.sprite[b]);
+    fe_sprite_cache_free(bullet.sprite[b]);
     bullet.used[b] = 0;
     bullet.enabled[b] = 0;
     bullet.sprite[b] = 255;
@@ -184,7 +184,8 @@ void LogicBullets()
 				if(bullet.wait_animation[b]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.image[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
+					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.vram_image_offset[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite_vram_image_copy(bullet.sprite[b], bullet.state_animation[b]));
 				}
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             }

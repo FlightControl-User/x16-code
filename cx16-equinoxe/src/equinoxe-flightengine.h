@@ -46,6 +46,11 @@ extern fe_sprite_cache_t fe_sprite;
 
 void fe_init(bram_bank_t bram_bank);
 
+fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram);
+void fe_sprite_cache_free(unsigned char s);
+vera_sprite_image_offset fe_sprite_vram_image_copy(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index);
+
+
 void fe_sprite_bram_load(sprite_bram_t* sprite);
 
 // void sprite_animate(vera_sprite_offset sprite_offset, sprite_bram_t* sprite, byte index, byte animate);
@@ -55,5 +60,3 @@ void sprite_enable(vera_sprite_offset sprite_offset, sprite_bram_t* sprite);
 void sprite_disable(vera_sprite_offset sprite_offset);
 void sprite_collision(vera_sprite_offset sprite_offset, byte mask);
 
-fe_sprite_index_t fe_sprite_vram_allocate(sprite_bram_t* sprite_bram);
-void fe_sprite_vram_free(unsigned char s);
