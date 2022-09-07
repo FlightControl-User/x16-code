@@ -226,13 +226,13 @@ void player_logic() {
                 } else {
                     // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image[player.state_animation[p]]);
                     // vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, fe_sprite.vram_image_offset[(unsigned int)player.sprite[p]*16+player.state_animation[p]]);
-                    vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery,  fe_sprite_vram_image_copy(player.sprite[p], player.state_animation[p]));
+                    vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery,  sprite_image_cache_vram(player.sprite[p], player.state_animation[p]));
                 }
                 if(engine.wait_animation[n]) {
                     vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
                 } else {
                     // vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, fe_sprite.vram_image_offset[(unsigned int)engine.sprite[n]*16+engine.state_animation[n]]);
-                    vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, fe_sprite_vram_image_copy(engine.sprite[n], engine.state_animation[n]));
+                    vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine.sprite[n], engine.state_animation[n]));
                 }
             } else {
                 if(player.enabled[p]) {

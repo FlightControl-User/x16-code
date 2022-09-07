@@ -185,7 +185,7 @@ void LogicBullets()
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
 					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.vram_image_offset[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite_vram_image_copy(bullet.sprite[b], bullet.state_animation[b]));
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], bullet.state_animation[b]));
 				}
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             }

@@ -40,76 +40,11 @@
 
 #include <ht.h>
 
+#include "equinoxe-petscii.c"
+
 unsigned int collisions = 0;
 
-//VSYNC Interrupt Routine
-
-__interrupt(rom_sys_cx16) void irq_vsync() {
-
-    // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
-
-    // save vera registers on the stack! the interrupt modifies the control registers and data registers!
-
-
-
-    bank_set_brom(CX16_ROM_KERNAL);
-    bank_push_bram();
-    bank_set_bram(255);
-
-#ifdef __ENGINE_DEBUG
-
-    char stack_entry;
-    {
-    char x = wherex();
-    char y = wherey();
-    gotoxy(0,58);
-
-    static volatile char stack_max = 0;
-    static volatile char stack_min = 255;
-#ifndef __INTELLISENSE__
-    asm {
-        tsx
-        stx stack_entry
-    }
-#endif
-    printf("stack %x", stack_entry);
-    if(stack_min>stack_entry) stack_min=stack_entry;
-    printf(", min %x", stack_min);
-    if(stack_max<stack_entry) stack_max=stack_entry;
-    printf(", max %x", stack_max);
-    printf(", bram %x", bank_get_bram());
-    gotoxy(x,y);
-    }
-
-#endif
-
-// #ifndef __INTELLISENSE__
-//     asm {
-//         lda $9f20
-//         pha
-//         lda $9f21
-//         pha
-//         lda $9f22
-//         pha
-//         lda $9f25
-//         pha
-//     }
-// #endif
-
-    // cx16_mouse_scan();
-    cx16_mouse_get();
-
-    if(!(game.ticksync & 0x01)) {
-        stage_logic();
-        game.tickstage++;
-    }
-    game.ticksync++;
-
-#ifdef __FLOOR
-
-    #ifdef __CPULINES
-    vera_display_set_border_color(GREY);
-    #endif
+inline void equinoxe_scrollfloor() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!floor_scroll_action--) {
@@ -176,45 +111,10 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         
     }
 
-#endif
+}
 
-#ifdef __FLIGHT
+inline void equinoxe_collision() {
 
-#ifdef __CPULINES
-    vera_display_set_border_color(BLUE);
-#endif
-
-    ht_reset(&ht_collision);
-
-#ifdef __CPULINES
-    vera_display_set_border_color(GREEN);
-#endif
-
-#ifdef __PLAYER
-    player_logic();
-#endif
-
-#ifdef __CPULINES
-    vera_display_set_border_color(CYAN);
-#endif
-
-#ifdef __BULLET
-    LogicBullets();
-#endif
-
-#ifdef __CPULINES
-    vera_display_set_border_color(RED);
-#endif
-
-#ifdef __ENEMY
-    LogicEnemies();
-#endif
-
-#ifdef __CPULINES
-    vera_display_set_border_color(YELLOW);
-#endif
-
-#ifdef __COLLISION
     if(stage.sprite_bullet_count) {
 
         // For each cell on the grid, check the collisions that are relevant to the objects.
@@ -332,91 +232,184 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         bank_pull_bram();
 
     }
-#endif // __COLLISION
-
-#endif // __FLIGHT
-
-
-
-
-    // vera_layer_set_horizontal_scroll(0, (unsigned int)cx16_mousex*2);
-
-    // Reset the VSYNC interrupt
-    *VERA_ISR = VERA_VSYNC;
-    // vera_sprites_collision_on();
-
-    // vera_sprite_buffer_write(sprite_buffer);
-
-// #ifndef __INTELLISENSE__
-//     asm {
-//         pla
-//         sta $9f25
-//         pla
-//         sta $9f22
-//         pla
-//         sta $9f21
-//         pla
-//         sta $9f20 
-//     }
-// #endif
-
-#ifdef __ENGINE_DEBUG
-
-#ifdef __CPULINES
-    vera_display_set_border_color(LIGHT_GREY);
-#endif
-    static volatile char stack_diff = 0;
-    static volatile char stack_diff_max = 0;
-    static volatile char stack_diff_min = 255;
-
-    {
-    char x = wherex();
-    char y = wherey();
-    gotoxy(0,59);
-
-    char stack_exit;
-    static volatile char stack_max = 0;
-    static volatile char stack_min = 255;
-#ifndef __INTELLISENSE__
-    asm {
-        tsx
-        stx stack_exit
-    }
-#endif
-    printf("stack %x", stack_exit);
-    if(stack_min>stack_exit) stack_min=stack_exit;
-    printf(", min %x", stack_min);
-    if(stack_max<stack_exit) stack_max=stack_exit;
-    printf(", max %x", stack_max);
-    printf(", bram %x", bank_get_bram());
-    stack_diff = stack_entry - stack_exit;
-    if(stack_diff_min>stack_diff) stack_diff_min = stack_diff;
-    if(stack_diff_max<stack_diff) stack_diff_max = stack_diff;
-
-    printf(", diff %u", stack_entry - stack_exit);
-    printf(", min %u", stack_diff_min);
-    printf(", max %u", stack_diff_max);
-
-    gotoxy(0,57);
-    printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.sprite_player, stage.sprite_player_count, stage.sprite_bullet, stage.sprite_bullet_count, stage.sprite_enemy, stage.sprite_enemy_count);
-
-    gotoxy(0,56);
-    printf("enemy xor %x size %05u", stage.enemy_xor, sizeof(fe_enemy_t));
-
-    gotoxy(x,y);
-    }
-#endif // __ENGINE_DEBUG
-
-
-    bank_pull_bram();
-
-#ifdef __CPULINES
-    vera_display_set_border_color(BLACK);
-#endif
 
 }
 
-#include "equinoxe-petscii.c"
+//VSYNC Interrupt Routine
+
+__interrupt(rom_sys_cx16) void irq_vsync() {
+
+    // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
+    bank_set_brom(CX16_ROM_KERNAL);
+    bank_push_bram();
+    bank_set_bram(255);
+
+#ifdef __ENGINE_DEBUG
+
+    char stack_entry;
+    {
+    char x = wherex();
+    char y = wherey();
+    gotoxy(0,58);
+
+    static volatile char stack_max = 0;
+    static volatile char stack_min = 255;
+    #ifndef __INTELLISENSE__
+        asm {
+            tsx
+            stx stack_entry
+        }
+    #endif
+    printf("stack %x", stack_entry);
+    if(stack_min>stack_entry) stack_min=stack_entry;
+    printf(", min %x", stack_min);
+    if(stack_max<stack_entry) stack_max=stack_entry;
+    printf(", max %x", stack_max);
+    printf(", bram %x", bank_get_bram());
+    gotoxy(x,y);
+    }
+
+#endif
+
+#ifdef __FLOOR
+    #ifdef __CPULINES
+    vera_display_set_border_color(GREY);
+    #endif
+    equinoxe_scrollfloor();
+#endif
+
+#ifdef __FLIGHT
+
+    #ifdef __CPULINES
+        vera_display_set_border_color(BLUE);
+    #endif
+
+    ht_reset(&ht_collision);
+
+    // cx16_mouse_scan();
+    cx16_mouse_get();
+
+    #ifdef __PLAYER
+        #ifdef __CPULINES
+            vera_display_set_border_color(GREEN);
+        #endif
+        player_logic();
+    #endif
+
+    if(!(game.ticksync & 0x01)) {
+        stage_logic();
+        game.tickstage++;
+    }
+    game.ticksync++;
+
+
+    #ifdef __BULLET
+        #ifdef __CPULINES
+            vera_display_set_border_color(CYAN);
+        #endif
+        LogicBullets();
+    #endif
+
+
+    #ifdef __ENEMY
+        #ifdef __CPULINES
+            vera_display_set_border_color(RED);
+        #endif
+        LogicEnemies();
+    #endif
+
+
+    #ifdef __COLLISION
+        #ifdef __CPULINES
+            vera_display_set_border_color(CYAN);
+        #endif
+        equinoxe_collision();
+    #endif // __COLLISION
+
+    #ifdef __CPULINES
+        vera_display_set_border_color(CYAN);
+    #endif
+
+    #ifdef __ENEMY
+        #ifdef __CPULINES
+            vera_display_set_border_color(RED);
+        #endif
+        enemies_resource();
+    #endif
+
+    #ifdef __BULLET
+        #ifdef __CPULINES
+            vera_display_set_border_color(CYAN);
+        #endif
+        bullets_resource();
+    #endif
+
+
+    #ifdef __PLAYER
+        #ifdef __CPULINES
+            vera_display_set_border_color(GREEN);
+        #endif
+        player_resource();
+    #endif
+
+#endif // __FLIGHT
+
+    // Reset the VSYNC interrupt
+    *VERA_ISR = VERA_VSYNC;
+
+#ifdef __ENGINE_DEBUG
+
+    #ifdef __CPULINES
+        vera_display_set_border_color(LIGHT_GREY);
+    #endif
+        static volatile char stack_diff = 0;
+        static volatile char stack_diff_max = 0;
+        static volatile char stack_diff_min = 255;
+
+        {
+        char x = wherex();
+        char y = wherey();
+        gotoxy(0,59);
+
+        char stack_exit;
+        static volatile char stack_max = 0;
+        static volatile char stack_min = 255;
+    #ifndef __INTELLISENSE__
+        asm {
+            tsx
+            stx stack_exit
+        }
+    #endif
+        printf("stack %x", stack_exit);
+        if(stack_min>stack_exit) stack_min=stack_exit;
+        printf(", min %x", stack_min);
+        if(stack_max<stack_exit) stack_max=stack_exit;
+        printf(", max %x", stack_max);
+        printf(", bram %x", bank_get_bram());
+        stack_diff = stack_entry - stack_exit;
+        if(stack_diff_min>stack_diff) stack_diff_min = stack_diff;
+        if(stack_diff_max<stack_diff) stack_diff_max = stack_diff;
+
+        printf(", diff %u", stack_entry - stack_exit);
+        printf(", min %u", stack_diff_min);
+        printf(", max %u", stack_diff_max);
+
+        gotoxy(0,57);
+        printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.sprite_player, stage.sprite_player_count, stage.sprite_bullet, stage.sprite_bullet_count, stage.sprite_enemy, stage.sprite_enemy_count);
+
+        gotoxy(0,56);
+        printf("enemy xor %x size %05u", stage.enemy_xor, sizeof(fe_enemy_t));
+
+        gotoxy(x,y);
+        }
+#endif // __ENGINE_DEBUG
+
+    bank_pull_bram();
+
+    #ifdef __CPULINES
+        vera_display_set_border_color(BLACK);
+    #endif
+}
 
 void main() {
 
@@ -543,6 +536,8 @@ void main() {
 #if defined(__FLIGHT) || defined(__FLOOR)
     // Initialize stage
     stage_reset();
+    stage_logic();
+
 #endif
 
     while(!getin());

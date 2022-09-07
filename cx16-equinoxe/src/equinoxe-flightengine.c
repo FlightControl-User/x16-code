@@ -31,11 +31,11 @@
 #include "equinoxe-flightengine.h"
 #include "equinoxe-bank.h"
 
-#include <vram_cache.h>
+#include <cx16_vram_cache.h>
 
-// Hash table to capture the cache of objects currently in vram and in use.
-vram_cache_item_t vram_cache;
-
+// Allocate the hash table to capture the cache of objects currently in vram and in use in main memory.
+// This is an array of 512 bytes.
+lru_cache_table_t sprite_cache_vram;
 
 #pragma data_seg(SpriteControlEnemies)
 fe_enemy_t enemy;
@@ -52,7 +52,6 @@ fe_bullet_t bullet;
 #pragma data_seg(fe_sprite_cache)
 // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
 fe_sprite_cache_t fe_sprite; 
-fe_vram_sprite_cache_t vram_sprite_cache;
 
 #pragma data_seg(Data)
 fe_t fe; // Flight engine control.
@@ -68,7 +67,7 @@ void fe_init(bram_bank_t bram_bank)
     bullet_init();
 
     
-    #ifdef __FLIGHT
+#ifdef __FLIGHT
 
     // Sprite Control
     fe.bram_sprite_control = BRAM_SPRITE_CONTROL;
@@ -85,6 +84,8 @@ void fe_init(bram_bank_t bram_bank)
     }
     bank_pull_bram();
 
+    // Initialize the cache in vram for the sprite animations.
+    lru_cache_init(&sprite_cache_vram);
 #endif
 
 }
@@ -107,36 +108,54 @@ void fe_sprite_debug()
 }
 
 
-vera_sprite_image_offset fe_sprite_vram_image_copy(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index) {
+vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index) {
 
     // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
     // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
 
     unsigned int image_index = fe_sprite_index*16+fe_sprite_image_index; 
 
-    if(!fe_sprite.vram_image_used[fe_sprite_image_index]) {
+    // in this case, we can allocate on the vram heap a new image with the required dimensions.
+    // and we copy from bram the image to vram.
 
-        // in this case, we can allocate on the vram heap a new image with the required dimensions.
-        // and we copy from bram the image to vram.
+    fb_heap_handle_t handle_bram = fe_sprite.sprite_bram[fe_sprite_index]->bram_handle[fe_sprite_image_index];
 
-        fb_heap_handle_t handle_bram = fe_sprite.sprite_bram[fe_sprite_index]->bram_handle[fe_sprite_image_index];
+    lru_cache_index_t vram_index = lru_cache_index(&sprite_cache_vram, image_index);
 
-        // Dynamic allocation of sprites in vera vram.
-        vera_heap_handle_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[fe_sprite_index]);
-        vram_bank_t   vram_bank   = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-        vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+    // Now check if a new vram cache element is to be allocated
+    if(vram_index != LRU_CACHE_NOTHING) {
+        // So we have a cache hit, so we can re-use the same image from the cache and we win time!
+    } else {
+        // We check if the vram cache is at it's maximum, and if it is, we must delete the least used image.
+        if(cx16_vram_cache_max(&sprite_cache_vram)) {
+            // If the cache is at it's maximum, before we can add a new element, we must remove the least used image.
+            // We search for the least used image in vram.
+            lru_cache_index_t vram_last = cx16_vram_cache_last(&sprite_cache_vram);
+            // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
+            lru_cache_data_t vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
+            // And we free the vram heap with the vram handle that we received.
+            vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        }
 
-        fe_sprite.vram_handle[image_index] = vram_handle;
-
-        // printf(", vram bank = %x, offset = %x", vram_bank, vram_offset);
-
-        fe_sprite.vram_image_offset[image_index] = vera_sprite_get_image_offset(vram_bank, vram_offset);
-
-        memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[fe_sprite_index]);
-
-        fe_sprite.vram_image_used[image_index] = 1;
+        // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
 
     }
+
+    // Dynamic allocation of sprites in vera vram.
+    vera_heap_handle_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[fe_sprite_index]);
+    vram_bank_t   vram_bank   = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+    vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+
+    fe_sprite.vram_handle[image_index] = vram_handle;
+
+    // printf(", vram bank = %x, offset = %x", vram_bank, vram_offset);
+
+    fe_sprite.vram_image_offset[image_index] = vera_sprite_get_image_offset(vram_bank, vram_offset);
+
+    memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[fe_sprite_index]);
+
+    fe_sprite.vram_image_used[image_index] = 1;
+
 }
 
 // todo, need to detach vram allocation from cache management.

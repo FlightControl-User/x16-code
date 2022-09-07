@@ -12,3 +12,5 @@ unsigned char HitEnemy(unsigned char e, unsigned char b);
 unsigned char RemoveEnemy(unsigned char e);
 
 void LogicEnemies();
+void enemies_resource();
+

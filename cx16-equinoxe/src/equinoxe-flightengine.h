@@ -48,7 +48,7 @@ void fe_init(bram_bank_t bram_bank);
 
 fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram);
 void fe_sprite_cache_free(unsigned char s);
-vera_sprite_image_offset fe_sprite_vram_image_copy(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index);
+vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index);
 
 
 void fe_sprite_bram_load(sprite_bram_t* sprite);
