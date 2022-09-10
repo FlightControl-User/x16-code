@@ -3,6 +3,19 @@
 
 #pragma data_seg(spritecontrol)
 
+
+
+__export volatile
+sprite_bram_t sprite_engine_01 =       { 
+    "engine01.bin", 16, 128, 
+    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
+    VERA_SPRITE_ZDEPTH_IN_FRONT, 
+    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
+    VERA_SPRITE_4BPP, 1, 
+    0, {0,0,0,0}, 0, 0
+    // &engine01_vera_heap_index, &engine01_vram_image_offset 
+};
+
 __export volatile
 sprite_bram_t sprite_player_01 =       { 
     "player01.bin", 7, 512, 
@@ -10,10 +23,10 @@ sprite_bram_t sprite_player_01 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 0, 
-    0, {2,2,32-2,32-2},
-    { { 0, 0 } }, 0 
+    0, {2,2,32-2,32-2}, 0, 0
     // &player01_vera_heap_index, &player01_vram_image_offset 
 };
+
 
 __export volatile
 sprite_bram_t sprite_enemy_01 =       { 
@@ -21,9 +34,8 @@ sprite_bram_t sprite_enemy_01 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 1, 
-    0, {2,2,32-2,32-2}, 
-    { { 0, 0 } }, 0
+    VERA_SPRITE_4BPP, 2, 
+    0, {2,2,32-2,32-2}, 0, 0
     // &enemy01_vera_heap_index, &enemy01_vram_image_offset 
 };
 
@@ -33,9 +45,8 @@ sprite_bram_t sprite_enemy_02 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 2, 
-    1, {2,2,32-2,32-2},
-    { { 0, 0 } }, 0 
+    VERA_SPRITE_4BPP, 3, 
+    1, {2,2,32-2,32-2}, 0, 0 
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -45,9 +56,8 @@ sprite_bram_t sprite_enemy_03 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 3, 
-    1, {4,4,32-4,32-4},
-    { { 0, 0 } }, 0 
+    VERA_SPRITE_4BPP, 4, 
+    1, {4,4,32-4,32-4}, 0, 0
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -57,9 +67,8 @@ sprite_bram_t sprite_enemy_04 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 4, 
-    1, {4,4,32-4,32-4},
-    { { 0, 0 } }, 0
+    VERA_SPRITE_4BPP, 5, 
+    1, {4,4,32-4,32-4}, 0, 0
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -69,9 +78,8 @@ sprite_bram_t sprite_enemy_05 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 5, 
-    1, {4,4,32-4,32-4},
-    { { 0, 0 } }, 0
+    VERA_SPRITE_4BPP, 6, 
+    1, {4,4,32-4,32-4}, 0, 0
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -81,9 +89,8 @@ sprite_bram_t sprite_enemy_06 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 6, 
-    1, {4,4,32-4,32-4},
-    { { 0, 0 } }, 0
+    VERA_SPRITE_4BPP, 7, 
+    1, {4,4,32-4,32-4}, 0, 0
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
@@ -93,23 +100,11 @@ sprite_bram_t sprite_enemy_07 =       {
     VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 7, 
-    1, {4,4,32-4,32-4},
-    { { 0, 0 } }, 0
+    VERA_SPRITE_4BPP, 8, 
+    1, {4,4,32-4,32-4}, 0, 0
     // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
 };
 
-__export volatile
-sprite_bram_t sprite_engine_01 =       { 
-    "engine01.bin", 16, 128, 
-    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 8, 
-    0, {0,0,0,0},
-    { { 0, 0 } }, 0
-    // &engine01_vera_heap_index, &engine01_vram_image_offset 
-};
 
 __export volatile
 sprite_bram_t sprite_bullet_01 =       { 
@@ -118,8 +113,7 @@ sprite_bram_t sprite_bullet_01 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 9, 
-    0, {0,0,1,4},
-    { { 0, 0 } }, 0
+    0, {0,0,1,4}, 0, 0
     // &bullet01_vera_heap_index, &bullet01_vram_image_offset 
 };
 
@@ -130,8 +124,7 @@ sprite_bram_t sprite_bullet_02 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 10, 
-    0, {0,0,1,4},
-    { { 0, 0 } }, 0
+    0, {0,0,1,4}, 0, 0
     // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
 };
 
@@ -143,8 +136,7 @@ sprite_bram_t sprite_bullet_03 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 11, 
-    0, {0,0,1,4},
-    { { 0, 0 } }, 0
+    0, {0,0,1,4}, 0, 0
     // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
 };
 
@@ -155,13 +147,13 @@ sprite_bram_t sprite_bullet_04 =       {
     VERA_SPRITE_ZDEPTH_IN_FRONT, 
     VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
     VERA_SPRITE_4BPP, 12, 
-    0, {0,0,1,4},
-    { { 0, 0 } }, 0
+    0, {0,0,1,4}, 0, 0
     // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
 };
 
 __export volatile
 sprite_bram_t *sprite_DB[] = { 
+    &sprite_engine_01, 
     &sprite_player_01, 
     &sprite_enemy_01, 
     &sprite_enemy_02, 
@@ -170,13 +162,16 @@ sprite_bram_t *sprite_DB[] = {
     &sprite_enemy_05, 
     &sprite_enemy_06, 
     &sprite_enemy_07, 
-    &sprite_engine_01, 
     &sprite_bullet_01, 
     &sprite_bullet_02,
     &sprite_bullet_03, 
     &sprite_bullet_04,
     0 
     };
+
+
+__export volatile
+sprite_bram_handles_t sprite_bram_handles[256];
 
 
 #pragma data_seg(levels)

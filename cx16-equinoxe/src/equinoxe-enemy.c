@@ -147,7 +147,7 @@ void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsign
 
 void enemies_resource() {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(fe.bram_bank);
 
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
@@ -171,7 +171,6 @@ void enemies_resource() {
                     }
                 }
                 enemy.state_animation[e] += enemy.direction_animation[e];
-                fe_sprite_vram_image_copy(enemy.sprite[e], enemy.state_animation[e]);
 			}
 			enemy.wait_animation[e]--;
         }
@@ -298,7 +297,7 @@ void LogicEnemies() {
 				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
 #ifdef __CPULINES
 			vera_display_set_border_color(PURPLE);
-#endifsprite_image_cache_vram
+#endif
 				if(!enemy.enabled[e]) {
 			    	vera_sprite_zdepth(sprite_offset, fe_sprite.zdepth[enemy.sprite[e]]);
 					enemy.enabled[e] = 1;
@@ -308,7 +307,7 @@ void LogicEnemies() {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
 					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.vram_image_offset[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, );
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(enemy.sprite[e], enemy.state_animation[e]));
 				}
 
 #ifdef __BULLET                
@@ -337,6 +336,7 @@ void LogicEnemies() {
     // if(enemy.cs4 != 255)
     //     printf("error checksum cs4!");
 
+    bank_pull_bram();
 }
 
 char enemy_checkxor()

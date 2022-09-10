@@ -6,35 +6,36 @@
 
 #pragma var_model(mem)
 
+#include "equinoxe-flightengine.h"
 
-#include <stdlib.h>
-#include <cx16.h>
-#include <cx16-fb.h>
-#include <cx16-veralib.h>
-#include <cx16-mouse.h>
-#include <kernal.h>
 #include <6502.h>
 #include <conio.h>
+#include <cx16-bitmap.h>
 #include <cx16-conio.h>
-#include <printf.h>
-#include <stdio.h>
+#include <cx16-fb.h>
+#include <cx16-mouse.h>
+#include <cx16-veraheap.h>
+#include <cx16-veralib.h>
+#include <cx16.h>
 #include <division.h>
+#include <kernal.h>
+#include <lru-cache.h>
 #include <mos6522.h>
 #include <multiply.h>
-#include <cx16-bitmap.h>
-#include <cx16-veraheap.h>
+#include <printf.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "equinoxe-types.h"
-#include "equinoxe.h"
+#include "equinoxe-bank.h"
+// #include "levels/equinoxe-levels.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-bank.h"
-
-#include <cx16_vram_cache.h>
+#include "equinoxe-types.h"
+#include "equinoxe.h"
 
 // Allocate the hash table to capture the cache of objects currently in vram and in use in main memory.
 // This is an array of 512 bytes.
+#pragma data_seg(Data)
 lru_cache_table_t sprite_cache_vram;
 
 #pragma data_seg(SpriteControlEnemies)
@@ -51,118 +52,130 @@ fe_bullet_t bullet;
 
 #pragma data_seg(fe_sprite_cache)
 // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
-fe_sprite_cache_t fe_sprite; 
+fe_sprite_cache_t fe_sprite;
 
 #pragma data_seg(Data)
-fe_t fe; // Flight engine control.
+fe_t fe;  // Flight engine control.
 
-
-
-void fe_init(bram_bank_t bram_bank)
-{
+void fe_init(bram_bank_t bram_bank) {
     fe.bram_bank = bram_bank;
 
     player_init();
     enemy_init();
     bullet_init();
 
-    
 #ifdef __FLIGHT
 
     // Sprite Control
     fe.bram_sprite_control = BRAM_SPRITE_CONTROL;
-    unsigned int bytes = load_file(1,8,0, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t) 0xA000);
+    unsigned int bytes = load_file(1, 8, 0, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
     printf("sprite control loaded, %x bytes\n", bytes);
 
-    bank_push_bram(); bank_set_bram(fe.bram_sprite_control);
+    bank_push_set_bram(fe.bram_sprite_control);
+
     // Loading the sprites in bram.
     unsigned char i = 0;
     sprite_bram_t* sprite;
-    while(sprite = sprite_DB[i]) {
-        fe_sprite_bram_load(sprite);
+    unsigned int sprite_offset = 0;
+    while (sprite = sprite_DB[i]) {
+        sprite_offset = fe_sprite_bram_load(sprite, sprite_offset);
         i++;
     }
+
     bank_pull_bram();
 
     // Initialize the cache in vram for the sprite animations.
     lru_cache_init(&sprite_cache_vram);
 #endif
-
 }
 
-
-void fe_sprite_debug()
-{
-
+void fe_sprite_debug() {
     char x = wherex();
     char y = wherey();
 
     printf("pool %2x", fe.sprite_pool);
 
-    for(unsigned int c=0; c<FE_CACHE; c++) {
-        gotoxy(0, (char)c+4);
-        printf("%02x %04p %02x %s", c, fe_sprite.sprite_bram[c], fe_sprite.used[c], &fe_sprite.file[c*16]);
+    for (unsigned int c = 0; c < FE_CACHE; c++) {
+        gotoxy(0, (char)c + 4);
+        printf("%02x %04p %02x %16s %4u %4u", c, fe_sprite.sprite_bram[c], fe_sprite.used[c], &fe_sprite.file[c * 16], fe_sprite.offset[c], fe_sprite.size[c]);
     }
 
-    gotoxy(x,y);
+    gotoxy(x, y);
 }
 
-
-vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index) {
-
+vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index, unsigned char fe_sprite_image_index) {
     // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
     // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
 
-    unsigned int image_index = fe_sprite_index*16+fe_sprite_image_index; 
+#ifdef __LRU_CACHE_DEBUG
+    gotoxy(0,0);
+    printf("index=%u, sprite image=%u", fe_sprite_index, fe_sprite_image_index);
+#endif
 
-    // in this case, we can allocate on the vram heap a new image with the required dimensions.
-    // and we copy from bram the image to vram.
+    unsigned int image_index = fe_sprite.offset[fe_sprite_index] + fe_sprite_image_index;
+#ifdef __LRU_CACHE_DEBUG
+    printf(", image=%4u",image_index);
+#endif
 
-    fb_heap_handle_t handle_bram = fe_sprite.sprite_bram[fe_sprite_index]->bram_handle[fe_sprite_image_index];
+    // We retrieve the image from BRAM from the sprite_control bank.
+    // TODO: what if there are more sprite control data than that can fit into one CX16 bank?
+    bank_push_set_bram(fe.bram_sprite_control);
+    fb_heap_handle_t handle_bram = sprite_bram_handles[image_index];
+    bank_pull_bram();
 
+    // We declare temporary variables for the vram memory handles.
+    lru_cache_data_t vram_handle;
+    vram_bank_t vram_bank;
+    vram_offset_t vram_offset;
+
+    // We check if there is a cache hit?
     lru_cache_index_t vram_index = lru_cache_index(&sprite_cache_vram, image_index);
+#ifdef __LRU_CACHE_DEBUG
+    printf("; vram_index %u", vram_index);
+#endif
+    lru_cache_data_t lru_cache_data;
+    if (vram_index != 0xFF) {
 
-    // Now check if a new vram cache element is to be allocated
-    if(vram_index != LRU_CACHE_NOTHING) {
         // So we have a cache hit, so we can re-use the same image from the cache and we win time!
+        lru_cache_data = lru_cache_get(&sprite_cache_vram, vram_index);
+#ifdef __LRU_CACHE_DEBUG
+        printf("; lru_cache_data %u", lru_cache_data);
+#endif
+
     } else {
+
         // We check if the vram cache is at it's maximum, and if it is, we must delete the least used image.
-        if(cx16_vram_cache_max(&sprite_cache_vram)) {
+        if (lru_cache_max(&sprite_cache_vram)) {
             // If the cache is at it's maximum, before we can add a new element, we must remove the least used image.
             // We search for the least used image in vram.
-            lru_cache_index_t vram_last = cx16_vram_cache_last(&sprite_cache_vram);
+            lru_cache_key_t vram_last = lru_cache_last(&sprite_cache_vram);
             // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
-            lru_cache_data_t vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
+            vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
             // And we free the vram heap with the vram handle that we received.
             vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
         }
 
         // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
+        // Dynamic allocation of sprites in vera vram.
+        vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[fe_sprite_index]);
+        vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
 
+        memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[fe_sprite_index]);
+
+        lru_cache_data = vera_sprite_get_image_offset(vram_bank, vram_offset);
+        lru_cache_insert(&sprite_cache_vram, image_index, lru_cache_data);
     }
 
-    // Dynamic allocation of sprites in vera vram.
-    vera_heap_handle_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[fe_sprite_index]);
-    vram_bank_t   vram_bank   = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-    vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-
-    fe_sprite.vram_handle[image_index] = vram_handle;
-
-    // printf(", vram bank = %x, offset = %x", vram_bank, vram_offset);
-
-    fe_sprite.vram_image_offset[image_index] = vera_sprite_get_image_offset(vram_bank, vram_offset);
-
-    memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[fe_sprite_index]);
-
-    fe_sprite.vram_image_used[image_index] = 1;
-
+    // We return the image offset in vram of the sprite to be drawn.
+    // This offset is used by the vera image set offset function to directly change the image displayed of the sprite!
+    return lru_cache_data;
 }
 
 // todo, need to detach vram allocation from cache management.
-fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
-{
+fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram) {
+    bank_push_set_bram(fe.bram_sprite_control);
 
-    bank_push_bram(); bank_set_bram(fe.bram_sprite_control);
 
     // printf("alloc cache %s", sprite_bram->file);
 
@@ -174,16 +187,15 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
     // If it is a new cache entry (never seen the sprite before)
     // or it is an existing cache entry but it is unused and the bram points to a different sprite,
     // Allocate, otherwise reuse the existing sprite.
-    if(cache_bram != sprite_bram) {
-
-        if(fe_sprite.used[c]) {
-            while(fe_sprite.used[fe.sprite_pool]) {
-                fe.sprite_pool = (fe.sprite_pool+1)%FE_CACHE;
+    if (cache_bram != sprite_bram) {
+        if (fe_sprite.used[c]) {
+            while (fe_sprite.used[fe.sprite_pool]) {
+                fe.sprite_pool = (fe.sprite_pool + 1) % FE_CACHE;
             }
             c = fe.sprite_pool;
         }
 
-        unsigned int co = c*FE_CACHE;
+        unsigned int co = c * FE_CACHE;
 
         // printf(", bram %p", s, fe_sprite.sprite_bram[s]);
 
@@ -191,6 +203,7 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
         fe_sprite.sprite_bram[c] = sprite_bram;
 
         fe_sprite.count[c] = sprite_bram->count;
+        fe_sprite.offset[c] = sprite_bram->offset;
         fe_sprite.size[c] = sprite_bram->SpriteSize;
         fe_sprite.zdepth[c] = sprite_bram->Zdepth;
         fe_sprite.bpp[c] = sprite_bram->BPP;
@@ -203,34 +216,34 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
         memcpy(&fe_sprite.file[co], sprite_bram->file, 16);
 
         fe_sprite.aabb[co] = sprite_bram->aabb[0];
-    	fe_sprite.aabb[co+1] = sprite_bram->aabb[1];
-	    fe_sprite.aabb[co+2] = sprite_bram->aabb[2];
-	    fe_sprite.aabb[co+3] = sprite_bram->aabb[3];
+        fe_sprite.aabb[co + 1] = sprite_bram->aabb[1];
+        fe_sprite.aabb[co + 2] = sprite_bram->aabb[2];
+        fe_sprite.aabb[co + 3] = sprite_bram->aabb[3];
 
-        for (unsigned int si=0; si < fe_sprite.count[c]; si++) {
 
-            unsigned int coi = co+si;
+        // for (unsigned int si=0; si < fe_sprite.count[c]; si++) {
 
-            fb_heap_handle_t handle_bram = sprite_bram->bram_handle[si];
+        //     unsigned int coi = co+si;
 
-            // Only if the vram_handle is occupied, we clean the vram, otherwise we can just use the existing vram handle ...
-            if(fe_sprite.vram_handle[coi])
-                vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, fe_sprite.vram_handle[coi]);
+        //     fb_heap_handle_t handle_bram = sprite_bram->bram_handle[si];
 
-            // Dynamic allocation of sprites in vera vram.
-            vera_heap_handle_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[c]);
-            vram_bank_t   vram_bank   = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-            vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        //     // Only if the vram_handle is occupied, we clean the vram, otherwise we can just use the existing vram handle ...
+        //     if(fe_sprite.vram_handle[coi])
+        //         vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, fe_sprite.vram_handle[coi]);
 
-            fe_sprite.vram_handle[coi] = vram_handle;
+        //     // Dynamic allocation of sprites in vera vram.
+        //     vera_heap_handle_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)fe_sprite.size[c]);
+        //     vram_bank_t   vram_bank   = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        //     vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
 
-            // printf(", vram bank = %x, offset = %x", vram_bank, vram_offset);
+        //     fe_sprite.vram_handle[coi] = vram_handle;
 
-            fe_sprite.image[coi] = vera_sprite_get_image_offset(vram_bank, vram_offset);
+        //     // printf(", vram bank = %x, offset = %x", vram_bank, vram_offset);
 
-            memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[c]);
-        }
+        //     fe_sprite.image[coi] = vera_sprite_get_image_offset(vram_bank, vram_offset);
 
+        //     memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[c]);
+        // }
     }
 
     fe_sprite.used[c]++;
@@ -238,16 +251,11 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
 
     bank_pull_bram();
 
-#ifdef __CACHE_DEBUG
-    fe_sprite_debug();
-#endif
 
     return c;
 }
 
-
-void fe_sprite_cache_free(fe_sprite_index_t fe_sprite_index)
-{
+void fe_sprite_cache_free(fe_sprite_index_t fe_sprite_index) {
     fe_sprite.used[fe_sprite_index]--;
 
 #ifdef __CACHE_DEBUG
@@ -255,18 +263,13 @@ void fe_sprite_cache_free(fe_sprite_index_t fe_sprite_index)
 #endif
 }
 
-
-
-
 // Load the sprite into bram using the new cx16 heap manager.
-void fe_sprite_bram_load(sprite_bram_t* sprite) 
-{
-    bank_push_bram(); bank_set_bram(fe.bram_sprite_control);
-    
+unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset) {
+    bank_push_set_bram(fe.bram_sprite_control);
+
     printf("loading sprites %s\n", sprite->file);
     printf("spritecount=%x, spritesize=%x", sprite->count, sprite->SpriteSize);
     // printf(", opening\n");
-
 
     unsigned int status = open_file(1, 8, 0, sprite->file);
     if (status) printf("error opening file %s\n", sprite->file);
@@ -275,7 +278,9 @@ void fe_sprite_bram_load(sprite_bram_t* sprite)
 
     unsigned int total_loaded = 0;
 
-    for(unsigned char s=0; s<sprite->count; s++) {
+    sprite->offset = sprite_offset;
+    printf(", spriteoffset=%x", sprite->offset);
+    for (unsigned char s = 0; s < sprite->count; s++) {
         // printf("allocating");
         fb_heap_handle_t handle_bram = heap_alloc(bins, sprite->SpriteSize);
         printf(" %1x%04p", handle_bram.bank, handle_bram.ptr);
@@ -284,8 +289,9 @@ void fe_sprite_bram_load(sprite_bram_t* sprite)
             printf("error loading file %s\n", sprite->file);
             break;
         }
-        sprite->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
+        sprite_bram_handles[sprite_offset] = handle_bram;
         total_loaded += bytes_loaded;
+        sprite_offset++;
     }
     printf(", %x bytes loaded", total_loaded);
 
@@ -294,12 +300,11 @@ void fe_sprite_bram_load(sprite_bram_t* sprite)
 
     printf(", done\n");
     bank_pull_bram();
+
+    return sprite_offset;
 }
 
-
-
-void fe_sprite_configure(vera_sprite_offset sprite_offset, fe_sprite_index_t s) 
-{
+void fe_sprite_configure(vera_sprite_offset sprite_offset, fe_sprite_index_t s) {
     vera_sprite_bpp(sprite_offset, fe_sprite.bpp[s]);
     vera_sprite_height(sprite_offset, fe_sprite.height[s]);
     vera_sprite_width(sprite_offset, fe_sprite.width[s]);
@@ -323,10 +328,7 @@ void sprite_disable(vera_sprite_offset sprite_offset) {
     vera_sprite_disable(sprite_offset);
 }
 
-
 void sprite_collision(vera_sprite_offset sprite_offset, byte mask) {
     // vera_sprite_collision_mask(sprite_offset, mask);
     vera_sprite_set_collision_mask(sprite_offset, mask);
 }
-
-

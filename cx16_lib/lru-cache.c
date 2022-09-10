@@ -16,8 +16,45 @@ void lru_cache_init(lru_cache_table_t *lru_cache) {
     lru_cache->count = 0;
 }
 
+unsigned char seed;
+
+// inline lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
+//     return key % LRU_CACHE_SIZE;
+// }
+
 inline lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
-    return key % LRU_CACHE_SIZE;
+    seed = key;
+    asm {
+                    lda seed
+                    beq !doEor+
+                    asl
+                    beq !noEor+
+                    bcc !noEor+
+        !doEor:     eor #$2b
+        !noEor:     sta seed
+    }
+    return seed % LRU_CACHE_SIZE;
+}
+
+inline lru_cache_index_t lru_cache_hash2() {
+    asm {
+                    lda seed
+                    beq !doEor+
+                    asl
+                    beq !noEor+
+                    bcc !noEor+
+        !doEor:    eor #$2b
+        !noEor:    sta seed
+    }
+    return seed % LRU_CACHE_SIZE;
+}
+
+inline bool lru_cache_max(lru_cache_table_t *lru_cache) {
+    return lru_cache->count >= LRU_CACHE_MAX;
+}
+
+inline lru_cache_key_t lru_cache_last(lru_cache_table_t *lru_cache) {
+    return lru_cache->key[lru_cache->last];
 }
 
 inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache_key_t cache_key) {
@@ -27,7 +64,8 @@ inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache
         if (lru_cache->key[vram_cache_index] == cache_key)
             return vram_cache_index;
 
-        ++vram_cache_index;
+        // ++vram_cache_index;
+        vram_cache_index = lru_cache_hash2();
         vram_cache_index %= LRU_CACHE_SIZE;
     }
 
@@ -35,6 +73,9 @@ inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache
 }
 
 inline lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
+
+    lru_cache_data_t data = lru_cache->data[cache_index];
+
     lru_cache_index_t next = lru_cache->next[cache_index];
     lru_cache_index_t prev = lru_cache->prev[cache_index];
 
@@ -56,7 +97,6 @@ inline lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_in
 
     lru_cache->next[cache_index] = lru_cache->first;
     lru_cache->prev[lru_cache->first] = cache_index;
-
     lru_cache->next[lru_cache->last] = cache_index;
     lru_cache->prev[cache_index] = lru_cache->last;
 
@@ -65,7 +105,7 @@ inline lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_in
     lru_cache->first = cache_index;
     lru_cache->last = lru_cache->prev[cache_index];
 
-    return lru_cache->data[cache_index];
+    return data;
 }
 
 inline lru_cache_data_t lru_cache_data(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
@@ -76,7 +116,8 @@ inline lru_cache_index_t lru_cache_insert(lru_cache_table_t *lru_cache, lru_cach
     lru_cache_index_t cache_index = lru_cache_hash(vram_key);
 
     while (lru_cache->data[cache_index] != LRU_CACHE_NOTHING && lru_cache->key[cache_index] != LRU_CACHE_NOTHING) {
-        cache_index++;
+        // cache_index++;
+        cache_index = lru_cache_hash2();
         cache_index %= LRU_CACHE_SIZE;
     }
 
@@ -104,13 +145,13 @@ inline lru_cache_index_t lru_cache_insert(lru_cache_table_t *lru_cache, lru_cach
     return cache_index;
 }
 
+
 inline lru_cache_index_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key) {
     lru_cache_index_t cache_index = lru_cache_hash(vram_key);
 
     // move in array until an empty
     while (lru_cache->data[cache_index] != LRU_CACHE_NOTHING) {
         if (lru_cache->key[cache_index] == vram_key) {
-            lru_cache_data_t vram_data = lru_cache->data[cache_index];
             lru_cache->key[cache_index] = LRU_CACHE_NOTHING;
             lru_cache->data[cache_index] = LRU_CACHE_USED;
 
@@ -136,10 +177,11 @@ inline lru_cache_index_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cach
 
             lru_cache->count--;
 
-            return vram_data;
+            return cache_index;
         }
 
-        ++cache_index;
+        // ++cache_index;
+        cache_index = lru_cache_hash2();
         cache_index %= LRU_CACHE_SIZE;
     }
 
@@ -157,15 +199,16 @@ void lru_cache_display(lru_cache_table_t *lru_cache) {
     printf("least recently used hash table\n");
     do {
         if (!col) {
-            printf("%04X: ", cache_index);
+            printf("%04x: ", cache_index);
         }
         if (lru_cache->data[cache_index] == LRU_CACHE_USED) {
-            printf(" ---- ");
+            printf(" ++:++++");
         } else {
             if (lru_cache->data[cache_index] != LRU_CACHE_NOTHING) {
-                printf(" %4X ", lru_cache->key[cache_index]);
+                printf(" %2x:", lru_cache->key[cache_index]);
+                printf("%04x", lru_cache->data[cache_index]);
             } else {
-                printf("      ");
+                printf(" --:----");
             }
         }
 
@@ -189,12 +232,12 @@ void lru_cache_display(lru_cache_table_t *lru_cache) {
 
     while (cache_count < lru_cache->count) {
         if (!col) {
-            printf("%4X: ", cache_count);
+            printf("%4x: ", cache_count);
         }
-        printf(" %4X ", lru_cache->key[cache_index]);
-        //printf(" %4X %3uN %3uP ", lru_cache->key[cache_index], lru_cache->next[cache_index], lru_cache->prev[cache_index]);
+        printf(" %2x:", lru_cache->key[cache_index]);
+        //printf(" %4x %3uN %3uP ", lru_cache->key[cache_index], lru_cache->next[cache_index], lru_cache->prev[cache_index]);
 
-        if (++col >= 4) {
+        if (++col >= 16) {
             col = 0;
             printf("\n");
         }

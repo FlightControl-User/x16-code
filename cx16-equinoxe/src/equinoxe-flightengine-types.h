@@ -16,8 +16,9 @@ typedef struct {
 
 typedef struct {
     unsigned char used[16];
-    void* sprite_bram[16];
+    void* sprite_bram[16]; // TODO: I need to get rid of this ...
     unsigned char count[16];
+    unsigned char offset[16];
     unsigned int size[16];
     unsigned char zdepth[16];
     unsigned char bpp[16];
@@ -34,22 +35,22 @@ typedef struct {
 
 typedef struct {
     char file[16];
-    unsigned char count;
-    unsigned int SpriteSize;
-    unsigned char Height;
-    unsigned char Width;
-    unsigned char Zdepth;
-    unsigned char Hflip;
-    unsigned char Vflip;
-    unsigned char BPP;
-    unsigned char PaletteOffset; 
-    unsigned char reverse;
-    unsigned char aabb[4];
-    fb_heap_handle_t bram_handle[16];
-    unsigned int id[16];
+    unsigned char   count;
+    unsigned int    SpriteSize;
+    unsigned char   Height;
+    unsigned char   Width;
+    unsigned char   Zdepth;
+    unsigned char   Hflip;
+    unsigned char   Vflip;
+    unsigned char   BPP;
+    unsigned char   PaletteOffset; 
+    unsigned char   reverse;
+    unsigned char   aabb[4];
+    unsigned char    offset;
     fe_sprite_index_t sprite_cache;
 } sprite_bram_t;
 
+typedef fb_heap_handle_t sprite_bram_handles_t;
 
 typedef struct {
 

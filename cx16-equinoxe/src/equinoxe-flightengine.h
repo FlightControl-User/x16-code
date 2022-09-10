@@ -51,7 +51,7 @@ void fe_sprite_cache_free(unsigned char s);
 vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index);
 
 
-void fe_sprite_bram_load(sprite_bram_t* sprite);
+unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset);
 
 // void sprite_animate(vera_sprite_offset sprite_offset, sprite_bram_t* sprite, byte index, byte animate);
 void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);

@@ -65,23 +65,19 @@ void main() {
 
     clrscr();
 
-    for(unsigned int i=0; i<127; i++) {
-        insert(i, (unsigned int)i << 2);
-    }
+    insert(1, 1);
+    insert(2, 2);
+    insert(3, 3);
+    insert(4, 4);
+    insert(5, 5);
 
+    get(3);
+    get(2);
+    get(4);
+    get(2);
     get(1);
-    get(0);
-    get(2);
-    delete(1);
-    get(2);
-    delete(6);
-    delete(8);
-    delete(20);
-    delete(40);
-    delete(126);
-    delete(127);
-    get(0);
-    get(39);
-    get(41);
+
+    delete(3);
+    insert(3, 3);
 }
 

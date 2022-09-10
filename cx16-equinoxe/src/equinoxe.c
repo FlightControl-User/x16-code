@@ -6,6 +6,7 @@
 
 #define __MAIN
 
+#define LRU_CACHE_MAX 32
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -22,6 +23,7 @@
 #include <mos6522.h>
 #include <multiply.h>
 #include <cx16-veraheap.h>
+#include <lru-cache.h>
 
 
 #include "equinoxe-types.h"
@@ -237,12 +239,15 @@ inline void equinoxe_collision() {
 
 //VSYNC Interrupt Routine
 
+#ifndef __NOVSYNC
 __interrupt(rom_sys_cx16) void irq_vsync() {
+#else
+void irq_vsync() {
+#endif
 
     // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
     bank_set_brom(CX16_ROM_KERNAL);
-    bank_push_bram();
-    bank_set_bram(255);
+    bank_push_set_bram(255);
 
 #ifdef __ENGINE_DEBUG
 
@@ -289,19 +294,20 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
     // cx16_mouse_scan();
     cx16_mouse_get();
 
+#ifdef __STAGE
+    if(!(game.ticksync & 0x01)) {
+        stage_logic();
+        game.tickstage++;
+    }
+    game.ticksync++;
+#endif
+
     #ifdef __PLAYER
         #ifdef __CPULINES
             vera_display_set_border_color(GREEN);
         #endif
         player_logic();
     #endif
-
-    if(!(game.ticksync & 0x01)) {
-        stage_logic();
-        game.tickstage++;
-    }
-    game.ticksync++;
-
 
     #ifdef __BULLET
         #ifdef __CPULINES
@@ -326,6 +332,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         equinoxe_collision();
     #endif // __COLLISION
 
+
     #ifdef __CPULINES
         vera_display_set_border_color(CYAN);
     #endif
@@ -341,7 +348,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(CYAN);
         #endif
-        bullets_resource();
+        // bullets_resource();
     #endif
 
 
@@ -349,13 +356,15 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(GREEN);
         #endif
-        player_resource();
+        // player_resource();
     #endif
 
 #endif // __FLIGHT
 
+#ifndef __NOVSYNC
     // Reset the VSYNC interrupt
     *VERA_ISR = VERA_VSYNC;
+#endif
 
 #ifdef __ENGINE_DEBUG
 
@@ -403,6 +412,7 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
         gotoxy(x,y);
         }
 #endif // __ENGINE_DEBUG
+
 
     bank_pull_bram();
 
@@ -544,12 +554,13 @@ void main() {
     clrscr();
 
 
+#ifndef __NOVSYNC
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC;
-    // vera_sprites_collision_on();
     CLI();
+#endif
 
     cx16_mouse_config(0xFF, 80, 60);
     // memset_vram(1, 0x0000, 0, 16);
@@ -559,15 +570,23 @@ void main() {
     vera_layer0_set_vertical_scroll(0);
 
     while (!getin()) {
-        // gotoxy(0,0);
-        // grid_print(&ht_collision);
-        // SEI();
-        // printf("floor_scroll_vertical:%02u\n",floor_scroll_vertical);
-        // CLI();
-        // SEI();
-        // vera_heap_dump_graphic_print(VERA_HEAP_SEGMENT_SPRITES, 0, 0);
-        // vera_heap_dump(VERA_HEAP_SEGMENT_SPRITES, 0, 0);
-        // CLI();
+        #ifdef __NOVSYNC
+            irq_vsync();
+        #endif
+        #ifdef __CACHE_DEBUG
+            SEI();
+            fe_sprite_debug();
+            CLI();
+        #endif
+        #ifdef __LRU_CACHE_DEBUG
+            SEI();
+            gotoxy(0, 20);
+            lru_cache_display(&sprite_cache_vram);
+            CLI();
+        #endif
+        #ifdef __NOVSYNC
+            while(!getin());
+        #endif
     }; 
 
     // Back to basic.

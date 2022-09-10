@@ -15,7 +15,7 @@
 
 void player_init()
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(fe.bram_bank);
 
     memset(&player, 0, sizeof(fe_player_t));
     memset(&engine, 0, sizeof(fe_engine_t));
@@ -128,7 +128,7 @@ void player_remove(unsigned char p, unsigned char b)
 
 void player_logic() {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(fe.bram_bank);
 
     // unsigned char xor = player_checkxor();
     // if(stage.player_xor != xor) {
@@ -215,9 +215,12 @@ void player_logic() {
                 grid_insert(&ht_collision, 1, BYTE0(playerx>>2), BYTE0(playery>>2), p);
 #endif
 
+                unsigned char player_sprite = player.sprite[p];
+                unsigned char engine_sprite = engine.sprite[n];
+
                 if(!player.enabled[p]) {
-                    vera_sprite_zdepth(player_sprite_offset, fe_sprite.zdepth[player.sprite[p]]);
-                    vera_sprite_zdepth(engine_sprite_offset, fe_sprite.zdepth[engine.sprite[n]]);
+                    vera_sprite_zdepth(player_sprite_offset, fe_sprite.zdepth[player_sprite]);
+                    vera_sprite_zdepth(engine_sprite_offset, fe_sprite.zdepth[engine_sprite]);
                     player.enabled[p] = 1;
                 }
 
@@ -226,14 +229,16 @@ void player_logic() {
                 } else {
                     // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image[player.state_animation[p]]);
                     // vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, fe_sprite.vram_image_offset[(unsigned int)player.sprite[p]*16+player.state_animation[p]]);
-                    vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery,  sprite_image_cache_vram(player.sprite[p], player.state_animation[p]));
+					vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_image_cache_vram(player_sprite, player.state_animation[p]));
                 }
+#ifdef __ENGINE
                 if(engine.wait_animation[n]) {
                     vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
                 } else {
                     // vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, fe_sprite.vram_image_offset[(unsigned int)engine.sprite[n]*16+engine.state_animation[n]]);
-                    vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine.sprite[n], engine.state_animation[n]));
+					vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine_sprite, engine.state_animation[n]));
                 }
+#endif
             } else {
                 if(player.enabled[p]) {
                     vera_sprite_disable(player_sprite_offset);
