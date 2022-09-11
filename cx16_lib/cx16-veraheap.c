@@ -356,7 +356,7 @@ vera_heap_index_t vera_heap_replace_free_with_heap(vera_heap_segment_index_t s, 
     vera_heap_set_left(s, heap_index, free_left);
     vera_heap_set_right(s, heap_index, free_right);
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Replaced free index with heap index %03x size %05x.", heap_index, vera_heap_get_size(s, heap_index));
 #endif
 
@@ -392,7 +392,7 @@ vera_heap_index_t vera_heap_split_free_and_allocate(vera_heap_segment_index_t s,
     vera_heap_set_right(s, heap_left, heap_index);
     vera_heap_set_left(s, heap_right, heap_index);
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Split free index %03x size %05x and allocate heap index %03x size %05x.", free_index, vera_heap_get_size(s, free_index), heap_index, vera_heap_get_size(s, heap_index));
 #endif
 
@@ -407,14 +407,14 @@ signed char vera_heap_can_split_free(vera_heap_segment_index_t s, vera_heap_inde
 
     vera_heap_size_packed_t free_size = vera_heap_get_size_packed(s, free_index);
     if(free_size > required_size) {
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
         printf("\n > Can split free index %03x to size %05x, heap size %05x.", free_index, vera_heap_size_unpack(free_size - required_size), vera_heap_size_unpack(required_size));
 #endif
         return 1;
 
     } else {
         if(free_size == required_size) {
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
             printf("\n > Can replace free index %03x with heap size %05x.", free_index, vera_heap_size_unpack(required_size));
 #endif
             return 0;
@@ -432,13 +432,13 @@ vera_heap_index_t vera_heap_allocate(vera_heap_segment_index_t s, vera_heap_inde
     vera_heap_size_packed_t free_size = vera_heap_get_size_packed(s, free_index);
 
     if(free_size > required_size) {
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
         printf("\n > Can split free index %03x to size %05x, heap size %05x.", free_index, vera_heap_size_unpack(free_size - required_size), vera_heap_size_unpack(required_size));
 #endif
 		return vera_heap_split_free_and_allocate(s, free_index, required_size);
     } else {
         if(free_size == required_size) {
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
             printf("\n > Can replace free index %03x with heap size %05x.", free_index, vera_heap_size_unpack(required_size));
 #endif
             return vera_heap_replace_free_with_heap(s, free_index, required_size);
@@ -464,7 +464,7 @@ vera_heap_index_t vera_heap_alloc_using_free(vera_heap_segment_index_t s, vera_h
 
 	vera_heap_index_t free_end = vera_heap_segment.free_list[s];
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf(", best fit is ");
 #endif
 
@@ -486,7 +486,7 @@ vera_heap_index_t vera_heap_alloc_using_free(vera_heap_segment_index_t s, vera_h
 
 	} while(free_index != free_end);
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
         printf("free index %03x size %05x.", best_index, vera_heap_size_unpack(best_size) );
 #endif
 
@@ -509,13 +509,13 @@ vera_heap_index_t vera_heap_can_coalesce_left(vera_heap_segment_index_t s, vera_
     bool left_free = vera_heap_is_free(s, left_index);
 
     if(left_free && (left_offset < heap_offset)) {
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Can coalesce to the left with free index %03x.", left_index);
 #endif
         return left_index;
     }
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Cannot coalesce to the left.");
 #endif
     return VERAHEAP_NULL;
@@ -534,14 +534,14 @@ vera_heap_index_t heap_can_coalesce_right(vera_heap_segment_index_t s, vera_heap
     bool right_free = vera_heap_is_free(s, right_index);
 
     if(right_free && (heap_offset < right_offset)) {
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Can coalesce to the right with free index %03x.", right_index);
 #endif
         return right_index;
     }
 
     // A free_index is not found, we cannot coalesce.
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Cannot coalesce to the right.");
 #endif
 	return VERAHEAP_NULL;
@@ -579,7 +579,7 @@ vera_heap_index_t vera_heap_coalesce(vera_heap_segment_index_t s, vera_heap_inde
     vera_heap_set_size_packed(s, right_index, left_size + right_size);
     vera_heap_set_data_packed(s, right_index, left_offset);
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Coalesce idling index %03x and expanding free index %03x.", left_index, right_index);
 #endif
 
@@ -686,7 +686,7 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
 	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
 	vera_heap_size_packed_t packed_size = vera_heap_alloc_size_get(size);
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Allocate segment %02x, size %05x", s, size);
 #endif
 
@@ -699,7 +699,7 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
     }
 
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
         printf("\n > returning heap index %03x.\n", heap_index);
 #endif
 
@@ -721,12 +721,14 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
 
 	vera_heap_size_packed_t free_size = vera_heap_get_size_packed(s, free_index);
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n > Free index %03x size %05x.", free_index, vera_heap_size_unpack(free_size));
 #endif
 
+
 	vera_heap_data_packed_t free_offset = vera_heap_get_data_packed(s, free_index);
 
+    // TODO: only remove allocated indexes!
 	vera_heap_heap_remove(s, free_index);
 	vera_heap_free_insert(s, free_index, free_offset, free_size);
 
@@ -740,7 +742,7 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
         free_index = vera_heap_coalesce(s, free_index, free_right_index);
     }
 
-#ifdef VERAHEAP_DEBUG
+#ifdef __VERAHEAP_DEBUG
     printf("\n");
 #endif
 
@@ -859,11 +861,11 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
 void vera_heap_dump_stats(vera_heap_segment_index_t s)
 {
     gotoxy(dx, dy++);
-	printf("size  heap:%05x, free:%05x                      ", vera_heap_alloc_size(s), vera_heap_free_size(s));
+	printf("size  heap:%05x  free:%05x  index:%02x  bank:%02x", vera_heap_alloc_size(s), vera_heap_free_size(s), vera_heap_segment.index_position, vera_heap_segment.bram_bank);
     gotoxy(dx, dy++);
-	printf("count  heap:%04u  free:%04u  idle:%04u             ", vera_heap_alloc_count(s), vera_heap_free_count(s), vera_heap_idle_count(s));
+	printf("count  heap:%04u  free:%04u  idle:%04u", vera_heap_alloc_count(s), vera_heap_free_count(s), vera_heap_idle_count(s));
     gotoxy(dx, dy++);
-	printf("list   heap:%03x   free:%03x   idle:%03x             ", vera_heap_segment.heap_list[s], vera_heap_segment.free_list[s], vera_heap_segment.idle_list[s]);
+	printf("list   heap:%03x   free:%03x   idle:%03x", vera_heap_segment.heap_list[s], vera_heap_segment.free_list[s], vera_heap_segment.idle_list[s]);
 }
 
 /**

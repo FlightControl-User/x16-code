@@ -78,6 +78,7 @@ void main() {
     get(1);
 
     delete(3);
+    delete(3);
     insert(3, 3);
 }
 

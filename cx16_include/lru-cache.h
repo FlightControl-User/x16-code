@@ -53,7 +53,7 @@ inline lru_cache_data_t lru_cache_get(lru_cache_table_t *vram_ht, lru_cache_inde
 inline lru_cache_data_t lru_cache_data(lru_cache_table_t* vram_ht, lru_cache_index_t vram_index);
 
 lru_cache_index_t lru_cache_insert(lru_cache_table_t* vram_ht, lru_cache_key_t vram_key, lru_cache_data_t vram_data);
-inline lru_cache_index_t lru_cache_delete(lru_cache_table_t* vram_ht, lru_cache_key_t vram_key);
+inline lru_cache_data_t lru_cache_delete(lru_cache_table_t* vram_ht, lru_cache_key_t vram_key);
 
 void lru_cache_display(lru_cache_table_t* vram_ht);
 

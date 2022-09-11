@@ -146,12 +146,15 @@ inline lru_cache_index_t lru_cache_insert(lru_cache_table_t *lru_cache, lru_cach
 }
 
 
-inline lru_cache_index_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key) {
+inline lru_cache_data_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key) {
     lru_cache_index_t cache_index = lru_cache_hash(vram_key);
 
     // move in array until an empty
     while (lru_cache->data[cache_index] != LRU_CACHE_NOTHING) {
         if (lru_cache->key[cache_index] == vram_key) {
+
+            lru_cache_data_t data = lru_cache->data[cache_index];
+
             lru_cache->key[cache_index] = LRU_CACHE_NOTHING;
             lru_cache->data[cache_index] = LRU_CACHE_USED;
 
@@ -177,7 +180,7 @@ inline lru_cache_index_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cach
 
             lru_cache->count--;
 
-            return cache_index;
+            return data;
         }
 
         // ++cache_index;

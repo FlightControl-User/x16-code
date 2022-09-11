@@ -6,7 +6,35 @@
 
 #define __MAIN
 
-#define LRU_CACHE_MAX 32
+// #define __NOVSYNC
+
+#define __CPULINES
+// #define __FILE
+
+#define __PALETTE
+
+// #define __FLOOR
+
+#define __FLIGHT
+#define __STAGE
+#define __COLLISION
+
+#define __PLAYER
+#define __BULLET
+#define __ENEMY
+#define __ENGINE
+
+// #define __CACHE_DEBUG
+// #define __LRU_CACHE_DEBUG
+// #define __VERAHEAP_DEBUG
+// #define __WAVE_DEBUG
+// #define __ENGINE_DEBUG
+// #define __FLOOR_DEBUG
+
+// #define __HEAP_DEBUG
+
+
+#define LRU_CACHE_MAX 64
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -249,6 +277,16 @@ void irq_vsync() {
     bank_set_brom(CX16_ROM_KERNAL);
     bank_push_set_bram(255);
 
+#ifdef __VERAHEAP_DEBUG
+    gotoxy(0, 0);
+    vera_heap_dump(VERA_HEAP_SEGMENT_SPRITES, 0, 0);
+    for(unsigned char i=0;i<25;i++) {
+        gotoxy(0, 30+i);
+        clearline();
+    }
+    gotoxy(0,30);
+#endif
+
 #ifdef __ENGINE_DEBUG
 
     char stack_entry;
@@ -412,6 +450,16 @@ void irq_vsync() {
         gotoxy(x,y);
         }
 #endif // __ENGINE_DEBUG
+
+#ifdef __LRU_CACHE_DEBUG
+    gotoxy(0, 30);
+    lru_cache_display(&sprite_cache_vram);
+#endif
+
+#ifdef __VERAHEAP_DEBUG
+    gotoxy(40, 0);
+    vera_heap_dump(VERA_HEAP_SEGMENT_SPRITES, 40, 0);
+#endif
 
 
     bank_pull_bram();
@@ -578,12 +626,7 @@ void main() {
             fe_sprite_debug();
             CLI();
         #endif
-        #ifdef __LRU_CACHE_DEBUG
-            SEI();
-            gotoxy(0, 20);
-            lru_cache_display(&sprite_cache_vram);
-            CLI();
-        #endif
+
         #ifdef __NOVSYNC
             while(!getin());
         #endif

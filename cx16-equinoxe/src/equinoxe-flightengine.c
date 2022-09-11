@@ -107,15 +107,8 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
     // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
     // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
 
-#ifdef __LRU_CACHE_DEBUG
-    gotoxy(0,0);
-    printf("index=%u, sprite image=%u", fe_sprite_index, fe_sprite_image_index);
-#endif
 
     unsigned int image_index = fe_sprite.offset[fe_sprite_index] + fe_sprite_image_index;
-#ifdef __LRU_CACHE_DEBUG
-    printf(", image=%4u",image_index);
-#endif
 
     // We retrieve the image from BRAM from the sprite_control bank.
     // TODO: what if there are more sprite control data than that can fit into one CX16 bank?
@@ -130,18 +123,19 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 
     // We check if there is a cache hit?
     lru_cache_index_t vram_index = lru_cache_index(&sprite_cache_vram, image_index);
-#ifdef __LRU_CACHE_DEBUG
-    printf("; vram_index %u", vram_index);
-#endif
     lru_cache_data_t lru_cache_data;
+    vera_sprite_image_offset sprite_offset;
     if (vram_index != 0xFF) {
 
         // So we have a cache hit, so we can re-use the same image from the cache and we win time!
-        lru_cache_data = lru_cache_get(&sprite_cache_vram, vram_index);
-#ifdef __LRU_CACHE_DEBUG
-        printf("; lru_cache_data %u", lru_cache_data);
-#endif
+        vram_handle = lru_cache_get(&sprite_cache_vram, vram_index);
 
+        // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
+        // Dynamic allocation of sprites in vera vram.
+        vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+
+        sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
     } else {
 
         // We check if the vram cache is at it's maximum, and if it is, we must delete the least used image.
@@ -151,7 +145,13 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
             lru_cache_key_t vram_last = lru_cache_last(&sprite_cache_vram);
             // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
             vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
+            if(vram_handle==0xFF) {
+                gotoxy(0,59);
+                printf("error! vram_handle is nothing!");
+            }
             // And we free the vram heap with the vram handle that we received.
+            // But before we can free the heap, we must first convert back from teh sprite offset to the vram address.
+            // And then to a valid vram handle :-).
             vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
         }
 
@@ -163,13 +163,13 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 
         memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, fe_sprite.size[fe_sprite_index]);
 
-        lru_cache_data = vera_sprite_get_image_offset(vram_bank, vram_offset);
-        lru_cache_insert(&sprite_cache_vram, image_index, lru_cache_data);
+        sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
+        lru_cache_insert(&sprite_cache_vram, image_index, vram_handle);
     }
 
     // We return the image offset in vram of the sprite to be drawn.
     // This offset is used by the vera image set offset function to directly change the image displayed of the sprite!
-    return lru_cache_data;
+    return sprite_offset;
 }
 
 // todo, need to detach vram allocation from cache management.

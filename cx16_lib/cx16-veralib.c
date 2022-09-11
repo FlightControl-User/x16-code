@@ -1012,6 +1012,13 @@ inline vera_sprite_image_offset vera_sprite_get_image_offset(vera_bank bank, ver
     return sprite_image_offset;
 }
 
+/// Obtain the offset of the image, aligned with the sprite control data structure.
+inline vera_sprite_image_offset vera_sprite_get_vram(vera_bank bank, vera_offset offset) {
+    vera_sprite_image_offset sprite_image_offset = offset >> 5;
+    sprite_image_offset |= ((unsigned int)bank << 11);
+    return sprite_image_offset;
+}
+
 inline void vera_sprite_set_image_offset(vera_sprite_offset sprite_offset, vera_sprite_image_offset sprite_image_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset, vera_inc_1);
     *VERA_DATA0 = BYTE0(sprite_image_offset);

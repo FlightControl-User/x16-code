@@ -86,8 +86,6 @@ typedef struct {
     vera_heap_offset_t          vram_offset_ceil[VERAHEAP_SEGMENTS];
     vera_heap_data_packed_t     ceil[VERAHEAP_SEGMENTS];
 
-    unsigned char               index_bank;
-
     vera_heap_index_t           heap_list[VERAHEAP_SEGMENTS];
     vera_heap_index_t           free_list[VERAHEAP_SEGMENTS];
     vera_heap_index_t           idle_list[VERAHEAP_SEGMENTS];
