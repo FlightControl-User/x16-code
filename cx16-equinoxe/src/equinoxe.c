@@ -14,7 +14,6 @@
 #define __PALETTE
 
 // #define __FLOOR
-
 #define __FLIGHT
 #define __STAGE
 #define __COLLISION
@@ -30,7 +29,6 @@
 // #define __WAVE_DEBUG
 // #define __ENGINE_DEBUG
 // #define __FLOOR_DEBUG
-
 // #define __HEAP_DEBUG
 
 
