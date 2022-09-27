@@ -184,40 +184,20 @@ void tile_background() {
     floor_tile_row++;
 }
 
-// void show_memory_map() {
-//     for(byte i=0;i<TILE_TYPES;i++) {
-//         struct Tile *Tile = TileDB[i];
-//         byte TileOffset = Tile->TileOffset;
-//         // gotoxy(0, 30+i);
-//         printf("t:%u bram:%x:%p, vram:", i, (Tile->bram_handle).bank, Tile->bram_handle.ptr));
-//         for(byte j=0;j<Tile->count;j++) {
-//             struct TilePart *TilePart = &TilePartDB[(word)(TileOffset+j)];
-//             printf("%x:%p ", heap_data_bank(TilePart->VRAM_Handle), heap_data_ptr(TilePart->VRAM_Handle));
-//         }
-//     }
-// }
-
 void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment) 
 {
-
     unsigned char tile_count = tile->count;
     unsigned int tile_size = tile->TileSize;
     word tile_offset = tile->TileOffset;
 
-    printf("copying to vram, count=%u\n", tile->count);
-
     for(unsigned int t=0; t<tile_count; t++) {
 
-
         fb_heap_handle_t handle_bram = tile->bram_handle[t];
-        printf("handle_bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
 
         // Dynamic allocation of tiles in vera vram.
         tile->vera_heap_index[t] = vera_heap_alloc(segment, tile_size);
         vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, tile->vera_heap_index[t]);
         vram_offset_t vram_offset = vera_heap_data_get_offset(segment, tile->vera_heap_index[t]);
-
-        printf(", handle_vram=%02x:%04p", vram_bank, vram_offset);
 
         memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, tile_size);
 
@@ -236,32 +216,23 @@ void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment)
 // Load the tile into bram using the new cx16 heap manager.
 void tile_load(tile_t *tile) {
 
-    printf("loading tiles %s\n", tile->file);
-    printf("tilecount=%u, tilesize=%u", tile->count, tile->TileSize);
-    // printf(", opening\n");
-
     unsigned int status = open_file(1, 8, 0, tile->file);
     if (status) printf("error opening file %s\n", tile->file);
 
     for(unsigned char s=0; s<tile->count; s++) {
-        // printf("allocating");
         fb_heap_handle_t handle_bram = heap_alloc(bins, tile->TileSize);
-        // printf(", bram=%02x:%04p", handle_bram.bank, handle_bram.ptr);
-        // printf(", loading");
-        unsigned int bytes_loaded = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, tile->TileSize);
-        if (!bytes_loaded) {
+        unsigned char status = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, tile->TileSize);
+        if (status) {
             printf("error loading file %s\n", tile->file);
             break;
         }
-        printf(" %u bytes", bytes_loaded);
         tile->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
     }
-    // printf(", closing");
 
     status = close_file(1, 8, 0);
     if (status) printf("error closing file %s\n", tile->file);
 
-    printf(", done\n");
 }
 
 #pragma data_seg(Data)
+//#pragma var_model(zp)

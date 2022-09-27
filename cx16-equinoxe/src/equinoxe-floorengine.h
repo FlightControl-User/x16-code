@@ -34,8 +34,8 @@ tile_t TileFloor01 = {
     { { 0,0 } }, { 0 } 
 };
 
-byte const TILE_TYPES = 1;
-volatile tile_t *TileDB[1] = { &TileFloor01 };
+const unsigned char TILE_TYPES = 1;
+tile_t* const TileDB[1] = { &TileFloor01 };
 
 struct TilePart {
     tile_t *Tile[64];
@@ -116,8 +116,8 @@ typedef struct {
 
 unsigned char const TILES = 16; 
 unsigned char const TILE_FLOOR_COUNT = TILE_FLOOR01_COUNT; 
-volatile unsigned char TileFloorIndex = 0;
-volatile tilefloor_t TileFloor[2];
+__mem volatile unsigned char TileFloorIndex = 0;
+__mem volatile tilefloor_t TileFloor[2];
 
 // This is a performance improvement tactic.
 unsigned char const FLOOR_SCROLL_START = 32*16; // 32 rows of 16 lines (the height of the tiles is 16 pixels).
@@ -126,13 +126,14 @@ unsigned char const FLOOR_TILE_ROW_31 = 31;
 unsigned char const FLOOR_TILE_COLUMN_16 = 16;
 unsigned int const FLOOR_CPY_MAP_63 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_ROW_63+1)*64*2;
 unsigned int const FLOOR_CPY_MAP_31 = FLOOR_MAP_OFFSET_VRAM+(FLOOR_TILE_ROW_31+1)*64*2;
-volatile unsigned int floor_cpy_map_dst = FLOOR_CPY_MAP_63;
-volatile unsigned int floor_cpy_map_src = FLOOR_CPY_MAP_31;
-volatile unsigned char floor_tile_row = FLOOR_TILE_ROW_31;
-volatile unsigned char floor_tile_column = 16;
 
-volatile unsigned int floor_scroll_vertical = 16*32;
-volatile unsigned char floor_scroll_action = 2;
+__mem volatile unsigned int floor_cpy_map_dst = FLOOR_CPY_MAP_63;
+__mem volatile unsigned int floor_cpy_map_src = FLOOR_CPY_MAP_31;
+__mem volatile unsigned char floor_tile_row = FLOOR_TILE_ROW_31;
+__mem volatile unsigned char floor_tile_column = 16;
+
+__mem volatile unsigned int floor_scroll_vertical = 16*32;
+__mem volatile unsigned char floor_scroll_action = 2;
 
 
 void floor_init();

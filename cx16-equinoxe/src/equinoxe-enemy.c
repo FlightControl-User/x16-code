@@ -12,8 +12,6 @@
 #include "equinoxe-bullet.h"
 #include <ht.h>
 
-volatile unsigned char shoot = 12;
-
 void enemy_init()
 {
     bank_push_bram(); bank_set_bram(fe.bram_bank);
@@ -90,7 +88,8 @@ unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_
     enemies_resource();
 
     bank_pull_bram();
-    return 1;
+    unsigned char ret = 1;
+    return ret;
 }
 
 unsigned char RemoveEnemy(unsigned char e) 
@@ -107,7 +106,9 @@ unsigned char RemoveEnemy(unsigned char e)
     enemy.enabled[e] = 0;
 
     bank_pull_bram();
-    return 1;
+
+    unsigned char ret = 1;
+    return ret;
 }
 
 unsigned char HitEnemy(unsigned char e, unsigned char b) 

@@ -51,37 +51,7 @@ typedef struct {
 	Delegate delegate;
     unsigned char ticksync;
     unsigned char tickstage;
-} Game;
-
-
-
-
-vera_sprite_offset sprite_offsets[127] = { 0 };
-
-
-volatile unsigned char sprite_collided = 0;
-
-
-volatile byte state_game = 0;
-
-
-volatile fb_heap_handle_t player_handle;
-volatile fb_heap_handle_t enemy_handle;
-volatile fb_heap_handle_t engine_handle;
-
-volatile Game game;
-
-#pragma data_seg(Heap)
-
-heap_structure_t heap; heap_structure_t* bins = &heap;
-
-fb_heap_segment_t heap_64; fb_heap_segment_t* bin64 = &heap_64;
-fb_heap_segment_t heap_128; fb_heap_segment_t* bin128 = &heap_128;
-fb_heap_segment_t heap_256; fb_heap_segment_t* bin256 = &heap_256;
-fb_heap_segment_t heap_512; fb_heap_segment_t* bin512 = &heap_512;
-fb_heap_segment_t heap_1024; fb_heap_segment_t* bin1024 = &heap_1024;
-
-
+} equinoxe_game_t;
 
 #pragma data_seg(Data)
 

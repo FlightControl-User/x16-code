@@ -1,3 +1,13 @@
+/**
+ * @file ht.h
+ * @author Sven Van de Velde (sven.van.de.velde@telenet.be)
+ * @brief Hash table, searchable. To store fast and retrieve fast elements from an array.
+ * @version 0.1
+ * @date 2022-01-29
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 
 #include <cx16.h>
 #include <ht.h>
@@ -21,43 +31,72 @@ void ht_reset(ht_item_t* ht)
 }
 
 
-inline ht_index_t ht_code(ht_key_t key) 
-{
-   return HT_RANDOM[key];
+//  ht_index_t ht_hash(ht_key_t key) 
+// {
+//    return HT_RANDOM[key];
+// }
+
+__mem unsigned char ht_seed;
+
+ ht_index_t ht_hash(ht_key_t key) {
+    ht_seed = key;
+    asm {
+                    lda ht_seed
+                    beq !doEor+
+                    asl
+                    beq !noEor+
+                    bcc !noEor+
+        !doEor:     eor #$2b
+        !noEor:     sta ht_seed
+    }
+    return ht_seed & HT_BOUNDARY;
 }
 
-inline ht_index_t ht_get(ht_item_t* ht, ht_key_t key) 
+ ht_index_t ht_hash_next() {
+    asm {
+                    lda ht_seed
+                    beq !doEor+
+                    asl
+                    beq !noEor+
+                    bcc !noEor+
+        !doEor:    eor #$2b
+        !noEor:    sta ht_seed
+    }
+    return ht_seed & HT_BOUNDARY;
+}
+
+ ht_index_t ht_get(ht_item_t* ht, ht_key_t key) 
 {
-   ht_index_t ht_index = ht_code(key);
+   ht_index_t ht_index = ht_hash(key);
 
    while(ht->next[ht_index]) {
       if(ht->key[ht_index] == key)  {
          return ht->next[ht_index];
       }
-      ht_index++;
+      ht_index = ht_hash_next();
       // ht_index %= HT_SIZE;
    }
 
    return 0x00;
 }
 
-inline ht_index_t ht_get_next(ht_index_t ht_index) 
+ ht_index_t ht_get_next(ht_index_t ht_index) 
 {
    return ht_list.next[ht_index];
 }
 
-inline ht_data_t ht_get_data(ht_index_t ht_index) 
+ ht_data_t ht_get_data(ht_index_t ht_index) 
 {
    return ht_list.data[ht_index];
 }
 
 
-inline ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data) 
+ ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data) 
 {
-   ht_index_t ht_index = ht_code(key);
+   ht_index_t ht_index = ht_hash(key);
 
    while(ht->next[ht_index] && ht->key[ht_index]!=key) {
-      ht_index++;
+      ht_index = ht_hash_next();
       // ht_index %= HT_SIZE;
    }
 

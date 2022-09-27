@@ -135,3 +135,4 @@ void palette16_free(char bram_index)
     palette.bram_index.vram_index[bram_index] = 0;
 }
 
+//#pragma var_model(zp)

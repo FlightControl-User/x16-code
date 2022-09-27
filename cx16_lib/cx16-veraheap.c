@@ -24,9 +24,8 @@ vera_heap_map_t  vera_heap_index; // The heap index is located in BRAM.
 #pragma data_seg(Data)
 vera_heap_segment_t vera_heap_segment; // The segment managmeent is in main memory.
 
-
-volatile unsigned char dx = 0;
-volatile unsigned char dy = 0;
+__mem unsigned char dx = 0;
+__mem unsigned char dy = 0;
 
 vera_heap_data_packed_t vera_heap_data_pack(vram_bank_t vram_bank, vram_offset_t vram_offset)
 {
@@ -757,11 +756,11 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
  * @brief Print the heap graphically in a block of 64 characters wide and 32 characters high.
  * One block represents 64 bytes in vram.
  */
-void vera_heap_dump_graphic_print(volatile vera_heap_segment_index_t s, volatile unsigned char dx, volatile unsigned char dy)
+void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char dx, unsigned char dy)
 {
 
 
-    volatile vera_heap_index_t list = vera_heap_segment.heap_list[s];
+    vera_heap_index_t list = vera_heap_segment.heap_list[s];
 
 	if (list == VERAHEAP_NULL) {
         return;
@@ -769,27 +768,27 @@ void vera_heap_dump_graphic_print(volatile vera_heap_segment_index_t s, volatile
 
     bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
 
-	volatile vera_heap_index_t index = vera_heap_segment.heap_list[s];	
-	volatile vera_heap_index_t end_index = vera_heap_segment.heap_list[s];
+	vera_heap_index_t index = vera_heap_segment.heap_list[s];	
+	vera_heap_index_t end_index = vera_heap_segment.heap_list[s];
 
-    volatile unsigned char heap_count = vera_heap_segment.heapCount[s];
+    unsigned char heap_count = vera_heap_segment.heapCount[s];
 
-    volatile char count = 0;
+    char count = 0;
 
     gotoxy(dx, dy++);
 
 	do {
 
-        volatile vera_heap_data_packed_t offset = vera_heap_get_data_packed(s, index);
+        vera_heap_data_packed_t offset = vera_heap_get_data_packed(s, index);
         offset = offset >> 3;
-        volatile vera_heap_size_packed_t size = vera_heap_get_size_packed(s, index);
+        vera_heap_size_packed_t size = vera_heap_get_size_packed(s, index);
         size = size >> 3;
 
 
-        volatile unsigned char x = dx + ((unsigned char)(offset % 64));
-        volatile unsigned char y = dy + ((unsigned char)(offset / 64));
+        unsigned char x = dx + ((unsigned char)(offset % 64));
+        unsigned char y = dy + ((unsigned char)(offset / 64));
 
-        for(volatile unsigned char p = 0; p < size; p++) {
+        for(unsigned char p = 0; p < size; p++) {
 
             gotoxy(x, y);
             x++;

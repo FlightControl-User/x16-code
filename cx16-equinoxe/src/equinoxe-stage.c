@@ -11,9 +11,7 @@
 #pragma data_seg(Data)
 
 stage_t stage;
-
-stage_wave_t wave[8];
-
+stage_wave_t wave;
 
 void stage_init(bram_bank_t bram_bank)
 {
@@ -25,26 +23,26 @@ void stage_init(bram_bank_t bram_bank)
 }
 
 
-vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count)
-{
-	while(sprite_offsets[*sprite_id]) {
-		*sprite_id = ((*sprite_id) >= sprite_end)?sprite_start:(*sprite_id)+1;
-	}
 
-	(*count)++;
-	vera_sprite_offset sprite_offset = vera_sprite_get_offset(*sprite_id); 
-	sprite_offsets[*sprite_id] = sprite_offset;
-	return sprite_offset;
+void stage_copy(unsigned char ew, unsigned int scenario) {
+    stage_playbook_t* stage_playbook = stage.script.playbook;
+    stage_scenario_t* stage_scenario = stage_playbook[stage.playbook].scenario;
+
+    wave.dx[ew] = stage_scenario[scenario].dx;
+    wave.dy[ew] = stage_scenario[scenario].dy;
+    wave.enemy_count[ew] = stage_scenario[scenario].enemy_count;
+    wave.enemy_flightpath[ew] = stage_scenario[scenario].enemy_flightpath;
+    wave.enemy_spawn[ew] = stage_scenario[scenario].enemy_spawn;
+    wave.enemy_sprite[ew] = stage_scenario[scenario].enemy_sprite;
+    wave.interval[ew] = stage_scenario[scenario].interval;
+    wave.prev[ew] = stage_scenario[scenario].prev;
+    wave.wait[ew] = stage_scenario[scenario].wait;
+    wave.x[ew] = stage_scenario[scenario].x;
+    wave.y[ew] = stage_scenario[scenario].y;
+    wave.used[ew] = 1;
+    wave.finished[ew] = 0;
+    wave.scenario[ew] = scenario;
 }
-
-
-void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count)
-{
-	vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
-	sprite_offsets[sprite_id] = 0;
-	(*count)--;
-}
-
 
 static void stage_reset(void)
 {
@@ -77,13 +75,7 @@ static void stage_reset(void)
     stage.lives = 10;
     stage.respawn = 0;
 
-    stage_playbook_t* stage_playbook = stage.script.playbook;
-    stage_scenario_t* stage_scenario = stage_playbook[stage.playbook].scenario;
-
-    memcpy(&wave[stage.ew], &stage_scenario[stage.scenario], sizeof(stage_scenario_t));
-    wave[stage.ew].used = 1;
-    wave[stage.ew].finished = 0;
-    wave[stage.ew].scenario = 0;
+    stage_copy(stage.ew, stage.scenario);
 
     stage.playbook = 0;
     stage.scenario = 0;
@@ -100,31 +92,27 @@ static void stage_reset(void)
 }
 
 
-inline void stage_enemy_add(unsigned char w, sprite_bram_t* sprite, stage_flightpath_t* flights)
+/* inline */ void stage_enemy_add(unsigned char w, sprite_bram_t* sprite, stage_flightpath_t* flights)
 {
-    unsigned char enemies = AddEnemy(w, sprite, flights, wave[w].x, wave[w].y);
+    unsigned char enemies = AddEnemy(w, sprite, flights, wave.x[w], wave.y[w]);
 
-    signed char dx = wave[w].dx;
-    wave[w].x += dx;
-    signed char dy = wave[w].dy;
-    wave[w].y += dy;
-    unsigned char interval = wave[w].interval;
-    wave[w].wait = interval;
-
-    wave[w].enemy_spawn -= enemies;
-    wave[w].enemy_count -= enemies;
+    wave.x[w] += wave.dx[w];
+    wave.y[w] += wave.dy[w];
+    wave.wait[w] = wave.interval[w];
+    wave.enemy_spawn[w] -= enemies;
+    wave.enemy_count[w] -= enemies;
 }
 
-inline void stage_enemy_remove(unsigned char w, unsigned char e)
+/* inline */ void stage_enemy_remove(unsigned char w, unsigned char e)
 {
     unsigned char enemies = RemoveEnemy(e);
-    wave[w].enemy_spawn += enemies;
+    wave.enemy_spawn[w] += enemies;
 }
 
-inline void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b)
+/* inline */ void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b)
 {
     unsigned char enemies = HitEnemy(e, b);
-    wave[w].enemy_spawn += enemies;
+    wave.enemy_spawn[w] += enemies;
 }
 
 void stage_logic()
@@ -135,36 +123,36 @@ void stage_logic()
             // printf("stage playbook=%03u, scenario=%03u, enemies=%03u", stage.playbook, stage.scenario, stage.enemy_count);
             
             for(unsigned char w=0; w<8; w++) {
-                if(wave[w].used) {
-                    if(!wave[w].wait) {
-                        if(wave[w].enemy_count) {
-                            if(wave[w].enemy_spawn) {
-                                stage_enemy_add(w, wave[w].enemy_sprite, wave[w].enemy_flightpath);
+                if(wave.used[w]) {
+                    if(!wave.wait[w]) {
+                        if(wave.enemy_count[w]) {
+                            if(wave.enemy_spawn[w]) {
+                                stage_enemy_add(w, wave.enemy_sprite[w], wave.enemy_flightpath[w]);
                             }
                         } else {
-                            wave[w].used = 0;
-                            wave[w].finished = 1;
+                            wave.used[w] = 0;
+                            wave.finished[w] = 1;
                         }
                     } else {
-                       wave[w].wait--;
+                       wave.wait[w]--;
                     }
                 }
 #ifdef __WAVE_DEBUG
                 gotoxy(0,30+w);
-                printf("wave %02x  %02x  %02x  %02x  %02x  %02x ", w, wave[w].used, wave[w].wait, wave[w].enemy_count, wave[w].enemy_spawn, wave[w].finished);
+                printf("wave %02x  %02x  %02x  %02x  %02x  %02x ", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w]);
 #endif
             }
 
             for(unsigned char w=0; w<8; w++) {
 
                 // Check if a wave has finished.
-                if(wave[w].finished) {
+                if(wave.finished[w]) {
 
                     // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
                     bank_push_bram(); bank_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
 
-                    unsigned int new_scenario = wave[w].scenario;
-                    unsigned int wave_scenario = wave[w].scenario;
+                    unsigned int new_scenario = wave.scenario[w];
+                    unsigned int wave_scenario = wave.scenario[w];
                     // TODO find solution for this loop, maybe with pointers?
                     while(new_scenario < stage.scenarios) {
                         stage_playbook_t* stage_playbook = stage.script.playbook;
@@ -176,15 +164,12 @@ void stage_logic()
                             // We create new waves from the scenarios that are dependent on the finished one.
                             // There must always be at least one that equals scenario of the previous scenario.
                             stage.ew = (stage.ew+1) & 0x07;
-                            memcpy(&wave[stage.ew], &stage_scenario[new_scenario], sizeof(stage_scenario_t));
-                            wave[stage.ew].used = 1;
-                            wave[stage.ew].finished = 0;
-                            wave[stage.ew].scenario = new_scenario;
+                            stage_copy(stage.ew, new_scenario);
                         }
                         new_scenario++;
                     }
                     bank_pull_bram();
-                    wave[w].finished = 0;
+                    wave.finished[w] = 0;
                 }
             }
 

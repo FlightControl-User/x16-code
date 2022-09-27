@@ -1,4 +1,14 @@
-
+/**
+ * @file lru-cache.c
+ * @author Sven Van de Velde (sven.van.de.velde@telenet.be)
+ * @brief Least Recently Used Cache using a hash table and a double linked list, searchable. 
+ * To store fast and retrieve fast elements from an array. To search fast the last used element and delete it.
+ * @version 0.1
+ * @date 2022-09-02
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
 #include <conio.h>
 #include <cx16.h>
 #include <lru-cache.h>
@@ -16,48 +26,48 @@ void lru_cache_init(lru_cache_table_t *lru_cache) {
     lru_cache->count = 0;
 }
 
-unsigned char seed;
+__mem unsigned char lru_cache_seed;
 
-// inline lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
+// /* inline */ lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
 //     return key % LRU_CACHE_SIZE;
 // }
 
-inline lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
-    seed = key;
+/* inline */ lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
+    lru_cache_seed = key;
     asm {
-                    lda seed
+                    lda lru_cache_seed
                     beq !doEor+
                     asl
                     beq !noEor+
                     bcc !noEor+
         !doEor:     eor #$2b
-        !noEor:     sta seed
+        !noEor:     sta lru_cache_seed
     }
-    return seed % LRU_CACHE_SIZE;
+    return lru_cache_seed % LRU_CACHE_SIZE;
 }
 
-inline lru_cache_index_t lru_cache_hash2() {
+/* inline */ lru_cache_index_t lru_cache_hash2() {
     asm {
-                    lda seed
+                    lda lru_cache_seed
                     beq !doEor+
                     asl
                     beq !noEor+
                     bcc !noEor+
         !doEor:    eor #$2b
-        !noEor:    sta seed
+        !noEor:    sta lru_cache_seed
     }
-    return seed % LRU_CACHE_SIZE;
+    return lru_cache_seed % LRU_CACHE_SIZE;
 }
 
-inline bool lru_cache_max(lru_cache_table_t *lru_cache) {
+/* inline */ bool lru_cache_max(lru_cache_table_t *lru_cache) {
     return lru_cache->count >= LRU_CACHE_MAX;
 }
 
-inline lru_cache_key_t lru_cache_last(lru_cache_table_t *lru_cache) {
+/* inline */ lru_cache_key_t lru_cache_last(lru_cache_table_t *lru_cache) {
     return lru_cache->key[lru_cache->last];
 }
 
-inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache_key_t cache_key) {
+/* inline */ lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache_key_t cache_key) {
     lru_cache_index_t vram_cache_index = lru_cache_hash(cache_key);
 
     while (lru_cache->data[vram_cache_index] != LRU_CACHE_NOTHING) {
@@ -72,7 +82,7 @@ inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache
     return LRU_CACHE_NOTHING;
 }
 
-inline lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
+/* inline */ lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
 
     lru_cache_data_t data = lru_cache->data[cache_index];
 
@@ -108,11 +118,11 @@ inline lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_in
     return data;
 }
 
-inline lru_cache_data_t lru_cache_data(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
+/* inline */ lru_cache_data_t lru_cache_data(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
     return lru_cache->data[cache_index];
 }
 
-inline lru_cache_index_t lru_cache_insert(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key, lru_cache_data_t vram_data) {
+/* inline */ lru_cache_index_t lru_cache_insert(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key, lru_cache_data_t vram_data) {
     lru_cache_index_t cache_index = lru_cache_hash(vram_key);
 
     while (lru_cache->data[cache_index] != LRU_CACHE_NOTHING && lru_cache->key[cache_index] != LRU_CACHE_NOTHING) {
@@ -146,7 +156,7 @@ inline lru_cache_index_t lru_cache_insert(lru_cache_table_t *lru_cache, lru_cach
 }
 
 
-inline lru_cache_data_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key) {
+/* inline */ lru_cache_data_t lru_cache_delete(lru_cache_table_t *lru_cache, lru_cache_key_t vram_key) {
     lru_cache_index_t cache_index = lru_cache_hash(vram_key);
 
     // move in array until an empty

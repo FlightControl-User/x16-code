@@ -1,4 +1,4 @@
-#pragma var_model(mem)
+#pragma var_model(zp)
 
 #include <stdio.h>
 #include <string.h>

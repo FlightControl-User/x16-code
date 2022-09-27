@@ -44,19 +44,20 @@ extern fe_enemy_t enemy;
 extern fe_bullet_t bullet;
 extern fe_sprite_cache_t fe_sprite;
 
+extern vera_sprite_offset sprite_offsets[127];
+
+
 void fe_init(bram_bank_t bram_bank);
 
 fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram);
 void fe_sprite_cache_free(unsigned char s);
 vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index,  unsigned char fe_sprite_image_index);
 
+vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count);
+void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count);
+
 
 unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset);
 
-// void sprite_animate(vera_sprite_offset sprite_offset, sprite_bram_t* sprite, byte index, byte animate);
-void sprite_position(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
 void fe_sprite_configure(vera_sprite_offset sprite_offset, fe_sprite_index_t s);
-void sprite_enable(vera_sprite_offset sprite_offset, sprite_bram_t* sprite);
-void sprite_disable(vera_sprite_offset sprite_offset);
-void sprite_collision(vera_sprite_offset sprite_offset, byte mask);
 

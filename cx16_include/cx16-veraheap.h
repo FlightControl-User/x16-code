@@ -23,11 +23,11 @@ void vera_heap_dump_xy(unsigned char x, unsigned char y);
 void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char dx, unsigned char dy);
 
 
-vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, vera_heap_index_t index);
-vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index);
-vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index);
-vera_heap_size_int_t vera_heap_get_size_int(vera_heap_segment_index_t s, vera_heap_index_t index);
-vera_heap_size_packed_t vera_heap_get_size_packed(vera_heap_segment_index_t s, vera_heap_index_t index);
+inline vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, vera_heap_index_t index);
+inline vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index);
+inline vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index);
+inline vera_heap_size_int_t vera_heap_get_size_int(vera_heap_segment_index_t s, vera_heap_index_t index);
+inline vera_heap_size_packed_t vera_heap_get_size_packed(vera_heap_segment_index_t s, vera_heap_index_t index);
 
 
 vera_heap_size_t vera_heap_alloc_size(vera_heap_segment_index_t s);

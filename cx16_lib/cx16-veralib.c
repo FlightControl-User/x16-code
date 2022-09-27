@@ -24,7 +24,6 @@
 
 // --- VERA addressing ---
 
-
 char* vera_address_to_ptr( unsigned long address ) {
     return (char*)WORD0(address);
 }
@@ -1519,6 +1518,4 @@ inline void vera_sprite_buffer_disable(vera_sprite_buffer_item_t *sprite_offset)
 inline void vera_sprite_buffer_palette_offset(vera_sprite_buffer_item_t *sprite_offset, vera_palette_offset palette_offset) {
     sprite_offset->CTRL2 = sprite_offset->CTRL2 & ~VERA_SPRITE_PALETTE_OFFSET_MASK | palette_offset;
 }
-
-
 
