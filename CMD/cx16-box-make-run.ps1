@@ -10,8 +10,8 @@ echo "Copying graphics"
 copy-item  -Verbose -Recurse -Force -Path "$workspacedir/$dir/../graphics/*/*.BIN" "X:/"
 echo "Copying Program"
 copy-item -Verbose -Path "$workspacedir/$dir/../target/*.PRG" "X:/" 
-copy-item -Verbose -Path "$workspacedir/$dir/target/*.BIN" "X:/" 
 copy-item -Verbose -Path "$workspacedir/$dir/../target/*.BIN" "X:/" 
+copy-item -Verbose -Path "$workspacedir/$dir/target/*.BIN" "X:/" 
 
 diskpart /s cmd/detach.dsk
 

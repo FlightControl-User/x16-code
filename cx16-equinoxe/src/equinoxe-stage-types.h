@@ -1,4 +1,4 @@
-#include <cx16-fb.h>
+#include <cx16-heap-bram-fb.h>
 #include <cx16-veralib.h>
 
 #include "levels/equinoxe-level-types.h"
@@ -24,10 +24,10 @@ typedef struct {
 
 #define STAGES 32
 typedef struct {
-    fb_heap_handle_t fighter_list;
-    fb_heap_handle_t fighter_tail;
-    fb_heap_handle_t bullet_tail;
-    fb_heap_handle_t bullet_list;
+    heap_bram_fb_handle_t fighter_list;
+    heap_bram_fb_handle_t fighter_tail;
+    heap_bram_fb_handle_t bullet_tail;
+    heap_bram_fb_handle_t bullet_list;
     vera_sprite_id sprite_player; // Keep track of the last player sprite allocated.
     unsigned char sprite_player_count;
     vera_sprite_id sprite_bullet; // Keep track of the last bullet sprite allocated.

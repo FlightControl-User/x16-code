@@ -1,6 +1,3 @@
-#ifndef __CX16_VERAHEAP_H__
-#define __CX16_VERAHEAP_H__
-
 #include <cx16-veraheap-typedefs.h>
 
 extern vera_heap_map_t vera_heap_index;
@@ -36,8 +33,7 @@ unsigned int vera_heap_alloc_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_free_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_idle_count(vera_heap_segment_index_t s);
 
+vera_heap_size_t vera_heap_free_memory(vera_heap_segment_index_t s);
+
 vera_heap_index_t vera_heap_list_remove(vera_heap_segment_index_t s, vera_heap_index_t list, vera_heap_index_t index);
 vera_heap_index_t vera_heap_heap_insert_at(vera_heap_segment_index_t s, vera_heap_index_t heap_index, vera_heap_index_t at, vera_heap_size_packed_t size);
-
-
-#endif

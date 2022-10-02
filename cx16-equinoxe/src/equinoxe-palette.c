@@ -10,7 +10,7 @@
  */
 
 #include <cx16.h>
-#include <cx16-fb.h>
+// #include <cx16-fb.h>
 #include <cx16-veralib.h>
 #include <cx16-mouse.h>
 #include <stdlib.h>
@@ -70,13 +70,17 @@ void palette_init(bram_bank_t bram_bank)
 void palette_load(unsigned char level)
 {
 
-    // printf("%s, %s, ", palette_files[level].file_palette64, palette_files[level].file_palette16);
+    #ifdef __DEBUG_FILE
+    printf("%s, %s, ", palette_files[level].file_palette64, palette_files[level].file_palette16);
+    #endif
 
     // Load the palettes in main banked memory.
     unsigned int floor_palette_loaded = load_file(1, 8, 0, palette_files[level].file_palette64, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_64);
     unsigned int sprite_palette_loaded = load_file(1, 8, 0, palette_files[level].file_palette16, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_16);
 
-    // printf("%u, %u\n", floor_palette_loaded, sprite_palette_loaded);
+    #ifdef __DEBUG_FILE
+    printf("%u, %u\n", floor_palette_loaded, sprite_palette_loaded);
+    #endif
 }
 
 
@@ -85,8 +89,10 @@ unsigned char palette16_alloc()
     for(unsigned char i=5; i<16; i++) {
         if(palette.index >= 16)
             palette.index=5;
-        // gotoxy(40,9);
-        // printf("alloc i=%03u, u=%03u", palette.index, palette.vram_index.used[palette.index]);
+        #ifdef __DEBUG_PALETTE
+        gotoxy(40,9);
+        printf("alloc i=%03u, u=%03u", palette.index, palette.vram_index.used[palette.index]);
+        #endif
         if(!palette.vram_index.used[palette.index]) {
             return palette.index; // We use the free palette slot.
         }
@@ -95,7 +101,7 @@ unsigned char palette16_alloc()
     return 0;
 }
 
-unsigned int palette16_use(char bram_index)
+unsigned int palette16_use(unsigned int bram_index)
 {
     unsigned char vram_index = palette.bram_index.vram_index[bram_index];
     if(!vram_index) {
@@ -110,29 +116,31 @@ unsigned int palette16_use(char bram_index)
     }
 
     palette.vram_index.used[vram_index]++;
-    // gotoxy((unsigned char)40, (unsigned char)10+vram_index);
-    // printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette.vram_index.used[vram_index], bram_index, palette.bram_index.vram_index[bram_index]);
+    #ifdef __DEBUG_PALETTE
+    gotoxy((unsigned char)40, (unsigned char)10+vram_index);
+    printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette.vram_index.used[vram_index], bram_index, palette.bram_index.vram_index[bram_index]);
+    #endif
     return vram_index;
 }
 
-void palette16_unuse(char bram_index)
+void palette16_unuse(unsigned int bram_index)
 {
     unsigned char vram_index = palette.bram_index.vram_index[bram_index];
     palette.vram_index.used[vram_index]--;
-    // gotoxy(40, 10+vram_index);
-    // printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette.vram_index.used[vram_index], bram_index, palette.bram_index.vram_index[bram_index]);
+    #ifdef __DEBUG_PALETTE
+    gotoxy(40, 10+vram_index);
+    printf("memcpy v=%03u, u=%03u, b=%03u, i=%03u", vram_index, palette.vram_index.used[vram_index], bram_index, palette.bram_index.vram_index[bram_index]);
+    #endif
 }
 
-void palette64_use(char bram_index)
+void palette64_use(unsigned int bram_index)
 {
     memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[1], BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_64[bram_index], 32*4);
 }
 
-void palette16_free(char bram_index)
+void palette16_free(unsigned int bram_index)
 {
     unsigned char vram_index = palette.bram_index.vram_index[bram_index];
     palette.vram_index.used[vram_index] = 0;
     palette.bram_index.vram_index[bram_index] = 0;
 }
-
-//#pragma var_model(zp)

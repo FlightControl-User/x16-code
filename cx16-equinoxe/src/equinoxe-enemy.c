@@ -62,9 +62,9 @@ unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_
 	enemy.wait_animation[e] = 4;
 	enemy.speed_animation[e] = 4;
 	enemy.state_animation[e] = 0;
-    enemy.reverse_animation[e] = fe_sprite.reverse[s];
+    enemy.reverse_animation[e] = sprite_cache.reverse[s];
     enemy.start_animation[e] = 0;
-    enemy.stop_animation[e] = fe_sprite.count[s]-1;
+    enemy.stop_animation[e] = sprite_cache.count[s]-1;
     enemy.direction_animation[e] = 1;
 
 	enemy.health[e] = 100;
@@ -100,7 +100,7 @@ unsigned char RemoveEnemy(unsigned char e)
     vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
     FreeOffset(sprite_offset, &stage.sprite_enemy_count);
     vera_sprite_disable(sprite_offset);
-    palette16_unuse(fe_sprite.palette_offset[enemy.sprite[e]]);
+    palette16_unuse(sprite_cache.palette_offset[enemy.sprite[e]]);
     fe_sprite_cache_free(enemy.sprite[e]);
     enemy.used[e] = 0;
     enemy.enabled[e] = 0;
@@ -300,14 +300,14 @@ void LogicEnemies() {
 			vera_display_set_border_color(PURPLE);
 #endif
 				if(!enemy.enabled[e]) {
-			    	vera_sprite_zdepth(sprite_offset, fe_sprite.zdepth[enemy.sprite[e]]);
+			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[enemy.sprite[e]]);
 					enemy.enabled[e] = 1;
 				}
 
 				if(enemy.wait_animation[e]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, fe_sprite.vram_image_offset[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
+					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(enemy.sprite[e], enemy.state_animation[e]));
 				}
 

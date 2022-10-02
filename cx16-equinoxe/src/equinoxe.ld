@@ -28,3 +28,6 @@
 :BasicUpstart(%E)
 .segment Code
 .segment Data
+.segment levels
+.segment spritecontrol
+.segment Data

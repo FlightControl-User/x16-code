@@ -52,7 +52,7 @@ void main() {
         printf("After Dump");
         vera_heap_dump(s2, 40, 2);
 
-        // while(!getin());
+        while(!getin());
     }
 
 }

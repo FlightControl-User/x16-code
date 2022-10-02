@@ -103,7 +103,7 @@ void player_remove(unsigned char p, unsigned char b)
         vera_sprite_offset sprite_offset = player.sprite_offset[p];
         FreeOffset(sprite_offset, &stage.sprite_player_count);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(fe_sprite.palette_offset[player.sprite[p]]);
+        palette16_unuse(sprite_cache.palette_offset[player.sprite[p]]);
         fe_sprite_cache_free(player.sprite[p]);
         player.used[p] = 0;
         player.enabled[p] = 0;
@@ -112,7 +112,7 @@ void player_remove(unsigned char p, unsigned char b)
         sprite_offset = engine.sprite_offset[n];
         FreeOffset(sprite_offset, &stage.sprite_player_count);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(fe_sprite.palette_offset[engine.sprite[n]]);
+        palette16_unuse(sprite_cache.palette_offset[engine.sprite[n]]);
         fe_sprite_cache_free(engine.sprite[n]);
         engine.used[n] = 0;
 
@@ -219,8 +219,8 @@ void player_logic() {
                 unsigned char engine_sprite = engine.sprite[n];
 
                 if(!player.enabled[p]) {
-                    vera_sprite_zdepth(player_sprite_offset, fe_sprite.zdepth[player_sprite]);
-                    vera_sprite_zdepth(engine_sprite_offset, fe_sprite.zdepth[engine_sprite]);
+                    vera_sprite_zdepth(player_sprite_offset, sprite_cache.zdepth[player_sprite]);
+                    vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
                     player.enabled[p] = 1;
                 }
 
@@ -228,14 +228,14 @@ void player_logic() {
                     vera_sprite_set_xy(player_sprite_offset, playerx, playery);
                 } else {
                     // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image[player.state_animation[p]]);
-                    // vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, fe_sprite.vram_image_offset[(unsigned int)player.sprite[p]*16+player.state_animation[p]]);
+                    // vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_cache.vram_image_offset[(unsigned int)player.sprite[p]*16+player.state_animation[p]]);
 					vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_image_cache_vram(player_sprite, player.state_animation[p]));
                 }
 #ifdef __ENGINE
                 if(engine.wait_animation[n]) {
                     vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
                 } else {
-                    // vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, fe_sprite.vram_image_offset[(unsigned int)engine.sprite[n]*16+engine.state_animation[n]]);
+                    // vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_cache.vram_image_offset[(unsigned int)engine.sprite[n]*16+engine.state_animation[n]]);
 					vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine_sprite, engine.state_animation[n]));
                 }
 #endif

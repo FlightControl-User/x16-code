@@ -192,14 +192,14 @@ void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment)
 
     for(unsigned int t=0; t<tile_count; t++) {
 
-        fb_heap_handle_t handle_bram = tile->bram_handle[t];
+        heap_bram_fb_handle_t handle_bram = tile->bram_handle[t];
 
         // Dynamic allocation of tiles in vera vram.
         tile->vera_heap_index[t] = vera_heap_alloc(segment, tile_size);
         vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, tile->vera_heap_index[t]);
         vram_offset_t vram_offset = vera_heap_data_get_offset(segment, tile->vera_heap_index[t]);
 
-        memcpy_vram_bram(vram_bank, vram_offset, handle_bram.bank, (bram_ptr_t)handle_bram.ptr, tile_size);
+        memcpy_vram_bram(vram_bank, vram_offset, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile_size);
 
         // The offset starts at 0x2000.
         // Each tile is 0x0400 bytes large.
@@ -220,8 +220,8 @@ void tile_load(tile_t *tile) {
     if (status) printf("error opening file %s\n", tile->file);
 
     for(unsigned char s=0; s<tile->count; s++) {
-        fb_heap_handle_t handle_bram = heap_alloc(bins, tile->TileSize);
-        unsigned char status = load_file_bram(1, 8, 0, handle_bram.bank, handle_bram.ptr, tile->TileSize);
+        heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, tile->TileSize);
+        unsigned char status = load_file_bram(1, 8, 0, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile->TileSize);
         if (status) {
             printf("error loading file %s\n", tile->file);
             break;
@@ -235,4 +235,3 @@ void tile_load(tile_t *tile) {
 }
 
 #pragma data_seg(Data)
-//#pragma var_model(zp)

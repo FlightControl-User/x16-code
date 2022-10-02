@@ -17,7 +17,7 @@ typedef struct {
     word TotalSize;
     word TileSize;
     byte PaletteOffset; 
-    fb_heap_handle_t bram_handle[64];
+    heap_bram_fb_handle_t bram_handle[64];
     vera_heap_index_t vera_heap_index[64];
 } tile_t;
 
@@ -31,7 +31,7 @@ tile_t TileFloor01 = {
     32*32*TILE_FLOOR01_COUNT, 
     1024, 
     0, 
-    { { 0,0 } }, { 0 } 
+    { 0 }, { 0 } 
 };
 
 const unsigned char TILE_TYPES = 1;

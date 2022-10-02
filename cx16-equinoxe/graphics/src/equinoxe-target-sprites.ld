@@ -9,6 +9,9 @@
 .file [name="ENEMY05.BIN", type="bin", segments="enemy05"]
 .file [name="ENEMY06.BIN", type="bin", segments="enemy06"]
 .file [name="ENEMY07.BIN", type="bin", segments="enemy07"]
+.file [name="ENEMY08.BIN", type="bin", segments="enemy08"]
+.file [name="ENEMY09.BIN", type="bin", segments="enemy09"]
+.file [name="ENEMY10.BIN", type="bin", segments="enemy10"]
 .file [name="BULLET01.BIN", type="bin", segments="bullet01"]
 .file [name="BULLET02.BIN", type="bin", segments="bullet02"]
 .file [name="BULLET03.BIN", type="bin", segments="bullet01"]
@@ -28,6 +31,9 @@
 .segmentdef enemy05
 .segmentdef enemy06
 .segmentdef enemy07
+.segmentdef enemy08
+.segmentdef enemy09
+.segmentdef enemy10
 .segmentdef engine01 
 .segmentdef bullet01 
 .segmentdef bullet02 

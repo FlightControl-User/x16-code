@@ -18,5 +18,5 @@ const bram_bank_t BRAM_VERAHEAP = 1;
 const bram_bank_t BRAM_FLIGHTENGINE = 2;
 const bram_bank_t BRAM_STAGE = 3;
 const bram_bank_t BRAM_SPRITE_CONTROL = 4;
-const bram_bank_t BRAM_PALETTE = 63;
+const bram_bank_t BRAM_PALETTE = 7;
 

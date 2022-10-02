@@ -10,8 +10,6 @@
  */
 
 
-// #include <cx16-fb.h>
-
 typedef unsigned char const ht_size_t;
 typedef unsigned char ht_key_t;
 typedef unsigned char ht_data_t;

@@ -1,4 +1,5 @@
 #include "equinoxe-bank.h"
+#include <lru-cache.h>
 
 
 const vera_heap_segment_index_t VERA_HEAP_SEGMENT_TILES = 0;

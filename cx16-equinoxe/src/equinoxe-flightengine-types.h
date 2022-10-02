@@ -1,4 +1,4 @@
-#include <cx16-fb.h>
+#include <cx16-heap-bram-fb.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include "cx16-veraheap-typedefs.h"
@@ -18,7 +18,7 @@ typedef struct {
     unsigned char used[16];
     void* sprite_bram[16]; // TODO: I need to get rid of this ...
     unsigned char count[16];
-    unsigned char offset[16];
+    unsigned int offset[16];
     unsigned int size[16];
     unsigned char zdepth[16];
     unsigned char bpp[16];
@@ -46,11 +46,11 @@ typedef struct {
     unsigned char   PaletteOffset; 
     unsigned char   reverse;
     unsigned char   aabb[4];
-    unsigned char    offset;
+    unsigned int    offset;
     fe_sprite_index_t sprite_cache;
 } sprite_bram_t;
 
-typedef fb_heap_handle_t sprite_bram_handles_t;
+typedef heap_bram_fb_handle_t sprite_bram_handles_t;
 
 typedef struct {
 

@@ -8,11 +8,10 @@
 // #define __NOVSYNC
 
 #define __CPULINES
-// #define __FILE
 
 #define __PALETTE
 
-#define __FLOOR
+// #define __FLOOR
 #define __FLIGHT
 #define __STAGE
 #define __COLLISION
@@ -22,18 +21,25 @@
 #define __ENEMY
 #define __ENGINE
 
-// #define __CACHE_DEBUG
+// #define __DEBUG_SPRITE_CACHE
 // #define __LRU_CACHE_DEBUG
 // #define __VERAHEAP_DEBUG
 // #define __WAVE_DEBUG
 // #define __ENGINE_DEBUG
 // #define __FLOOR_DEBUG
-// #define __HEAP_DEBUG
+// #define __DEBUG_HEAP_BRAM_BLOCKED
+// #define __DEBUG_HEAP_BRAM
+// #define __DEBUG_FILE
+// #define __DEBUG_PALETTE
 
 
+#define __VERAHEAP_SEGMENT
 #define LRU_CACHE_MAX 64
 
-#pragma var_model(zp, global_mem)
+// #pragma var_model(zp, global_mem)
+
+#pragma var_model(mem)
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,26 +50,29 @@
 #include <division.h>
 #include <mos6522.h>
 #include <multiply.h>
-#include <cx16.h>
 
-#include <ht.h>
-#include <lru-cache.h>
 
-#include <cx16-veraheap.h>
-#include <cx16-fb.h>
-#include <cx16-mouse.h>
-#include <cx16-conio.h>
 
 #pragma var_model(zp, global_mem, local_mem)
-#include <cx16-veralib.h>
-#include "equinoxe-types.h"
-#include "equinoxe-palette.h"
-#include "equinoxe-enemy.h"
 
 #pragma var_model(mem)
+#include <ht.h>
+#include "equinoxe-palette.h"
+#include <cx16-veralib.h>
+#include <lru-cache.h>
+#include <cx16.h>
+#include <cx16-veraheap.h>
+#include <cx16-mouse.h>
+#include <cx16-conio.h>
+#include <cx16-heap-bram-fb.h>
+#include "equinoxe-types.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-flightengine.h"
+
+#ifdef __FLOOR
 #include "equinoxe-floorengine.h"
+#endif
+
 #include "equinoxe-bullet.h"
 #include "equinoxe-fighters.h"
 #include "equinoxe-enemy.h"
@@ -74,19 +83,22 @@
 
 #include "equinoxe-petscii.c"
 
-__mem equinoxe_game_t game;
+equinoxe_game_t game;
 
 #pragma data_seg(Heap)
 
-heap_structure_t heap; const heap_structure_t* bins = &heap;
+heap_structure_t heap; const heap_structure_t* heap_bram_blocked = &heap;
 
 fb_heap_segment_t heap_64; const fb_heap_segment_t* bin64 = &heap_64;
 fb_heap_segment_t heap_128; const fb_heap_segment_t* bin128 = &heap_128;
 fb_heap_segment_t heap_256; const fb_heap_segment_t* bin256 = &heap_256;
 fb_heap_segment_t heap_512; const fb_heap_segment_t* bin512 = &heap_512;
 fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
+fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 #pragma data_seg(Data)
+
+#ifdef __FLOOR
 
 void equinoxe_scrollfloor() {
 
@@ -156,6 +168,7 @@ void equinoxe_scrollfloor() {
     }
 
 }
+#endif
 
 #ifdef __COLLISION
 void equinoxe_collision() {
@@ -197,10 +210,10 @@ void equinoxe_collision() {
                             unsigned char bc = bullet.sprite[b]; // Which sprite is it in the cache...
                             unsigned char bco = bc*16;
 
-                            // unsigned char bullet_aabb_min_x = fe_sprite.aabb[bco];
-                            // unsigned char bullet_aabb_min_y = fe_sprite.aabb[bco+1];
-                            // unsigned char bullet_aabb_max_x = fe_sprite.aabb[bco+2];
-                            // unsigned char bullet_aabb_max_y = fe_sprite.aabb[bco+3];
+                            // unsigned char bullet_aabb_min_x = sprite_cache.aabb[bco];
+                            // unsigned char bullet_aabb_min_y = sprite_cache.aabb[bco+1];
+                            // unsigned char bullet_aabb_max_x = sprite_cache.aabb[bco+2];
+                            // unsigned char bullet_aabb_max_y = sprite_cache.aabb[bco+3];
 
                             if(bullet.side[b] == SIDE_PLAYER) {
 
@@ -216,15 +229,15 @@ void equinoxe_collision() {
                                         unsigned char ec = enemy.sprite[e]; // Which sprite is it in the cache...
                                         unsigned char eco = ec*16;
 
-                                        // unsigned char enemy_aabb_min_x = fe_sprite.aabb[eco];
-                                        // unsigned char enemy_aabb_min_y = fe_sprite.aabb[eco+1];
-                                        // unsigned char enemy_aabb_max_x = fe_sprite.aabb[eco+2];
-                                        // unsigned char enemy_aabb_max_y = fe_sprite.aabb[eco+3];
+                                        // unsigned char enemy_aabb_min_x = sprite_cache.aabb[eco];
+                                        // unsigned char enemy_aabb_min_y = sprite_cache.aabb[eco+1];
+                                        // unsigned char enemy_aabb_max_x = sprite_cache.aabb[eco+2];
+                                        // unsigned char enemy_aabb_max_y = sprite_cache.aabb[eco+3];
 
-                                        if(x_bullet+fe_sprite.aabb[bco] > x_enemy+fe_sprite.aabb[eco+2] || 
-                                           y_bullet+fe_sprite.aabb[bco+1] > y_enemy+fe_sprite.aabb[eco+3] || 
-                                           x_bullet+fe_sprite.aabb[bco+2] < x_enemy+fe_sprite.aabb[eco] || 
-                                           y_bullet+fe_sprite.aabb[bco+3] < y_enemy+fe_sprite.aabb[eco+1]) {
+                                        if(x_bullet+sprite_cache.aabb[bco] > x_enemy+sprite_cache.aabb[eco+2] || 
+                                           y_bullet+sprite_cache.aabb[bco+1] > y_enemy+sprite_cache.aabb[eco+3] || 
+                                           x_bullet+sprite_cache.aabb[bco+2] < x_enemy+sprite_cache.aabb[eco] || 
+                                           y_bullet+sprite_cache.aabb[bco+3] < y_enemy+sprite_cache.aabb[eco+1]) {
                                         } else {
                                             bullet_remove(b);
                                             stage_enemy_hit(enemy.wave[e], e, b);
@@ -249,15 +262,15 @@ void equinoxe_collision() {
                                         unsigned char pc = player.sprite[p]; // Which sprite is it in the cache...
                                         unsigned char pco = pc*16;
 
-                                        // unsigned char player_aabb_min_x = fe_sprite.aabb[pco];
-                                        // unsigned char player_aabb_min_y = fe_sprite.aabb[pco+1];
-                                        // unsigned char player_aabb_max_x = fe_sprite.aabb[pco+2];
-                                        // unsigned char player_aabb_max_y = fe_sprite.aabb[pco+3];
+                                        // unsigned char player_aabb_min_x = sprite_cache.aabb[pco];
+                                        // unsigned char player_aabb_min_y = sprite_cache.aabb[pco+1];
+                                        // unsigned char player_aabb_max_x = sprite_cache.aabb[pco+2];
+                                        // unsigned char player_aabb_max_y = sprite_cache.aabb[pco+3];
 
-                                        if(x_bullet+fe_sprite.aabb[bco] > x_player+fe_sprite.aabb[pco+2] || 
-                                            y_bullet+fe_sprite.aabb[bco+1] > y_player+fe_sprite.aabb[pco+3] || 
-                                            x_bullet+fe_sprite.aabb[bco+2] < x_player+fe_sprite.aabb[pco] || 
-                                            y_bullet+fe_sprite.aabb[bco+3] < y_player+fe_sprite.aabb[pco+1]) {
+                                        if(x_bullet+sprite_cache.aabb[bco] > x_player+sprite_cache.aabb[pco+2] || 
+                                            y_bullet+sprite_cache.aabb[bco+1] > y_player+sprite_cache.aabb[pco+3] || 
+                                            x_bullet+sprite_cache.aabb[bco+2] < x_player+sprite_cache.aabb[pco] || 
+                                            y_bullet+sprite_cache.aabb[bco+3] < y_player+sprite_cache.aabb[pco+1]) {
                                         } else {
                                             bullet_remove(b);
                                             player_remove(p, b);
@@ -275,9 +288,7 @@ void equinoxe_collision() {
             }   
         }
         bank_pull_bram();
-
     }
-
 }
 #endif
 
@@ -496,14 +507,18 @@ void main() {
 
     ht_init(&ht_collision);
 
+    #ifdef __DEBUG_HEAP_BLOCKED
+    clrscr();
+    #endif
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(bins, 32, (fb_heap_handle_ptr_t)0xA000); // We set the heap to start in BRAM, bank 32. 
-    heap_segment_define(bins, bin64, 64, 128, 64*128);
-    heap_segment_define(bins, bin128, 128, 64, 128*364);
-    heap_segment_define(bins, bin256, 256, 64, 256*64);
-    heap_segment_define(bins, bin512, 512, 127, 512*127);
-    heap_segment_define(bins, bin1024, 1024, 63, 1024*63);
-
+    heap_segment_base(heap_bram_blocked, 8, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
+    heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);
+    heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);
+    // heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);
+    heap_segment_define(heap_bram_blocked, bin512, 512, 127, 512*127);
+    // heap_segment_define(heap_bram_blocked, bin1024, 1024, 20, 1024*64);
+    heap_segment_define(heap_bram_blocked, bin2048, 2048, 20, 2048*96);
+    
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
@@ -517,6 +532,12 @@ void main() {
 #ifdef __FLIGHT
     fe_init(BRAM_FLIGHTENGINE);
 #endif
+
+    #ifdef __DEBUG_HEAP_BRAM
+    clrscr();
+    heap_print(heap_bram_blocked);
+    while(!getin());
+    #endif
 
 #if defined(__FLIGHT) || defined(__FLOOR)
 
@@ -540,7 +561,7 @@ void main() {
     clrscr();
 
     // TODO: rework handle_vram_tiles to const
-    fb_heap_handle_t handle_vram_tiles = {0, (fb_heap_handle_ptr_t)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
+    heap_bram_fb_handle_t handle_vram_tiles = {0, (heap_bram_fb_ptr_t)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
     for(unsigned char type=0; type<TILE_TYPES; type++) {
         tile_vram_allocate(TileDB[type], VERA_HEAP_SEGMENT_TILES);
     }
@@ -579,7 +600,7 @@ void main() {
 
     scroll(0);
 
-    palette64_use(0);
+    clrscr();
 
 #if defined(__FLIGHT) || defined(__FLOOR)
     // Initialize stage
@@ -588,9 +609,9 @@ void main() {
 
 #endif
 
-    while(!getin());
-    clrscr();
+    palette64_use(0);
 
+    while(!getin());
 
 #ifndef __NOVSYNC
     // Enable VSYNC IRQ (also set line bit 8 to 0)
@@ -611,7 +632,7 @@ void main() {
         #ifdef __NOVSYNC
             irq_vsync();
         #endif
-        #ifdef __CACHE_DEBUG
+        #ifdef __DEBUG_SPRITE_CACHE
             SEI();
             fe_sprite_debug();
             CLI();

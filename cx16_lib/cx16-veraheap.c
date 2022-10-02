@@ -18,7 +18,9 @@
 
 
 
+#ifdef __VERAHEAP_SEGMENT
 #pragma data_seg(VeraHeap)
+#endif
 vera_heap_map_t  vera_heap_index; // The heap index is located in BRAM.
 
 #pragma data_seg(Data)
@@ -860,7 +862,7 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
 void vera_heap_dump_stats(vera_heap_segment_index_t s)
 {
     gotoxy(dx, dy++);
-	printf("size  heap:%05x  free:%05x  index:%02x  bank:%02x", vera_heap_alloc_size(s), vera_heap_free_size(s), vera_heap_segment.index_position, vera_heap_segment.bram_bank);
+	printf("size  heap:%05x  free:%05x  mem:%05x", vera_heap_alloc_size(s), vera_heap_free_size(s), vera_heap_free_memory(s));
     gotoxy(dx, dy++);
 	printf("count  heap:%04u  free:%04u  idle:%04u", vera_heap_alloc_count(s), vera_heap_free_count(s), vera_heap_idle_count(s));
     gotoxy(dx, dy++);
@@ -910,7 +912,21 @@ void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char 
 }
 
 /**
- * @brief Return the size of allocated heap records of the segment.
+ * @brief Return the size of free memory of the segment.
+ * 
+ * @param segment The segment identifier, a value between 0 and 15.
+ * @return heap_size_large
+ */
+vera_heap_size_t vera_heap_free_memory(vera_heap_segment_index_t s)
+{
+    vera_heap_size_t size = vera_heap_size_unpack(vera_heap_segment.ceil[s] - vera_heap_segment.floor[s]);
+	vera_heap_size_t allocSize = vera_heap_alloc_size(s);
+	return size - allocSize;
+}
+
+
+/**
+ * @brief Return the size of free heap of the segment.
  * 
  * @param segment The segment identifier, a value between 0 and 15.
  * @return heap_size_large

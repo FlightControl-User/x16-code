@@ -1,4 +1,4 @@
-#include <cx16-fb.h>
+#include <cx16-heap-bram-fb.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include <fp3.h>
@@ -42,7 +42,7 @@ extern fe_player_t player;
 extern fe_engine_t engine;
 extern fe_enemy_t enemy;
 extern fe_bullet_t bullet;
-extern fe_sprite_cache_t fe_sprite;
+extern fe_sprite_cache_t sprite_cache;
 
 extern vera_sprite_offset sprite_offsets[127];
 
