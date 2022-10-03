@@ -216,12 +216,12 @@ void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment)
 // Load the tile into bram using the new cx16 heap manager.
 void tile_load(tile_t *tile) {
 
-    unsigned int status = open_file(1, 8, 0, tile->file);
+    unsigned int status = file_open(1, 8, 0, tile->file);
     if (status) printf("error opening file %s\n", tile->file);
 
     for(unsigned char s=0; s<tile->count; s++) {
         heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, tile->TileSize);
-        unsigned char status = load_file_bram(1, 8, 0, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile->TileSize);
+        unsigned char status = file_load(1, 8, 0, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile->TileSize);
         if (status) {
             printf("error loading file %s\n", tile->file);
             break;
@@ -229,7 +229,7 @@ void tile_load(tile_t *tile) {
         tile->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
     }
 
-    status = close_file(1, 8, 0);
+    status = file_close(1, 8, 0);
     if (status) printf("error closing file %s\n", tile->file);
 
 }

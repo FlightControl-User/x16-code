@@ -17,7 +17,7 @@ void stage_init(bram_bank_t bram_bank)
 {
 	memset(&stage, 0, sizeof(stage_t));
 
-    unsigned int bytes = load_file(1,8,0, "levels.bin", bram_bank, (bram_ptr_t) 0xA000);
+    unsigned int bytes = file_load_bram(1,8,0, "levels.bin", bram_bank, (bram_ptr_t) 0xA000);
     printf("level loaded, %x bytes\n", bytes);
 
 }
@@ -81,7 +81,7 @@ static void stage_reset(void)
     stage.scenario = 0;
     stage.scenarios = stage_playbook[stage.playbook].scenarios;
 
-    printf("stage.scenarios = %u", stage.scenarios);
+    // printf("stage.scenarios = %u", stage.scenarios);
 
     bank_pull_bram();
 

@@ -1,6 +1,6 @@
 // #pragma var_model(mem) 
 
-#define VERAHEAP_DEBUG
+#define __VERAHEAP_DEBUG
 
 #include <stdlib.h>
 #include <cx16.h>

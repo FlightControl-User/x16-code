@@ -216,9 +216,9 @@ stage_action_move_t     action_move_00      = { 480+64, 16, 3 };
 stage_action_move_t     action_move_01      = { 320+160, 32, 3 };
 stage_action_move_t     action_move_02      = { 80, 0, 3 };
 stage_action_move_t     action_move_03      = { 320+160, 0, 3 };
-stage_action_move_t     action_move_04      = { 640, 32, 4 };
-stage_action_move_t     action_move_05      = { 640, 32, 2 };
-stage_action_move_t     action_move_06      = { 640, 0, 2 };
+stage_action_move_t     action_move_04      = { 768, 32, 4 };
+stage_action_move_t     action_move_05      = { 768, 32, 2 };
+stage_action_move_t     action_move_06      = { 768, 0, 2 };
 
 stage_action_turn_t     action_turn_00      = { -24, 4, 3 };
 stage_action_turn_t     action_turn_01      = { 24, 4, 3 };
@@ -268,22 +268,22 @@ stage_flightpath_t action_flightpath_006[] = {
 __export volatile
 stage_scenario_t stage_level_01[32] = {
 //    ct, sp, &sprite_enemy_xxx, action_flightpath_xxx, xstrt, ystrt, xinc, yinc, ival, wait, prev    
-    {  8,  8, &sprite_enemy_010, action_flightpath_006,   -32,    32,    0,   48,    0,    0,  255 }, // 0
-    {  8,  8, &sprite_enemy_010, action_flightpath_005,   640,    32,    0,   48,    0,   80,    0 }, // 1
-    {  8,  8, &sprite_enemy_006, action_flightpath_006,   -32,    32,    0,   32,    0,   80,    1 }, // 2
-    {  8,  8, &sprite_enemy_006, action_flightpath_005,   640,    32,    0,   32,    0,   80,    2 }, // 3
-    {  8,  8, &sprite_enemy_004, action_flightpath_006,   -32,    32,    0,   48,    0,   80,    3 }, // 4
-    {  8,  8, &sprite_enemy_005, action_flightpath_005,   640,    32,    0,   48,    0,   80,    4 }, // 5
-    {  8,  8, &sprite_enemy_006, action_flightpath_006,   -32,    32,    0,   32,    8,   80,    5 }, // 6
-    {  8,  8, &sprite_enemy_009, action_flightpath_005,   640,    32,    0,   32,    8,   80,    6 }, // 7
-    {  8,  8, &sprite_enemy_010, action_flightpath_006,   -32,    32,    0,   32,    8,   80,    7 }, // 8
-    {  8,  8, &sprite_enemy_009, action_flightpath_005,   640,    32,    0,   32,    8,   80,    8 }, // 9
-    {  8,  8, &sprite_enemy_009, action_flightpath_006,   -32,    32,    0,   32,    8,   80,    9 }, // 10
-    {  8,  8, &sprite_enemy_003, action_flightpath_005,   640,    32,    0,   32,    4,   80,   10 }, // 11
-    {  8,  8, &sprite_enemy_004, action_flightpath_006,   -32,    32,    0,   32,    4,   80,   11 }, // 12
-    {  8,  8, &sprite_enemy_005, action_flightpath_005,   640,    32,    0,   32,    4,   80,   12 }, // 13
-    {  8,  8, &sprite_enemy_006, action_flightpath_006,   -32,    32,    0,   32,    4,   80,   13 }, // 14
-    {  8,  8, &sprite_enemy_007, action_flightpath_005,   640,    32,    0,   32,    4,   80,   14 }  // 15
+    { 16, 16, &sprite_enemy_010, action_flightpath_006,   -64,    32,    0,    0,    8,    0,  255 }, // 0
+    { 16, 16, &sprite_enemy_010, action_flightpath_005,   704,    96,    0,    0,    8,   80,    0 }, // 1
+    { 16, 16, &sprite_enemy_006, action_flightpath_006,   -64,   160,    0,    0,    8,   80,    0 }, // 2
+    { 16, 16, &sprite_enemy_002, action_flightpath_005,   704,    32,    0,    0,   10,  200,    2 }, // 3
+    { 16, 16, &sprite_enemy_003, action_flightpath_006,   -64,    96,    0,    0,   10,  200,    2 }, // 4
+    { 16, 16, &sprite_enemy_002, action_flightpath_005,   704,   160,    0,    0,   10,  200,    2 }, // 5
+    {  8,  8, &sprite_enemy_010, action_flightpath_006,   -64,    32,    0,    0,   40,   80,    5 }, // 6
+    {  8,  8, &sprite_enemy_009, action_flightpath_005,   704,    96,    0,    0,   40,   80,    5 }, // 7
+    {  8,  8, &sprite_enemy_010, action_flightpath_006,   -64,   160,    0,    0,   40,   80,    5 }, // 8
+    {  8,  8, &sprite_enemy_009, action_flightpath_005,   704,   224,    0,    0,   40,   80,    5 }, // 9
+    {  8,  8, &sprite_enemy_008, action_flightpath_006,   -64,    32,    0,   32,    8,   80,    9 }, // 10
+    {  8,  8, &sprite_enemy_007, action_flightpath_005,   704,    32,    0,   32,    4,   80,   10 }, // 11
+    {  8,  8, &sprite_enemy_006, action_flightpath_006,   -64,    32,    0,   32,    4,   80,   11 }, // 12
+    {  8,  8, &sprite_enemy_005, action_flightpath_005,   704,    32,    0,   32,    4,   80,   12 }, // 13
+    {  8,  8, &sprite_enemy_004, action_flightpath_006,   -64,    32,    0,   32,    4,   80,   13 }, // 14
+    {  8,  8, &sprite_enemy_007, action_flightpath_005,   704,    32,    0,   32,    4,   80,   14 }  // 15
 };
 
 // This models the playbook of all the different levels in the game.

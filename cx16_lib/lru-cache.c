@@ -24,6 +24,7 @@ void lru_cache_init(lru_cache_table_t *lru_cache) {
     lru_cache->first = 0xFF;
     lru_cache->last = 0xFF;
     lru_cache->count = 0;
+    lru_cache->size = LRU_CACHE_SIZE;
 }
 
 __mem unsigned char lru_cache_seed;
@@ -207,7 +208,7 @@ void lru_cache_display(lru_cache_table_t *lru_cache) {
     unsigned char col = 0;
 
     printf("least recently used cache statistics\n");
-    printf("size = %3u, first = %3u, last = %3u, count = %3u\n\n", LRU_CACHE_SIZE, lru_cache->first, lru_cache->last, lru_cache->count);
+    printf("size = %3u, first = %2x, last = %2x, count = %2x\n\n", LRU_CACHE_SIZE, lru_cache->first, lru_cache->last, lru_cache->count);
 
     printf("least recently used hash table\n");
     do {
@@ -243,11 +244,14 @@ void lru_cache_display(lru_cache_table_t *lru_cache) {
     unsigned char cache_count = 0;
     col = 0;
 
-    while (cache_count < lru_cache->count) {
+    while (cache_count < lru_cache->size) {
         if (!col) {
             printf("%4x: ", cache_count);
         }
-        printf(" %2x:", lru_cache->key[cache_index]);
+        if(cache_count < lru_cache->count)
+            printf(" %2x", lru_cache->key[cache_index]);
+        else
+            printf("   ");
         //printf(" %4x %3uN %3uP ", lru_cache->key[cache_index], lru_cache->next[cache_index], lru_cache->prev[cache_index]);
 
         if (++col >= 16) {
@@ -257,9 +261,5 @@ void lru_cache_display(lru_cache_table_t *lru_cache) {
 
         cache_index = lru_cache->next[cache_index];
         cache_count++;
-
     } 
-    
-    printf("\n");
-
 }

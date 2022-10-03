@@ -1,7 +1,8 @@
 // #pragma var_model(mem) 
 
-#define VERAHEAP_DEBUG
-#define VERAHEAP_DUMP
+#define __VERAHEAP_DEBUG
+#define __VERAHEAP_DUMP
+#define __VERAHEAP_WAIT
 
 #include <stdlib.h>
 #include <cx16.h>
@@ -67,9 +68,11 @@ void main() {
     printf("UC10 - Free handle 2, 16 bytes\n\n");
 	vera_heap_free(s, h2);
 
+
     clrscr();
     printf("UC11 - Free handle 4, 16 bytes\n\n");
 	vera_heap_free(s, h4);
+
 
     clrscr();
     printf("UC12 - Free handle 6, 8 bytes\n\n");

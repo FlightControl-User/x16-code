@@ -17,7 +17,7 @@ void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char 
 void vera_heap_dump_stats(vera_heap_segment_index_t s);
 void vera_heap_dump_index(vera_heap_segment_index_t s);
 void vera_heap_dump_xy(unsigned char x, unsigned char y);
-void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char dx, unsigned char dy);
+void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char veraheap_dx, unsigned char veraheap_dy);
 
 
 inline vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, vera_heap_index_t index);
@@ -33,7 +33,7 @@ unsigned int vera_heap_alloc_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_free_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_idle_count(vera_heap_segment_index_t s);
 
-vera_heap_size_t vera_heap_free_memory(vera_heap_segment_index_t s);
+bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_requested);
 
 vera_heap_index_t vera_heap_list_remove(vera_heap_segment_index_t s, vera_heap_index_t list, vera_heap_index_t index);
 vera_heap_index_t vera_heap_heap_insert_at(vera_heap_segment_index_t s, vera_heap_index_t heap_index, vera_heap_index_t at, vera_heap_size_packed_t size);

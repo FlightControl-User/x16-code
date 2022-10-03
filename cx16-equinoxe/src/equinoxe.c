@@ -3,43 +3,12 @@
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
 
-#define __MAIN
 
-// #define __NOVSYNC
+#pragma var_model(zp, global_mem)
 
-#define __CPULINES
+// #pragma var_model(mem)
 
-#define __PALETTE
-
-// #define __FLOOR
-#define __FLIGHT
-#define __STAGE
-#define __COLLISION
-
-#define __PLAYER
-#define __BULLET
-#define __ENEMY
-#define __ENGINE
-
-// #define __DEBUG_SPRITE_CACHE
-// #define __LRU_CACHE_DEBUG
-// #define __VERAHEAP_DEBUG
-// #define __WAVE_DEBUG
-// #define __ENGINE_DEBUG
-// #define __FLOOR_DEBUG
-// #define __DEBUG_HEAP_BRAM_BLOCKED
-// #define __DEBUG_HEAP_BRAM
-// #define __DEBUG_FILE
-// #define __DEBUG_PALETTE
-
-
-#define __VERAHEAP_SEGMENT
-#define LRU_CACHE_MAX 64
-
-// #pragma var_model(zp, global_mem)
-
-#pragma var_model(mem)
-
+#include "equinoxe-defines.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,17 +20,14 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-
-
-#pragma var_model(zp, global_mem, local_mem)
+#include <cx16.h>
+#include <ht.h>
+#include <lru-cache.h>
 
 #pragma var_model(mem)
-#include <ht.h>
+#include <cx16-veraheap.h>
 #include "equinoxe-palette.h"
 #include <cx16-veralib.h>
-#include <lru-cache.h>
-#include <cx16.h>
-#include <cx16-veraheap.h>
 #include <cx16-mouse.h>
 #include <cx16-conio.h>
 #include <cx16-heap-bram-fb.h>
@@ -533,11 +499,6 @@ void main() {
     fe_init(BRAM_FLIGHTENGINE);
 #endif
 
-    #ifdef __DEBUG_HEAP_BRAM
-    clrscr();
-    heap_print(heap_bram_blocked);
-    while(!getin());
-    #endif
 
 #if defined(__FLIGHT) || defined(__FLOOR)
 
@@ -560,8 +521,6 @@ void main() {
     while(!getin());
     clrscr();
 
-    // TODO: rework handle_vram_tiles to const
-    heap_bram_fb_handle_t handle_vram_tiles = {0, (heap_bram_fb_ptr_t)FLOOR_TILE_OFFSET_VRAM}; // size = 0xB000;
     for(unsigned char type=0; type<TILE_TYPES; type++) {
         tile_vram_allocate(TileDB[type], VERA_HEAP_SEGMENT_TILES);
     }
@@ -586,6 +545,12 @@ void main() {
     floor_tile_column = 16;
     floor_tile_row = 31;
 
+#endif
+
+#ifdef __DEBUG_HEAP_BRAM
+    clrscr();
+    heap_print(heap_bram_blocked);
+    while(!getin());
 #endif
 
     vera_sprites_show();

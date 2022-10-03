@@ -4,6 +4,7 @@
 
 #pragma encoding(petscii_mixed)
 
+#include "equinoxe-defines.h"
 #include "equinoxe-flightengine.h"
 
 #include <6502.h>
@@ -76,7 +77,7 @@ void fe_init(bram_bank_t bram_bank) {
 
     // Sprite Control
     fe.bram_sprite_control = BRAM_SPRITE_CONTROL;
-    unsigned int bytes = load_file(1, 8, 0, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
+    unsigned int bytes = file_load_bram(1, 8, 0, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
 
     bank_push_set_bram(fe.bram_sprite_control);
 
@@ -166,32 +167,35 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
     } else {
 
-        // We check if the vram cache is at it's maximum, and if it is, we must delete the least used image.
-        vera_heap_size_t memory = vera_heap_free_memory(VERA_HEAP_SEGMENT_SPRITES);
-        // printf("m%05x ", memory);
-        if (/* lru_cache_max(&sprite_cache_vram) || */ (memory <= (vera_heap_size_t)0x01600)) {
-            vera_heap_size_int_t required = sprite_cache.size[fe_sprite_index];
-            // printf("r%04x ", required);
-            vera_heap_size_int_t size = 0;
-            while(size < required) {
-                // If the cache is at it's maximum, before we can add a new element, we must remove the least used image.
-                // We search for the least used image in vram.
-                lru_cache_key_t vram_last = lru_cache_last(&sprite_cache_vram);
-                // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
-                vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
-                size += vera_heap_get_size_int(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-                if(vram_handle==0xFF) {
-                    gotoxy(0,59);
-                    printf("error! vram_handle is nothing!");
-                }
-                // And we free the vram heap with the vram handle that we received.
-                // But before we can free the heap, we must first convert back from teh sprite offset to the vram address.
-                // And then to a valid vram handle :-).
-                // vera_heap_bank_t bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-                // vera_heap_offset_t offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
-                vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+        // The idea of this section is to free up lru_cache and/or vram memory until there is sufficient space available.
+        // The size requested contains the required size to be allocated on vram.
+        vera_heap_size_int_t vram_size_required = sprite_cache.size[fe_sprite_index];
+
+        // We check if the vram heap has sufficient memory available for the size requested.
+        // We also check if the lru cache has sufficient elements left to contain the new sprite image.
+        bool vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
+        bool lru_cache_not_free = lru_cache_max(&sprite_cache_vram);
+
+        // Free up the lru_cache and vram memory until the requested size is available!
+        // This ensures that vram has sufficient place to allocate the new sprite image. 
+        while(lru_cache_not_free || !vram_has_free) {
+
+            // If the cache is at it's maximum, before we can add a new element, we must remove the least used image.
+            // We search for the least used image in vram.
+            lru_cache_key_t vram_last = lru_cache_last(&sprite_cache_vram);
+
+            // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
+            vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
+            if(vram_handle==0xFFFF) {
+                gotoxy(0,59);
+                printf("error! vram_handle is nothing!");
             }
-            // memset_vram(bank, offset, 0, size);
+
+            // And we free the vram heap with the vram handle that we received.
+            // But before we can free the heap, we must first convert back from teh sprite offset to the vram address.
+            // And then to a valid vram handle :-).
+            vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
+            vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
         }
 
         // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
@@ -275,7 +279,7 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
     printf("%18s ", sprite->file);
     printf("%4x %4x : ", sprite->count, sprite->SpriteSize);
 
-    unsigned int status = open_file(1, 8, 0, sprite->file);
+    unsigned int status = file_open(1, 8, 0, sprite->file);
     if (status) printf("error opening file %s\n", sprite->file);
 
     unsigned int total_loaded = 0;
@@ -284,7 +288,7 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
     for (unsigned char s = 0; s < sprite->count; s++) {
         printf(".");
         heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
-        unsigned char status = load_file_bram(1, 8, 0, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
+        unsigned char status = file_load(1, 8, 0, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
         if (status) {
             break;
         }
@@ -293,7 +297,7 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
         sprite_offset++;
     }
     cputc('\n');
-    status = close_file(1, 8, 0);
+    status = file_close(1, 8, 0);
     if (status) printf("error closing file %s\n", sprite->file);
     bank_pull_bram();
     return sprite_offset;

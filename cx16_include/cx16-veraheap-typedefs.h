@@ -98,5 +98,7 @@ typedef struct {
 	unsigned int                heapSize[VERAHEAP_SEGMENTS];
 	unsigned int                freeSize[VERAHEAP_SEGMENTS];
 
+    unsigned char color;
+
 } vera_heap_segment_t;
 
