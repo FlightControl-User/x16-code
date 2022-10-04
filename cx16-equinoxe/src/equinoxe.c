@@ -2,9 +2,10 @@
 
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
+// #pragma cpu(mos6502)
 
 
-#pragma var_model(zp, global_mem)
+#pragma var_model(zp, global_mem, local_zp)
 
 // #pragma var_model(mem)
 
@@ -25,6 +26,7 @@
 #include <lru-cache.h>
 
 #pragma var_model(mem)
+
 #include <cx16-veraheap.h>
 #include "equinoxe-palette.h"
 #include <cx16-veralib.h>
@@ -582,7 +584,8 @@ void main() {
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
     *KERNEL_IRQ = &irq_vsync;
-    *VERA_IEN = VERA_VSYNC;
+    *VERA_IEN = VERA_VSYNC | 0x80;
+    *VERA_IRQLINE_L = 0xFF;
     CLI();
 #endif
 
