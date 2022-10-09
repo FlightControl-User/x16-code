@@ -5,7 +5,7 @@
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(zp, global_mem, local_zp)
+#pragma var_model(zp)
 
 // #pragma var_model(mem)
 
@@ -479,13 +479,13 @@ void main() {
     clrscr();
     #endif
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(heap_bram_blocked, 8, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
+    heap_segment_base(heap_bram_blocked, 16, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
     heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);
     heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);
     // heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);
     heap_segment_define(heap_bram_blocked, bin512, 512, 127, 512*127);
     // heap_segment_define(heap_bram_blocked, bin1024, 1024, 20, 1024*64);
-    heap_segment_define(heap_bram_blocked, bin2048, 2048, 20, 2048*96);
+    heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);
     
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
@@ -497,15 +497,17 @@ void main() {
     palette_load(0); // Todo, what is this level thing ... All palettes to be loaded.
 #endif
 
+while(!getin());
+
 #ifdef __FLIGHT
-    fe_init(BRAM_FLIGHTENGINE);
+    fe_init();
 #endif
 
 
 #if defined(__FLIGHT) || defined(__FLOOR)
 
     // Initialize stage
-    stage_init(BRAM_STAGE);
+    stage_init();
 #endif
 
     // Allocate the segment for the tiles in vram.
@@ -579,6 +581,13 @@ void main() {
     palette64_use(0);
 
     while(!getin());
+
+#ifdef __DEBUG_HEAP_BRAM
+    clrscr();
+    heap_print(heap_bram_blocked);
+    while(!getin());
+#endif
+
 
 #ifndef __NOVSYNC
     // Enable VSYNC IRQ (also set line bit 8 to 0)

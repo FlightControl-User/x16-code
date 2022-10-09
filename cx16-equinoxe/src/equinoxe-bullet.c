@@ -6,6 +6,7 @@
 #include "equinoxe-collision.h"
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
+#include "levels/equinoxe-levels.h"
 
 void bullet_init()
 {
@@ -42,7 +43,7 @@ void FireBullet(unsigned char p, char reload)
         bullet.side[b] = SIDE_PLAYER;
 
 
-        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_bullet_01);
+        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_b001);
         bullet.sprite[b] = s;
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
@@ -91,7 +92,7 @@ void FireBulletEnemy(unsigned char e)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_ENEMY;
 
-        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_bullet_02);
+        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_b002);
         bullet.sprite[b] = s;
 
         bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);

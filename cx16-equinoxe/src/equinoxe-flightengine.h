@@ -47,7 +47,7 @@ extern fe_sprite_cache_t sprite_cache;
 extern vera_sprite_offset sprite_offsets[127];
 
 
-void fe_init(bram_bank_t bram_bank);
+void fe_init();
 
 fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram);
 void fe_sprite_cache_free(unsigned char s);

@@ -35,6 +35,7 @@ typedef struct {
 
 typedef struct {
     char file[16];
+    unsigned char   loaded;
     unsigned char   count;
     unsigned int    SpriteSize;
     unsigned char   Height;

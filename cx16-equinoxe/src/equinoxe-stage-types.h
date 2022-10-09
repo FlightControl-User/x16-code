@@ -43,6 +43,8 @@ typedef struct {
     unsigned int scenario;
     unsigned int scenarios; // Total amount of scenarios in current playbook.
 
+    unsigned int sprite_offset;
+
     unsigned int score;
     unsigned int penalty;
 

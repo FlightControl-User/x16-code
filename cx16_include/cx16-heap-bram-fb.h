@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#define HEAP_BRAM_FB_SEGMENTS 8
+
 typedef unsigned char   heap_bram_fb_bank_t; 			///< A bank representation for banked ram or banked vera ram.
 typedef char* 	        heap_bram_fb_ptr_t;
 typedef unsigned int 	heap_bram_fb_handle_t;        ///< Generic handle for heap references.
@@ -46,7 +48,7 @@ typedef struct {
     heap_bram_fb_handle_t ceil;
     heap_bram_fb_handle_t base;
     unsigned char segments;
-    fb_heap_segment_t* segment[4];
+    fb_heap_segment_t* segment[HEAP_BRAM_FB_SEGMENTS];
 } heap_structure_t;
 
 typedef struct {

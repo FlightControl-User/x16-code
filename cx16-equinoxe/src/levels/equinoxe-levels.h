@@ -3,214 +3,54 @@
 
 #pragma data_seg(spritecontrol)
 
+__export volatile sprite_bram_handles_t sprite_bram_handles[256];
 
-
-__export volatile
-sprite_bram_t sprite_engine_01 =       { 
-    "engine01.bin", 16, 128, 
-    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 1, 
-    0, {0,0,0,0}, 0, 0
-    // &engine01_vera_heap_index, &engine01_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_player_01 =       { 
-    "player01.bin", 7, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 0, 
-    0, {2,2,32-2,32-2}, 0, 0
-    // &player01_vera_heap_index, &player01_vram_image_offset 
-};
-
-
-__export volatile
-sprite_bram_t sprite_enemy_001 =       { 
-    "enemy01.bin", 12, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 2, 
-    0, {2,2,32-2,32-2}, 0, 0
-    // &enemy01_vera_heap_index, &enemy01_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_002 =       { 
-    "enemy02.bin", 12, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 3, 
-    1, {2,2,32-2,32-2}, 0, 0 
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_003 =       { 
-    "enemy03.bin", 6, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 4, 
-    1, {4,4,32-4,32-4}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_004 =       { 
-    "enemy04.bin", 12, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 5, 
-    1, {4,4,32-4,32-4}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_005 =       { 
-    "enemy05.bin", 12, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 6, 
-    0, {4,4,32-4,32-4}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_006 =       { 
-    "enemy06.bin", 21, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 7, 
-    0, {4,4,32-4,32-4}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_007 =       { 
-    "enemy07.bin", 12, 512, 
-    VERA_SPRITE_HEIGHT_32, VERA_SPRITE_WIDTH_32, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 8, 
-    0, {4,4,32-4,32-4}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-
-__export volatile
-sprite_bram_t sprite_enemy_008 =       { 
-    "enemy08.bin", 15, 2048, 
-    VERA_SPRITE_HEIGHT_64, VERA_SPRITE_WIDTH_64, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 9, 
-    0, {4,4,64-4,64-4}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_009 =       { 
-    "enemy09.bin", 25, 2048, 
-    VERA_SPRITE_HEIGHT_64, VERA_SPRITE_WIDTH_64, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 10, 
-    0, {4,4,64-4-16,64-4-16}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_enemy_010 =       { 
-    "enemy10.bin", 25, 2048, 
-    VERA_SPRITE_HEIGHT_64, VERA_SPRITE_WIDTH_64, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 11, 
-    0, {4,4,64-4-16,64-4-16}, 0, 0
-    // &enemy03_vera_heap_index, &enemy03_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_bullet_01 =       { 
-    "bullet01.bin", 1, 128, 
-    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 12, 
-    0, {0,0,1,4}, 0, 0
-    // &bullet01_vera_heap_index, &bullet01_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_bullet_02 =       { 
-    "bullet02.bin", 5, 128, 
-    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 13, 
-    0, {0,0,1,4}, 0, 0
-    // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
-};
-
-
-__export volatile
-sprite_bram_t sprite_bullet_03 =       { 
-    "bullet03.bin", 4, 128, 
-    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 14, 
-    0, {0,0,1,4}, 0, 0
-    // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t sprite_bullet_04 =       { 
-    "bullet04.bin", 4, 128, 
-    VERA_SPRITE_HEIGHT_16, VERA_SPRITE_WIDTH_16, 
-    VERA_SPRITE_ZDEPTH_IN_FRONT, 
-    VERA_SPRITE_NFLIP, VERA_SPRITE_NFLIP, 
-    VERA_SPRITE_4BPP, 15, 
-    0, {0,0,1,4}, 0, 0
-    // &bullet02_vera_heap_index, &bullet02_vram_image_offset 
-};
-
-__export volatile
-sprite_bram_t *sprite_DB[] = { 
-    &sprite_engine_01, 
-    &sprite_player_01, 
-    &sprite_enemy_001, 
-    &sprite_enemy_002, 
-    &sprite_enemy_003, 
-    &sprite_enemy_004, 
-    &sprite_enemy_005, 
-    &sprite_enemy_006, 
-    &sprite_enemy_007, 
-    &sprite_enemy_008, 
-    &sprite_enemy_009, 
-    &sprite_enemy_010, 
-    &sprite_bullet_01, 
-    &sprite_bullet_02,
-    &sprite_bullet_03, 
-    &sprite_bullet_04,
-    0 
-    };
-
-
-__export volatile
-sprite_bram_handles_t sprite_bram_handles[256];
+__export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_n001 = { "n001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0101 = { "e0101", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0102 = { "e0102", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0201 = { "e0201", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0202 = { "e0202", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0301 = { "e0301", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0302 = { "e0302", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0401 = { "e0401", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0501 = { "e0501", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0502 = { "e0502", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0601 = { "e0601", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0602 = { "e0602", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0701 = { "e0701", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0702 = { "e0702", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_e0703 = { "e0703", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 
 
 #pragma data_seg(levels)
+
+__export volatile stage_bullet_t stage_bullet_fireball = { &sprite_b002 };
+
+__export volatile stage_enemy_t stage_enemy_e0101 = { &sprite_e0101, &sprite_e0101, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0102 = { &sprite_e0102, &sprite_e0102, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0201 = { &sprite_e0201, &sprite_e0201, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0202 = { &sprite_e0202, &sprite_e0202, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0301 = { &sprite_e0301, &sprite_e0301, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0302 = { &sprite_e0302, &sprite_e0302, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0401 = { &sprite_e0401, &sprite_e0401, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0501 = { &sprite_e0501, &sprite_e0501, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0502 = { &sprite_e0502, &sprite_e0502, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0601 = { &sprite_e0601, &sprite_e0601, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0602 = { &sprite_e0602, &sprite_e0602, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0701 = { &sprite_e0701, &sprite_e0701, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0702 = { &sprite_e0702, &sprite_e0702, &stage_bullet_fireball };
+__export volatile stage_enemy_t stage_enemy_e0703 = { &sprite_e0703, &sprite_e0703, &stage_bullet_fireball };
+
+__export volatile stage_engine_t stage_player_engine = { &sprite_n001 };
+
+__export volatile stage_bullet_t stage_player_bullet = { &sprite_b001 };
+
+__export volatile stage_player_t stage_player = { &sprite_p001, &stage_player_engine, &stage_player_bullet };
 
 stage_action_move_t     action_move_00      = { 480+64, 16, 3 };
 stage_action_move_t     action_move_01      = { 320+160, 32, 3 };
@@ -268,29 +108,29 @@ stage_flightpath_t action_flightpath_006[] = {
 __export volatile
 stage_scenario_t stage_level_01[32] = {
 //    ct, sp, &sprite_enemy_xxx, action_flightpath_xxx, xstrt, ystrt, xinc, yinc, ival, wait, prev    
-    { 16, 16, &sprite_enemy_010, action_flightpath_006,   -64,    32,    0,    0,    8,    0,  255 }, // 0
-    { 16, 16, &sprite_enemy_010, action_flightpath_005,   704,    96,    0,    0,    8,   80,    0 }, // 1
-    { 16, 16, &sprite_enemy_006, action_flightpath_006,   -64,   160,    0,    0,    8,   80,    0 }, // 2
-    { 16, 16, &sprite_enemy_002, action_flightpath_005,   704,    32,    0,    0,   10,  200,    2 }, // 3
-    { 16, 16, &sprite_enemy_003, action_flightpath_006,   -64,    96,    0,    0,   10,  200,    2 }, // 4
-    { 16, 16, &sprite_enemy_002, action_flightpath_005,   704,   160,    0,    0,   10,  200,    2 }, // 5
-    {  8,  8, &sprite_enemy_010, action_flightpath_006,   -64,    32,    0,    0,   40,   80,    5 }, // 6
-    {  8,  8, &sprite_enemy_009, action_flightpath_005,   704,    96,    0,    0,   40,   80,    5 }, // 7
-    {  8,  8, &sprite_enemy_010, action_flightpath_006,   -64,   160,    0,    0,   40,   80,    5 }, // 8
-    {  8,  8, &sprite_enemy_009, action_flightpath_005,   704,   224,    0,    0,   40,   80,    5 }, // 9
-    {  8,  8, &sprite_enemy_008, action_flightpath_006,   -64,    32,    0,   32,    8,   80,    9 }, // 10
-    {  8,  8, &sprite_enemy_007, action_flightpath_005,   704,    32,    0,   32,    4,   80,   10 }, // 11
-    {  8,  8, &sprite_enemy_006, action_flightpath_006,   -64,    32,    0,   32,    4,   80,   11 }, // 12
-    {  8,  8, &sprite_enemy_005, action_flightpath_005,   704,    32,    0,   32,    4,   80,   12 }, // 13
-    {  8,  8, &sprite_enemy_004, action_flightpath_006,   -64,    32,    0,   32,    4,   80,   13 }, // 14
-    {  8,  8, &sprite_enemy_007, action_flightpath_005,   704,    32,    0,   32,    4,   80,   14 }  // 15
+    { 16, 16, &stage_enemy_e0101, action_flightpath_006,   -64,    32,    0,    0,    8,    0,  255 }, // 0
+    { 16, 16, &stage_enemy_e0101, action_flightpath_005,   704,    96,    0,    0,    8,   80,    0 }, // 1
+    { 16, 16, &stage_enemy_e0102, action_flightpath_006,   -64,   160,    0,    0,    8,   80,    0 }, // 2
+    { 16, 16, &stage_enemy_e0201, action_flightpath_005,   704,    32,    0,    0,   10,  200,    2 }, // 3
+    { 16, 16, &stage_enemy_e0202, action_flightpath_006,   -64,    96,    0,    0,   10,  200,    2 }, // 4
+    { 16, 16, &stage_enemy_e0201, action_flightpath_005,   704,   160,    0,    0,   10,  200,    2 }, // 5
+    {  8,  8, &stage_enemy_e0301, action_flightpath_006,   -64,    32,    0,    0,   40,   80,    5 }, // 6
+    {  8,  8, &stage_enemy_e0302, action_flightpath_005,   704,    96,    0,    0,   40,   80,    5 }, // 7
+    {  8,  8, &stage_enemy_e0301, action_flightpath_006,   -64,   160,    0,    0,   40,   80,    5 }, // 8
+    {  8,  8, &stage_enemy_e0302, action_flightpath_005,   704,   224,    0,    0,   40,   80,    5 }, // 9
+    {  8,  8, &stage_enemy_e0401, action_flightpath_006,   -64,    32,    0,   32,    8,   80,    9 }, // 10
+    {  8,  8, &stage_enemy_e0501, action_flightpath_005,   704,    32,    0,   32,    4,   80,   10 }, // 11
+    {  8,  8, &stage_enemy_e0601, action_flightpath_006,   -64,    32,    0,   32,    4,   80,   11 }, // 12
+    {  8,  8, &stage_enemy_e0701, action_flightpath_005,   704,    32,    0,   32,    4,   80,   12 }, // 13
+    {  8,  8, &stage_enemy_e0702, action_flightpath_006,   -64,    32,    0,   32,    4,   80,   13 }, // 14
+    {  8,  8, &stage_enemy_e0703, action_flightpath_005,   704,    32,    0,   32,    4,   80,   14 }  // 15
 };
+
 
 // This models the playbook of all the different levels in the game.
 // The embedded level field in the playbook is a pointer to a level composition.
-__export volatile
-stage_playbook_t stage_playbook[1] = {
-    { 15, stage_level_01 }
+__export volatile stage_playbook_t stage_playbook[] = {
+    { 15, stage_level_01, &stage_player }
 };
 
 __export volatile
@@ -299,3 +139,4 @@ stage_script_t stage_script = {
 };
 
 #pragma data_seg(Data)
+

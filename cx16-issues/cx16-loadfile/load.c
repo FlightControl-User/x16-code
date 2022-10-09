@@ -13,7 +13,7 @@ char* const text = 0xA000;
 void main() {
     // Load sprite file into memory
     clrscr();
-    unsigned int status = load_bram(1, 8, 0, "TEXT", loadtext, 0xA000);
+    unsigned int status = load_bram(1, 8, 2, "TEXT", loadtext, 0xA000);
     if(status!=0xff) printf("status = %x\n",status);
     printf("text = %s\n", text);
 }

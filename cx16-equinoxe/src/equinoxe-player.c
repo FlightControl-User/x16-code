@@ -1,5 +1,6 @@
 #include <cx16-mouse.h>
 
+#include "equinoxe-defines.h"
 #include "equinoxe-types.h"
 #include "equinoxe.h"
 #include "equinoxe-flightengine-types.h"
@@ -8,7 +9,6 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-player.h"
 #include "equinoxe-bullet.h"
-#include "levels/equinoxe-levels.h"
 
 
 #ifdef __PLAYER
@@ -23,10 +23,12 @@ void player_init()
     bank_pull_bram();
 }
 
-void player_add() 
+void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine) 
 {
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
+
+    printf("sprite_player = %p", sprite_player);
 
 	// player
 	unsigned char p = fe.player_pool;
@@ -47,7 +49,7 @@ void player_add()
 	player.wait_animation[p] = player.speed_animation[p];
 	player.state_animation[p] = 3;
 
-    unsigned char s = fe_sprite_cache_copy(&sprite_player_01);
+    unsigned char s = fe_sprite_cache_copy(sprite_player);
     player.sprite[p] = s;
 
 	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
@@ -77,7 +79,7 @@ void player_add()
 	engine.speed_animation[n] = 1;
 	engine.wait_animation[n] = engine.speed_animation[n];
 
-    unsigned char cn = fe_sprite_cache_copy(&sprite_engine_01);
+    unsigned char cn = fe_sprite_cache_copy(sprite_engine);
     engine.sprite[n] = cn;
 
 	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);

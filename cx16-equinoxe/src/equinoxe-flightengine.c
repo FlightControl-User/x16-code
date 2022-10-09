@@ -58,8 +58,8 @@ fe_t fe;  // Flight engine control.
 vera_sprite_offset sprite_offsets[127] = { 0 };
 
 
-void fe_init(bram_bank_t bram_bank) {
-    fe.bram_bank = bram_bank;
+void fe_init() {
+    fe.bram_bank = BRAM_FLIGHTENGINE;
 
 #ifdef __PLAYER
     player_init();
@@ -77,20 +77,8 @@ void fe_init(bram_bank_t bram_bank) {
 
     // Sprite Control
     fe.bram_sprite_control = BRAM_SPRITE_CONTROL;
-    unsigned int bytes = file_load_bram(1, 8, 0, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
 
-    bank_push_set_bram(fe.bram_sprite_control);
-
-    // Loading the sprites in bram.
-    unsigned char i = 0;
-    sprite_bram_t* sprite;
-    unsigned char sprite_offset = 0;
-    while (sprite = sprite_DB[i]) {
-        sprite_offset = fe_sprite_bram_load(sprite, sprite_offset);
-        i++;
-    }
-
-    bank_pull_bram();
+    unsigned int bytes = file_load_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
 
     // Initialize the cache in vram for the sprite animations.
     lru_cache_init(&sprite_cache_vram);
@@ -136,12 +124,11 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
     // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
     // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
 
-
     unsigned int image_index = sprite_cache.offset[fe_sprite_index] + fe_sprite_image_index;
 
     // We retrieve the image from BRAM from the sprite_control bank.
     // TODO: what if there are more sprite control data than that can fit into one CX16 bank?
-    bank_push_set_bram(fe.bram_sprite_control);
+    bank_push_set_bram(BRAM_SPRITE_CONTROL);
     heap_bram_fb_handle_t handle_bram = sprite_bram_handles[image_index];
     bank_pull_bram();
 
@@ -206,7 +193,9 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 
 #ifdef __CPULINES
         vera_display_set_border_color(GREEN);
+#endif
         memcpy_vram_bram(vram_bank, vram_offset, heap_bram_fb_bank_get(handle_bram), (bram_ptr_t)heap_bram_fb_ptr_get(handle_bram), sprite_cache.size[fe_sprite_index]);
+#ifdef __CPULINES
         vera_display_set_border_color(BLACK);
 #endif
         sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
@@ -220,7 +209,8 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 
 // todo, need to detach vram allocation from cache management.
 fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram) {
-    bank_push_set_bram(fe.bram_sprite_control);
+
+    bank_push_set_bram(BRAM_SPRITE_CONTROL);
 
     unsigned int c = sprite_bram->sprite_cache;
     sprite_bram_t* cache_bram = (sprite_bram_t*)sprite_cache.sprite_bram[c];
@@ -274,34 +264,76 @@ void fe_sprite_cache_free(fe_sprite_index_t fe_sprite_index) {
 #endif
 }
 
+void sprite_map_header(sprite_file_header_t* sprite_file_header, sprite_bram_t* sprite)
+{
+    sprite->count = sprite_file_header->count;
+    sprite->SpriteSize = sprite_file_header->size;
+    sprite->Width = vera_sprite_width_get_bitmap(sprite_file_header->width);
+    sprite->Height = vera_sprite_height_get_bitmap(sprite_file_header->height);
+    sprite->Zdepth = vera_sprite_zdepth_get_bitmap(sprite_file_header->zdepth);
+    sprite->Hflip = vera_sprite_hflip_get_bitmap(sprite_file_header->hflip);
+    sprite->Vflip = vera_sprite_vflip_get_bitmap(sprite_file_header->vflip);
+    sprite->BPP = vera_sprite_bpp_get_bitmap(sprite_file_header->bpp);
+    sprite->reverse = sprite_file_header->reverse;
+    sprite->aabb[0] = sprite_file_header->collision;
+    sprite->aabb[1] = sprite_file_header->collision;
+    sprite->aabb[2] = sprite->Width - sprite_file_header->collision;
+    sprite->aabb[3] = sprite->Height - sprite_file_header->collision;
+    sprite->PaletteOffset = sprite_file_header->palette_offset;
+    sprite->sprite_cache = 0;
+}
+
 // Load the sprite into bram using the new cx16 heap manager.
 unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset) {
-    bank_push_set_bram(fe.bram_sprite_control);
+    
+    bank_push_set_bram(BRAM_SPRITE_CONTROL);
 
+    if(!sprite->loaded) {
 
-    printf("%18s ", sprite->file);
-    printf("%4x %4x : ", sprite->count, sprite->SpriteSize);
+        clrscr();
 
-    unsigned int status = file_open(1, 8, 0, sprite->file);
-    if (status) printf("error opening file %s\n", sprite->file);
+        char filename[32];
+        strcpy(filename, sprite->file);
+        strcat(filename, ".bin");
 
-    unsigned int total_loaded = 0;
+        unsigned int status = file_open(1, 8, 2, filename);
+        if (status) printf("error opening file %s\n", filename);
 
-    sprite->offset = sprite_offset;
-    for (unsigned char s = 0; s < sprite->count; s++) {
-        printf(".");
-        heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
-        unsigned char status = file_load(1, 8, 0, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
-        if (status) {
-            break;
+        printf("%10s ", filename);
+
+        sprite_file_header_t sprite_file_header;
+
+        // Read the header of the file into the sprite_file_header structure.
+        unsigned int read = file_load_size(1, 8, 2, 0, (char*)&sprite_file_header, 16);
+        if (!read) {
+            printf("error loading file %s, status = %u\n", filename, status);
         }
-        sprite_bram_handles[sprite_offset] = handle_bram;
-        total_loaded += sprite->SpriteSize;
-        sprite_offset++;
+
+        sprite_map_header(&sprite_file_header, sprite);
+
+        printf("%2x %4x %2x %2x %2x %2x %2x : ", sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip);
+
+        unsigned int total_loaded = 0;
+
+        sprite->offset = sprite_offset;
+        for (unsigned char s = 0; s < sprite->count; s++) {
+            heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
+            cputc('.');
+            unsigned int read = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
+            if (!read) {
+                printf("error loading file %s, status = %u\n", filename, status);
+                break;
+            }
+            sprite_bram_handles[sprite_offset] = handle_bram;
+            total_loaded += sprite->SpriteSize;
+            sprite_offset++;
+            clrscr();
+        }
+        status = file_close(1);
+        if (status) printf("error closing file %s\n", sprite->file);
+        sprite->loaded = 1;
     }
-    cputc('\n');
-    status = file_close(1, 8, 0);
-    if (status) printf("error closing file %s\n", sprite->file);
+
     bank_pull_bram();
     return sprite_offset;
 }

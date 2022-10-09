@@ -3,258 +3,239 @@
 
 #include "equinoxe-target-routines.h"
 
+__export char header[] =kickasm {{
+    .var palette_offset = 0;
+}};
 
-#pragma data_seg(player01)
-__export char player01[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/player/player01_32x32",7,1,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/player/player01_32x32",pallist,7,1,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/player/player01_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+__export char p001[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/player/p001","png",1,7,512,32,32,1,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="P001.BIN", type="bin", segments="p001"]
+    .segmentdef p001
+    .segment p001
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(engine01)
-__export char engine01[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/engines/engine_red_16x16",16,1,16,16,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/engines/engine_red_16x16",pallist,16,1,16,16,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/engines/engine_red_16x16",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+__export char n001[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/engines/n001","png",1,16,128,16,16,1,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="N001.BIN", type="bin", segments="n001"]
+    .segmentdef n001
+    .segment n001
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy01)
-__export char enemy01[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy01_32x32",12,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy01_32x32",pallist,12,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy01_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+__export char e0101[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0101","gif",0,23,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0101.BIN", type="bin", segments="e0101"]
+    .segmentdef e0101
+    .segment e0101
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy02)
-__export char enemy02[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy02_32x32",12,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy02_32x32",pallist,12,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy02_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0102[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0102","gif",0,22,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0102.BIN", type="bin", segments="e0102"]
+    .segmentdef e0102
+    .segment e0102
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy03)
-__export char enemy03[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy03_32x32",06,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy03_32x32",pallist,06,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy03_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0201[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0201","gif",0,24,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0201.BIN", type="bin", segments="e0201"]
+    .segmentdef e0201
+    .segment e0201
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy04)
-__export char enemy04[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy04_32x32",12,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy04_32x32",pallist,12,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy04_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0202[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0202","gif",0,24,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0202.BIN", type="bin", segments="e0202"]
+    .segmentdef e0202
+    .segment e0202
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy05)
-__export char enemy05[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy05_32x32",12,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy05_32x32",pallist,12,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy05_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0301[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0301","gif",0,25,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0301.BIN", type="bin", segments="e0301"]
+    .segmentdef e0301
+    .segment e0301
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy06)
-__export char enemy06[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy06_32x32",21,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy06_32x32",pallist,21,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy06_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0302[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0302","gif",0,25,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0302.BIN", type="bin", segments="e0302"]
+    .segmentdef e0302
+    .segment e0302
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy07)
-__export char enemy07[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy07_32x32",12,0,32,32,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy07_32x32",pallist,12,0,32,32,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy07_32x32",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0401[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0401","gif",0,27,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0401.BIN", type="bin", segments="e0401"]
+    .segmentdef e0401
+    .segment e0401
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy08)
-__export char enemy08[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy08_64x64",15,0,64,64,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy08_64x64",pallist,15,0,64,64,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy08_64x64",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0501[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0501","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0501.BIN", type="bin", segments="e0501"]
+    .segmentdef e0501
+    .segment e0501
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy09)
-__export char enemy09[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy09_64x64",25,0,64,64,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy09_64x64",pallist,25,0,64,64,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy09_64x64",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0502[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0502","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0502.BIN", type="bin", segments="e0502"]
+    .segmentdef e0502
+    .segment e0502
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(enemy10)
-__export char enemy10[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/enemies/enemy10_64x64",25,0,64,64,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/enemies/enemy10_64x64",pallist,25,0,64,64,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/enemies/enemy10_64x64",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0601[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0601","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0601.BIN", type="bin", segments="e0601"]
+    .segmentdef e0601
+    .segment e0601
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(bullet01)
-__export char bullet01[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/bullets/bullet01_16x16",1,0,16,16,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/bullets/bullet01_16x16",pallist,1,0,16,16,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/bullets/bullet01_16x16",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0602[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0602","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0602.BIN", type="bin", segments="e0602"]
+    .segmentdef e0602
+    .segment e0602
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(bullet02)
-__export char bullet02[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/bullets/bullet02_16x16",4,0,16,16,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/bullets/bullet02_16x16",pallist,4,0,16,16,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/bullets/bullet02_16x16",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e0701[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0701","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0701.BIN", type="bin", segments="e0701"]
+    .segmentdef e0701
+    .segment e0701
+    Data(sprite,tiledata,pallistdata)
 };}};
 
-#pragma data_seg(bullet03)
-__export char bullet03[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/bullets/bullet03_16x16",4,0,16,16,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/bullets/bullet03_16x16",pallist,4,0,16,16,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/bullets/bullet03_16x16",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+__export char e702[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0702","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0702.BIN", type="bin", segments="e0702"]
+    .segmentdef e0702
+    .segment e0702
+    Data(sprite,tiledata,pallistdata)
 };}};
-#pragma data_seg(bullet04)
-__export char bullet04[] = kickasm {{{
-    .var pallist = GetPalette("cx16-equinoxe/graphics/bullets/bullet04_16x16",4,0,16,16,2,1,2,1)
-    .var tiledata = MakeTile("cx16-equinoxe/graphics/bullets/bullet04_16x16",pallist,4,0,16,16,2,1,2,1)
-    .var pallistdata = MakePalette("cx16-equinoxe/graphics/bullets/bullet04_16x16",pallist,16)
-    .for(var i=0;i<tiledata.size();i++) {
-        .byte tiledata.get(i)
-    }
-    .segment palettes
-    .print "palette size = " + pallistdata.size()
-    .for(var i=0;i<pallistdata.size();i++) {
-        .byte pallistdata.get(i)
-        .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-    }
+
+__export char e703[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/enemies/e0703","gif",0,26,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="E0703.BIN", type="bin", segments="e0703"]
+    .segmentdef e0703
+    .segment e0703
+    Data(sprite,tiledata,pallistdata)
+};}};
+
+
+
+__export char b001[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/bullets/b001","png",0,1,128,16,16,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="B001.BIN", type="bin", segments="b001"]
+    .segmentdef b001
+    .segment b001
+    Data(sprite,tiledata,pallistdata)
+};}};
+
+__export char b002[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/bullets/b002","png",0,4,128,16,16,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="B002.BIN", type="bin", segments="b002"]
+    .segmentdef b002
+    .segment b002
+    Data(sprite,tiledata,pallistdata)
+};}};
+
+__export char b003[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/bullets/b003","png",0,4,128,16,16,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="B003.BIN", type="bin", segments="b003"]
+    .segmentdef b003
+    .segment b003
+    Data(sprite,tiledata,pallistdata)
+};}};
+
+__export char b004[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/bullets/b004","png",0,4,128,16,16,3,0,0,4,2,0,16)
+    .var pallist = GetPalette2(sprite)
+    .var tiledata = MakeTile2(sprite,pallist)
+    .var pallistdata = MakePalette2(sprite,pallist)
+    .file [name="B004.BIN", type="bin", segments="b004"]
+    .segmentdef b004
+    .segment b004
+    Data(sprite,tiledata,pallistdata)
 };}};

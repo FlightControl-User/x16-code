@@ -30,7 +30,7 @@ void enemy_init()
 unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_t* flightpath, signed int x, signed int y) 
 {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(fe.bram_bank);
 
 	unsigned char e = fe.enemy_pool;
 
@@ -208,6 +208,7 @@ void LogicEnemies() {
                 unsigned char next = flightnode.next;
                 bank_pull_bram();
 
+                // printf(", type = %u", type);
 				switch(type) {
 
 				case STAGE_ACTION_MOVE: {
@@ -290,6 +291,8 @@ void LogicEnemies() {
 			signed int y = (signed int)WORD1(enemy.ty[e]);
 
 			vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+
+            // printf("x=%05i, y=%05i, offset=%04x", x, y, sprite_offset);
 
 			if(x>=-31 && x<640 && y>=-31 && y<480) {
 #ifdef __CPULINES

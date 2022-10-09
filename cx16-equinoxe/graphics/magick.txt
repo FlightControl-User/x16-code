@@ -1,0 +1,13 @@
+magick *.png -resize 64x64 -channel A -threshold 50% -quantize transparent +dither -colors 15 +adjoin "enemy11_64x64x_%02d.png"
+magick "%d.png[0-22]" -resize 64x64 -channel A -threshold 50% -quantize transparent +dither -remap -colors 15 +adjoin "enemy11_64x64x_%02d.png"
+
+magick "spaceship_1_version_2_*_%d.png[0-22]" -resize 64x64 -channel A -threshold 50% -quantize transparent +dither -remap -colors 16 +adjoin "e001_64x64_%02d.png"
+
+magick "%d.png[0-25]" -channel A -threshold 50% -quantize transparent +dither +remap -colors 15 -trim +repage -resize 32x32 -gravity center -background black -extent 32x32 +adjoin "e001_32x32_%02d.png"
+
+
+magick "%d.png[0-25]" ( "%d.png[0-25]" -channel A -threshold 50% -quantize transparent +dither -colors 15 +remap -trim +repage -resize 64x64 -gravity center -background black -extent 64x64 +append color.gif ) -remap color.gif +adjoin "e001_64x64_%02d.png"
+
+magick "[0-9]*.png" -channel A -threshold 50% -quantize transparent +dither -colors 16 +remap +append color.gif
+
+magick "%d.png[0-25]" -channel A -threshold 50% -quantize transparent +dither -trim +repage -resize 32x32 -gravity center -background transparent -extent 32x32 -remap color.gif +adjoin "e003_32x32_%02d.gif"

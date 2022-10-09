@@ -31,6 +31,20 @@ const byte SIDE_ENEMY = 1;
 
 // Joint global variables.
 
+typedef struct {
+    unsigned char count;
+    unsigned int size;
+    unsigned char width;
+    unsigned char height;
+    unsigned char zdepth;
+    unsigned char hflip;
+    unsigned char vflip;
+    unsigned char bpp;
+    unsigned char collision;
+    unsigned char reverse;
+    unsigned char palette_offset;
+} sprite_file_header_t;
+
 struct sprite_bullet {
     byte active;
     signed int x;

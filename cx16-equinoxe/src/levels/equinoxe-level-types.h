@@ -2,6 +2,26 @@
 #include "cx16-veraheap-typedefs.h"
 
 typedef struct {
+    sprite_bram_t* engine_sprite;
+} stage_engine_t;
+
+typedef struct {
+    sprite_bram_t* bullet_sprite;
+} stage_bullet_t;
+
+typedef struct {
+    sprite_bram_t* player_sprite;
+    stage_engine_t* stage_engine;
+    stage_bullet_t* stage_bullet; 
+} stage_player_t;
+
+typedef struct {
+    sprite_bram_t* enemy_sprite_flight;
+    sprite_bram_t* enemy_sprite_shoot;
+    stage_bullet_t* stage_bullet; 
+} stage_enemy_t;
+
+typedef struct {
      unsigned int flight;
      signed char turn;
      unsigned char speed;
@@ -28,10 +48,11 @@ typedef struct {
     unsigned char next;
 } stage_flightpath_t;
 
+
 typedef struct {
     unsigned char enemy_count;
     unsigned char enemy_spawn;
-    sprite_bram_t* enemy_sprite;
+    stage_enemy_t* stage_enemy;
     stage_flightpath_t* enemy_flightpath;
     signed int x;
     signed int y;
@@ -42,16 +63,17 @@ typedef struct {
     unsigned char prev;
 } stage_scenario_t;
 
+
 typedef struct {
-    unsigned char scenarios;
-    stage_scenario_t* scenario;
+    unsigned char scenario_count;
+    stage_scenario_t* scenarios;
+    stage_player_t* stage_player;
 } stage_playbook_t;
 
 typedef struct {
     unsigned char playbooks;
     stage_playbook_t* playbook;
 } stage_script_t;
-
 
 enum STAGE_ACTION {
     STAGE_ACTION_INIT = 0,

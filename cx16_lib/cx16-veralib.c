@@ -1059,6 +1059,22 @@ inline void vera_sprite_set_xy(vera_sprite_offset sprite_offset, vera_sprite_coo
     *VERA_DATA0 = BYTE1(y);
 }
 
+vera_sprite_coordinate vera_sprite_x_get(vera_sprite_offset sprite_offset) 
+{
+    vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+2, vera_inc_1);
+    unsigned char lo = *VERA_DATA0;
+    unsigned char hi = *VERA_DATA0;
+    return (vera_sprite_coordinate)MAKEWORD(hi, lo);
+}
+
+vera_sprite_coordinate vera_sprite_y_get(vera_sprite_offset sprite_offset) 
+{
+    vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+4, vera_inc_1);
+    unsigned char lo = *VERA_DATA0;
+    unsigned char hi = *VERA_DATA0;
+    return (vera_sprite_coordinate)MAKEWORD(hi, lo);
+}
+
 /**
  * @brief Set a sprite position on the display and animate the sprite shape.
  * Note that the x and y coordinates are expressed in 2s complement, so a negative position will hide a sprite on the top or left border!
@@ -1087,7 +1103,7 @@ inline void vera_sprite_set_xy_and_image_offset(vera_sprite_offset sprite_offset
  */
 inline void vera_sprite_4bpp(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
-    *VERA_DATA0 = *VERA_DATA0 & ~BYTE1(VERA_SPRITE_8BPP);
+    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_8BPP;
 }
 
 
@@ -1098,7 +1114,7 @@ inline void vera_sprite_4bpp(vera_sprite_offset sprite_offset) {
  */
 inline void vera_sprite_8bpp(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
-    *VERA_DATA0 = *VERA_DATA0 | BYTE1(VERA_SPRITE_8BPP);
+    *VERA_DATA0 = *VERA_DATA0 | VERA_SPRITE_8BPP;
 }
 
 
@@ -1110,8 +1126,14 @@ inline void vera_sprite_8bpp(vera_sprite_offset sprite_offset) {
  */
 inline void vera_sprite_bpp(vera_sprite_offset sprite_offset, char bpp) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
-    *VERA_DATA0 = *VERA_DATA0 & ~BYTE1(VERA_SPRITE_8BPP); 
+    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_8BPP; 
     *VERA_DATA0 |= bpp;
+}
+
+vera_sprite_bpp_t vera_sprite_bpp_get(vera_sprite_offset sprite_offset) 
+{
+    vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
+    return *VERA_DATA0 & VERA_SPRITE_8BPP;
 }
 
 /**
@@ -1268,6 +1290,179 @@ void vera_sprite_width(vera_sprite_offset sprite_offset, char width) {
     *VERA_DATA0 |= width;
 }
 
+vera_sprite_width_t vera_sprite_width_get(vera_sprite_offset sprite_offset) 
+{
+    vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
+    return *VERA_DATA0 & VERA_SPRITE_WIDTH_MASK;
+}
+
+vera_sprite_width_t vera_sprite_width_get_bitmap(char width) 
+{
+    switch(width)  {
+        case 8:
+            return VERA_SPRITE_WIDTH_8;
+        case 16:
+            return VERA_SPRITE_WIDTH_16;
+        case 32:
+            return VERA_SPRITE_WIDTH_32;
+        case 64:
+            return VERA_SPRITE_WIDTH_64;
+        other:
+    }
+    return 0;
+}
+
+unsigned char vera_sprite_width_get_value(vera_sprite_width_t width) 
+{
+    switch(width)  {
+        case VERA_SPRITE_WIDTH_8:
+            return 8;
+        case VERA_SPRITE_WIDTH_16:
+            return 16;
+        case VERA_SPRITE_WIDTH_32:
+            return 32;
+        case VERA_SPRITE_WIDTH_64:
+            return 64;
+        other:
+    }
+    return 0;
+}
+
+vera_sprite_height_t vera_sprite_height_get_bitmap(char height) 
+{
+    switch(height) {
+        case 8:
+            return VERA_SPRITE_HEIGHT_8;
+        case 16:
+            return VERA_SPRITE_HEIGHT_16;
+        case 32:
+            return VERA_SPRITE_HEIGHT_32;
+        case 64:
+            return VERA_SPRITE_HEIGHT_64;
+        other:
+    }
+    return 0;
+}
+
+unsigned char vera_sprite_height_get_value(vera_sprite_height_t height) 
+{
+    switch(height) {
+        case VERA_SPRITE_HEIGHT_8:
+            return 8;
+        case VERA_SPRITE_HEIGHT_16:
+            return 16;
+        case VERA_SPRITE_HEIGHT_32:
+            return 32;
+        case VERA_SPRITE_HEIGHT_64:
+            return 64;
+        other:
+    }
+    return 0;
+}
+
+vera_sprite_zdepth_t vera_sprite_zdepth_get_bitmap(char zdepth) 
+{
+    switch(zdepth) {
+        case 0:
+            return VERA_SPRITE_ZDEPTH_DISABLED;
+        case 1:
+            return VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0;
+        case 2:
+            return VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1;
+        case 3:
+            return VERA_SPRITE_ZDEPTH_IN_FRONT;
+        other:
+    }
+    return 0;
+}
+
+unsigned char vera_sprite_zdepth_get_value(vera_sprite_zdepth_t zdepth) 
+{
+    switch(zdepth) {
+        case VERA_SPRITE_ZDEPTH_DISABLED:
+            return 0;
+        case VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0:
+            return 1;
+        case VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1:
+            return 2;
+        case VERA_SPRITE_ZDEPTH_IN_FRONT:
+            return 3;
+        other:
+    }
+    return 0;
+}
+
+vera_sprite_hflip_t vera_sprite_hflip_get_bitmap(char hflip) 
+{
+    switch(hflip) {
+        case 0:
+            return VERA_SPRITE_NFLIP;
+        case 1:
+            return VERA_SPRITE_HFLIP;
+        other:
+    }
+    return 0;
+}
+
+unsigned char vera_sprite_hflip_get_value(vera_sprite_hflip_t hflip) 
+{
+    switch(hflip) {
+        case VERA_SPRITE_NFLIP:
+            return 0;
+        case VERA_SPRITE_HFLIP:
+            return 1;
+        other:
+    }
+    return 0;
+}
+
+vera_sprite_vflip_t vera_sprite_vflip_get_bitmap(char vflip) 
+{
+    switch(vflip) {
+        case 0:
+            return VERA_SPRITE_NFLIP;
+        case 1:
+            return VERA_SPRITE_VFLIP;
+        other:
+    }
+    return 0;
+}
+
+unsigned char vera_sprite_vflip_get_value(vera_sprite_vflip_t vflip) 
+{
+    switch(vflip) {
+        case VERA_SPRITE_NFLIP:
+            return 0;
+        case VERA_SPRITE_VFLIP:
+            return 1;
+        other:
+    }
+    return 0;
+}
+
+vera_sprite_bpp_t vera_sprite_bpp_get_bitmap(char bpp) 
+{
+    switch(bpp) {
+        case 4:
+            return VERA_SPRITE_4BPP;
+        case 8:
+            return VERA_SPRITE_8BPP;
+        other:
+    }
+    return 0;
+}
+
+unsigned char vera_sprite_bpp_get_value(vera_sprite_bpp_t bpp) 
+{
+    switch(bpp) {
+        case VERA_SPRITE_4BPP:
+            return 4;
+        case VERA_SPRITE_8BPP:
+            return 8;
+        other:
+    }
+    return 0;
+}
 
 /**
  * @brief Set the height of the sprite to 8 pixels.
@@ -1315,6 +1510,12 @@ inline void vera_sprite_height(vera_sprite_offset sprite_offset, char height) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK;
     *VERA_DATA0 |= height;
+}
+
+vera_sprite_height_t vera_sprite_height_get(vera_sprite_offset sprite_offset) 
+{
+    vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
+    return *VERA_DATA0 & VERA_SPRITE_HEIGHT_MASK;
 }
 
 /**
