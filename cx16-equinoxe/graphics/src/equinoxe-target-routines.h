@@ -5,11 +5,12 @@ __export char palettes[] =
 
 kickasm {{
 
-    .struct Sprite {tile, ext, start, count, size, width, height, zorder, flipv, fliph, bpp, collision, reverse, palettecount}
+    .struct Sprite {tile, ext, start, count, skip, size, width, height, zorder, flipv, fliph, bpp, collision, reverse, palettecount}
 
     .macro Seg(seg) {
         .segmentdef seg 
     }
+
     .macro Data(sprite, tiledata, pallistdata) {
         .byte sprite.count, <sprite.size, >sprite.size, sprite.width, sprite.height, sprite.zorder, sprite.fliph, sprite.flipv, sprite.bpp, sprite.collision, sprite.reverse, palette_offset,0,0,0,0
         .for(var i=0;i<tiledata.size();i++) {
@@ -125,11 +126,14 @@ kickasm {{
         .eval palette.put(0,0);
         .eval palList.add(0)
         .var id = sprite.start
+        .eval sprite.size = (sprite.width * sprite.height) / (8 / sprite.bpp)
+        .eval sprite.count = round((sprite.count / sprite.skip))
+        .print "size = " + sprite.size + ", width = " + sprite.width + ", height = " + sprite.height + ", bpp = " + sprite.bpp
         .for(var p=0;p<sprite.count;p++) {
             .var nr = "00"+toIntString(id)
             .var image = sprite.tile + "_" + sprite.width + "x" + sprite.height + "_" + nr.substring(nr.size()-2,nr.size()) + "." + sprite.ext
             .var pic = LoadPicture(image)
-            .eval id = id + 1
+            .eval id = id + sprite.skip
             .for (var y=0; y<sprite.height; y++) {
                 .for (var x=0;x<sprite.width; x++) {
                     // Find palette index (add if not known)
@@ -157,13 +161,13 @@ kickasm {{
         .var id = sprite.start
         .for(var p=0;p<sprite.count;p++) {
             .var nr = "00"+toIntString(id)
-            .eval id = id + 1
             .var image = sprite.tile + "_" + sprite.width + "x" + sprite.height + "_" + nr.substring(nr.size()-2,nr.size()) + "." + sprite.ext
             .var pic = LoadPicture(image)
             .var hstep = 8 / sprite.bpp
             .var vstep = 1
             .var hinc = 8 / sprite.bpp
             .var vinc = 1
+            .eval id = id + sprite.skip
             .for(var j=0; j<sprite.height; j+=vstep) {
                 .for(var i=0; i<sprite.width; i+=hstep) {
                     .for (var y=j; y<j+vstep; y+=vinc) {

@@ -20,7 +20,6 @@ void stage_init()
 	memset(&stage, 0, sizeof(stage_t));
 
     unsigned int bytes = file_load_bram(1, 8, 2, "levels.bin", BRAM_STAGE, (bram_ptr_t) 0xA000);
-    printf("level loaded, %x bytes\n", bytes);
 
 }
 
@@ -40,7 +39,8 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
     wave.enemy_spawn[ew] = stage_scenarios[scenario].enemy_spawn;
 
     stage_enemy_t* stage_enemy = stage_scenarios[scenario].stage_enemy;
-    printf("enemy sprite %p, ", stage_enemy->enemy_sprite_flight);
+    wave.animation_speed[ew] = stage_enemy->animation_speed;
+    wave.animation_reverse[ew] = stage_enemy->animation_reverse;
 
     wave.enemy_sprite[ew] = stage_enemy->enemy_sprite_flight;
     wave.interval[ew] = stage_scenarios[scenario].interval;
@@ -51,6 +51,14 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
     wave.used[ew] = 1;
     wave.finished[ew] = 0;
     wave.scenario[ew] = scenario;
+
+
+    #ifdef __DEBUG_STAGE
+        gotoxy(0, (unsigned char)scenario+1);
+        sprite_bram_t* sprite_enemy = stage_enemy->enemy_sprite_flight;
+        printf("%3u %3u %3x %4u %4u %3u", scenario, wave.enemy_count[ew], wave.enemy_spawn[ew], wave.interval[ew], wave.wait[ew], wave.prev[ew]);
+    #endif
+
 }
 
 void stage_load_enemy(stage_enemy_t* stage_enemy)
@@ -157,9 +165,9 @@ static void stage_reset(void)
 }
 
 
-/* inline */ void stage_enemy_add(unsigned char w, sprite_bram_t* sprite, stage_flightpath_t* flights)
+/* inline */ void stage_enemy_add(unsigned char w)
 {
-    unsigned char enemies = AddEnemy(w, sprite, flights, wave.x[w], wave.y[w]);
+    unsigned char enemies = AddEnemy(w);
 
     wave.x[w] += wave.dx[w];
     wave.y[w] += wave.dy[w];
@@ -192,7 +200,7 @@ void stage_logic()
                     if(!wave.wait[w]) {
                         if(wave.enemy_count[w]) {
                             if(wave.enemy_spawn[w]) {
-                                stage_enemy_add(w, wave.enemy_sprite[w], wave.enemy_flightpath[w]);
+                                stage_enemy_add(w);
                             }
                         } else {
                             wave.used[w] = 0;

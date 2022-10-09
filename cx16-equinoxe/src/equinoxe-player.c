@@ -28,8 +28,6 @@ void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine)
 
     bank_push_bram(); bank_set_bram(fe.bram_bank);
 
-    printf("sprite_player = %p", sprite_player);
-
 	// player
 	unsigned char p = fe.player_pool;
 

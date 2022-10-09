@@ -5,7 +5,7 @@
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(zp)
+#pragma var_model(zp, global_mem)
 
 // #pragma var_model(mem)
 
@@ -62,6 +62,7 @@ fb_heap_segment_t heap_128; const fb_heap_segment_t* bin128 = &heap_128;
 fb_heap_segment_t heap_256; const fb_heap_segment_t* bin256 = &heap_256;
 fb_heap_segment_t heap_512; const fb_heap_segment_t* bin512 = &heap_512;
 fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
+fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
 fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 #pragma data_seg(Data)
@@ -152,6 +153,7 @@ void equinoxe_collision() {
 
         bank_push_bram(); bank_set_bram(fe.bram_bank);
 
+
         for(unsigned char gx=0; gx<640>>(2+4); gx+=64>>(2+4)) {
             for(unsigned char gy=0; gy<480>>2; gy+=64>>2) {
 
@@ -202,10 +204,10 @@ void equinoxe_collision() {
                                         // unsigned char enemy_aabb_max_x = sprite_cache.aabb[eco+2];
                                         // unsigned char enemy_aabb_max_y = sprite_cache.aabb[eco+3];
 
-                                        if(x_bullet+sprite_cache.aabb[bco] > x_enemy+sprite_cache.aabb[eco+2] || 
-                                           y_bullet+sprite_cache.aabb[bco+1] > y_enemy+sprite_cache.aabb[eco+3] || 
-                                           x_bullet+sprite_cache.aabb[bco+2] < x_enemy+sprite_cache.aabb[eco] || 
-                                           y_bullet+sprite_cache.aabb[bco+3] < y_enemy+sprite_cache.aabb[eco+1]) {
+                                        if(!(x_bullet+sprite_cache.aabb[bco] <= x_enemy+sprite_cache.aabb[eco+2]   && 
+                                             y_bullet+sprite_cache.aabb[bco+1] <= y_enemy+sprite_cache.aabb[eco+3] && 
+                                             x_bullet+sprite_cache.aabb[bco+2] >= x_enemy+sprite_cache.aabb[eco]   && 
+                                             y_bullet+sprite_cache.aabb[bco+3] >= y_enemy+sprite_cache.aabb[eco+1])) {
                                         } else {
                                             bullet_remove(b);
                                             stage_enemy_hit(enemy.wave[e], e, b);
@@ -235,10 +237,10 @@ void equinoxe_collision() {
                                         // unsigned char player_aabb_max_x = sprite_cache.aabb[pco+2];
                                         // unsigned char player_aabb_max_y = sprite_cache.aabb[pco+3];
 
-                                        if(x_bullet+sprite_cache.aabb[bco] > x_player+sprite_cache.aabb[pco+2] || 
-                                            y_bullet+sprite_cache.aabb[bco+1] > y_player+sprite_cache.aabb[pco+3] || 
-                                            x_bullet+sprite_cache.aabb[bco+2] < x_player+sprite_cache.aabb[pco] || 
-                                            y_bullet+sprite_cache.aabb[bco+3] < y_player+sprite_cache.aabb[pco+1]) {
+                                        if(!(x_bullet+sprite_cache.aabb[bco] <= x_player+sprite_cache.aabb[pco+2]   && 
+                                             y_bullet+sprite_cache.aabb[bco+1] <= y_player+sprite_cache.aabb[pco+3] && 
+                                             x_bullet+sprite_cache.aabb[bco+2] >= x_player+sprite_cache.aabb[pco]   && 
+                                             y_bullet+sprite_cache.aabb[bco+3] >= y_player+sprite_cache.aabb[pco+1])) {
                                         } else {
                                             bullet_remove(b);
                                             player_remove(p, b);
@@ -344,7 +346,7 @@ void irq_vsync() {
 
     #ifdef __BULLET
         #ifdef __CPULINES
-            vera_display_set_border_color(CYAN);
+            vera_display_set_border_color(YELLOW);
         #endif
         LogicBullets();
     #endif
@@ -463,7 +465,6 @@ void irq_vsync() {
         vera_display_set_border_color(BLACK);
     #endif
 }
-#pragma var_model(mem)
 
 void main() {
 
@@ -475,29 +476,19 @@ void main() {
 
     ht_init(&ht_collision);
 
-    #ifdef __DEBUG_HEAP_BLOCKED
-    clrscr();
-    #endif
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(heap_bram_blocked, 16, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
+    heap_segment_base(heap_bram_blocked, 8, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
     heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);
     heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);
-    // heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);
-    heap_segment_define(heap_bram_blocked, bin512, 512, 127, 512*127);
-    // heap_segment_define(heap_bram_blocked, bin1024, 1024, 20, 1024*64);
+    heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);
+    heap_segment_define(heap_bram_blocked, bin512, 512, 256, 512*(256));
+    heap_segment_define(heap_bram_blocked, bin1024, 1024, 64, 1024*64);
     heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);
     
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0xA000, 1, 0xB000); // SPRITES segment for sprites of various sizes
-
-#ifdef __PALETTE
-    palette_init(BRAM_PALETTE);
-    palette_load(0); // Todo, what is this level thing ... All palettes to be loaded.
-#endif
-
-while(!getin());
 
 #ifdef __FLIGHT
     fe_init();
@@ -510,6 +501,30 @@ while(!getin());
     stage_init();
 #endif
 
+
+#ifdef __DEBUG_HEAP_BRAM
+    heap_print(heap_bram_blocked);
+    while(!getin());
+#endif
+
+#ifdef __PALETTE
+    palette_init(BRAM_PALETTE);
+    palette_load(0); // Todo, what is this level thing ... All palettes to be loaded.
+#endif
+
+
+#ifdef __CPULINES
+    // Set border to measure scan lines
+    vera_display_set_hstart(1);
+    vera_display_set_hstop(159);
+    vera_display_set_vstart(0);
+    vera_display_set_vstop(238);
+#endif
+
+#if defined(__FLIGHT) || defined(__FLOOR)
+    stage_reset();
+#endif
+
     // Allocate the segment for the tiles in vram.
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
@@ -517,20 +532,21 @@ while(!getin());
 #ifdef __FLOOR
     // TILE INITIALIZATION 
 
+    printf("\nloading floor: ");
     // Loading the graphics in main banked memory.
     for(unsigned char type=0; type<TILE_TYPES; type++) {
         tile_load(TileDB[type]);
+        cputc('.');
     }
-
-    while(!getin());
-    clrscr();
 
     for(unsigned char type=0; type<TILE_TYPES; type++) {
         tile_vram_allocate(TileDB[type], VERA_HEAP_SEGMENT_TILES);
     }
 
+#ifdef __DEBUG_HEAP_BRAM
+    heap_print(heap_bram_blocked);
     while(!getin());
-    clrscr();
+#endif
 
     vera_layer0_mode_tile( 
         FLOOR_MAP_BANK_VRAM, (vram_offset_t)FLOOR_MAP_OFFSET_VRAM, 
@@ -551,43 +567,19 @@ while(!getin());
 
 #endif
 
-#ifdef __DEBUG_HEAP_BRAM
-    clrscr();
-    heap_print(heap_bram_blocked);
+    // hold until the main game logic starts to review the information.
     while(!getin());
-#endif
+    clrscr();
 
-    vera_sprites_show();
+    palette64_use(0);
 
-#ifdef __CPULINES
-    // Set border to measure scan lines
-    vera_display_set_hstart(1);
-    vera_display_set_hstop(159);
-    vera_display_set_vstart(0);
-    vera_display_set_vstop(238);
+#if defined(__FLIGHT) || defined(__FLOOR)
+    stage_logic();
 #endif
 
     scroll(0);
 
-    clrscr();
-
-#if defined(__FLIGHT) || defined(__FLOOR)
-    // Initialize stage
-    stage_reset();
-    stage_logic();
-
-#endif
-
-    palette64_use(0);
-
-    while(!getin());
-
-#ifdef __DEBUG_HEAP_BRAM
-    clrscr();
-    heap_print(heap_bram_blocked);
-    while(!getin());
-#endif
-
+    vera_sprites_show();
 
 #ifndef __NOVSYNC
     // Enable VSYNC IRQ (also set line bit 8 to 0)

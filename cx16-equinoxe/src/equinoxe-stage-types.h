@@ -19,6 +19,8 @@ typedef struct {
     unsigned char used[WAVES];
     unsigned char finished[WAVES];
     unsigned int scenario[WAVES];
+    unsigned char animation_speed[WAVES];
+    unsigned char animation_reverse[WAVES];
 } stage_wave_t;
 
 

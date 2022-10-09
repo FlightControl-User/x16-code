@@ -277,8 +277,8 @@ void sprite_map_header(sprite_file_header_t* sprite_file_header, sprite_bram_t* 
     sprite->reverse = sprite_file_header->reverse;
     sprite->aabb[0] = sprite_file_header->collision;
     sprite->aabb[1] = sprite_file_header->collision;
-    sprite->aabb[2] = sprite->Width - sprite_file_header->collision;
-    sprite->aabb[3] = sprite->Height - sprite_file_header->collision;
+    sprite->aabb[2] = sprite_file_header->width - sprite_file_header->collision;
+    sprite->aabb[3] = sprite_file_header->height - sprite_file_header->collision;
     sprite->PaletteOffset = sprite_file_header->palette_offset;
     sprite->sprite_cache = 0;
 }
@@ -288,18 +288,18 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
     
     bank_push_set_bram(BRAM_SPRITE_CONTROL);
 
+
     if(!sprite->loaded) {
 
-        clrscr();
-
-        char filename[32];
+        char filename[16];
         strcpy(filename, sprite->file);
         strcat(filename, ".bin");
+
+        printf("\n%10s : ", filename);
 
         unsigned int status = file_open(1, 8, 2, filename);
         if (status) printf("error opening file %s\n", filename);
 
-        printf("%10s ", filename);
 
         sprite_file_header_t sprite_file_header;
 
@@ -311,7 +311,9 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
 
         sprite_map_header(&sprite_file_header, sprite);
 
-        printf("%2x %4x %2x %2x %2x %2x %2x : ", sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip);
+        printf("%2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x : ", 
+            sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip, 
+            sprite->aabb[0], sprite->aabb[1], sprite->aabb[2], sprite->aabb[3]);
 
         unsigned int total_loaded = 0;
 
@@ -327,7 +329,6 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
             sprite_bram_handles[sprite_offset] = handle_bram;
             total_loaded += sprite->SpriteSize;
             sprite_offset++;
-            clrscr();
         }
         status = file_close(1);
         if (status) printf("error closing file %s\n", sprite->file);

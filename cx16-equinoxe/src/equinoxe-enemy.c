@@ -27,7 +27,7 @@ void enemy_init()
 }
 
 
-unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_t* flightpath, signed int x, signed int y) 
+unsigned char AddEnemy(unsigned char w) 
 {
 
     bank_push_set_bram(fe.bram_bank);
@@ -43,7 +43,7 @@ unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_
 
     enemy.wave[e] = w;
 
-    fe_sprite_index_t s = fe_sprite_cache_copy(sprite);
+    fe_sprite_index_t s = fe_sprite_cache_copy(wave.enemy_sprite[w]);
 
     enemy.sprite[e] = s;
 
@@ -59,10 +59,10 @@ unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_
 	enemy.baseangle[e] = 0;
 	enemy.reload[e] = 0;
 
-	enemy.wait_animation[e] = 4;
-	enemy.speed_animation[e] = 4;
+	enemy.wait_animation[e] = wave.animation_speed[w];
+	enemy.speed_animation[e] = wave.animation_speed[w];
 	enemy.state_animation[e] = 0;
-    enemy.reverse_animation[e] = sprite_cache.reverse[s];
+    enemy.reverse_animation[e] = wave.animation_reverse[w];
     enemy.start_animation[e] = 0;
     enemy.stop_animation[e] = sprite_cache.count[s]-1;
     enemy.direction_animation[e] = 1;
@@ -70,11 +70,14 @@ unsigned char AddEnemy(unsigned char w, sprite_bram_t* sprite, stage_flightpath_
 	enemy.health[e] = 100;
 	enemy.delay[e] = 0;
 
+    stage_flightpath_t* flightpath = wave.enemy_flightpath[w];
     enemy.flightpath[e] = flightpath;
-
 
 	enemy.sprite_offset[e] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
 	fe_sprite_configure(enemy.sprite_offset[e], s);
+
+    signed int x = wave.x[w];
+    signed int y = wave.y[w];
 
 	enemy.tx[e] = MAKELONG((unsigned int)x, 0);
 	enemy.ty[e] = MAKELONG((unsigned int)y, 0);
@@ -188,10 +191,6 @@ void LogicEnemies() {
 
 		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 
-    #ifdef __CPULINES
-	    vera_display_set_border_color(WHITE);
-    #endif
-
 			// FP tdx = enemy.tdx[e];
 			// FP tdy = enemy.tdy[e];
             
@@ -294,14 +293,9 @@ void LogicEnemies() {
 
             // printf("x=%05i, y=%05i, offset=%04x", x, y, sprite_offset);
 
-			if(x>=-31 && x<640 && y>=-31 && y<480) {
-#ifdef __CPULINES
-			vera_display_set_border_color(RED);
-#endif
+			if(x>=-68 && x<640+68 && y>=-68 && y<480+68) {
 				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
-#ifdef __CPULINES
-			vera_display_set_border_color(PURPLE);
-#endif
+
 				if(!enemy.enabled[e]) {
 			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[enemy.sprite[e]]);
 					enemy.enabled[e] = 1;

@@ -76,7 +76,9 @@ void palette_load(unsigned char level)
 
     // Load the palettes in main banked memory.
     unsigned int floor_palette_loaded = file_load_bram(1, 8, 2, palette_files[level].file_palette64, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_64);
+    printf("%u 64 color palettes loaded.", floor_palette_loaded);
     unsigned int sprite_palette_loaded = file_load_bram(1, 8, 2, palette_files[level].file_palette16, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_16);
+    printf("%u 16 color palettes loaded.", sprite_palette_loaded);
 
     #ifdef __DEBUG_FILE
     printf("%u, %u\n", floor_palette_loaded, sprite_palette_loaded);

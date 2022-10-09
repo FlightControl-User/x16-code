@@ -221,8 +221,8 @@ void tile_load(tile_t *tile) {
 
     for(unsigned char s=0; s<tile->count; s++) {
         heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, tile->TileSize);
-        unsigned char status = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile->TileSize);
-        if (status) {
+        unsigned int read  = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile->TileSize);
+        if (!read) {
             printf("error loading file %s\n", tile->file);
             break;
         }

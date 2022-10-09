@@ -19,6 +19,8 @@ typedef struct {
     sprite_bram_t* enemy_sprite_flight;
     sprite_bram_t* enemy_sprite_shoot;
     stage_bullet_t* stage_bullet; 
+    unsigned char animation_speed;
+    unsigned char animation_reverse;
 } stage_enemy_t;
 
 typedef struct {

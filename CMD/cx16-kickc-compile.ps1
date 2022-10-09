@@ -42,3 +42,6 @@ java -jar "$kickc_jar" -I "$user_include" -I "$kickc_stdinclude" -L "$user_lib" 
 
 
 Remove-Item -path "$workspacedir/$dir/../target/*.dbg"
+$filelower = $file.ToString().Replace(".c","") + ".prg"
+$fileupper = $file.ToString().ToUpper().Replace(".C","") + ".PRG"
+Rename-Item -path "$workspacedir/$dir/../target/$filelower" -NewName $fileupper
