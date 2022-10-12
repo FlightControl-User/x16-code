@@ -8,6 +8,41 @@
 typedef unsigned char fe_sprite_index_t;
 
 typedef struct {
+    char file[16];
+    unsigned char   loaded;
+    unsigned char   count;
+    unsigned int    SpriteSize;
+    unsigned char   Height;
+    unsigned char   Width;
+    unsigned char   Zdepth;
+    unsigned char   Hflip;
+    unsigned char   Vflip;
+    unsigned char   BPP;
+    unsigned char   PaletteOffset; 
+    unsigned char   reverse;
+    unsigned char   aabb[4];
+    unsigned int    offset;
+    fe_sprite_index_t sprite_cache;
+} sprite_bram_t;
+
+typedef heap_bram_fb_handle_t sprite_bram_handles_t;
+
+typedef struct {
+    unsigned char count;
+    unsigned int size;
+    unsigned char width;
+    unsigned char height;
+    unsigned char zdepth;
+    unsigned char hflip;
+    unsigned char vflip;
+    unsigned char bpp;
+    unsigned char collision;
+    unsigned char reverse;
+    unsigned char palette_offset;
+} sprite_file_header_t;
+
+
+typedef struct {
     unsigned char used[128];
     vera_sprite_image_offset vram_image_offset[128];
     vera_heap_handle_t vram_handle[128];
@@ -33,25 +68,6 @@ typedef struct {
 } fe_sprite_cache_t;
 
 
-typedef struct {
-    char file[16];
-    unsigned char   loaded;
-    unsigned char   count;
-    unsigned int    SpriteSize;
-    unsigned char   Height;
-    unsigned char   Width;
-    unsigned char   Zdepth;
-    unsigned char   Hflip;
-    unsigned char   Vflip;
-    unsigned char   BPP;
-    unsigned char   PaletteOffset; 
-    unsigned char   reverse;
-    unsigned char   aabb[4];
-    unsigned int    offset;
-    fe_sprite_index_t sprite_cache;
-} sprite_bram_t;
-
-typedef heap_bram_fb_handle_t sprite_bram_handles_t;
 
 typedef struct {
 

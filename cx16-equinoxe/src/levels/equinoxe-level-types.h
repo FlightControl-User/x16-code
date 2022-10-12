@@ -1,5 +1,10 @@
 #include "../equinoxe-flightengine-types.h"
+#include "../equinoxe-floorengine-types.h"
 #include "cx16-veraheap-typedefs.h"
+
+typedef struct {
+    char file[16];
+} stage_file_t;
 
 typedef struct {
     sprite_bram_t* engine_sprite;
@@ -65,11 +70,22 @@ typedef struct {
     unsigned char prev;
 } stage_scenario_t;
 
+typedef struct {
+    floor_bram_t* floor_bram_tile;
+} stage_floor_bram_tiles_t;
+
+#define STAGE_FLOOR_FILE_COUNT 3
+typedef struct {
+    unsigned char floor_file_count;
+    stage_floor_bram_tiles_t* floor_bram_tiles;
+    tile_segment_t* floor_segments;
+} stage_floor_t;
 
 typedef struct {
     unsigned char scenario_count;
     stage_scenario_t* scenarios;
     stage_player_t* stage_player;
+    stage_floor_t* stage_floor;
 } stage_playbook_t;
 
 typedef struct {

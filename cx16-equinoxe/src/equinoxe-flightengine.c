@@ -295,11 +295,12 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
         strcpy(filename, sprite->file);
         strcat(filename, ".bin");
 
+        #ifdef __DEBUG_LOAD
         printf("\n%10s : ", filename);
+        #endif
 
         unsigned int status = file_open(1, 8, 2, filename);
         if (status) printf("error opening file %s\n", filename);
-
 
         sprite_file_header_t sprite_file_header;
 
@@ -311,16 +312,23 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
 
         sprite_map_header(&sprite_file_header, sprite);
 
+        #ifdef __DEBUG_LOAD
         printf("%2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x : ", 
             sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip, 
             sprite->aabb[0], sprite->aabb[1], sprite->aabb[2], sprite->aabb[3]);
+        #endif
 
         unsigned int total_loaded = 0;
+
+        // Set palette offset of sprites
+        sprite->PaletteOffset = sprite->PaletteOffset + stage.palette;
 
         sprite->offset = sprite_offset;
         for (unsigned char s = 0; s < sprite->count; s++) {
             heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
+            #ifdef __DEBUG_LOAD
             cputc('.');
+            #endif
             unsigned int read = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
             if (!read) {
                 printf("error loading file %s, status = %u\n", filename, status);

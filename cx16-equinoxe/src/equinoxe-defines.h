@@ -9,6 +9,8 @@
  * 
  */
 
+#include "equinoxe-bank.h"
+
 #define __MAIN
 
 // #define __NOVSYNC
@@ -38,7 +40,7 @@
 
 
 // Show information when generating the floor.
-// #define __FLOOR_DEBUG
+// #define __DEBUG_FLOOR
 
 // Show heap allocation and free processes.
 // #define __DEBUG_HEAP_BRAM_BLOCKED
@@ -46,7 +48,13 @@
 // Show the table before the game starts, with the loaded objects in the heap!
 // #define __DEBUG_HEAP_BRAM
 
+// Shows info while loading the game assets.
+// #define __DEBUG_LOAD
+
+// Shows detailed debug info when loading the files.
 // #define __DEBUG_FILE
+
+// Shows a table outlining the palette usage.
 // #define __DEBUG_PALETTE
 
 // Show a table with the wave cache information evolving.
@@ -55,7 +63,7 @@
 // Show stage information when the scenario changes and is active.
 // #define __DEBUG_STAGE
 
-// #define __ENGINE_DEBUG
+// #define __DEBUG_ENGINE
 
 
 #define __VERAHEAP_SEGMENT

@@ -5,6 +5,7 @@
 #include "equinoxe-types.h"
 
 #include "equinoxe-flightengine.h"
+#include "equinoxe-floorengine.h"
 #include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-stage.h"
@@ -19,7 +20,9 @@ void stage_init()
 {
 	memset(&stage, 0, sizeof(stage_t));
 
-    unsigned int bytes = file_load_bram(1, 8, 2, "levels.bin", BRAM_STAGE, (bram_ptr_t) 0xA000);
+    unsigned int bytes = file_load_bram(1, 8, 2, "levels.bin", BRAM_LEVELS, (bram_ptr_t) 0xA000);
+
+    floor_init();
 
 }
 
@@ -61,6 +64,24 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
 
 }
 
+
+void stage_load_player(stage_player_t* stage_player)
+{
+    // Loading the player sprites in bram.
+    sprite_bram_t* player_sprite = stage_player->player_sprite;
+        
+    stage.sprite_offset = fe_sprite_bram_load(player_sprite, stage.sprite_offset);
+        
+    stage_engine_t* stage_engine = stage_player->stage_engine;
+    sprite_bram_t* engine_sprite = stage_engine->engine_sprite;
+    stage.sprite_offset = fe_sprite_bram_load(engine_sprite, stage.sprite_offset);
+
+    stage_bullet_t* stage_bullet = stage_player->stage_bullet;
+    sprite_bram_t* bullet_sprite = stage_bullet->bullet_sprite;
+    stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset);
+}
+
+
 void stage_load_enemy(stage_enemy_t* stage_enemy)
 {
     // Loading the enemy sprites in bram.
@@ -79,47 +100,73 @@ void stage_load_enemy(stage_enemy_t* stage_enemy)
         // }
 }
 
-void stage_load_player(stage_player_t* stage_player)
-{
-    // Loading the player sprites in bram.
-    sprite_bram_t* player_sprite = stage_player->player_sprite;
-        
-    stage.sprite_offset = fe_sprite_bram_load(player_sprite, stage.sprite_offset);
-        
-    stage_engine_t* stage_engine = stage_player->stage_engine;
-    sprite_bram_t* engine_sprite = stage_engine->engine_sprite;
-    stage.sprite_offset = fe_sprite_bram_load(engine_sprite, stage.sprite_offset);
 
-    stage_bullet_t* stage_bullet = stage_player->stage_bullet;
-    sprite_bram_t* bullet_sprite = stage_bullet->bullet_sprite;
-    stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset);
+void stage_load_floor(stage_floor_t* stage_floor)
+{
+    bank_push_set_bram(BRAM_LEVELS); // stage data
+
+    // Loading the floor in bram.
+
+    stage_floor_bram_tiles_t* floor_bram_tiles = stage_floor->floor_bram_tiles;
+    tile_segment_t* floor_segments = stage_floor->floor_segments;
+
+    unsigned int part = 0;
+    for(unsigned char f = 0; f<stage_floor->floor_file_count; f++) {
+        floor_bram_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
+        part = floor_bram_load(part, floor_segments, floor_bram);
+    }
+
+    for(part=0;part<TILE_FLOOR_COUNT;part++) {
+        floor_vram_copy(part, floor_segments, VERA_HEAP_SEGMENT_TILES);
+    }
+
+    stage.floor_segments = stage_floor->floor_segments;
+
+    bank_pull_bram();
 }
+
 
 static void stage_load(void)
 {
-    bank_push_set_bram(BRAM_STAGE); // stage data
+    bank_push_set_bram(BRAM_LEVELS); // stage data
 
     stage_playbook_t* stage_playbooks = stage.script.playbook;
     stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
     stage_scenario_t* stage_scenarios = stage_playbook->scenarios;
     unsigned int stage_scenario_count = stage_playbook->scenario_count;
 
-    stage_load_player(stage_playbook->stage_player);
+#ifdef __FLOOR
+    stage_load_floor(stage_playbook->stage_floor);
+#endif
 
+
+#ifdef __PLAYER
+    stage_load_player(stage_playbook->stage_player);
+#endif
+
+#ifdef __ENEMY
     // Loading the enemy sprites in bram.
     for(unsigned int scenario = 0; scenario < stage_scenario_count; scenario++) {
         stage_scenario_t* stage_scenario = &stage_scenarios[scenario];
         stage_load_enemy(stage_scenario->stage_enemy);
     }
+#endif
+
 
     bank_pull_bram();
 }
 
+
 static void stage_reset(void)
 {
-    bank_push_bram(); bank_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
+    bank_push_set_bram(BRAM_LEVELS); // stage_scenario is at BRAM_LEVELS
 
     enemy_init();
+
+#ifdef __PALETTE
+    palette_init(BRAM_PALETTE);
+    palette_load(stage.playbook); // Todo, what is this level thing ... All palettes to be loaded.
+#endif
 
 #ifdef __PLAYER
     player_init();
@@ -165,7 +212,7 @@ static void stage_reset(void)
 }
 
 
-/* inline */ void stage_enemy_add(unsigned char w)
+void stage_enemy_add(unsigned char w)
 {
     unsigned char enemies = AddEnemy(w);
 
@@ -176,13 +223,15 @@ static void stage_reset(void)
     wave.enemy_count[w] -= enemies;
 }
 
-/* inline */ void stage_enemy_remove(unsigned char w, unsigned char e)
+
+void stage_enemy_remove(unsigned char w, unsigned char e)
 {
     unsigned char enemies = RemoveEnemy(e);
     wave.enemy_spawn[w] += enemies;
 }
 
-/* inline */ void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b)
+
+void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b)
 {
     unsigned char enemies = HitEnemy(e, b);
     wave.enemy_spawn[w] += enemies;
@@ -222,7 +271,7 @@ void stage_logic()
                 if(wave.finished[w]) {
 
                     // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
-                    bank_push_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
+                    bank_push_set_bram(BRAM_LEVELS); // stage_scenario is at BRAM_LEVELS
 
                     unsigned int new_scenario = wave.scenario[w];
                     unsigned int wave_scenario = wave.scenario[w];
@@ -249,7 +298,7 @@ void stage_logic()
             if(stage.scenario >= stage.scenarios) {
                 if(stage.playbook < stage.script.playbooks) {
                     stage.playbook++;
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
+                    bank_push_bram(); bank_set_bram(BRAM_LEVELS);
                     stage_playbook_t* stage_playbook = stage.script.playbook;
                     stage.scenarios = stage_playbook[stage.playbook].scenario_count;
                     stage.scenario = 0;
@@ -263,7 +312,7 @@ void stage_logic()
         stage.respawn--;
         if(!stage.respawn) {
 #ifdef __PLAYER
-            bank_push_set_bram(BRAM_STAGE);
+            bank_push_set_bram(BRAM_LEVELS);
             stage_playbook_t* stage_playbooks = stage.script.playbook;
             stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
             stage_player_t* stage_player = stage_playbook->stage_player;

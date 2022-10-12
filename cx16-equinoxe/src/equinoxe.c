@@ -73,7 +73,7 @@ void equinoxe_scrollfloor() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!floor_scroll_action--) {
-        floor_scroll_action = 1;
+        floor_scroll_action = 4;
 
         // Check every 16 floor_scroll_vertical the logic to initialize the scroll variables.
         if(!(BYTE0(floor_scroll_vertical) % 16) ) {
@@ -115,7 +115,7 @@ void equinoxe_scrollfloor() {
         // we can draw a cell from the painted segment. Note that when floor_tile_row is 0, 1 or 2,
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
-        vera_tile_cell(floor_tile_row, floor_tile_column);
+        floor_paint_tiles(stage.floor_segments, floor_tile_row, floor_tile_column);
 
         // This handles the smooth scrolling and enables seamless frame flipping.
         // Copy each cell of the current floor_tile_row, that has been tiled, to the bottom floor_tile_row (source floor_tile_row + 32),
@@ -284,7 +284,7 @@ void irq_vsync() {
     gotoxy(0,30);
 #endif
 
-#ifdef __ENGINE_DEBUG
+#ifdef __DEBUG_ENGINE
 
     char stack_entry;
     {
@@ -401,7 +401,7 @@ void irq_vsync() {
     *VERA_ISR = VERA_VSYNC;
 #endif
 
-#ifdef __ENGINE_DEBUG
+#ifdef __DEBUG_ENGINE
 
     #ifdef __CPULINES
         vera_display_set_border_color(LIGHT_GREY);
@@ -446,7 +446,7 @@ void irq_vsync() {
 
         gotoxy(x,y);
         }
-#endif // __ENGINE_DEBUG
+#endif // __DEBUG_ENGINE
 
 #ifdef __LRU_CACHE_DEBUG
     gotoxy(0, 30);
@@ -477,7 +477,7 @@ void main() {
     ht_init(&ht_collision);
 
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(heap_bram_blocked, 8, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
+    heap_segment_base(heap_bram_blocked, BRAM_HEAP_BRAM_BLOCKED, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
     heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);
     heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);
     heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);
@@ -488,7 +488,7 @@ void main() {
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
-    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0xA000, 1, 0xB000); // SPRITES segment for sprites of various sizes
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0x3000, 1, 0xB000); // SPRITES segment for sprites of various sizes
 
 #ifdef __FLIGHT
     fe_init();
@@ -507,11 +507,6 @@ void main() {
     while(!getin());
 #endif
 
-#ifdef __PALETTE
-    palette_init(BRAM_PALETTE);
-    palette_load(0); // Todo, what is this level thing ... All palettes to be loaded.
-#endif
-
 
 #ifdef __CPULINES
     // Set border to measure scan lines
@@ -521,6 +516,7 @@ void main() {
     vera_display_set_vstop(238);
 #endif
 
+
 #if defined(__FLIGHT) || defined(__FLOOR)
     stage_reset();
 #endif
@@ -529,49 +525,33 @@ void main() {
     const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
     const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
 
+    vera_layer0_mode_tile( 
+        FLOOR_MAP_BANK_VRAM, (vram_offset_t)FLOOR_MAP_OFFSET_VRAM, 
+        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_4BPP
+    );
+
+    vera_layer0_show();
+    vera_layer1_show();
+
 #ifdef __FLOOR
     // TILE INITIALIZATION 
-
-    printf("\nloading floor: ");
-    // Loading the graphics in main banked memory.
-    for(unsigned char type=0; type<TILE_TYPES; type++) {
-        tile_load(TileDB[type]);
-        cputc('.');
-    }
-
-    for(unsigned char type=0; type<TILE_TYPES; type++) {
-        tile_vram_allocate(TileDB[type], VERA_HEAP_SEGMENT_TILES);
-    }
 
 #ifdef __DEBUG_HEAP_BRAM
     heap_print(heap_bram_blocked);
     while(!getin());
 #endif
 
-    vera_layer0_mode_tile( 
-        FLOOR_MAP_BANK_VRAM, (vram_offset_t)FLOOR_MAP_OFFSET_VRAM, 
-        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
-        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-        VERA_LAYER_COLOR_DEPTH_8BPP
-    );
 
-    vera_layer0_show();
-    vera_layer1_show();
-
-    vera_tile_clear();
-    tile_background();
-
+    floor_paint_background(stage.floor_segments);
+ 
     floor_tile_column = 16;
     floor_tile_row = 31;
 
 #endif
 
-    // hold until the main game logic starts to review the information.
-    while(!getin());
-    clrscr();
-
-    palette64_use(0);
 
 #if defined(__FLIGHT) || defined(__FLOOR)
     stage_logic();
@@ -581,10 +561,12 @@ void main() {
 
     vera_sprites_show();
 
+
 #ifndef __NOVSYNC
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
-    *KERNEL_IRQ = &irq_vsync;
+    cx16_kernal_irq(&irq_vsync);
+    // *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC | 0x80;
     *VERA_IRQLINE_L = 0xFF;
     CLI();

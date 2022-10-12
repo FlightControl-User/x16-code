@@ -1,5 +1,5 @@
-#ifndef equinoxe_types_h
-#define equinoxe_types_h
+#ifndef __EQUINOXE_TYPES_H
+#define __EQUINOXE_TYPES_H
 
 #include <cx16.h>
 #include <string.h>
@@ -12,7 +12,7 @@
 #include "equinoxe-bank.h"
 #include "equinoxe-palette-types.h"
 #include "equinoxe-flightengine-types.h"
-#include "equinoxe-stage-types.h"
+#include "equinoxe-floorengine-types.h"
 #include "equinoxe-enemy-types.h"
 #include "equinoxe-bullet-types.h"
 
@@ -29,21 +29,14 @@ const unsigned char SPRITE_OFFSET_BULLET_END = 95;
 const byte SIDE_PLAYER = 0;
 const byte SIDE_ENEMY = 1;
 
-// Joint global variables.
 
-typedef struct {
-    unsigned char count;
-    unsigned int size;
-    unsigned char width;
-    unsigned char height;
-    unsigned char zdepth;
-    unsigned char hflip;
-    unsigned char vflip;
-    unsigned char bpp;
-    unsigned char collision;
-    unsigned char reverse;
-    unsigned char palette_offset;
-} sprite_file_header_t;
+
+// FLOOR
+
+
+// SPRITES
+
+
 
 struct sprite_bullet {
     byte active;
@@ -66,6 +59,9 @@ typedef struct {
     unsigned char ticksync;
     unsigned char tickstage;
 } equinoxe_game_t;
+
+
+
 
 #pragma data_seg(Data)
 

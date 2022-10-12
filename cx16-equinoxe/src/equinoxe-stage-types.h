@@ -2,6 +2,7 @@
 #include <cx16-veralib.h>
 
 #include "levels/equinoxe-level-types.h"
+#include "equinoxe-types.h"
 
 #define WAVES 8
 typedef struct {
@@ -46,6 +47,9 @@ typedef struct {
     unsigned int scenarios; // Total amount of scenarios in current playbook.
 
     unsigned int sprite_offset;
+    unsigned char palette;
+
+    tile_segment_t* floor_segments;
 
     unsigned int score;
     unsigned int penalty;

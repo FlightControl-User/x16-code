@@ -5,25 +5,6 @@ __export char palettes[] =
 
 kickasm {{
 
-    .struct Sprite {tile, ext, start, count, skip, size, width, height, zorder, flipv, fliph, bpp, collision, reverse, palettecount}
-
-    .macro Seg(seg) {
-        .segmentdef seg 
-    }
-
-    .macro Data(sprite, tiledata, pallistdata) {
-        .byte sprite.count, <sprite.size, >sprite.size, sprite.width, sprite.height, sprite.zorder, sprite.fliph, sprite.flipv, sprite.bpp, sprite.collision, sprite.reverse, palette_offset,0,0,0,0
-        .for(var i=0;i<tiledata.size();i++) {
-            .byte tiledata.get(i)
-        }
-        .segment palettes
-        .print "palette size = " + pallistdata.size()
-        .for(var i=0;i<pallistdata.size();i++) {
-            .byte pallistdata.get(i)
-            .print "palette " + i + " = " + toHexString(pallistdata.get(i))
-        }
-        .eval palette_offset = palette_offset + 1
-    }
 
     .function GetPalette(tile,count,start,width,height,hstep,vstep,hinc,vinc,ext) {
         .var palette = Hashtable()
@@ -119,23 +100,23 @@ kickasm {{
         .return palettedata
     }
 
-    .function GetPalette2(sprite) {
+    .function GetPalette2(bitmap) {
         .var palette = Hashtable()
         .var palList = List()
         .var nxt_idx = 0;
         .eval palette.put(0,0);
         .eval palList.add(0)
-        .var id = sprite.start
-        .eval sprite.size = (sprite.width * sprite.height) / (8 / sprite.bpp)
-        .eval sprite.count = round((sprite.count / sprite.skip))
-        .print "size = " + sprite.size + ", width = " + sprite.width + ", height = " + sprite.height + ", bpp = " + sprite.bpp
-        .for(var p=0;p<sprite.count;p++) {
+        .var id = bitmap.start
+        .eval bitmap.size = (bitmap.width * bitmap.height) / (8 / bitmap.bpp)
+        .eval bitmap.count = round((bitmap.count / bitmap.skip))
+        .print "count = " + bitmap.count + "size = " + bitmap.size + ", width = " + bitmap.width + ", height = " + bitmap.height + ", bpp = " + bitmap.bpp
+        .for(var p=0;p<bitmap.count;p++) {
             .var nr = "00"+toIntString(id)
-            .var image = sprite.tile + "_" + sprite.width + "x" + sprite.height + "_" + nr.substring(nr.size()-2,nr.size()) + "." + sprite.ext
+            .var image = bitmap.tile + "_" + bitmap.width + "x" + bitmap.height + "_" + nr.substring(nr.size()-2,nr.size()) + "." + bitmap.ext
             .var pic = LoadPicture(image)
-            .eval id = id + sprite.skip
-            .for (var y=0; y<sprite.height; y++) {
-                .for (var x=0;x<sprite.width; x++) {
+            .eval id = id + bitmap.skip
+            .for (var y=0; y<bitmap.height; y++) {
+                .for (var x=0;x<bitmap.width; x++) {
                     // Find palette index (add if not known)
                     .var rgb = pic.getPixel(x,y);
                     .var idx = palette.get(rgb)
@@ -151,25 +132,25 @@ kickasm {{
         .return palList
     }
 
-    .function MakeTile2(sprite,pallist) {
+    .function MakeTile2(bitmap,pallist) {
         .var palette = Hashtable()
-        .print "bpp=" + sprite.bpp
+        .print "bpp=" + bitmap.bpp
         .for(var p=0;p<pallist.size();p++) {
             .eval palette.put(pallist.get(p),p);
         }
         .var tiledata = List()
-        .var id = sprite.start
-        .for(var p=0;p<sprite.count;p++) {
+        .var id = bitmap.start
+        .for(var p=0;p<bitmap.count;p++) {
             .var nr = "00"+toIntString(id)
-            .var image = sprite.tile + "_" + sprite.width + "x" + sprite.height + "_" + nr.substring(nr.size()-2,nr.size()) + "." + sprite.ext
+            .var image = bitmap.tile + "_" + bitmap.width + "x" + bitmap.height + "_" + nr.substring(nr.size()-2,nr.size()) + "." + bitmap.ext
             .var pic = LoadPicture(image)
-            .var hstep = 8 / sprite.bpp
+            .var hstep = 8 / bitmap.bpp
             .var vstep = 1
-            .var hinc = 8 / sprite.bpp
+            .var hinc = 8 / bitmap.bpp
             .var vinc = 1
-            .eval id = id + sprite.skip
-            .for(var j=0; j<sprite.height; j+=vstep) {
-                .for(var i=0; i<sprite.width; i+=hstep) {
+            .eval id = id + bitmap.skip
+            .for(var j=0; j<bitmap.height; j+=vstep) {
+                .for(var i=0; i<bitmap.width; i+=hstep) {
                     .for (var y=j; y<j+vstep; y+=vinc) {
                         .for (var x=i; x<i+hstep; x+=hinc) {
                             // Find palette index (add if not known)
@@ -199,12 +180,12 @@ kickasm {{
     }
 
 
-    .function MakePalette2(sprite,pallist) {
+    .function MakePalette2(bitmap,pallist) {
 
         .var palettedata = List()
         .print "put palette size = " + pallist.size()
-        .if(pallist.size()>sprite.palettecount) .error "Tile " + sprite.tile + " has too many colours "+pallist.size()
-        .for(var i=0;i<sprite.palettecount;i++) {
+        .if(pallist.size()>bitmap.palettecount) .error "Tile " + bitmap.tile + " has too many colours "+pallist.size()
+        .for(var i=0;i<bitmap.palettecount;i++) {
             .var rgb = 0
             .if(i<pallist.size())
                 .eval rgb = pallist.get(i)

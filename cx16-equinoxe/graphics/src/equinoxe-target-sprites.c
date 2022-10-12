@@ -5,6 +5,24 @@
 
 __export char header[] =kickasm {{
     .var palette_offset = 0;
+
+    .struct Sprite {tile, ext, start, count, skip, size, width, height, zorder, flipv, fliph, bpp, collision, reverse, palettecount}
+
+    .macro Data(sprite, tiledata, pallistdata) {
+        .byte sprite.count, <sprite.size, >sprite.size, sprite.width, sprite.height, sprite.zorder, sprite.fliph, sprite.flipv, sprite.bpp, sprite.collision, sprite.reverse, palette_offset,0,0,0,0
+        .for(var i=0;i<tiledata.size();i++) {
+            .byte tiledata.get(i)
+        }
+        .segment palettes
+        .print "palette size = " + pallistdata.size()
+        .for(var i=0;i<pallistdata.size();i++) {
+            .byte pallistdata.get(i)
+            .print "palette " + i + " = " + toHexString(pallistdata.get(i))
+        }
+        .eval palette_offset = palette_offset + 1
+    }
+
+
 }};
 
 __export char p001[] = kickasm {{{

@@ -64,10 +64,10 @@ void palette_init(bram_bank_t bram_bank)
     }
     palette.vram_index.used[0] = 1;
 
-    palette.index = 5; // this needs to be revisited, a hardcoding that is meant to skip the tiles, but this will vary during play.
+    palette.index = 1; // this needs to be revisited, a hardcoding that is meant to skip the tiles, but this will vary during play.
 }
 
-void palette_load(unsigned char level)
+void palette_load(unsigned char playbook)
 {
 
     #ifdef __DEBUG_FILE
@@ -75,10 +75,25 @@ void palette_load(unsigned char level)
     #endif
 
     // Load the palettes in main banked memory.
-    unsigned int floor_palette_loaded = file_load_bram(1, 8, 2, palette_files[level].file_palette64, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_64);
-    printf("%u 64 color palettes loaded.", floor_palette_loaded);
-    unsigned int sprite_palette_loaded = file_load_bram(1, 8, 2, palette_files[level].file_palette16, BRAM_PALETTE, (bram_ptr_t)palette_bram.palette_16);
-    printf("%u 16 color palettes loaded.", sprite_palette_loaded);
+
+    unsigned int palette = 0;
+
+    unsigned int floor_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_floor, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    
+    unsigned char floor_palettes = floor_palette_loaded / 32;
+    #ifdef __DEBUG_LOAD
+    printf("%u 16 color palettes loaded.", floor_palettes);
+    #endif
+    palette = palette + floor_palettes;
+
+    unsigned int sprite_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_sprites, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+
+    unsigned char sprite_palettes = sprite_palette_loaded / 32;
+    #ifdef __DEBUG_LOAD
+    printf("%u 16 color palettes loaded.", sprite_palettes);
+    #endif
+    palette = palette + sprite_palettes;
+
 
     #ifdef __DEBUG_FILE
     printf("%u, %u\n", floor_palette_loaded, sprite_palette_loaded);
@@ -88,9 +103,9 @@ void palette_load(unsigned char level)
 
 unsigned char palette16_alloc()
 {
-    for(unsigned char i=5; i<16; i++) {
+    for(unsigned char i=1; i<16; i++) {
         if(palette.index >= 16)
-            palette.index=5;
+            palette.index=1;
         #ifdef __DEBUG_PALETTE
         gotoxy(40,9);
         printf("alloc i=%03u, u=%03u", palette.index, palette.vram_index.used[palette.index]);

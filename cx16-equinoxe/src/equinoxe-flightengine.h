@@ -11,23 +11,6 @@
 // #pragma data_seg(SpriteControl)
 
 
-
-// vera_heap_index_t player01_vera_heap_index[SPRITE_PLAYER01_COUNT];
-// vera_heap_index_t enemy01_vera_heap_index[SPRITE_ENEMY01_COUNT];
-// vera_heap_index_t enemy03_vera_heap_index[SPRITE_ENEMY03_COUNT];
-// vera_heap_index_t engine01_vera_heap_index[SPRITE_ENGINE01_COUNT];
-// vera_heap_index_t bullet01_vera_heap_index[SPRITE_BULLET01_COUNT];
-// vera_heap_index_t bullet02_vera_heap_index[SPRITE_BULLET02_COUNT];
-
-// vera_sprite_image_offset player01_vram_image_offset[SPRITE_PLAYER01_COUNT];
-// vera_sprite_image_offset enemy01_vram_image_offset[SPRITE_ENEMY01_COUNT];
-// vera_sprite_image_offset enemy03_vram_image_offset[SPRITE_ENEMY03_COUNT];
-// vera_sprite_image_offset engine01_vram_image_offset[SPRITE_ENGINE01_COUNT];
-// vera_sprite_image_offset bullet01_vram_image_offset[SPRITE_BULLET01_COUNT];
-// vera_sprite_image_offset bullet02_vram_image_offset[SPRITE_BULLET02_COUNT];
-
-
-
 const unsigned char FE_PLAYER = 4;
 const unsigned char FE_ENEMY = 64;
 const unsigned char FE_BULLET = 32;

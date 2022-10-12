@@ -7,34 +7,38 @@
 #include <6502.h>
 #include <conio.h>
 #include <cx16-conio.h>
-#include <printf.h>
 #include <stdio.h>
 #include <division.h>
 #include <mos6522.h>
 #include <multiply.h>
 
 #include "equinoxe-types.h"
+#include "equinoxe.h"
 #include "equinoxe-floorengine.h"
+#include "equinoxe-stage.h"
+#include "equinoxe-palette.h"
 
-#pragma data_seg(TileControl)
 
-void vera_tile_clear() {
+void floor_paint_clear() {
 
-    byte PaletteOffset = 1;
-    byte Offset = 100;
+    byte palette = 1;
+    byte Offset = 0;
 
     vera_vram_data0_bank_offset(FLOOR_MAP_BANK_VRAM, FLOOR_MAP_OFFSET_VRAM, VERA_INC_1);
 
     // TODO: VERA MEMSET
-    for(word i=0;i<64*20;i++) {
+    for(word i=0;i<64*64;i++) {
         *VERA_DATA0 = Offset;
-        *VERA_DATA0 = PaletteOffset << 4;
+        *VERA_DATA0 = palette << 4;
     }
 }
 
-void vera_tile_cell(unsigned char row, unsigned char column) 
+void floor_paint_tiles(tile_segment_t* floor_segment, unsigned char row, unsigned char column) 
 {
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
+    tile_part_t* floor_part = floor_segment->floor_parts; // todo to pass this as the parameter!
+ 
     unsigned int mapbase_offset = FLOOR_MAP_OFFSET_VRAM;
     unsigned char mapbase_bank = FLOOR_MAP_BANK_VRAM;
 
@@ -48,18 +52,20 @@ void vera_tile_cell(unsigned char row, unsigned char column)
     word segment = (word)TileFloor[TileFloorIndex].floortile[column];
     segment = segment << 2;
     vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset,VERA_INC_1);
+    gotoxy(column<<2, row);
     for(byte sc=0;sc<2;sc++) {
         byte s = sc + sr;
-        unsigned char composition = TileSegmentDB.composition[segment+s];
-        tile_t *tile = TilePartDB.Tile[composition]; 
-        word TileOffset = TilePartDB.TileOffset[composition];
-        byte TilePaletteOffset = tile->PaletteOffset << 4; 
+        unsigned char segment2 = floor_segment->slab[(unsigned char)segment+s]; // todo i need to create a new variable because the optimizer deletes the old!
+        segment2 = segment2 << 2;
         for(byte c=0;c<2;c++) {
-            word Offset = TileOffset + r + c;
-            *VERA_DATA0 = BYTE0(Offset);
-            *VERA_DATA0 = TilePaletteOffset | BYTE1(Offset);
+            unsigned char tile = floor_segment->composition[segment2+c+r]; // BRAM_FLOOR_CONTROL
+            unsigned char palette = floor_part->palette[tile];
+            palette = palette << 4; 
+            *VERA_DATA0 = BYTE0(tile);
+            *VERA_DATA0 = palette | BYTE1(tile);
         }
     }
+    bank_pull_bram();
 }
 
 
@@ -67,11 +73,7 @@ void floor_init() {
 
     // Initialize the first new floor was blank tiles.
 
-    TileFloorIndex = 0;
-
-    for(byte x=0;x<TILES;x++) {
-        TileFloor[(word)TileFloorIndex].floortile[(word)x] = 0;
-    }
+    unsigned int bytes = file_load_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
 }
 
 /**
@@ -124,20 +126,13 @@ void floor_paint_segment(unsigned char row, unsigned char column)
     unsigned char TileFloorOld = ~TileFloorIndex & 0x01;
 
     unsigned char rnd = BYTE0(rand());
-    byte Weight = rnd % 16;
-    struct TileWeight *TileWeight;
-    for(word i=0;i<TILE_WEIGHTS;i++) {
-        TileWeight = &(TileWeightDB[i]);
-        if(TileWeight->Weight >= Weight) {
-            break;
-        }
-    }
 
     // Now that we know the weight, select a record from the weight table.
-    char div = div8u(rnd,TileWeight->Count);
-    byte Tile = TileWeight->TileSegment[rem8u];
+    // char div = div8u(rnd,16);
+    // byte Tile = rem8u;
+    // byte Tile = 13;
 
-    // byte Tile = (BYTE0(rand()) & 0x0F);
+    byte Tile = (BYTE0(rand()) & 0x0F);
 
     if(column<15) {
         byte TileRight = TileFloor[TileFloorNew].floortile[column+1];
@@ -153,7 +148,7 @@ void floor_paint_segment(unsigned char row, unsigned char column)
 
     TileFloor[TileFloorNew].floortile[column] = Tile;
 
-#ifdef __FLOOR_DEBUG
+#ifdef __DEBUG_FLOOR
     gotoxy(column<<2+10, row);
     printf("%2u", Tile);
     if(!column) {
@@ -163,12 +158,20 @@ void floor_paint_segment(unsigned char row, unsigned char column)
 #endif
 }
 
-void tile_background() {
+void floor_paint_background(tile_segment_t* floor_segments) 
+{
+
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
     vera_layer0_set_vertical_scroll(8*64);
     
-    vera_tile_clear();
-    floor_init();
+    floor_paint_clear();
+
+    TileFloorIndex = 0;
+    for(byte x=0; x<TILES; x++) {
+        TileFloor[(word)TileFloorIndex].floortile[(word)x] = 0;
+    }
+
     for(floor_tile_row=FLOOR_ROW_63;floor_tile_row>=FLOOR_TILE_ROW_31;floor_tile_row--) {
         // The 3 is very important, because we draw from the bottom to the top.
         // So every 4 rows, but we draw when the row is 4, not 0;
@@ -178,60 +181,97 @@ void tile_background() {
             if(floor_tile_row%4==3) {
                 floor_paint_segment(floor_tile_row, column);
             }
-            vera_tile_cell(floor_tile_row, column);
+            floor_paint_tiles(floor_segments, floor_tile_row, column);
         } while(column>0);
     }
     floor_tile_row++;
+
+    bank_pull_bram();
 }
 
-void tile_vram_allocate(tile_t *tile, vera_heap_segment_index_t segment) 
+void floor_vram_copy(unsigned char part, tile_segment_t* floor_segments, vera_heap_segment_index_t segment) 
 {
-    unsigned char tile_count = tile->count;
-    unsigned int tile_size = tile->TileSize;
-    word tile_offset = tile->TileOffset;
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    for(unsigned int t=0; t<tile_count; t++) {
+    tile_part_t* floor_parts = floor_segments->floor_parts;
 
-        heap_bram_fb_handle_t handle_bram = tile->bram_handle[t];
+    heap_bram_fb_handle_t handle_bram = floor_parts->bram_handles[part];
 
-        // Dynamic allocation of tiles in vera vram.
-        tile->vera_heap_index[t] = vera_heap_alloc(segment, tile_size);
-        vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, tile->vera_heap_index[t]);
-        vram_offset_t vram_offset = vera_heap_data_get_offset(segment, tile->vera_heap_index[t]);
+    // Dynamic allocation of tiles in vera vram.
+    floor_parts->vram_handles[part] = vera_heap_alloc(segment, FLOOR_TILE_SIZE);
+    vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, floor_parts->vram_handles[part]);
+    vram_offset_t vram_offset = vera_heap_data_get_offset(segment, floor_parts->vram_handles[part]);
 
-        memcpy_vram_bram(vram_bank, vram_offset, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile_size);
+    memcpy_vram_bram(vram_bank, vram_offset, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), FLOOR_TILE_SIZE);
 
-        // The offset starts at 0x2000.
-        // Each tile is 0x0400 bytes large.
-        // So we shift each tile 10 bits to get the tile index.
-        // However, we only need to shift with 2 bits and then take the high byte.
-        word Offset = (vram_offset - (word)0x2000);
-        // Offset >>= 2; 
-        TilePartDB.TileOffset[tile_offset+t] = BYTE1(Offset);
-    }
+    // The offset starts at 0x2000.
+    // Each tile is 0x0080 bytes large.
+    // So we need to shift each tile 7 bits to the left to get the tile index.
+    // However, for performance, we only need to shift with 1 bit to the right and then take the high byte.
+    unsigned int offset = (vram_offset - (word)0x2000); // todo refer to the start of the tile data in vram!
+    offset <<= 1; 
+    floor_parts->floor_tile_offset[part] = BYTE1(offset);
+
+    bank_pull_bram();
 }
 
 
 
-// Load the tile into bram using the new cx16 heap manager.
-void tile_load(tile_t *tile) {
+// Load the floor tiles into bram using the bram heap manager.
+unsigned int floor_bram_load(unsigned int part, tile_segment_t* floor_segments, floor_bram_t * floor_bram_tile) 
+{
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    unsigned int status = file_open(1, 8, 2, tile->file);
-    if (status) printf("error opening file %s\n", tile->file);
+    tile_part_t* floor_parts = floor_segments->floor_parts;
 
-    for(unsigned char s=0; s<tile->count; s++) {
-        heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, tile->TileSize);
-        unsigned int read  = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), tile->TileSize);
-        if (!read) {
-            printf("error loading file %s\n", tile->file);
-            break;
+    if(!floor_bram_tile->loaded) {
+
+        // todo harmonize with sprite load
+        char filename[16];
+        strcpy(filename, floor_bram_tile->file);
+        strcat(filename, ".bin");
+
+        #ifdef __DEBUG_LOAD
+        printf("\n%10s : ", filename);
+        #endif
+
+        unsigned int status = file_open(1, 8, 2, filename);
+        if (status) printf("error opening file %s\n", filename);
+
+        // Set palette offset of sprites
+        floor_bram_tile->palette = stage.palette;
+
+        for(unsigned char s=0; s<floor_bram_tile->count; s++) {
+            #ifdef __DEBUG_LOAD
+            printf(".");
+            #endif
+            heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, floor_bram_tile->floor_tile_size);
+            unsigned int read  = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), floor_bram_tile->floor_tile_size);
+            if (!read) {
+                printf("error loading file %s\n", floor_bram_tile->file);
+                break;
+            }
+            floor_parts->bram_handles[part] = handle_bram;
+            floor_parts->floor_tile[part] = floor_bram_tile;
+
+            // Assign the palette to the floor part, this is used when painting the floor.
+            // The palettes are automatically painted.
+            floor_parts->palette[part] = palette16_use(stage.palette);
+            
+            part++;
         }
-        tile->bram_handle[s] = handle_bram; // TODO: rework this to map into banked memory.
+
+        stage.palette++;
+
+        status = file_close(1);
+        if (status) printf("error closing file %s\n", floor_bram_tile->file);
+        floor_bram_tile->loaded = 1;
     }
 
-    status = file_close(1);
-    if (status) printf("error closing file %s\n", tile->file);
+    bank_pull_bram();
 
+    return part;
 }
+
 
 #pragma data_seg(Data)

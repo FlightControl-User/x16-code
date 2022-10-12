@@ -1,13 +1,13 @@
 .file                               [name="%O", type="prg", segments="Program"]
 .file                               [name="LEVELS.BIN", type="bin", segments="levels"]
 .file                               [name="SPRITES.BIN", type="bin", segments="spritecontrol"]
-.segmentdef Program                 [segments="Basic, Code, Data, TileControl, Heap, fe_sprite_cache"]
+.file                               [name="FLOORS.BIN", type="bin", segments="floorcontrol"]
+.segmentdef Program                 [segments="Basic, Code, Data, Heap, fe_sprite_cache"]
 .segmentdef Basic                   [start=$0801]
 .segmentdef Code                    [start=%P]
 .segmentdef Data                    [startAfter="Code", align=$100]
 .segmentdef Heap                    [startAfter="Data", align=$100]
-.segmentdef TileControl             [startAfter="Heap", align=$100]
-.segmentdef fe_sprite_cache         [startAfter="TileControl", align=$100]
+.segmentdef fe_sprite_cache         [startAfter="Heap", align=$100]
 
 .segmentdef Hash                    [start=$0400, min=$0400, max=$07FF, align=$100]
 
@@ -22,6 +22,8 @@
 
 .segmentdef levels                  [start=$A000, min=$A000, max=$BFFF, align=$100]
 
+.segmentdef floorcontrol            [start=$A000, min=$A000, max=$BF00, align=$100]
+
 .segmentdef spritecontrol           [start=$A000, min=$A000, max=$BF00, align=$100]
 
 .segment Basic
@@ -29,5 +31,6 @@
 .segment Code
 .segment Data
 .segment levels
+.segment floorcontrol
 .segment spritecontrol
 .segment Data

@@ -1,5 +1,3 @@
-#include "equinoxe-types.h"
-
 typedef struct {
 
     vera_sprite_offset sprite_offset[32];

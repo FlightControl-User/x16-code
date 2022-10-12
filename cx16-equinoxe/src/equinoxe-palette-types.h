@@ -39,8 +39,8 @@ typedef struct {
 // The palette_files_t type will be declared as an array representing levels.
 // For each level there will be one PALETTE_FILE entry.
 typedef struct {
-    char* file_palette16;
-    char* file_palette64;
+    char* file_palette_sprites;
+    char* file_palette_floor;
 } palette_files_t;
 
 typedef unsigned char palette_index_t;
