@@ -8,30 +8,30 @@ typedef struct {
     unsigned int TotalSize;
     unsigned int floor_tile_size;
     unsigned int palette; 
-} floor_bram_t;
+} floor_bram_tiles_t;
 
 #define FLOOR_PARTS 64
 typedef struct {
-    floor_bram_t *floor_tile[FLOOR_PARTS];
+    floor_bram_tiles_t *floor_tile[FLOOR_PARTS];
     unsigned int floor_tile_offset[FLOOR_PARTS];
     vera_heap_handle_t vram_handles[FLOOR_PARTS];
     heap_bram_fb_handle_t bram_handles[FLOOR_PARTS];
     unsigned char palette[FLOOR_PARTS];
-} tile_part_t;
+} floor_parts_t;
 
 #define FLOOR_SEGMENTS 4
 typedef struct {
     unsigned char segment[FLOOR_SEGMENTS];
-} tile_composition_t;
+} floor_segments_t;
 
 #define FLOOR_SEGMENT_WEIGHTS 64
 #define FLOOR_SEGMENT_COMPOSITIONS 256
 typedef struct {
-    tile_part_t* floor_parts;
+    floor_parts_t* floor_parts;
     unsigned char weight[FLOOR_SEGMENT_WEIGHTS];
     unsigned char composition[FLOOR_SEGMENT_COMPOSITIONS];
     unsigned char slab[FLOOR_SEGMENT_COMPOSITIONS];
-} tile_segment_t;
+} floor_t;
 
 #define FLOOR_WEIGHT_SEGMENTS 15
 typedef struct {

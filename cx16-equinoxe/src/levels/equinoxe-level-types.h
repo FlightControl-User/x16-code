@@ -71,14 +71,14 @@ typedef struct {
 } stage_scenario_t;
 
 typedef struct {
-    floor_bram_t* floor_bram_tile;
+    floor_bram_tiles_t* floor_bram_tile;
 } stage_floor_bram_tiles_t;
 
 #define STAGE_FLOOR_FILE_COUNT 3
 typedef struct {
     unsigned char floor_file_count;
     stage_floor_bram_tiles_t* floor_bram_tiles;
-    tile_segment_t* floor_segments;
+    floor_t* floor;
 } stage_floor_t;
 
 typedef struct {

@@ -33,11 +33,11 @@ void floor_paint_clear() {
     }
 }
 
-void floor_paint_tiles(tile_segment_t* floor_segment, unsigned char row, unsigned char column) 
+void floor_paint_tiles(floor_t* floor_segment, unsigned char row, unsigned char column) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    tile_part_t* floor_part = floor_segment->floor_parts; // todo to pass this as the parameter!
+    floor_parts_t* floor_part = floor_segment->floor_parts; // todo to pass this as the parameter!
  
     unsigned int mapbase_offset = FLOOR_MAP_OFFSET_VRAM;
     unsigned char mapbase_bank = FLOOR_MAP_BANK_VRAM;
@@ -158,7 +158,7 @@ void floor_paint_segment(unsigned char row, unsigned char column)
 #endif
 }
 
-void floor_paint_background(tile_segment_t* floor_segments) 
+void floor_paint_background(floor_t* floor) 
 {
 
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
@@ -181,7 +181,7 @@ void floor_paint_background(tile_segment_t* floor_segments)
             if(floor_tile_row%4==3) {
                 floor_paint_segment(floor_tile_row, column);
             }
-            floor_paint_tiles(floor_segments, floor_tile_row, column);
+            floor_paint_tiles(floor, floor_tile_row, column);
         } while(column>0);
     }
     floor_tile_row++;
@@ -189,11 +189,11 @@ void floor_paint_background(tile_segment_t* floor_segments)
     bank_pull_bram();
 }
 
-void floor_vram_copy(unsigned char part, tile_segment_t* floor_segments, vera_heap_segment_index_t segment) 
+void floor_vram_copy(unsigned char part, floor_t* floor, vera_heap_segment_index_t segment) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    tile_part_t* floor_parts = floor_segments->floor_parts;
+    floor_parts_t* floor_parts = floor->floor_parts;
 
     heap_bram_fb_handle_t handle_bram = floor_parts->bram_handles[part];
 
@@ -218,11 +218,11 @@ void floor_vram_copy(unsigned char part, tile_segment_t* floor_segments, vera_he
 
 
 // Load the floor tiles into bram using the bram heap manager.
-unsigned int floor_bram_load(unsigned int part, tile_segment_t* floor_segments, floor_bram_t * floor_bram_tile) 
+unsigned int floor_bram_load(unsigned int part, floor_t* floor, floor_bram_tiles_t * floor_bram_tile) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    tile_part_t* floor_parts = floor_segments->floor_parts;
+    floor_parts_t* floor_parts = floor->floor_parts;
 
     if(!floor_bram_tile->loaded) {
 

@@ -5,9 +5,9 @@
 .segmentdef Program                 [segments="Basic, Code, Data, Heap, fe_sprite_cache"]
 .segmentdef Basic                   [start=$0801]
 .segmentdef Code                    [start=%P]
-.segmentdef Data                    [startAfter="Code", align=$100]
-.segmentdef Heap                    [startAfter="Data", align=$100]
-.segmentdef fe_sprite_cache         [startAfter="Heap", align=$100]
+.segmentdef Data                    [startAfter="Code"]
+.segmentdef Heap                    [startAfter="Data"]
+.segmentdef fe_sprite_cache         [startAfter="Heap"]
 
 .segmentdef Hash                    [start=$0400, min=$0400, max=$07FF, align=$100]
 

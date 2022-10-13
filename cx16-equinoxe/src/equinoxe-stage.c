@@ -108,19 +108,19 @@ void stage_load_floor(stage_floor_t* stage_floor)
     // Loading the floor in bram.
 
     stage_floor_bram_tiles_t* floor_bram_tiles = stage_floor->floor_bram_tiles;
-    tile_segment_t* floor_segments = stage_floor->floor_segments;
+    floor_t* floor = stage_floor->floor;
 
     unsigned int part = 0;
     for(unsigned char f = 0; f<stage_floor->floor_file_count; f++) {
-        floor_bram_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
-        part = floor_bram_load(part, floor_segments, floor_bram);
+        floor_bram_tiles_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
+        part = floor_bram_load(part, floor, floor_bram);
     }
 
     for(part=0;part<TILE_FLOOR_COUNT;part++) {
-        floor_vram_copy(part, floor_segments, VERA_HEAP_SEGMENT_TILES);
+        floor_vram_copy(part, floor, VERA_HEAP_SEGMENT_TILES);
     }
 
-    stage.floor_segments = stage_floor->floor_segments;
+    stage.floor = stage_floor->floor;
 
     bank_pull_bram();
 }

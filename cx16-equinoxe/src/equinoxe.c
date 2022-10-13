@@ -115,7 +115,7 @@ void equinoxe_scrollfloor() {
         // we can draw a cell from the painted segment. Note that when floor_tile_row is 0, 1 or 2,
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
-        floor_paint_tiles(stage.floor_segments, floor_tile_row, floor_tile_column);
+        floor_paint_tiles(stage.floor, floor_tile_row, floor_tile_column);
 
         // This handles the smooth scrolling and enables seamless frame flipping.
         // Copy each cell of the current floor_tile_row, that has been tiled, to the bottom floor_tile_row (source floor_tile_row + 32),
@@ -487,7 +487,7 @@ void main() {
     
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
-    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0xA000); // FLOOR_TILE segment for tiles of various sizes and types
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0x3000); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0x3000, 1, 0xB000); // SPRITES segment for sprites of various sizes
 
 #ifdef __FLIGHT
@@ -545,7 +545,7 @@ void main() {
 #endif
 
 
-    floor_paint_background(stage.floor_segments);
+    floor_paint_background(stage.floor);
  
     floor_tile_column = 16;
     floor_tile_row = 31;
@@ -579,7 +579,8 @@ void main() {
 
     vera_layer0_set_vertical_scroll(0);
 
-    while (!getin()) {
+    __mem unsigned char ch = getin();
+    while (ch != 'x') {
         #ifdef __NOVSYNC
             irq_vsync();
         #endif
@@ -592,6 +593,8 @@ void main() {
         #ifdef __NOVSYNC
             while(!getin());
         #endif
+
+        ch = getin();
     }; 
 
     // Back to basic.

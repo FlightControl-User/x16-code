@@ -31,17 +31,17 @@ __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 
 
 __export volatile floor_bram_handles_t floor_bram_handles[256];
 
-__export floor_bram_t floor_bram_01 = { 0, "floor01", 1, 16*16*1, 128, 0 };
-__export floor_bram_t floor_bram_02 = { 0, "floor02", 20, 16*16*20, 128, 0 };
-__export floor_bram_t floor_bram_03 = { 0, "floor03", 1, 16*16*1, 128, 0 };
+__export floor_bram_tiles_t floor_bram_01 = { 0, "floor01", 1, 16*16*1, 128, 0 };
+__export floor_bram_tiles_t floor_bram_02 = { 0, "floor02", 20, 16*16*20, 128, 0 };
+__export floor_bram_tiles_t floor_bram_03 = { 0, "floor03", 1, 16*16*1, 128, 0 };
 
 // FLOOR 01
 
-__export volatile tile_part_t floor_parts_01 = {
+__export volatile floor_parts_t floor_parts_01 = {
         { 0 }, { 0 }, { 0 }, { 0 }, { 0 }
 };
 
-__export volatile tile_segment_t floor_segments_01 = {
+__export volatile floor_t floor_01 = {
     &floor_parts_01,
     { 
         16, 02, 02, 12, 02, 02, 12, 02,   
@@ -199,7 +199,7 @@ stage_scenario_t stage_level_01[32] = {
     {  8,  8, &stage_enemy_e0401, action_flightpath_left_circle_002,                      704,    32,    0,   32,   10,   20,   17 }  // 19
 };
 
-__export volatile stage_floor_bram_tiles_t floor_tiles_01[3] = {
+__export volatile stage_floor_bram_tiles_t stage_floor_bram_tiles_01[3] = {
     { &floor_bram_01 }, 
     { &floor_bram_02 }, 
     { &floor_bram_03 }
@@ -207,7 +207,7 @@ __export volatile stage_floor_bram_tiles_t floor_tiles_01[3] = {
 
 __export volatile
 stage_floor_t stage_floor_01 = {
-    3, floor_tiles_01, &floor_segments_01
+    3, stage_floor_bram_tiles_01, &floor_01
 };
 
 // PLAYBOOK

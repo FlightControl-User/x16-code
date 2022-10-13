@@ -17,7 +17,7 @@
 // tile_t* const TileDB[1] = { &TileFloor01 };
 
 
-// tile_part_t TilePartDB = {
+// floor_parts_t TilePartDB = {
 //     { 
 //         &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, 
 //         &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, &TileFloor01, 
@@ -120,10 +120,10 @@ __mem volatile unsigned char floor_scroll_action = 2;
 void floor_init();
 void floor_paint_clear();
 
-void floor_paint_background(tile_segment_t* floor_segments);
-void floor_paint_tiles(tile_segment_t* floor_segment, unsigned char row, unsigned char column);
+void floor_paint_background(floor_t* floor);
+void floor_paint_tiles(floor_t* floor_segment, unsigned char row, unsigned char column);
 
-void floor_vram_copy(unsigned char part, tile_segment_t* floor_segments, vera_heap_segment_index_t segment); 
-unsigned int floor_bram_load(unsigned int part, tile_segment_t* floor_segments, floor_bram_t * floor); 
+void floor_vram_copy(unsigned char part, floor_t* floor, vera_heap_segment_index_t segment); 
+unsigned int floor_bram_load(unsigned int part, floor_t* floor, floor_bram_tiles_t * floor); 
 
 

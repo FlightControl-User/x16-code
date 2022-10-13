@@ -46,10 +46,12 @@ typedef struct {
     unsigned int scenario;
     unsigned int scenarios; // Total amount of scenarios in current playbook.
 
+    stage_floor_t stage_floor;
+
     unsigned int sprite_offset;
     unsigned char palette;
 
-    tile_segment_t* floor_segments;
+    floor_t* floor;
 
     unsigned int score;
     unsigned int penalty;
