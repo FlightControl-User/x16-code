@@ -6,7 +6,7 @@
 #include "equinoxe-collision.h"
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
-#include "levels/equinoxe-levels.h"
+#include "equinoxe-levels.h"
 
 void bullet_init()
 {

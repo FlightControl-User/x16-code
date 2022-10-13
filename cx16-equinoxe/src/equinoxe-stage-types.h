@@ -1,7 +1,7 @@
 #include <cx16-heap-bram-fb.h>
 #include <cx16-veralib.h>
 
-#include "levels/equinoxe-level-types.h"
+#include "equinoxe-level-types.h"
 #include "equinoxe-types.h"
 
 #define WAVES 8

@@ -9,15 +9,7 @@
  * 
  */
 
-
-typedef unsigned char const ht_size_t;
-typedef unsigned char ht_key_t;
-typedef unsigned char ht_data_t;
-typedef unsigned char ht_index_t;
-typedef unsigned char ht_count_t;
-
-
-#pragma data_seg(Hash)
+#include "ht-typedefs.h"
 
 #ifndef HT_SIZE
     #define HT_SIZE (unsigned int)256
@@ -28,16 +20,6 @@ typedef unsigned char ht_count_t;
     #define HT_MAX (unsigned int)196
 #endif
 
-
-typedef struct {
-   ht_key_t key[256];   
-   ht_index_t next[256];
-} ht_item_t;
-
-typedef struct ht_list_s {
-   ht_data_t data[256];
-   ht_index_t next[256];
-} ht_list_t;
 
 ht_list_t ht_list;
 

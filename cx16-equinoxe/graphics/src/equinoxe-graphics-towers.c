@@ -1,0 +1,37 @@
+
+#pragma link("equinoxe-graphics.towers.ld")
+
+#include "equinoxe-bin-routines.h"
+
+__export char header[] =kickasm {{
+    .var palette_offset = 0;
+
+    .struct Tile {tile, ext, start, count, skip, width, height, bpp, palettecount, size}
+
+    .macro Data(tile, tiledata, pallistdata) {
+        .print "tiledata.size = " + tiledata.size()
+        .for(var i=0;i<tiledata.size();i++) {
+            .byte tiledata.get(i)
+        }
+        .segment palettes
+        .print "palette size = " + pallistdata.size()
+        .for(var i=0;i<pallistdata.size();i++) {
+            .byte pallistdata.get(i)
+            .print "palette " + i + " = " + toHexString(pallistdata.get(i))
+        }
+        .eval palette_offset = palette_offset + 1
+    }
+}};
+
+
+__export char TOWER_01[] = kickasm {{{
+    .var tile = Tile("cx16-equinoxe/graphics/floors/towers/tower01","gif",1,16,1,16,16,4,16,0)
+    .var pallist = GetPalette3(tile)
+    .var tiledata = MakeTile3(tile,pallist)
+    .var pallistdata = MakePalette3(tile,pallist)
+    .file [name="TOWER01.BIN", type="bin", segments="tower01"]
+    .segmentdef tower01
+    .segment tower01
+    Data(tile,tiledata,pallistdata)
+};}};
+

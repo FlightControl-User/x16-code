@@ -1,5 +1,5 @@
 
-#pragma link("equinoxe-target-tiles.ld")
+#pragma link("equinoxe-bin-tiles.ld")
 
 #include "equinoxe-bin-routines.h"
 

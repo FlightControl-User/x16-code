@@ -1,4 +1,4 @@
-#include "../equinoxe-types.h"
+// #include "equinoxe-types.h"
 #include "equinoxe-level-types.h"
 
 #pragma data_seg(spritecontrol)

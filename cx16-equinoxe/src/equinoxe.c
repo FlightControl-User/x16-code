@@ -45,7 +45,7 @@
 #include "equinoxe-fighters.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-player.h"
-#include "levels/equinoxe-levels.h"
+#include "equinoxe-levels.h"
 #include "equinoxe.h"
 
 

@@ -1,10 +1,9 @@
 #ifndef __EQUINOXE_TYPES_H
 #define __EQUINOXE_TYPES_H
 
-#include <cx16.h>
-#include <string.h>
-#include <ht.h>
-#include <fp3.h>
+#include <cx16-typedefs.h>
+#include <ht-typedefs.h>
+#include <fp3-typedefs.h>
 #include <cx16-heap-bram-fb.h>
 #include <cx16-veralib.h>
 #include <cx16-veraheap-typedefs.h>

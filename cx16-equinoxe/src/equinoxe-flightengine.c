@@ -26,7 +26,7 @@
 #include <stdlib.h>
 
 #include "equinoxe-bank.h"
-// #include "levels/equinoxe-levels.h"
+// #include "equinoxe-levels.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-types.h"

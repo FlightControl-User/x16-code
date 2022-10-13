@@ -1,5 +1,5 @@
 
-#pragma link("equinoxe-target-sprites.ld")
+#pragma link("equinoxe-bin-sprites.ld")
 
 #include "equinoxe-bin-routines.h"
 
