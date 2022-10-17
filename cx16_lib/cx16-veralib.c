@@ -1562,7 +1562,7 @@ inline void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct 
  * @param sprite_attr A pointer to a VERA_SPRITE structure containing the sprite attributes to be returned.
  */
 inline void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct VERA_SPRITE *sprite_attr) {
-    memcpy_ram_vram(sprite_attr, 1, sprite_offset, sizeof(struct VERA_SPRITE));
+    memcpy_ram_vram((ram_ptr_t)sprite_attr, 1, sprite_offset, sizeof(struct VERA_SPRITE));
 }
 
 
@@ -1630,93 +1630,5 @@ inline unsigned char vera_sprite_get_collision() {
  */
 inline void vera_sprite_collision_clear() {
     *VERA_ISR &= VERA_SPRITES_COLLISIONS;
-}
-
-/**
- * @brief Write all the sprite attributes in one go using the sprite buffer.
- * When configuring a lot of attributes for a sprite, this is faster than calling each individual function.
- *
- * @param sprite_buffer The sprite buffer in ram.
- */
-inline void vera_sprite_buffer_write(vera_sprite_buffer_t sprite_buffer) {
-    memcpy_vram_ram(1, (unsigned int)VERA_SPRITE_ATTR, sprite_buffer, 128*8);
-}
-
-
-/**
- * @brief Read all the sprite attributes in one go using the sprite buffer.
- * When configuring a lot of attributes for a sprite, this is faster than calling each individual function.
- *
- * @param sprite_buffer The sprite buffer in ram.
- */
-inline void vera_sprite_buffer_read(vera_sprite_buffer_t sprite_buffer) {
-    memcpy_ram_vram(sprite_buffer, 1, (unsigned int)VERA_SPRITE_ATTR, 128*8);
-}
-
-/**
- * @brief Set the sprite bits per pixel.
- *
- * @param sprite_offset The sprite offset in vera ram.
- * @param bpp Bits per pixel of the sprite graphics color depth, which can be a value of 4 or 8.
- */
-inline void vera_sprite_buffer_bpp(vera_sprite_buffer_item_t *sprite_offset, char bpp) {
-    sprite_offset->ADDR = (sprite_offset->ADDR & ~VERA_SPRITE_MASKBPP) | bpp;
-}
-
-inline void vera_sprite_buffer_set_image_offset(vera_sprite_buffer_item_t *sprite_offset, vera_sprite_image_offset sprite_image_offset) {
-    sprite_offset->ADDR = sprite_image_offset;
-}
-
-/**
- * @brief Set a sprite position on the display.
- * Note that the x and y coordinates are expressed in 2s complement, so a negative position will hide a sprite on the top or left border!
- *
- * @param sprite_offset The sprite offset in vera ram.
- * @param x The x coordinate.
- * @param y The y coordinate.
- */
-inline void vera_sprite_buffer_xy(vera_sprite_buffer_item_t *sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
-    sprite_offset->X = (unsigned int)x;
-    sprite_offset->Y = (unsigned int)y;
-}
-
-void vera_sprite_buffer_width(vera_sprite_buffer_item_t *sprite_offset, char width) {
-    sprite_offset->CTRL2 = sprite_offset->CTRL2 & ~VERA_SPRITE_WIDTH_MASK | width;
-}
-
-void vera_sprite_buffer_height(vera_sprite_buffer_item_t *sprite_offset, char height) {
-    sprite_offset->CTRL2 = sprite_offset->CTRL2 & ~VERA_SPRITE_HEIGHT_MASK | height;
-}
-
-void vera_sprite_buffer_hflip(vera_sprite_buffer_item_t *sprite_offset, char hflip) {
-    sprite_offset->CTRL1 = (sprite_offset->CTRL1 & ~VERA_SPRITE_HFLIP) | hflip;
-}
-
-void vera_sprite_buffer_vflip(vera_sprite_buffer_item_t *sprite_offset, char vflip) {
-    sprite_offset->CTRL1 = (sprite_offset->CTRL1 & ~VERA_SPRITE_VFLIP) | vflip;
-}
-
-inline void vera_sprite_buffer_zdepth(vera_sprite_buffer_item_t *sprite_offset, unsigned char zdepth) {
-    sprite_offset->CTRL1 = sprite_offset->CTRL1 & ~VERA_SPRITE_ZDEPTH_MASK | zdepth;
-}
-
-/**
- * @brief Hide a sprite.
- *
- * @param sprite_offset The sprite offset in vera ram.
- */
-inline void vera_sprite_buffer_disable(vera_sprite_buffer_item_t *sprite_offset) {
-    sprite_offset->CTRL1 = sprite_offset->CTRL1 & ~VERA_SPRITE_ZDEPTH_MASK;
-}
-
-
-/**
- * @brief Set the palette offset of the sprite.
- *
- * @param sprite_offset The sprite offset in the sprite buffer.
- * @param palette_offset The palette offset, a byte between 0 and 15.
- */
-inline void vera_sprite_buffer_palette_offset(vera_sprite_buffer_item_t *sprite_offset, vera_palette_offset palette_offset) {
-    sprite_offset->CTRL2 = sprite_offset->CTRL2 & ~VERA_SPRITE_PALETTE_OFFSET_MASK | palette_offset;
 }
 

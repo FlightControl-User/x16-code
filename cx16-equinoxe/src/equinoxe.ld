@@ -19,6 +19,7 @@
 .segmentdef SpriteControlBullets    [startAfter="SpriteControlEnemies", min=$A000, max=$BFFF, align=$100]
 .segmentdef SpriteControlPlayer     [startAfter="SpriteControlBullets", min=$A000, max=$BFFF, align=$100]
 .segmentdef SpriteControlEngine     [startAfter="SpriteControlPlayer", min=$A000, max=$BFFF, align=$100]
+.segmentdef TileControlTowers       [startAfter="SpriteControlEngine", min=$A000, max=$BFFF, align=$100]
 
 .segmentdef levels                  [start=$A000, min=$A000, max=$BFFF, align=$100]
 

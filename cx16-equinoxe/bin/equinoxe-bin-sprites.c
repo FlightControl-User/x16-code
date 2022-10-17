@@ -257,3 +257,14 @@ __export char b004[] = kickasm {{{
     .segment b004
     Data(sprite,tiledata,pallistdata)
 };}};
+
+__export char t001[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/floors/towers/tower_gun_01","png",0,12,1,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette3(sprite)
+    .var tiledata = MakeTile3(sprite,pallist)
+    .var pallistdata = MakePalette3(sprite,pallist)
+    .file [name="T001.BIN", type="bin", segments="t001"]
+    .segmentdef t001
+    .segment t001
+    Data(sprite,tiledata,pallistdata)
+};}};

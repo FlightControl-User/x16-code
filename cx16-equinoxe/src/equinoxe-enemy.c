@@ -191,13 +191,6 @@ void LogicEnemies() {
 
 		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 
-			// FP tdx = enemy.tdx[e];
-			// FP tdy = enemy.tdy[e];
-            
-
-            // gotoxy(0,11+e);
-            // printf("e=%02u, f=%03u", e, enemy.flight[e]);            
-
 			if(!enemy.flight[e]) {
                 stage_flightpath_t* flightpath = enemy.flightpath[e];
                 unsigned char action = enemy.action[e];
@@ -207,7 +200,6 @@ void LogicEnemies() {
                 unsigned char next = flightnode.next;
                 bank_pull_bram();
 
-                // printf(", type = %u", type);
 				switch(type) {
 
 				case STAGE_ACTION_MOVE: {

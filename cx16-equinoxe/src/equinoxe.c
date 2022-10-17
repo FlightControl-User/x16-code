@@ -11,6 +11,8 @@
 
 #include "equinoxe-defines.h"
 
+#define __CONIO_BSOUT
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
@@ -45,13 +47,14 @@
 #include "equinoxe-fighters.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-player.h"
+#include "equinoxe-tower.h"
 #include "equinoxe-levels.h"
 #include "equinoxe.h"
 
 
 #include "equinoxe-petscii.c"
 
-equinoxe_game_t game;
+
 
 #pragma data_seg(Heap)
 
@@ -65,25 +68,34 @@ fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
 fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
 fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
+
 #pragma data_seg(Data)
+
+__mem unsigned char volatile floor_index = 0;
+__mem floor_cache_t volatile floor_cache[16];
+
+
+#pragma data_seg(Data)
+
+equinoxe_game_t game = {0, 0, 16*32, 2, 0};
 
 #ifdef __FLOOR
 
 void equinoxe_scrollfloor() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
-    if(!floor_scroll_action--) {
-        floor_scroll_action = 4;
+    if(!game.screen_vscroll_wait--) {
+        game.screen_vscroll_wait = 4;
 
-        // Check every 16 floor_scroll_vertical the logic to initialize the scroll variables.
-        if(!(BYTE0(floor_scroll_vertical) % 16) ) {
+        // Check every 16 game.screen_vscroll the logic to initialize the scroll variables.
+        if(!(BYTE0(game.screen_vscroll) % 16) ) {
 
-            // If the floor_scroll_vertical position has reached it's top position,
+            // If the game.screen_vscroll position has reached it's top position,
             // then we flip to the start position, which is 32 rows * 16 pixels height per row, which is 512.
             // Note that the player won't notice, as the tiles that were painted at each row,
             // were copied to the row + 32 ...
-            if(!floor_scroll_vertical) {
-                floor_scroll_vertical = FLOOR_SCROLL_START;
+            if(!game.screen_vscroll) {
+                game.screen_vscroll = FLOOR_SCROLL_START;
             }
 
             if(!floor_tile_row) {
@@ -95,6 +107,7 @@ void equinoxe_scrollfloor() {
             }
 
             floor_tile_column = FLOOR_TILE_COLUMN_16;
+            game.row = floor_tile_row / 4;
         }
 
         // There are 16 scroll iterations as the height of the tiles is 16 pixels.
@@ -108,14 +121,14 @@ void equinoxe_scrollfloor() {
         // We paint from bottom to top. Each paint segment is 64 pixels on the y axis, so we must paint every 4 rows.
         // We paint when the row is the bottom row of the paint segment, so row 3. Row 0 is the top row of the segment.
         if(floor_tile_row%4==3) {
-            floor_paint_segment(floor_tile_row, floor_tile_column);
+            floor_paint(floor_tile_row, floor_tile_column);
         }
 
         // Now that the segment for the respective floor_tile_row and floor_tile_column has been painted,
         // we can draw a cell from the painted segment. Note that when floor_tile_row is 0, 1 or 2,
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
-        floor_paint_tiles(stage.floor, floor_tile_row, floor_tile_column);
+        floor_draw_row(stage.floor, floor_tile_row, floor_tile_column);
 
         // This handles the smooth scrolling and enables seamless frame flipping.
         // Copy each cell of the current floor_tile_row, that has been tiled, to the bottom floor_tile_row (source floor_tile_row + 32),
@@ -127,12 +140,15 @@ void equinoxe_scrollfloor() {
         floor_cpy_map_src-=4*2;
         floor_cpy_map_dst-=4*2;
         if(floor_tile_row<=FLOOR_TILE_ROW_31) {
-            memcpy8_vram_vram(FLOOR_MAP_BANK_VRAM, floor_cpy_map_dst, FLOOR_MAP_BANK_VRAM, floor_cpy_map_src, 8*2); // Copy one cell.
+            memcpy8_vram_vram(FLOOR_MAP0_BANK_VRAM, floor_cpy_map_dst, FLOOR_MAP0_BANK_VRAM, floor_cpy_map_src, 8*2); // Copy one cell.
         }
 
         // Now we set the vertical scroll to the required scroll position.
-        vera_layer0_set_vertical_scroll(floor_scroll_vertical);
-        floor_scroll_vertical--;
+        vera_layer0_set_vertical_scroll(game.screen_vscroll);
+        #ifdef __LAYER1
+        vera_layer1_set_vertical_scroll(game.screen_vscroll);
+        #endif
+        game.screen_vscroll--;
         
     }
 
@@ -316,9 +332,13 @@ void irq_vsync() {
     vera_display_set_border_color(GREY);
     #endif
     equinoxe_scrollfloor();
+
+    #ifdef __TOWER
+        tower_logic();
+    #endif
 #endif
 
-#ifdef __FLIGHT
+#if defined(__FLIGHT) || defined(__FLOOR)
 
     #ifdef __CPULINES
         vera_display_set_border_color(BLUE);
@@ -487,8 +507,8 @@ void main() {
     
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
-    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, 0x2000, 0, 0x3000); // FLOOR_TILE segment for tiles of various sizes and types
-    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0x3000, 1, 0xB000); // SPRITES segment for sprites of various sizes
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, FLOOR_TILE_OFFSET_VRAM, 0, 0x6000); // FLOOR_TILE segment for tiles of various sizes and types
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0x6000, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
 
 #ifdef __FLIGHT
     fe_init();
@@ -521,17 +541,23 @@ void main() {
     stage_reset();
 #endif
 
-    // Allocate the segment for the tiles in vram.
-    const word VRAM_FLOOR_MAP_SIZE = 64*64*2;
-    const word VRAM_FLOOR_TILE_SIZE = TILE_FLOOR_COUNT*32*32/2;
-
     vera_layer0_mode_tile( 
-        FLOOR_MAP_BANK_VRAM, (vram_offset_t)FLOOR_MAP_OFFSET_VRAM, 
+        FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
         FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
         VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
         VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
         VERA_LAYER_COLOR_DEPTH_4BPP
     );
+
+    #ifdef __LAYER1
+    vera_layer1_mode_tile( 
+        FLOOR_MAP1_BANK_VRAM, (vram_offset_t)FLOOR_MAP1_OFFSET_VRAM, 
+        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_64,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_4BPP
+    );
+    #endif
 
     vera_layer0_show();
     vera_layer1_show();
@@ -545,10 +571,14 @@ void main() {
 #endif
 
 
+    floor_draw_clear(stage.floor);
+    floor_draw_clear(stage.towers);
     floor_paint_background(stage.floor);
+
  
     floor_tile_column = 16;
     floor_tile_row = 31;
+
 
 #endif
 
@@ -573,8 +603,6 @@ void main() {
 #endif
 
     cx16_mouse_config(0xFF, 80, 60);
-    // memset_vram(1, 0x0000, 0, 16);
-
     cx16_mouse_get();
 
     vera_layer0_set_vertical_scroll(0);

@@ -50,8 +50,14 @@ typedef struct {
 
     unsigned int sprite_offset;
     unsigned char palette;
+    unsigned char palette_count;
 
+    unsigned char tower_pool;
+    unsigned char tower_count;
+    
     floor_t* floor;
+    floor_t* towers;
+
 
     unsigned int score;
     unsigned int penalty;

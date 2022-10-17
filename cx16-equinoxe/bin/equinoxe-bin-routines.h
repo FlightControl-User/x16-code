@@ -208,13 +208,12 @@ kickasm {{
         .var nxt_idx = 0;
         .eval palette.put(0,0);
         .eval palList.add(0)
-        .var id = bitmap.start
         .eval bitmap.size = (bitmap.width * bitmap.height) / (8 / bitmap.bpp)
         .eval bitmap.count = round((bitmap.count / bitmap.skip))
         .print "count = " + bitmap.count + "size = " + bitmap.size + ", width = " + bitmap.width + ", height = " + bitmap.height + ", bpp = " + bitmap.bpp
         .var image = bitmap.tile + "_" + bitmap.width + "x" + bitmap.height + "." + bitmap.ext
         .var pic = LoadPicture(image)
-        .var xoff = 0
+        .var xoff = bitmap.width * bitmap.start
         .var yoff = 0
         .for(var p=0;p<bitmap.count;p++) {
             .for (var y=0; y<bitmap.height; y++) {
@@ -244,7 +243,7 @@ kickasm {{
         .var tiledata = List()
         .var image = bitmap.tile + "_" + bitmap.width + "x" + bitmap.height + "." + bitmap.ext
         .var pic = LoadPicture(image)
-        .var xoff = 0
+        .var xoff = bitmap.width * bitmap.start
         .var yoff = 0
         .for(var p=0;p<bitmap.count;p++) {
             .var hstep = 8 / bitmap.bpp

@@ -21,8 +21,6 @@ void FireBullet(unsigned char p, char reload)
 
     if(stage.sprite_bullet_count<FE_BULLET) {
 
-        // printf("player bullet=%03u. ", stage.sprite_bullet_count);
-
         unsigned char b = fe.bullet_pool;
 
         while(bullet.used[b]) {
@@ -77,8 +75,6 @@ void FireBulletEnemy(unsigned char e)
 
         unsigned char b = fe.bullet_pool;
 
-        // printf("enemy bullet=%03u, b=%u, bram=%u. ", stage.sprite_bullet_count, b, bank_get_bram());
-    
         while(bullet.used[b]) {
             b = (b+1)%FE_BULLET;
         }
@@ -190,9 +186,6 @@ void LogicBullets()
 				}
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             }
-
-            // gotoxy(0,21);
-            // printf("bullet count=%2u, #=%2u", stage.sprite_bullet_count, stage.sprite_bullet);
 
         }
         

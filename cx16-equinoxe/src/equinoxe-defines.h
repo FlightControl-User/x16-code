@@ -13,21 +13,24 @@
 
 #define __MAIN
 
-// #define __NOVSYNC
+#define __NOVSYNC
 
-#define __CPULINES
+// #define __CPULINES
 
 #define __PALETTE
 
-#define __FLOOR
-#define __FLIGHT
-#define __STAGE
-#define __COLLISION
+// #define __FLIGHT
+// #define __STAGE
+// #define __COLLISION
 
-#define __PLAYER
-#define __BULLET
-#define __ENEMY
-#define __ENGINE
+#define __LAYER1
+
+#define __FLOOR
+#define __TOWER
+// #define __PLAYER
+// #define __BULLET
+// #define __ENEMY
+// #define __ENGINE
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE
@@ -54,6 +57,9 @@
 // Shows detailed debug info when loading the files.
 // #define __DEBUG_FILE
 
+// Includes printf statements, we need to ignore those which are not necessary, because it takes a lot of compile time.
+// #define __INCLUDE_PRINT
+
 // Shows a table outlining the palette usage.
 // #define __DEBUG_PALETTE
 
@@ -65,6 +71,8 @@
 
 // #define __DEBUG_ENGINE
 
+
+#define GETIN() while(!getin())
 
 #define __VERAHEAP_SEGMENT
 #define LRU_CACHE_MAX 64

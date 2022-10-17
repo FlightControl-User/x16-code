@@ -41,6 +41,7 @@ typedef struct {
 typedef struct {
     char* file_palette_sprites;
     char* file_palette_floor;
+    char* file_palette_tower;
 } palette_files_t;
 
 typedef unsigned char palette_index_t;

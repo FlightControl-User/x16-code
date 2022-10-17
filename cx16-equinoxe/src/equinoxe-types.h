@@ -1,17 +1,18 @@
 #ifndef __EQUINOXE_TYPES_H
 #define __EQUINOXE_TYPES_H
 
-#include <cx16-typedefs.h>
-#include <ht-typedefs.h>
-#include <fp3-typedefs.h>
-#include <cx16-heap-bram-fb.h>
-#include <cx16-veralib.h>
-#include <cx16-veraheap-typedefs.h>
+// #include <cx16-typedefs.h>
+// #include <ht-typedefs.h>
+// #include <fp3-typedefs.h>
+// #include <cx16-heap-bram-fb.h>
+// #include <cx16-veralib.h>
+// #include <cx16-veraheap-typedefs.h>
 
 #include "equinoxe-bank.h"
 #include "equinoxe-palette-types.h"
 #include "equinoxe-flightengine-types.h"
 #include "equinoxe-floorengine-types.h"
+#include "equinoxe-tower-types.h"
 #include "equinoxe-enemy-types.h"
 #include "equinoxe-bullet-types.h"
 
@@ -37,26 +38,13 @@ const byte SIDE_ENEMY = 1;
 
 
 
-struct sprite_bullet {
-    byte active;
-    signed int x;
-    signed int y;
-    signed char dx;
-    signed char dy;
-    byte energy;
-};
-
 typedef struct {
-    void (*Logic)(void);
-    void (*Draw)(void);
-} Delegate;
-
-
-
-typedef struct {
-	Delegate delegate;
     unsigned char ticksync;
     unsigned char tickstage;
+    unsigned int  screen_vscroll;
+    unsigned char screen_vscroll_wait;
+    unsigned char row;
+
 } equinoxe_game_t;
 
 

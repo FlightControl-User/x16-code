@@ -130,12 +130,6 @@ void player_logic() {
 
     bank_push_set_bram(fe.bram_bank);
 
-    // unsigned char xor = player_checkxor();
-    // if(stage.player_xor != xor) {
-    //     printf("p-xor %02x<>%02x", xor, stage.player_xor);
-    // }
-
-
     for(char p=0; p<FE_PLAYER; p++) {
 
 #ifdef debug_scanlines
@@ -227,15 +221,12 @@ void player_logic() {
                 if(player.wait_animation[p]) {
                     vera_sprite_set_xy(player_sprite_offset, playerx, playery);
                 } else {
-                    // printf("player image offset: s=%x, p=%x, a=%x, o=%x. ", player_sprite_offset, p, player.state_animation[p], player_sprite->vram_image[player.state_animation[p]]);
-                    // vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_cache.vram_image_offset[(unsigned int)player.sprite[p]*16+player.state_animation[p]]);
 					vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_image_cache_vram(player_sprite, player.state_animation[p]));
                 }
 #ifdef __ENGINE
                 if(engine.wait_animation[n]) {
                     vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
                 } else {
-                    // vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_cache.vram_image_offset[(unsigned int)engine.sprite[n]*16+engine.state_animation[n]]);
 					vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine_sprite, engine.state_animation[n]));
                 }
 #endif

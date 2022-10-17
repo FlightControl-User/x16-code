@@ -49,6 +49,7 @@ fe_engine_t engine;
 #pragma data_seg(SpriteControlBullets)
 fe_bullet_t bullet;
 
+
 #pragma data_seg(fe_sprite_cache)
 // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
 fe_sprite_cache_t sprite_cache;
@@ -110,11 +111,15 @@ void fe_sprite_debug() {
     char x = wherex();
     char y = wherey();
 
+    #ifdef __INCLUDE_PRINT
     printf("pool %2x", fe.sprite_pool);
+    #endif
 
     for (unsigned int c = 0; c < FE_CACHE; c++) {
         gotoxy(0, (char)c + 4);
+        #ifdef __INCLUDE_PRINT
         printf("%02x %04p %02x %16s %4u %4u", c, sprite_cache.sprite_bram[c], sprite_cache.used[c], &sprite_cache.file[c * 16], sprite_cache.offset[c], sprite_cache.size[c]);
+        #endif
     }
 
     gotoxy(x, y);
@@ -174,8 +179,10 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
             // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
             vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
             if(vram_handle==0xFFFF) {
+                #ifdef __INCLUDE_PRINT
                 gotoxy(0,59);
                 printf("error! vram_handle is nothing!");
+                #endif
             }
 
             // And we free the vram heap with the vram handle that we received.
@@ -300,15 +307,19 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
         #endif
 
         unsigned int status = file_open(1, 8, 2, filename);
+        #ifdef __INCLUDE_PRINT
         if (status) printf("error opening file %s\n", filename);
+        #endif
 
         sprite_file_header_t sprite_file_header;
 
         // Read the header of the file into the sprite_file_header structure.
-        unsigned int read = file_load_size(1, 8, 2, 0, (char*)&sprite_file_header, 16);
+        unsigned int read = file_load_size(1, 8, 2, (char*)&sprite_file_header, 16);
+        #ifdef __INCLUDE_PRINT
         if (!read) {
             printf("error loading file %s, status = %u\n", filename, status);
         }
+        #endif
 
         sprite_map_header(&sprite_file_header, sprite);
 
@@ -329,17 +340,23 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
             #ifdef __DEBUG_LOAD
             cputc('.');
             #endif
-            unsigned int read = file_load_size(1, 8, 2, heap_bram_fb_bank_get(handle_bram), heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
+            bank_push_set_bram(heap_bram_fb_bank_get(handle_bram));
+            unsigned int read = file_load_size(1, 8, 2, heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
+            bank_pull_bram();
+            #ifdef __INCLUDE_PRINT
             if (!read) {
                 printf("error loading file %s, status = %u\n", filename, status);
                 break;
             }
+            #endif
             sprite_bram_handles[sprite_offset] = handle_bram;
             total_loaded += sprite->SpriteSize;
             sprite_offset++;
         }
         status = file_close(1);
+        #ifdef __INCLUDE_PRINT
         if (status) printf("error closing file %s\n", sprite->file);
+        #endif
         sprite->loaded = 1;
     }
 

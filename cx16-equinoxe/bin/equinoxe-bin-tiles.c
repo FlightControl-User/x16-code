@@ -24,10 +24,10 @@ __export char header[] =kickasm {{
 
 
 __export char FLOOR_01[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floormetal","png",21,1,1,16,16,4,16,0)
-    .var pallist = GetPalette2(tile)
-    .var tiledata = MakeTile2(tile,pallist)
-    .var pallistdata = MakePalette2(tile,pallist)
+    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,21,1,16,16,4,16,0)
+    .var pallist = GetPalette3(tile)
+    .var tiledata = MakeTile3(tile,pallist)
+    .var pallistdata = MakePalette3(tile,pallist)
     .file [name="FLOOR01.BIN", type="bin", segments="floor01"]
     .segmentdef floor01
     .segment floor01
@@ -35,10 +35,10 @@ __export char FLOOR_01[] = kickasm {{{
 };}};
 
 __export char FLOOR_02[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floormetal","png",1,20,1,16,16,4,16,0)
-    .var pallist = GetPalette2(tile)
-    .var tiledata = MakeTile2(tile,pallist)
-    .var pallistdata = MakePalette2(tile,pallist)
+    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_metal","png",1,1,1,16,16,4,16,0)
+    .var pallist = GetPalette3(tile)
+    .var tiledata = MakeTile3(tile,pallist)
+    .var pallistdata = MakePalette3(tile,pallist)
     .file [name="FLOOR02.BIN", type="bin", segments="floor02"]
     .segmentdef floor02
     .segment floor02
@@ -46,10 +46,10 @@ __export char FLOOR_02[] = kickasm {{{
 };}};
 
 __export char FLOOR_03[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floormetal","png",22,1,1,16,16,4,16,0)
-    .var pallist = GetPalette2(tile)
-    .var tiledata = MakeTile2(tile,pallist)
-    .var pallistdata = MakePalette2(tile,pallist)
+    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_red_metal","png",1,1,1,16,16,4,16,0)
+    .var pallist = GetPalette3(tile)
+    .var tiledata = MakeTile3(tile,pallist)
+    .var pallistdata = MakePalette3(tile,pallist)
     .file [name="FLOOR03.BIN", type="bin", segments="floor03"]
     .segmentdef floor03
     .segment floor03

@@ -11,7 +11,7 @@ void main() {
    ht_size_t ht_size = 128;
    ht_item_t ht[128];
 
-   ht_init(ht, ht_size);
+   ht_init(ht);
 
    clrscr();
    while(!getin()) {

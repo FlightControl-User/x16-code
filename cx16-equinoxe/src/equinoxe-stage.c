@@ -10,6 +10,7 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-palette.h"
+#include "equinoxe-tower.h"
 
 #pragma data_seg(Data)
 
@@ -116,7 +117,7 @@ void stage_load_floor(stage_floor_t* stage_floor)
         part = floor_bram_load(part, floor, floor_bram);
     }
 
-    for(part=0;part<TILE_FLOOR_COUNT;part++) {
+    for(part=0;part<23;part++) {
         floor_vram_copy(part, floor, VERA_HEAP_SEGMENT_TILES);
     }
 
@@ -125,6 +126,31 @@ void stage_load_floor(stage_floor_t* stage_floor)
     bank_pull_bram();
 }
 
+void stage_load_tower(stage_tower_t* stage_tower)
+{
+    bank_push_set_bram(BRAM_LEVELS); // stage data
+
+    // Loading the floor in bram.
+
+    stage_floor_bram_tiles_t* tower_bram_tiles = stage_tower->tower_bram_tiles;
+    floor_t* tower = stage_tower->towers;
+
+    unsigned int part = 0;
+    for(unsigned char t = 0; t<stage_tower->tower_file_count; t++) {
+        floor_bram_tiles_t* tower_bram = tower_bram_tiles[t].floor_bram_tile;
+        part = floor_bram_load(part, tower, tower_bram);
+    }
+
+    // printf(",part = %u", part);
+
+    for(part=0;part<16;part++) {
+        floor_vram_copy(part, tower, VERA_HEAP_SEGMENT_TILES);
+    }
+
+    stage.towers = tower;
+
+    bank_pull_bram();
+}
 
 static void stage_load(void)
 {
@@ -140,9 +166,18 @@ static void stage_load(void)
 #endif
 
 
+#ifdef __TOWER
+    // Loading tower tiles in bram.
+    for(unsigned int t=0; t<stage_playbook->tower_count; t++) {
+        stage_load_tower(stage_playbook->stage_towers);
+    }
+#endif
+
+
 #ifdef __PLAYER
     stage_load_player(stage_playbook->stage_player);
 #endif
+
 
 #ifdef __ENEMY
     // Loading the enemy sprites in bram.
@@ -151,7 +186,6 @@ static void stage_load(void)
         stage_load_enemy(stage_scenario->stage_enemy);
     }
 #endif
-
 
     bank_pull_bram();
 }
@@ -242,7 +276,9 @@ void stage_logic()
     if(stage.playbook < stage.script.playbooks) {
         
         if(!(game.tickstage & 0x03)) {
-            // printf("stage playbook=%03u, scenario=%03u, enemies=%03u", stage.playbook, stage.scenario, stage.enemy_count);
+            #ifdef __DEBUG_STAGE
+            printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
+            #endif
             
             for(unsigned char w=0; w<8; w++) {
                 if(wave.used[w]) {
@@ -305,6 +341,16 @@ void stage_logic()
                     bank_pull_bram();
                 }
             }
+
+            // if(!(game.tickstage)) {
+                printf("paint tower\n");
+                bank_push_set_bram(BRAM_LEVELS);
+                stage_playbook_t* stage_playbooks = stage.script.playbook;
+                stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
+                stage_tower_t* stage_towers = stage_playbook->stage_towers;
+                tower_paint(stage_towers->turret);
+                bank_pull_bram();
+            // }
         }
     }
 
@@ -322,4 +368,6 @@ void stage_logic()
 #endif
         }
     }
+
+    
 }

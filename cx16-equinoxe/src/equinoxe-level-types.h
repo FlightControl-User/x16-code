@@ -82,10 +82,19 @@ typedef struct {
 } stage_floor_t;
 
 typedef struct {
+    unsigned char tower_file_count;
+    stage_floor_bram_tiles_t* tower_bram_tiles;
+    floor_t* towers;
+    sprite_bram_t* turret;
+} stage_tower_t;
+
+typedef struct {
     unsigned char scenario_count;
     stage_scenario_t* scenarios;
     stage_player_t* stage_player;
     stage_floor_t* stage_floor;
+    unsigned char tower_count;
+    stage_tower_t* stage_towers; 
 } stage_playbook_t;
 
 typedef struct {

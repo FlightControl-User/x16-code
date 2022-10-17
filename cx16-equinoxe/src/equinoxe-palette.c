@@ -24,6 +24,7 @@
 #include <mos6522.h>
 #include <multiply.h>
 #include <cx16-bitmap.h>
+#include <cx16-load.h>
 
 #include "equinoxe-types.h"
 #include "equinoxe.h"
@@ -38,6 +39,8 @@
 #include "equinoxe-player.h"
 #include "equinoxe-math.h"
 
+#include "equinoxe-defines.h"
+
 #include <ht.h>
 
 #pragma data_seg(Palette)
@@ -47,7 +50,7 @@ palette_bram_t palette_bram; // List of palettes in bram bank 63! Dynamically lo
 
 // Definition of palette files per level.
 palette_files_t palette_files[] = {
-    { "palsprite01.bin", "palfloor01.bin" }
+    { "palsprite01.bin", "palfloor01.bin", "paltower01.bin" }
 };
 
 palette_t palette;
@@ -70,11 +73,7 @@ void palette_init(bram_bank_t bram_bank)
 void palette_load(unsigned char playbook)
 {
 
-    #ifdef __DEBUG_FILE
-    printf("%s, %s, ", palette_files[level].file_palette64, palette_files[level].file_palette16);
-    #endif
-
-    // Load the palettes in main banked memory.
+    // todo rework this to stage logic. Load the palettes in main banked memory.
 
     unsigned int palette = 0;
 
@@ -82,15 +81,23 @@ void palette_load(unsigned char playbook)
     
     unsigned char floor_palettes = floor_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
-    printf("%u 16 color palettes loaded.", floor_palettes);
+    printf("%u 4bpp color floor palettes loaded.\n", floor_palettes);
     #endif
     palette = palette + floor_palettes;
 
-    unsigned int sprite_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_sprites, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned char tower_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_tower, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    
+    unsigned char tower_palettes = tower_palette_loaded / 32;
+    #ifdef __DEBUG_LOAD
+    printf("%u 4bpp color tower palettes loaded.\n", tower_palettes);
+    #endif
+    palette = palette + tower_palettes;
+
+    unsigned char sprite_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_sprites, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
 
     unsigned char sprite_palettes = sprite_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
-    printf("%u 16 color palettes loaded.", sprite_palettes);
+    printf("%u 4bpp color sprite palettes loaded.\n", sprite_palettes);
     #endif
     palette = palette + sprite_palettes;
 

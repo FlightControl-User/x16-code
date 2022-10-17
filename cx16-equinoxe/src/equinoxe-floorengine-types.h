@@ -27,6 +27,8 @@ typedef struct {
 #define FLOOR_SEGMENT_WEIGHTS 64
 #define FLOOR_SEGMENT_COMPOSITIONS 256
 typedef struct {
+    vera_bank bank;
+    vera_map_offset offset;
     floor_parts_t* floor_parts;
     unsigned char weight[FLOOR_SEGMENT_WEIGHTS];
     unsigned char composition[FLOOR_SEGMENT_COMPOSITIONS];
@@ -43,8 +45,8 @@ typedef struct {
 // todo: rework naming to floor_cache
 #define FLOOR_CACHE_TILES 16
 typedef struct {
-    char floortile[FLOOR_CACHE_TILES];
-} tilefloor_t;
+    char floor_segment[FLOOR_CACHE_TILES];
+} floor_cache_t;
 
 typedef heap_bram_fb_handle_t floor_bram_handles_t;
 

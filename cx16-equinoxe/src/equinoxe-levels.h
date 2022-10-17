@@ -1,5 +1,6 @@
 // #include "equinoxe-types.h"
 #include "equinoxe-level-types.h"
+#include "equinoxe-defines.h"
 
 #pragma data_seg(spritecontrol)
 
@@ -25,30 +26,28 @@ __export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 
 __export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
+__export volatile sprite_bram_t sprite_t001 = { "t004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 
 
 #pragma data_seg(floorcontrol)
 
-__export volatile floor_bram_handles_t floor_bram_handles[256];
-
-__export floor_bram_tiles_t floor_bram_01 = { 0, "floor01", 1, 16*16*1, 128, 0 };
-__export floor_bram_tiles_t floor_bram_02 = { 0, "floor02", 20, 16*16*20, 128, 0 };
-__export floor_bram_tiles_t floor_bram_03 = { 0, "floor03", 1, 16*16*1, 128, 0 };
-
 // FLOOR 01
+
+__export floor_bram_tiles_t floor_bram_01 = { 0, "floor01", 21, 16*16*21, 128, 0 };
+__export floor_bram_tiles_t floor_bram_02 = { 0, "floor02", 1, 16*16*1, 128, 0 };
+__export floor_bram_tiles_t floor_bram_03 = { 0, "floor03", 1, 16*16*1, 128, 0 };
 
 __export volatile floor_parts_t floor_parts_01 = {
         { 0 }, { 0 }, { 0 }, { 0 }, { 0 }
 };
 
 __export volatile floor_t floor_01 = {
+    FLOOR_MAP0_BANK_VRAM,
+    FLOOR_MAP0_OFFSET_VRAM,
     &floor_parts_01,
-    { 
-        16, 02, 02, 12, 02, 02, 12, 02,   
-        02, 12, 02, 02, 12, 02, 02, 16
-    },  
+    { 0 },  
     {
-        00, 00, 00, 00, // 00
+        21, 21, 21, 21, // 00
         01, 02, 05, 08, // 01
         03, 02, 08, 07, // 02
         03, 04, 08, 12, // 03 
@@ -80,6 +79,30 @@ __export volatile floor_t floor_01 = {
         09, 07, 05, 00, // 13
         07, 11, 00, 04, // 14
         13, 13, 13, 13  // 15
+    }
+};
+
+// TOWER 01
+
+__export floor_bram_tiles_t tower_bram_01 = { 0, "tower01", 16, 16*16*16, 128, 0 };
+
+__export volatile floor_parts_t tower_parts_01 = {
+        { 0 }, { 0 }, { 0 }, { 0 }, { 0 }
+};
+
+__export volatile floor_t tower_01 = {
+    FLOOR_MAP1_BANK_VRAM,
+    FLOOR_MAP1_OFFSET_VRAM,
+    &tower_parts_01,
+    { 0 },  
+    {
+        00, 01, 04, 05, // 00
+        02, 03, 06, 07, // 01
+        08, 09, 12, 13, // 02
+        10, 11, 14, 15  // 03 
+    },
+    {
+        00, 01, 02, 03, // 00
     }
 };
 
@@ -199,7 +222,7 @@ stage_scenario_t stage_level_01[32] = {
     {  8,  8, &stage_enemy_e0401, action_flightpath_left_circle_002,                      704,    32,    0,   32,   10,   20,   17 }  // 19
 };
 
-__export volatile stage_floor_bram_tiles_t stage_floor_bram_tiles_01[3] = {
+__export volatile stage_floor_bram_tiles_t stage_floor_bram_tiles_01[] = {
     { &floor_bram_01 }, 
     { &floor_bram_02 }, 
     { &floor_bram_03 }
@@ -210,12 +233,22 @@ stage_floor_t stage_floor_01 = {
     3, stage_floor_bram_tiles_01, &floor_01
 };
 
+__export volatile stage_floor_bram_tiles_t stage_tower_bram_tiles_01[] = {
+    { &tower_bram_01 }
+};
+
+
+__export volatile
+stage_tower_t stage_towers_01 = {
+    1, stage_tower_bram_tiles_01, &tower_01, &sprite_t001
+};
+
 // PLAYBOOK
 
 // This models the playbook of all the different levels in the game.
 // The embedded level field in the playbook is a pointer to a level composition.
 __export volatile stage_playbook_t stage_playbook[] = {
-    { 19, stage_level_01, &stage_player, &stage_floor_01 }
+    { 19, stage_level_01, &stage_player, &stage_floor_01, 1, &stage_towers_01 }
 };
 
 __export volatile

@@ -17,6 +17,7 @@
 
 #define BRAM_VERAHEAP           1
 #define BRAM_FLIGHTENGINE       2
+#define BRAM_ENGINE_TOWERS      2
 #define BRAM_LEVELS             3
 #define BRAM_SPRITE_CONTROL     4
 #define BRAM_FLOOR_CONTROL      5
@@ -25,9 +26,13 @@
 #define BRAM_HEAP_BRAM_BLOCKED  8
 
 // todo to move into vera memory addressing define
-#define FLOOR_MAP_BANK_VRAM 0
-#define FLOOR_MAP_OFFSET_VRAM  0x0000
-#define FLOOR_MAP_ADDRESS_VRAM (unsigned long)0x00000
+#define FLOOR_MAP0_BANK_VRAM 0
+#define FLOOR_MAP0_OFFSET_VRAM  0x0000
+#define FLOOR_MAP0_ADDRESS_VRAM (unsigned long)0x00000
+
+#define FLOOR_MAP1_BANK_VRAM 1
+#define FLOOR_MAP1_OFFSET_VRAM  0xB000
+#define FLOOR_MAP1_ADDRESS_VRAM (unsigned long)0x02000
 
 #define FLOOR_TILE_BANK_VRAM 0
 #define FLOOR_TILE_OFFSET_VRAM 0x2000

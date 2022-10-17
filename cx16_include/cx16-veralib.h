@@ -287,19 +287,5 @@ inline char vera_sprite_is_collision();
 inline void vera_sprite_collision_clear();
 inline unsigned char vera_sprite_get_collision();
 
-
-inline void vera_sprite_buffer_read(vera_sprite_buffer_t sprite_buffer);
-inline void vera_sprite_buffer_write(vera_sprite_buffer_t sprite_buffer);
-inline void vera_sprite_buffer_bpp(vera_sprite_buffer_item_t *sprite_offset, char bpp);
-inline void vera_sprite_buffer_set_image_offset(vera_sprite_buffer_item_t *sprite_offset, vera_sprite_image_offset sprite_image_offset);
-inline void vera_sprite_buffer_xy(vera_sprite_buffer_item_t *sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y);
-inline void vera_sprite_buffer_zdepth(vera_sprite_buffer_item_t *sprite_offset, unsigned char zdepth);
-inline void vera_sprite_buffer_disable(vera_sprite_buffer_item_t *sprite_offset);
-void vera_sprite_buffer_width(vera_sprite_buffer_item_t *sprite_offset, char width);
-void vera_sprite_buffer_height(vera_sprite_buffer_item_t *sprite_offset, char height);
-void vera_sprite_buffer_hflip(vera_sprite_buffer_item_t *sprite_offset, char hflip);
-void vera_sprite_buffer_vflip(vera_sprite_buffer_item_t *sprite_offset, char vflip);
-inline void vera_sprite_buffer_palette_offset(vera_sprite_buffer_item_t *sprite_offset, vera_palette_offset palette_offset);
-
 inline void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct VERA_SPRITE sprite_attr);
 inline void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct VERA_SPRITE *sprite_attr);
