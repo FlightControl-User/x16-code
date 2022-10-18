@@ -13,14 +13,14 @@
 
 #define __MAIN
 
-#define __NOVSYNC
+// #define __NOVSYNC
 
 // #define __CPULINES
 
 #define __PALETTE
 
-// #define __FLIGHT
-// #define __STAGE
+#define __FLIGHT
+#define __STAGE
 // #define __COLLISION
 
 #define __LAYER1

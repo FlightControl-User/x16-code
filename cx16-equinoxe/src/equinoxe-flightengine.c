@@ -5,8 +5,8 @@
 #pragma encoding(petscii_mixed)
 
 #include "equinoxe-defines.h"
-#include "equinoxe-flightengine.h"
 
+#include <cx16.h>
 #include <6502.h>
 #include <conio.h>
 #include <cx16-bitmap.h>
@@ -15,7 +15,7 @@
 #include <cx16-mouse.h>
 #include <cx16-veraheap.h>
 #include <cx16-veralib.h>
-#include <cx16.h>
+#include <cx16-file.h>
 #include <division.h>
 #include <kernal.h>
 #include <lru-cache.h>
@@ -25,12 +25,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "equinoxe.h"
 #include "equinoxe-bank.h"
 // #include "equinoxe-levels.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-types.h"
-#include "equinoxe.h"
+#include "equinoxe-flightengine.h"
 
 // Allocate the hash table to capture the cache of objects currently in vram and in use in main memory.
 // This is an array of 512 bytes.
@@ -79,7 +80,7 @@ void fe_init() {
     // Sprite Control
     fe.bram_sprite_control = BRAM_SPRITE_CONTROL;
 
-    unsigned int bytes = file_load_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
+    unsigned int bytes = fload_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
 
     // Initialize the cache in vram for the sprite animations.
     lru_cache_init(&sprite_cache_vram);
@@ -306,58 +307,70 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
         printf("\n%10s : ", filename);
         #endif
 
-        unsigned int status = file_open(1, 8, 2, filename);
-        #ifdef __INCLUDE_PRINT
-        if (status) printf("error opening file %s\n", filename);
-        #endif
-
-        sprite_file_header_t sprite_file_header;
-
-        // Read the header of the file into the sprite_file_header structure.
-        unsigned int read = file_load_size(1, 8, 2, (char*)&sprite_file_header, 16);
-        #ifdef __INCLUDE_PRINT
-        if (!read) {
-            printf("error loading file %s, status = %u\n", filename, status);
-        }
-        #endif
-
-        sprite_map_header(&sprite_file_header, sprite);
-
-        #ifdef __DEBUG_LOAD
-        printf("%2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x : ", 
-            sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip, 
-            sprite->aabb[0], sprite->aabb[1], sprite->aabb[2], sprite->aabb[3]);
-        #endif
-
-        unsigned int total_loaded = 0;
-
-        // Set palette offset of sprites
-        sprite->PaletteOffset = sprite->PaletteOffset + stage.palette;
-
-        sprite->offset = sprite_offset;
-        for (unsigned char s = 0; s < sprite->count; s++) {
-            heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
-            #ifdef __DEBUG_LOAD
-            cputc('.');
-            #endif
-            bank_push_set_bram(heap_bram_fb_bank_get(handle_bram));
-            unsigned int read = file_load_size(1, 8, 2, heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize);
-            bank_pull_bram();
+        FILE* fp = fopen(1, 8, 2, filename);
+        if(!fp) {
             #ifdef __INCLUDE_PRINT
-            if (!read) {
-                printf("error loading file %s, status = %u\n", filename, status);
-                break;
-            }
+            if (status) printf("error opening file %s\n", filename);
             #endif
-            sprite_bram_handles[sprite_offset] = handle_bram;
-            total_loaded += sprite->SpriteSize;
-            sprite_offset++;
+        } else {
+            sprite_file_header_t sprite_file_header;
+
+            // Read the header of the file into the sprite_file_header structure.
+            unsigned int read = fgets((char*)&sprite_file_header, 16, fp);
+
+            if(!read) {
+                #ifdef __INCLUDE_PRINT
+                if(end) {
+                    printf("error loading file %s, status = %u\n", filename, status);
+                }
+                #endif
+
+            } else {
+
+                sprite_map_header(&sprite_file_header, sprite);
+
+                #ifdef __DEBUG_LOAD
+                printf("%2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x : ", 
+                    sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip, 
+                    sprite->aabb[0], sprite->aabb[1], sprite->aabb[2], sprite->aabb[3]);
+                #endif
+
+                unsigned int total_loaded = 0;
+
+                // Set palette offset of sprites
+                sprite->PaletteOffset = sprite->PaletteOffset + stage.palette;
+
+                sprite->offset = sprite_offset;
+                for (unsigned char s = 0; s < sprite->count; s++) {
+                    heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
+                    #ifdef __DEBUG_LOAD
+                    cputc('.');
+                    #endif
+                    bank_push_set_bram(heap_bram_fb_bank_get(handle_bram));
+                    unsigned int read = fgets(heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize, fp);
+                    bank_pull_bram();
+                    if(!read) {
+                        #ifdef __INCLUDE_PRINT
+                        if (!read) {
+                            printf("error loading file %s, status = %u\n", filename, status);
+                            break;
+                        }
+                        #endif
+                    } else{
+                        sprite_bram_handles[sprite_offset] = handle_bram;
+                        total_loaded += sprite->SpriteSize;
+                        sprite_offset++;
+                    }
+                }
+                if(fclose(fp)) {
+                    #ifdef __INCLUDE_PRINT
+                    if (status) printf("error closing file %s\n", sprite->file);
+                    #endif
+                } else {
+                    sprite->loaded = 1;
+                }
+            }
         }
-        status = file_close(1);
-        #ifdef __INCLUDE_PRINT
-        if (status) printf("error closing file %s\n", sprite->file);
-        #endif
-        sprite->loaded = 1;
     }
 
     bank_pull_bram();

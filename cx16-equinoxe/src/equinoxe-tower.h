@@ -3,4 +3,4 @@
 
 #define TOWERS_TOTAL 8
 
-void tower_paint(sprite_bram_t* turret);
+void tower_paint(sprite_bram_t* turret, unsigned char tx, unsigned char ty);

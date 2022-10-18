@@ -4,6 +4,7 @@
 #include <cx16.h>
 #include <cx16-veralib.h>
 #include <cx16-veraheap.h>
+#include <cx16-file.h>
 #include <kernal.h>
 #include <6502.h>
 #include <conio.h>
@@ -124,7 +125,7 @@ void floor_init() {
 
     // Initialize the first new floor was blank tiles.
 
-    unsigned int bytes = file_load_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+    unsigned int bytes = fload_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
 }
 
 /**
@@ -303,51 +304,56 @@ unsigned int floor_bram_load(unsigned int part, floor_t* floor, floor_bram_tiles
         printf("\n%10s : ", filename);
         #endif
 
-        unsigned int status = file_open(1, 8, 2, filename);
-        #ifdef __INCLUDE_PRINT
-        if (status) printf("error opening file %s\n", filename);
-        #endif
+        FILE* fp = fopen(1, 8, 2, filename);
+        if(fp) {
 
-        // Set palette offset of sprites
-        floor_bram_tile->palette = stage.palette;
+            // Set palette offset of sprites
+            floor_bram_tile->palette = stage.palette;
 
-        unsigned int count = floor_bram_tile->count;
-        unsigned int size = floor_bram_tile->floor_tile_size;
+            unsigned int count = floor_bram_tile->count;
+            unsigned int size = floor_bram_tile->floor_tile_size;
 
-        for(unsigned char s=0; s<floor_bram_tile->count; s++) {
-            #ifdef __DEBUG_LOAD
-            printf(".");
-            #endif
-            heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, size);
-            bram_bank_t bram_bank = heap_bram_fb_bank_get(handle_bram);
-            bram_ptr_t bram_ptr = heap_bram_fb_ptr_get(handle_bram);
-            bank_push_set_bram(bram_bank);
-            unsigned int read  = file_load_size(1, 8, 2, bram_ptr, size);
-            bank_pull_bram();
-            // printf(" bank = %x, ptr = %p, read = %u", bram_bank, bram_ptr, read);
-            #ifdef __INCLUDE_PRINT
-            if (!read) {
-                printf("error loading file %s\n", floor_bram_tile->file);
-                break;
+            for(unsigned char s=0; s<floor_bram_tile->count; s++) {
+                #ifdef __DEBUG_LOAD
+                printf(".");
+                #endif
+                heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, size);
+                bram_bank_t bram_bank = heap_bram_fb_bank_get(handle_bram);
+                bram_ptr_t bram_ptr = heap_bram_fb_ptr_get(handle_bram);
+                bank_push_set_bram(bram_bank);
+                unsigned int read = fgets(bram_ptr, size, fp);
+                bank_pull_bram();
+                if (!read) {
+                    #ifdef __INCLUDE_PRINT
+                    printf("error loading file %s\n", fp->filename);
+                    break;
+                    #endif
+                } else {
+                    floor_parts->bram_handles[part] = handle_bram;
+                    floor_parts->floor_tile[part] = floor_bram_tile;
+
+                    // Assign the palette to the floor part, this is used when painting the floor.
+                    // The palettes are automatically painted.
+                    floor_parts->palette[part] = palette16_use(stage.palette);
+                    
+                    part++;
+                }
             }
+
+            stage.palette++;
+
+            if(fclose(fp)) {
+                #ifdef __INCLUDE_PRINT
+                printf("error closing file %s\n", floor_bram_tile->file);
+                #endif
+            } else {
+                floor_bram_tile->loaded = 1;
+            }
+        } else {
+            #ifdef __INCLUDE_PRINT
+            if (status) printf("error opening file %s\n", fp->filename);
             #endif
-            floor_parts->bram_handles[part] = handle_bram;
-            floor_parts->floor_tile[part] = floor_bram_tile;
-
-            // Assign the palette to the floor part, this is used when painting the floor.
-            // The palettes are automatically painted.
-            floor_parts->palette[part] = palette16_use(stage.palette);
-            
-            part++;
         }
-
-        stage.palette++;
-
-        status = file_close(1);
-        #ifdef __INCLUDE_PRINT
-        if (status) printf("error closing file %s\n", floor_bram_tile->file);
-        #endif
-        floor_bram_tile->loaded = 1;
     }
 
     bank_pull_bram();

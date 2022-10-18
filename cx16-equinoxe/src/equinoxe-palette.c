@@ -24,7 +24,7 @@
 #include <mos6522.h>
 #include <multiply.h>
 #include <cx16-bitmap.h>
-#include <cx16-load.h>
+#include <cx16-file.h>
 
 #include "equinoxe-types.h"
 #include "equinoxe.h"
@@ -77,7 +77,7 @@ void palette_load(unsigned char playbook)
 
     unsigned int palette = 0;
 
-    unsigned int floor_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_floor, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned int floor_palette_loaded = fload_bram(1, 8, 2, palette_files[playbook].file_palette_floor, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
     
     unsigned char floor_palettes = floor_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
@@ -85,7 +85,7 @@ void palette_load(unsigned char playbook)
     #endif
     palette = palette + floor_palettes;
 
-    unsigned char tower_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_tower, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned char tower_palette_loaded = fload_bram(1, 8, 2, palette_files[playbook].file_palette_tower, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
     
     unsigned char tower_palettes = tower_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
@@ -93,7 +93,7 @@ void palette_load(unsigned char playbook)
     #endif
     palette = palette + tower_palettes;
 
-    unsigned char sprite_palette_loaded = file_load_bram(1, 8, 2, palette_files[playbook].file_palette_sprites, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned char sprite_palette_loaded = fload_bram(1, 8, 2, palette_files[playbook].file_palette_sprites, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
 
     unsigned char sprite_palettes = sprite_palette_loaded / 32;
     #ifdef __DEBUG_LOAD

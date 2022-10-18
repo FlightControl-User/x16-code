@@ -86,6 +86,8 @@ typedef struct {
     stage_floor_bram_tiles_t* tower_bram_tiles;
     floor_t* towers;
     sprite_bram_t* turret;
+    unsigned char turret_x; // x pixels to be added to position the turret on the tower.
+    unsigned char turret_y; // y pixels to be added to position the turret on the tower.
 } stage_tower_t;
 
 typedef struct {

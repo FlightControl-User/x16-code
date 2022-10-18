@@ -8,6 +8,8 @@ typedef struct {
     unsigned char offset[8];
     unsigned char x[8];
     unsigned char y[8];
+    unsigned int tx[8];
+    unsigned int ty[8];
 
     fe_sprite_index_t sprite[8]; ///< the gun turret
     vera_sprite_offset sprite_offset[8]; ///< the offset received from the sprite dispatcher 

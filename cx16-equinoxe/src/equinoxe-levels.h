@@ -4,8 +4,9 @@
 
 #pragma data_seg(spritecontrol)
 
-__export volatile sprite_bram_handles_t sprite_bram_handles[2048];
+__export volatile sprite_bram_handles_t sprite_bram_handles[512];
 
+__export volatile sprite_bram_t sprite_t001 = { "t001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_n001 = { "n001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_e0101 = { "e0101", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
@@ -26,7 +27,6 @@ __export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 
 __export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
-__export volatile sprite_bram_t sprite_t001 = { "t004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0 };
 
 
 #pragma data_seg(floorcontrol)
@@ -240,7 +240,7 @@ __export volatile stage_floor_bram_tiles_t stage_tower_bram_tiles_01[] = {
 
 __export volatile
 stage_tower_t stage_towers_01 = {
-    1, stage_tower_bram_tiles_01, &tower_01, &sprite_t001
+    1, stage_tower_bram_tiles_01, &tower_01, &sprite_t001, 16, 16
 };
 
 // PLAYBOOK

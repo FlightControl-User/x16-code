@@ -1,5 +1,6 @@
 #include <cx16.h>
 #include <cx16-veralib.h>
+#include <cx16-file.h>
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
@@ -21,7 +22,7 @@ void stage_init()
 {
 	memset(&stage, 0, sizeof(stage_t));
 
-    unsigned int bytes = file_load_bram(1, 8, 2, "levels.bin", BRAM_LEVELS, (bram_ptr_t) 0xA000);
+    unsigned int bytes = fload_bram(1, 8, 2, "levels.bin", BRAM_LEVELS, (bram_ptr_t) 0xA000);
 
     floor_init();
 
@@ -134,6 +135,7 @@ void stage_load_tower(stage_tower_t* stage_tower)
 
     stage_floor_bram_tiles_t* tower_bram_tiles = stage_tower->tower_bram_tiles;
     floor_t* tower = stage_tower->towers;
+    sprite_bram_t* tower_sprite = stage_tower->turret;
 
     unsigned int part = 0;
     for(unsigned char t = 0; t<stage_tower->tower_file_count; t++) {
@@ -141,12 +143,14 @@ void stage_load_tower(stage_tower_t* stage_tower)
         part = floor_bram_load(part, tower, tower_bram);
     }
 
-    // printf(",part = %u", part);
 
     for(part=0;part<16;part++) {
         floor_vram_copy(part, tower, VERA_HEAP_SEGMENT_TILES);
     }
 
+    printf("stage: tower_sprite = %p, bank = %x\n", tower_sprite, bank_get_bram());
+    stage.sprite_offset = fe_sprite_bram_load(tower_sprite, stage.sprite_offset);
+         
     stage.towers = tower;
 
     bank_pull_bram();
@@ -343,12 +347,11 @@ void stage_logic()
             }
 
             // if(!(game.tickstage)) {
-                printf("paint tower\n");
                 bank_push_set_bram(BRAM_LEVELS);
                 stage_playbook_t* stage_playbooks = stage.script.playbook;
                 stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
                 stage_tower_t* stage_towers = stage_playbook->stage_towers;
-                tower_paint(stage_towers->turret);
+                tower_paint(stage_towers->turret, stage_towers->turret_x, stage_towers->turret_y);
                 bank_pull_bram();
             // }
         }

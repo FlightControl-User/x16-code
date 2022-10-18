@@ -5,7 +5,7 @@
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(zp, global_mem)
+#pragma var_model(mem, global_mem)
 
 // #pragma var_model(mem)
 
@@ -516,6 +516,9 @@ void main() {
 
 
 #if defined(__FLIGHT) || defined(__FLOOR)
+
+    // Initialize game
+    game.row = FLOOR_TILE_ROW_31;
 
     // Initialize stage
     stage_init();

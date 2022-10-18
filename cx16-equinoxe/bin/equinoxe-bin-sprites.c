@@ -25,6 +25,17 @@ __export char header[] =kickasm {{
 
 }};
 
+__export char t001[] = kickasm {{{
+    .var sprite = Sprite("cx16-equinoxe/graphics/floors/towers/tower_gun_01","png",0,12,1,512,32,32,3,0,0,4,2,0,16)
+    .var pallist = GetPalette3(sprite)
+    .var tiledata = MakeTile3(sprite,pallist)
+    .var pallistdata = MakePalette3(sprite,pallist)
+    .file [name="T001.BIN", type="bin", segments="t001"]
+    .segmentdef t001
+    .segment t001
+    Data(sprite,tiledata,pallistdata)
+};}};
+
 __export char p001[] = kickasm {{{
     .var sprite = Sprite("cx16-equinoxe/graphics/player/p001","png",1,7,1,512,32,32,3,0,0,4,2,0,16)
     .var pallist = GetPalette2(sprite)
@@ -258,13 +269,3 @@ __export char b004[] = kickasm {{{
     Data(sprite,tiledata,pallistdata)
 };}};
 
-__export char t001[] = kickasm {{{
-    .var sprite = Sprite("cx16-equinoxe/graphics/floors/towers/tower_gun_01","png",0,12,1,512,32,32,3,0,0,4,2,0,16)
-    .var pallist = GetPalette3(sprite)
-    .var tiledata = MakeTile3(sprite,pallist)
-    .var pallistdata = MakePalette3(sprite,pallist)
-    .file [name="T001.BIN", type="bin", segments="t001"]
-    .segmentdef t001
-    .segment t001
-    Data(sprite,tiledata,pallistdata)
-};}};

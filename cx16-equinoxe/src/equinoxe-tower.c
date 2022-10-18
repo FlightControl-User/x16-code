@@ -23,7 +23,15 @@ tower_t towers;
 #pragma data_seg(Data)
 
 
-unsigned char tower_add( sprite_bram_t* turret, unsigned char x, unsigned char y, unsigned char animation_speed, unsigned char animation_count, unsigned char palette_index ) 
+unsigned char tower_add( 
+    sprite_bram_t* turret, 
+    unsigned char x, 
+    unsigned char y,
+    unsigned int tx,
+    unsigned int ty,
+    unsigned char animation_speed, 
+    unsigned char animation_count, 
+    unsigned char palette_index ) 
 {
 
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
@@ -45,6 +53,10 @@ unsigned char tower_add( sprite_bram_t* turret, unsigned char x, unsigned char y
 	towers.sprite_offset[t] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
 	fe_sprite_configure(towers.sprite_offset[t], s);
 
+    // printf("towers t=%u", t);
+    // printf(", offset=%6u", towers.sprite_offset[t]);
+
+
 
 	towers.wait_animation[t] = animation_speed;
 	towers.speed_animation[t] = animation_speed;
@@ -56,10 +68,13 @@ unsigned char tower_add( sprite_bram_t* turret, unsigned char x, unsigned char y
 
 	towers.health[t] = 100;
 
+    towers.tx[t] = tx;
+    towers.ty[t] = ty;
     towers.x[t] = x;
     towers.y[t] = y;
 
 	stage.tower_pool = (t+1)%TOWERS_TOTAL;
+    stage.tower_count++;
 
     enemies_resource();
 
@@ -118,12 +133,12 @@ unsigned char tower_remove(unsigned char t)
 //     bank_pull_bram();
 // }
 
-void tower_paint(sprite_bram_t* turret) 
+void tower_paint(sprite_bram_t* turret, unsigned char tx, unsigned char ty) 
 {
 
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
-    for(unsigned char x=0; x<16; x++) {
+    for(unsigned char x=0; x<12; x++) {
         for(unsigned char y=0; y<16; y++) {
 
             unsigned char rnd = BYTE0(rand());
@@ -133,10 +148,10 @@ void tower_paint(sprite_bram_t* turret)
             unsigned char floor_slab = floor_cache[y].floor_segment[x];
 
             if( floor_slab == 15 ) {
-                if( rnd < 128 ) {
+                if( rnd <= 128 ) {
                     if( stage.tower_count < TOWERS_TOTAL) {
-                        tower_add(turret, x, y, 4, 1, 4);
-                        stage.tower_count++;
+                        tower_add(turret, x, y, (unsigned int)x*64+tx, (unsigned int)y*64+ty, 4, 1, 4);
+                        floor_draw_slab(stage.towers, 0, x, y);
                     }
                 }
             }
@@ -156,6 +171,7 @@ void tower_logic() {
                 if (towers.y[t] < 8) {
                     towers.used[t] = 0;
                     towers.enabled[t] = 0;
+                    // printf("unusing tower t=%u, row=%u", t, game.row);
                 }
             }
 
@@ -163,17 +179,23 @@ void tower_logic() {
                 if (towers.y[t] >= 8) {
                     towers.used[t] = 0;
                     towers.enabled[t] = 0;
+                    // printf("unusing tower t=%u, row=%u", t, game.row);
                 }
             }
 		}
 
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
-            signed int py = (signed int)game.screen_vscroll - ((signed int)((unsigned int)towers.y[t])*64); // the screen_vscroll contains the current scroll position.
-            signed int px = (signed int)towers.x[t]*64;
-            floor_draw_slab(stage.towers, 0, towers.x[t], towers.y[t]);
+            // todo i need to review this statement as it compiles wrongly like this:
+            // signed int py = (signed int)((unsigned int)towers.y[t] * 64) - (signed int)game.screen_vscroll; // the screen_vscroll contains the current scroll position.
+            unsigned int y = (unsigned int)towers.ty[t];
+            signed int py = (signed int)y - (signed int)game.screen_vscroll; // the screen_vscroll contains the current scroll position.
+            signed int px = (signed int)towers.tx[t];
+            // floor_draw_slab(stage.towers, 0, towers.x[t], towers.y[t]);
             vera_sprite_offset sprite_offset = towers.sprite_offset[t];
             vera_sprite_zdepth_in_front(sprite_offset);
             vera_sprite_set_xy_and_image_offset(sprite_offset, px, py, sprite_image_cache_vram(towers.sprite[t], towers.state_animation[t]));
+            // printf("tower logic: t=%u, towers x[t]=%3u, y[t]=%3u", t, towers.x[t], y, towers.y[t]);
+            // printf("vscroll=%4u, px=%i, py=%i, y=%u\n", game.screen_vscroll, px, py, y);
         }
 	}
     bank_pull_bram();
