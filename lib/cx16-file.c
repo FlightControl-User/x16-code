@@ -130,7 +130,7 @@ unsigned int fgets(char* ptr, unsigned int size, FILE* fp)
 
         if(bytes == 0xFFFF) {
             // #ifdef __DEBUG_FILE
-            printf("read error in file %s, status=%u", fp->filename, fp->status);
+            printf("read error in file %s, status=%u, bank=%u, ptr=%p\n", fp->filename, fp->status, bank_get_bram(), ptr);
             // #endif
             return 0;
         }

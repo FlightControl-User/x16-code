@@ -108,8 +108,6 @@ void equinoxe_init() {
 
     game.row = FLOOR_TILE_ROW_31;
 
-    stage_init();
-
 }
 
 

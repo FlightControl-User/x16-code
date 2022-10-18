@@ -3,7 +3,6 @@
 extern stage_t stage;
 extern stage_wave_t wave;
 
-void stage_init();
 void stage_reset();
 
 

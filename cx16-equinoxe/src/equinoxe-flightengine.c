@@ -305,11 +305,13 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
 
                 sprite_map_header(&sprite_file_header, sprite);
 
-                #ifdef __DEBUG_LOAD
+                // #ifdef __DEBUG_LOAD
                 printf("%2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x : ", 
                     sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip, 
                     sprite->aabb[0], sprite->aabb[1], sprite->aabb[2], sprite->aabb[3]);
-                #endif
+                // #endif
+
+                unsigned int sprite_size = sprite->SpriteSize;
 
                 unsigned int total_loaded = 0;
 
@@ -318,12 +320,12 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
 
                 sprite->offset = sprite_offset;
                 for (unsigned char s = 0; s < sprite->count; s++) {
-                    heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite->SpriteSize);
+                    heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite_size);
                     #ifdef __DEBUG_LOAD
                     cputc('.');
                     #endif
                     bank_push_set_bram(heap_bram_fb_bank_get(handle_bram));
-                    unsigned int read = fgets(heap_bram_fb_ptr_get(handle_bram), sprite->SpriteSize, fp);
+                    unsigned int read = fgets(heap_bram_fb_ptr_get(handle_bram), sprite_size, fp);
                     bank_pull_bram();
                     if(!read) {
                         #ifdef __INCLUDE_PRINT

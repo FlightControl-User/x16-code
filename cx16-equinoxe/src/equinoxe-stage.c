@@ -18,17 +18,6 @@
 stage_t stage;
 stage_wave_t wave;
 
-void stage_init()
-{
-	memset(&stage, 0, sizeof(stage_t));
-
-    unsigned int bytes = fload_bram(1, 8, 2, "levels.bin", BRAM_LEVELS, (bram_ptr_t) 0xA000);
-
-    floor_init();
-
-}
-
-
 
 void stage_copy(unsigned char ew, unsigned int scenario) {
     stage_playbook_t* stage_playbooks = stage.script.playbook;

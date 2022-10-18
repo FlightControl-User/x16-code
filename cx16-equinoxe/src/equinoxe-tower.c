@@ -138,26 +138,35 @@ void tower_animate(unsigned char t) {
         switch(towers.state[t]) {
             case 0:
                 unsigned char rnd = rand();
-                if(rnd<=255) towers.state[t] = 1;
+                if(rnd<=5) towers.state[t] = 1;
                 break;
             case 1:
                 towers.anim_start[t] = 0;
                 towers.anim_stop[t] = 11;
+                towers.anim_wait[t] = 0;
                 towers.state[t] = 2;
                 break;
             case 2:
                 if(!towers.anim_wait[t]) {
                     towers.anim_wait[t] = towers.anim_speed[t];
                     if(towers.anim_state[t] >= towers.anim_stop[t]) {
+                        towers.anim_wait[t] = 255;
                         towers.state[t] = 3;
                     } else {
                         towers.anim_state[t] += 1;
                     }
+                } else {
+                    towers.anim_wait[t]--;
                 }
                 break;
             case 3:
                 // Shoot
-                towers.state[t] = 4;
+                if(!towers.anim_wait[t]) {
+                    towers.anim_wait[t] = 0;
+                    towers.state[t] = 4;
+                } else {
+                    towers.anim_wait[t] = 0;
+                }
                 break;   
             case 4:
                 if(!towers.anim_wait[t]) {
@@ -168,6 +177,7 @@ void tower_animate(unsigned char t) {
                         towers.anim_state[t] -= 1;
                     }
                 }
+                towers.anim_wait[t]--;
                 break;
             default:
         }
