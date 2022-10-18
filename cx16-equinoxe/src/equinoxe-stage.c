@@ -161,7 +161,7 @@ static void stage_load(void)
 
 #ifdef __TOWER
     // Loading tower tiles in bram.
-    for(unsigned int t=0; t<stage_playbook->tower_count; t++) {
+    for(unsigned char t=0; t<stage_playbook->tower_count; t++) {
         stage_load_tower(stage_playbook->stage_towers);
     }
 #endif

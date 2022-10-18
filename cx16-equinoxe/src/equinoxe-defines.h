@@ -20,17 +20,17 @@
 #define __PALETTE
 
 #define __FLIGHT
-// #define __STAGE
-// #define __COLLISION
+#define __STAGE
+#define __COLLISION
 
 #define __LAYER1
 
 #define __FLOOR
 #define __TOWER
-// #define __PLAYER
-// #define __BULLET
-// #define __ENEMY
-// #define __ENGINE
+#define __PLAYER
+#define __BULLET
+#define __ENEMY
+#define __ENGINE
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE
