@@ -15,7 +15,7 @@
 
 void player_init()
 {
-    bank_push_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     memset(&player, 0, sizeof(fe_player_t));
     memset(&engine, 0, sizeof(fe_engine_t));
@@ -26,7 +26,7 @@ void player_init()
 void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine) 
 {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 	// player
 	unsigned char p = fe.player_pool;
@@ -94,7 +94,7 @@ void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine)
 void player_remove(unsigned char p, unsigned char b) 
 {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     player.health[p] += bullet.energy[b];
 
@@ -128,7 +128,7 @@ void player_remove(unsigned char p, unsigned char b)
 
 void player_logic() {
 
-    bank_push_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     for(char p=0; p<FE_PLAYER; p++) {
 
@@ -247,7 +247,7 @@ void player_logic() {
 
 char player_checkxor()
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
     unsigned char xor = 0;
     unsigned char* p = (char*)&player;
     unsigned int s = sizeof(fe_player_t);

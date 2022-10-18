@@ -20,7 +20,7 @@
 #define __PALETTE
 
 #define __FLIGHT
-#define __STAGE
+// #define __STAGE
 // #define __COLLISION
 
 #define __LAYER1

@@ -61,30 +61,6 @@ vera_sprite_offset sprite_offsets[127] = { 0 };
 
 
 void fe_init() {
-    fe.bram_bank = BRAM_FLIGHTENGINE;
-
-#ifdef __PLAYER
-    player_init();
-#endif
-
-#ifdef __ENEMY
-    enemy_init();
-#endif
-
-#ifdef __BULLET
-    bullet_init();
-#endif
-
-#ifdef __FLIGHT
-
-    // Sprite Control
-    fe.bram_sprite_control = BRAM_SPRITE_CONTROL;
-
-    unsigned int bytes = fload_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
-
-    // Initialize the cache in vram for the sprite animations.
-    lru_cache_init(&sprite_cache_vram);
-#endif
 }
 
 vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count)

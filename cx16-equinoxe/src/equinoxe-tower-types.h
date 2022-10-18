@@ -11,6 +11,8 @@ typedef struct {
     unsigned int tx[8];
     unsigned int ty[8];
 
+    unsigned char state[8];
+
     fe_sprite_index_t sprite[8]; ///< the gun turret
     vera_sprite_offset sprite_offset[8]; ///< the offset received from the sprite dispatcher 
 
@@ -20,13 +22,11 @@ typedef struct {
 
     signed char health[8];
 
-
-    unsigned char wait_animation[8];
-    unsigned char speed_animation[8];
-    unsigned char state_animation[8];
-    signed char direction_animation[8];
-    unsigned char start_animation[8];
-    unsigned char stop_animation[8];
+    unsigned char anim_state[8];
+    unsigned char anim_wait[8];
+    unsigned char anim_speed[8];
+    unsigned char anim_start[8];
+    unsigned char anim_stop[8];
 
     unsigned char palette[8];
 

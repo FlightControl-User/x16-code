@@ -10,14 +10,14 @@
 
 void bullet_init()
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_bram(); bank_set_bram(BRAM_FLIGHTENGINE);
     memset(&bullet, 0, sizeof(fe_bullet_t));
     bank_pull_bram();
 }
 
 void FireBullet(unsigned char p, char reload)
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     if(stage.sprite_bullet_count<FE_BULLET) {
 
@@ -69,7 +69,7 @@ void FireBullet(unsigned char p, char reload)
 
 void FireBulletEnemy(unsigned char e)
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     if(stage.sprite_bullet_count<FE_BULLET) {
 
@@ -120,7 +120,7 @@ void FireBulletEnemy(unsigned char e)
 
 void bullet_remove(unsigned char b) 
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
     FreeOffset(sprite_offset, &stage.sprite_bullet_count);
@@ -137,7 +137,7 @@ void bullet_remove(unsigned char b)
 
 void LogicBullets()
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     for(unsigned char b=0; b<FE_BULLET; b++) {
 

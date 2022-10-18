@@ -125,7 +125,6 @@ void floor_init() {
 
     // Initialize the first new floor was blank tiles.
 
-    unsigned int bytes = fload_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
 }
 
 /**

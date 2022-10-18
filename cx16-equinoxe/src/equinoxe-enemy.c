@@ -14,7 +14,7 @@
 
 void enemy_init()
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
     
     memset(&enemy, 0, sizeof(fe_enemy_t));
 
@@ -30,7 +30,7 @@ void enemy_init()
 unsigned char AddEnemy(unsigned char w) 
 {
 
-    bank_push_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 	unsigned char e = fe.enemy_pool;
 
@@ -98,7 +98,7 @@ unsigned char AddEnemy(unsigned char w)
 unsigned char RemoveEnemy(unsigned char e) 
 {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
     FreeOffset(sprite_offset, &stage.sprite_enemy_count);
@@ -116,7 +116,7 @@ unsigned char RemoveEnemy(unsigned char e)
 
 unsigned char HitEnemy(unsigned char e, unsigned char b) 
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     enemy.health[e] += bullet.energy[b];
     if(enemy.health[e] <= 0) {
@@ -151,7 +151,7 @@ void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsign
 
 void enemies_resource() {
 
-    bank_push_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
@@ -185,7 +185,7 @@ void enemies_resource() {
 
 void LogicEnemies() {
 
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
@@ -331,7 +331,7 @@ void LogicEnemies() {
 
 char enemy_checkxor()
 {
-    bank_push_bram(); bank_set_bram(fe.bram_bank);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
     unsigned char xor = 0;
     unsigned char* p = (char*)&enemy;
     unsigned int s = sizeof(fe_enemy_t);

@@ -81,6 +81,38 @@ equinoxe_game_t game = {0, 0, 16*32, 2, 0};
 
 #ifdef __FLOOR
 
+void equinoxe_init() {
+
+#ifdef __PLAYER
+    player_init();
+#endif
+
+#ifdef __ENEMY
+    enemy_init();
+#endif
+
+#ifdef __BULLET
+    bullet_init();
+#endif
+
+    unsigned bytes = 0;
+
+	memset(&stage, 0, sizeof(stage_t));
+    
+    bytes = fload_bram(1, 8, 2, "levels.bin", BRAM_LEVELS, (bram_ptr_t) 0xA000);
+    bytes = fload_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
+    bytes = fload_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+
+    // Initialize the cache in vram for the sprite animations.
+    lru_cache_init(&sprite_cache_vram);
+
+    game.row = FLOOR_TILE_ROW_31;
+
+    stage_init();
+
+}
+
+
 void equinoxe_scrollfloor() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
@@ -167,7 +199,7 @@ void equinoxe_collision() {
         // Note that this resolution reduction is ONLY for the spacial grid map, to base
         // the collision calculations on 8 bits instead of 16 bit numbers.
 
-        bank_push_bram(); bank_set_bram(fe.bram_bank);
+        bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 
         for(unsigned char gx=0; gx<640>>(2+4); gx+=64>>(2+4)) {
@@ -510,20 +542,7 @@ void main() {
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, FLOOR_TILE_OFFSET_VRAM, 0, 0x6000); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0x6000, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
 
-#ifdef __FLIGHT
-    fe_init();
-#endif
-
-
-#if defined(__FLIGHT) || defined(__FLOOR)
-
-    // Initialize game
-    game.row = FLOOR_TILE_ROW_31;
-
-    // Initialize stage
-    stage_init();
-#endif
-
+    equinoxe_init();
 
 #ifdef __DEBUG_HEAP_BRAM
     heap_print(heap_bram_blocked);
@@ -573,7 +592,6 @@ void main() {
     while(!getin());
 #endif
 
-
     floor_draw_clear(stage.floor);
     floor_draw_clear(stage.towers);
     floor_paint_background(stage.floor);
@@ -581,7 +599,6 @@ void main() {
  
     floor_tile_column = 16;
     floor_tile_row = 31;
-
 
 #endif
 
@@ -591,8 +608,6 @@ void main() {
 #endif
 
     scroll(0);
-
-    vera_sprites_show();
 
 
 #ifndef __NOVSYNC
@@ -609,6 +624,8 @@ void main() {
     cx16_mouse_get();
 
     vera_layer0_set_vertical_scroll(0);
+
+    vera_sprites_show();
 
     __mem unsigned char ch = getin();
     while (ch != 'x') {
