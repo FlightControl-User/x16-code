@@ -7,10 +7,10 @@
 extern fe_enemy_t enemy;
 
 void enemy_init();
-unsigned char AddEnemy(unsigned char w); 
-unsigned char HitEnemy(unsigned char e, unsigned char b);
-unsigned char RemoveEnemy(unsigned char e);
+unsigned char enemy_add(unsigned char w); 
+unsigned char enemy_hit(unsigned char e, unsigned char b);
+unsigned char enemy_remove(unsigned char e);
 
-void LogicEnemies();
-void enemies_resource();
+void enemy_logic();
+void enemy_animate();
 

@@ -114,9 +114,5 @@ typedef struct {
 
 // To store the position of the control blocks in the engine parts.
 typedef struct {
-    unsigned char sprite_pool;
-    unsigned char enemy_pool;
-    unsigned char player_pool;
-    unsigned char engine_pool;
-    unsigned char bullet_pool;
+    unsigned char sprite_cache_pool;
 } fe_t;

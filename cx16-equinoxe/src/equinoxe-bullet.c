@@ -19,9 +19,11 @@ void FireBullet(unsigned char p, char reload)
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    if(stage.sprite_bullet_count<FE_BULLET) {
+    if(stage.bullet_count<FE_BULLET) {
 
-        unsigned char b = fe.bullet_pool;
+        stage.bullet_count++;
+
+        unsigned char b = stage.bullet_pool;
 
         while(bullet.used[b]) {
             b = (b+1)%FE_BULLET;
@@ -44,7 +46,7 @@ void FireBullet(unsigned char p, char reload)
         fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_b001);
         bullet.sprite[b] = s;
 
-        bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
+        bullet.sprite_offset[b] = sprite_next_offset();
         fe_sprite_configure(bullet.sprite_offset[b], s);
 
         bullet.tx[b] = MAKELONG(x, 0);
@@ -62,7 +64,7 @@ void FireBullet(unsigned char p, char reload)
 
         bullet.energy[b] = -50;
 
-        fe.bullet_pool = (b+1)%FE_BULLET;
+        stage.bullet_pool = (b+1)%FE_BULLET;
     }
     bank_pull_bram();
 }
@@ -71,9 +73,11 @@ void FireBulletEnemy(unsigned char e)
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    if(stage.sprite_bullet_count<FE_BULLET) {
+    if(stage.bullet_count<FE_BULLET) {
 
-        unsigned char b = fe.bullet_pool;
+        stage.bullet_count++;
+
+        unsigned char b = stage.bullet_pool;
 
         while(bullet.used[b]) {
             b = (b+1)%FE_BULLET;
@@ -91,7 +95,7 @@ void FireBulletEnemy(unsigned char e)
         fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_b002);
         bullet.sprite[b] = s;
 
-        bullet.sprite_offset[b] = NextOffset(SPRITE_OFFSET_BULLET_START, SPRITE_OFFSET_BULLET_END, &stage.sprite_bullet, &stage.sprite_bullet_count);
+        bullet.sprite_offset[b] = sprite_next_offset();
         fe_sprite_configure(bullet.sprite_offset[b], s);
 
         bullet.tx[b] = MAKELONG(ex, 0);
@@ -112,7 +116,7 @@ void FireBulletEnemy(unsigned char e)
 
         bullet.energy[b] = -25;
 
-        fe.bullet_pool = (b+1)%FE_BULLET;
+        stage.bullet_pool = (b+1)%FE_BULLET;
     }
     bank_pull_bram();
 }
@@ -123,13 +127,15 @@ void bullet_remove(unsigned char b)
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
-    FreeOffset(sprite_offset, &stage.sprite_bullet_count);
+    sprite_free_offset(sprite_offset);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(sprite_cache.palette_offset[bullet.sprite[b]]);
     fe_sprite_cache_free(bullet.sprite[b]);
     bullet.used[b] = 0;
     bullet.enabled[b] = 0;
     bullet.sprite[b] = 255;
+
+    stage.bullet_count--;
 
     bank_pull_bram();
 }

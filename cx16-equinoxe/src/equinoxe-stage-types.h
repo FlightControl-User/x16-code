@@ -31,12 +31,14 @@ typedef struct {
     heap_bram_fb_handle_t fighter_tail;
     heap_bram_fb_handle_t bullet_tail;
     heap_bram_fb_handle_t bullet_list;
-    vera_sprite_id sprite_player; // Keep track of the last player sprite allocated.
-    unsigned char sprite_player_count;
-    vera_sprite_id sprite_bullet; // Keep track of the last bullet sprite allocated.
-    unsigned char sprite_bullet_count;
-    vera_sprite_id sprite_enemy;  // Keep track of the last enemy sprite allocated.
-    unsigned char sprite_enemy_count;
+
+    vera_sprite_id sprite_pool; // Keep track of the last sprite allocated.
+    unsigned char  sprite_count;
+
+    unsigned char bullet_count;
+    unsigned char player_count;
+    unsigned char enemy_count;
+    unsigned char tower_count;
 
     stage_script_t script;
 
@@ -52,8 +54,12 @@ typedef struct {
     unsigned char palette;
     unsigned char palette_count;
 
+    unsigned char enemy_pool;
+    unsigned char player_pool;
+    unsigned char engine_pool;
+    unsigned char bullet_pool;
     unsigned char tower_pool;
-    unsigned char tower_count;
+    unsigned char sprite_cache_pool;
     
     floor_t* floor;
     floor_t* towers;

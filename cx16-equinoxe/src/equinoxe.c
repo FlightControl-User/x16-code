@@ -9,9 +9,10 @@
 
 // #pragma var_model(mem)
 
-#include "equinoxe-defines.h"
 
 #define __CONIO_BSOUT
+
+#include "equinoxe-defines.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,33 +24,34 @@
 #include <mos6522.h>
 #include <multiply.h>
 
-#include <cx16.h>
 #include <ht.h>
 #include <lru-cache.h>
 
 #pragma var_model(mem)
 
-#include <cx16-veraheap.h>
-#include "equinoxe-palette.h"
-#include <cx16-veralib.h>
-#include <cx16-mouse.h>
+#include <cx16.h>
 #include <cx16-conio.h>
 #include <cx16-heap-bram-fb.h>
+#include <cx16-veraheap.h>
+#include <cx16-veralib.h>
+#include <cx16-mouse.h>
+
 #include "equinoxe-types.h"
-#include "equinoxe-stage.h"
+#include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 
 #ifdef __FLOOR
 #include "equinoxe-floorengine.h"
 #endif
 
+#include "equinoxe-palette.h"
+#include "equinoxe-stage.h"
 #include "equinoxe-bullet.h"
 #include "equinoxe-fighters.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-player.h"
 #include "equinoxe-tower.h"
 #include "equinoxe-levels.h"
-#include "equinoxe.h"
 
 
 #include "equinoxe-petscii.c"
@@ -78,8 +80,6 @@ __mem floor_cache_t volatile floor_cache[16];
 #pragma data_seg(Data)
 
 equinoxe_game_t game = {0, 0, 16*32, 2, 0};
-
-#ifdef __FLOOR
 
 void equinoxe_init() {
 
@@ -111,6 +111,7 @@ void equinoxe_init() {
 }
 
 
+#ifdef __FLOOR
 void equinoxe_scrollfloor() {
 
     // We only will execute the scroll logic when a scroll action needs to be done.
@@ -188,7 +189,7 @@ void equinoxe_scrollfloor() {
 #ifdef __COLLISION
 void equinoxe_collision() {
 
-    if(stage.sprite_bullet_count) {
+    if(stage.bullet_count) {
 
         // For each cell on the grid, check the collisions that are relevant to the objects.
         // We reduce the resolution with 2 bits to the right, so we divide by 4.
@@ -406,7 +407,7 @@ void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(RED);
         #endif
-        LogicEnemies();
+        enemy_logic();
     #endif
 
 
@@ -426,7 +427,7 @@ void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(RED);
         #endif
-        enemies_resource();
+        enemy_animate();
     #endif
 
     #ifdef __BULLET
@@ -489,7 +490,7 @@ void irq_vsync() {
         printf(", max %u", stack_diff_max);
 
         gotoxy(0,57);
-        printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.sprite_player, stage.sprite_player_count, stage.sprite_bullet, stage.sprite_bullet_count, stage.sprite_enemy, stage.sprite_enemy_count);
+        printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.sprite_player, stage.player_count, stage.sprite_bullet, stage.bullet_count, stage.sprite_enemy, stage.enemy_count);
 
         gotoxy(0,56);
         printf("enemy xor %x size %05u", stage.enemy_xor, sizeof(fe_enemy_t));
@@ -523,6 +524,13 @@ void main() {
 
     petscii();
     scroll(1);
+
+    #ifndef __FLOOR
+    textcolor(WHITE);
+    bgcolor(BLACK);
+    clrscr();
+    #endif
+
 
     ht_init(&ht_collision);
 
@@ -561,6 +569,7 @@ void main() {
     stage_reset();
 #endif
 
+    #ifdef __FLOOR
     vera_layer0_mode_tile( 
         FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
         FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
@@ -568,6 +577,7 @@ void main() {
         VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
         VERA_LAYER_COLOR_DEPTH_4BPP
     );
+    vera_layer0_show();
 
     #ifdef __LAYER1
     vera_layer1_mode_tile( 
@@ -577,10 +587,10 @@ void main() {
         VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
         VERA_LAYER_COLOR_DEPTH_4BPP
     );
+    vera_layer1_show();
+    #endif
     #endif
 
-    vera_layer0_show();
-    vera_layer1_show();
 
 #ifdef __FLOOR
     // TILE INITIALIZATION 

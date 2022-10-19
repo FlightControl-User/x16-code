@@ -40,6 +40,7 @@ unsigned char tower_add(
 	while(towers.used[t]) {
 		t = (t+1) % TOWERS_TOTAL;
 	}
+    stage.tower_count++;
 
 	towers.used[t] = 1;
     towers.offset[t] = 0;
@@ -49,7 +50,7 @@ unsigned char tower_add(
     fe_sprite_index_t s = fe_sprite_cache_copy(turret);
     towers.sprite[t] = s;
 
-	towers.sprite_offset[t] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
+	towers.sprite_offset[t] = sprite_next_offset();
 	fe_sprite_configure(towers.sprite_offset[t], s);
 
     // printf("towers t=%u", t);
@@ -70,9 +71,6 @@ unsigned char tower_add(
     towers.y[t] = y;
 
 	stage.tower_pool = (t+1)%TOWERS_TOTAL;
-    stage.tower_count++;
-
-    enemies_resource();
 
     bank_pull_bram();
 
@@ -86,13 +84,15 @@ unsigned char tower_remove(unsigned char t)
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
     vera_sprite_offset sprite_offset = towers.sprite_offset[t];
-    FreeOffset(sprite_offset, &stage.sprite_enemy_count);
+    sprite_free_offset(sprite_offset);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(sprite_cache.palette_offset[towers.sprite[t]]);
     fe_sprite_cache_free(towers.sprite[t]);
 
     towers.used[t] = 0;
     towers.enabled[t] = 0;
+
+    stage.enemy_count--;
 
     bank_pull_bram();
 
@@ -119,7 +119,9 @@ void tower_paint(sprite_bram_t* turret, unsigned char tx, unsigned char ty)
                 if( rnd <= 128 ) {
                     if( stage.tower_count < TOWERS_TOTAL) {
                         tower_add(turret, x, y, (unsigned int)x*64+tx, (unsigned int)y*64+ty, 4, 4);
+                        #ifdef __LAYER1
                         floor_draw_slab(stage.towers, 0, x, y);
+                        #endif
                     }
                 }
             }

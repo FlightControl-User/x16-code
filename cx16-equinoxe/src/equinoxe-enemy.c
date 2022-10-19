@@ -27,12 +27,14 @@ void enemy_init()
 }
 
 
-unsigned char AddEnemy(unsigned char w) 
+unsigned char enemy_add(unsigned char w) 
 {
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-	unsigned char e = fe.enemy_pool;
+    stage.enemy_count++;
+
+	unsigned char e = stage.enemy_pool;
 
 	while(enemy.used[e]) {
 		e = (e+1)%FE_ENEMY;
@@ -73,7 +75,7 @@ unsigned char AddEnemy(unsigned char w)
     stage_flightpath_t* flightpath = wave.enemy_flightpath[w];
     enemy.flightpath[e] = flightpath;
 
-	enemy.sprite_offset[e] = NextOffset(SPRITE_OFFSET_ENEMY_START, SPRITE_OFFSET_ENEMY_END, &stage.sprite_enemy, &stage.sprite_enemy_count);
+	enemy.sprite_offset[e] = sprite_next_offset();
 	fe_sprite_configure(enemy.sprite_offset[e], s);
 
     signed int x = wave.x[w];
@@ -84,44 +86,46 @@ unsigned char AddEnemy(unsigned char w)
 	enemy.tdx[e] = 0;
 	enemy.tdy[e] = 0;
 	
-	fe.enemy_pool = (e+1)%FE_ENEMY;
+	stage.enemy_pool = (e+1)%FE_ENEMY;
 
     // stage.enemy_xor = enemy_checkxor();
 
-    enemies_resource();
+    enemy_animate();
 
     bank_pull_bram();
     unsigned char ret = 1;
     return ret;
 }
 
-unsigned char RemoveEnemy(unsigned char e) 
+unsigned char enemy_remove(unsigned char e) 
 {
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
-    FreeOffset(sprite_offset, &stage.sprite_enemy_count);
+    sprite_free_offset(sprite_offset);
     vera_sprite_disable(sprite_offset);
     palette16_unuse(sprite_cache.palette_offset[enemy.sprite[e]]);
     fe_sprite_cache_free(enemy.sprite[e]);
     enemy.used[e] = 0;
     enemy.enabled[e] = 0;
 
+    stage.enemy_count--;
+
     bank_pull_bram();
 
     unsigned char ret = 1;
     return ret;
 }
 
-unsigned char HitEnemy(unsigned char e, unsigned char b) 
+unsigned char enemy_hit(unsigned char e, unsigned char b) 
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     enemy.health[e] += bullet.energy[b];
     if(enemy.health[e] <= 0) {
         bank_pull_bram();
-        return RemoveEnemy(e);
+        return enemy_remove(e);
     }
 
     bank_pull_bram();
@@ -129,7 +133,7 @@ unsigned char HitEnemy(unsigned char e, unsigned char b)
 }
 
 
-void MoveEnemy( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed)
+void enemy_move( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed)
 {
 	enemy.move[e] = 1;
 	if(speed>1) flight >>= (speed-1);
@@ -138,7 +142,7 @@ void MoveEnemy( unsigned char e, unsigned int flight, unsigned char turn, unsign
 	enemy.speed[e] = speed;
 }
 
-void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed)
+void enemy_arc( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed)
 {
 	enemy.move[e] = 2;
 	enemy.turn[e] = sgn_u8(turn);
@@ -149,7 +153,7 @@ void ArcEnemy( unsigned char e, unsigned char turn, unsigned char radius, unsign
 	enemy.speed[e] = speed;
 }
 
-void enemies_resource() {
+void enemy_animate() {
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
@@ -183,7 +187,7 @@ void enemies_resource() {
     bank_pull_bram();
 }
 
-void LogicEnemies() {
+void enemy_logic() {
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
@@ -212,7 +216,7 @@ void LogicEnemies() {
                     // printf(", move f=%03u, t=%03u, s=%03u", action_move->flight, (unsigned char)action_move->turn, action_move->speed );
                     bank_pull_bram();
 
-					MoveEnemy(e, flight, (unsigned char)turn, speed);
+					enemy_move(e, flight, (unsigned char)turn, speed);
                     enemy.action[e] = next;
 					break;
                     }
@@ -227,7 +231,7 @@ void LogicEnemies() {
                     // printf(", move t=%03u, r=%03u, s=%03u    ", (unsigned char)action_turn->turn, action_turn->radius, action_turn->speed );
                     bank_pull_bram();
 
-					ArcEnemy( e, (unsigned char)turn, radius, speed);
+					enemy_arc( e, (unsigned char)turn, radius, speed);
                     enemy.action[e] = next;
 					break;
                     }

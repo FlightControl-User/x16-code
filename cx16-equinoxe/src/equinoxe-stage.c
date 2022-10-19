@@ -160,7 +160,7 @@ static void stage_load(void)
 
 
 #ifdef __TOWER
-    // Loading tower tiles in bram.
+    // Loading tower tiles and tower sprites in bram.
     for(unsigned char t=0; t<stage_playbook->tower_count; t++) {
         stage_load_tower(stage_playbook->stage_towers);
     }
@@ -205,23 +205,10 @@ static void stage_reset(void)
 
 	memset(&stage, 0, sizeof(stage_t));
 
-	stage.sprite_bullet = SPRITE_OFFSET_BULLET_START;
-	stage.sprite_bullet_count = 0;
-	stage.sprite_enemy = SPRITE_OFFSET_ENEMY_START;
-	stage.sprite_enemy_count = 0;
-	stage.sprite_player = SPRITE_OFFSET_PLAYER_START;
-	stage.sprite_player_count = 0;
-
     stage.script.playbooks = 1;
     stage.script.playbook = stage_playbook;
 
-    stage.score = 0;
-    stage.penalty = 0;
     stage.lives = 10;
-    stage.respawn = 0;
-
-    stage.playbook = 0;
-    stage.scenario = 0;
     stage.scenarios = stage_playbook[stage.playbook].scenario_count; // bug?
 
     stage_load(); // Load the artefacts of the stage.
@@ -241,7 +228,7 @@ static void stage_reset(void)
 
 void stage_enemy_add(unsigned char w)
 {
-    unsigned char enemies = AddEnemy(w);
+    unsigned char enemies = enemy_add(w);
 
     wave.x[w] += wave.dx[w];
     wave.y[w] += wave.dy[w];
@@ -253,14 +240,14 @@ void stage_enemy_add(unsigned char w)
 
 void stage_enemy_remove(unsigned char w, unsigned char e)
 {
-    unsigned char enemies = RemoveEnemy(e);
+    unsigned char enemies = enemy_remove(e);
     wave.enemy_spawn[w] += enemies;
 }
 
 
 void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b)
 {
-    unsigned char enemies = HitEnemy(e, b);
+    unsigned char enemies = enemy_hit(e, b);
     wave.enemy_spawn[w] += enemies;
 }
 
@@ -278,7 +265,9 @@ void stage_logic()
                     if(!wave.wait[w]) {
                         if(wave.enemy_count[w]) {
                             if(wave.enemy_spawn[w]) {
+                                #ifdef __ENEMY
                                 stage_enemy_add(w);
+                                #endif
                             }
                         } else {
                             wave.used[w] = 0;
@@ -335,14 +324,16 @@ void stage_logic()
                 }
             }
 
-            // if(!(game.tickstage)) {
+            #ifdef __TOWER
+            if(!(game.tickstage)) {
                 bank_push_set_bram(BRAM_LEVELS);
                 stage_playbook_t* stage_playbooks = stage.script.playbook;
                 stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
                 stage_tower_t* stage_towers = stage_playbook->stage_towers;
                 tower_paint(stage_towers->turret, stage_towers->turret_x, stage_towers->turret_y);
                 bank_pull_bram();
-            // }
+            }
+            #endif
         }
     }
 

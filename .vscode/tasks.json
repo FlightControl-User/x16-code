@@ -3,13 +3,45 @@
     "tasks": [
         {
             "label": "CX16-KICKC-Compile",
-            "command": "ps1/cx16-kickc-compile.ps1",            
+            "command": ".scripts/cx16-kickc-compile.ps1",
             "args": [
                 "${workspaceFolder}",
                 "${relativeFileDirname}",
                 "${fileBasename}"
             ],
-            
+            "type": "shell",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "CX16-KICKC-Fragment",
+            "command": ".scripts/cx16-kickc-fragment.ps1",
+            "args": [
+                "${workspaceFolder}",
+                "${relativeFileDirname}",
+                "${input:fragmentName}"
+            ],
             "type": "shell",
             "presentation": {
                 "echo": true,
@@ -37,7 +69,7 @@
         },
         {
             "label": "CX16-EMU-Make-Run",
-            "command": "ps1/cx16-emu-make-run.ps1",
+            "command": ".scripts/cx16-emu-make-run.ps1",
             "args": [
                 "${workspaceFolder}",
                 "${relativeFileDirname}",
@@ -56,7 +88,7 @@
         },
         {
             "label": "CX16-BOX-Make-Run",
-            "command": "ps1/cx16-box-make-run.ps1",
+            "command": ".scripts/cx16-box-make-run.ps1",
             "args": [
                 "${workspaceFolder}",
                 "${relativeFileDirname}",
@@ -75,7 +107,7 @@
         },
         {
             "label": "CX16-BOX-Run",
-            "command": "ps1/cx16-box-run.ps1",
+            "command": ".scripts/cx16-box-run.ps1",
             "args": [
                 "${workspaceFolder}",
                 "${relativeFileDirname}",
@@ -94,7 +126,7 @@
         },
         {
             "label": "x16-Run",
-            "command": "ps1/X16-Run.ps1",
+            "command": ".scripts/X16-Run.ps1",
             "args": [
                 "${fileDirname}",
                 "${fileBasenameNoExtension}.prg"
@@ -112,7 +144,7 @@
         },
         {
             "label": "x16-Run-Gif",
-            "command": "ps1/X16-Run-Gif.ps1",
+            "command": ".scripts/X16-Run-Gif.ps1",
             "args": [
                 "record.gif",
                 "${fileDirname}",
@@ -133,7 +165,7 @@
             "label": "x16-Run-Emu",
             "command": "x16emu.exe",
             "args": [
-                "-prg", 
+                "-prg",
                 "${fileDirname}\\${fileBasenameNoExtension}.prg",
                 "-run",
                 "-debug"
@@ -149,6 +181,12 @@
             },
             "problemMatcher": []
         }
-
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "fragmentName",
+            "description": "What fragment you want to compile?"
+        }
     ]
 }

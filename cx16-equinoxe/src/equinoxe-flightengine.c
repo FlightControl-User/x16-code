@@ -63,24 +63,24 @@ vera_sprite_offset sprite_offsets[127] = { 0 };
 void fe_init() {
 }
 
-vera_sprite_offset NextOffset(vera_sprite_id sprite_start, vera_sprite_id sprite_end, vera_sprite_id* sprite_id, unsigned char* count)
+vera_sprite_offset sprite_next_offset()
 {
-	while(sprite_offsets[*sprite_id]) {
-		*sprite_id = ((*sprite_id) >= sprite_end)?sprite_start:(*sprite_id)+1;
+	while(sprite_offsets[stage.sprite_cache_pool]) {
+		stage.sprite_cache_pool = (stage.sprite_cache_pool >= 127) ? 1 : stage.sprite_cache_pool+1;
 	}
 
-	(*count)++;
-	vera_sprite_offset sprite_offset = vera_sprite_get_offset(*sprite_id); 
-	sprite_offsets[*sprite_id] = sprite_offset;
+	stage.sprite_count++;
+	vera_sprite_offset sprite_offset = vera_sprite_get_offset(stage.sprite_cache_pool); 
+	sprite_offsets[stage.sprite_cache_pool] = sprite_offset;
 	return sprite_offset;
 }
 
 
-void FreeOffset(vera_sprite_offset sprite_offset, unsigned char* count)
+void sprite_free_offset(vera_sprite_offset sprite_offset)
 {
 	vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
 	sprite_offsets[sprite_id] = 0;
-	(*count)--;
+	stage.sprite_count--;
 }
 
 
@@ -89,7 +89,7 @@ void fe_sprite_debug() {
     char y = wherey();
 
     #ifdef __INCLUDE_PRINT
-    printf("pool %2x", fe.sprite_pool);
+    printf("pool %2x", fe.sprite_cache_pool);
     #endif
 
     for (unsigned int c = 0; c < FE_CACHE; c++) {
@@ -204,10 +204,10 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram) {
     // Allocate, otherwise reuse the existing sprite.
     if (cache_bram != sprite_bram) {
         if (sprite_cache.used[c]) {
-            while (sprite_cache.used[fe.sprite_pool]) {
-                fe.sprite_pool = (fe.sprite_pool + 1) % FE_CACHE;
+            while (sprite_cache.used[fe.sprite_cache_pool]) {
+                fe.sprite_cache_pool = (fe.sprite_cache_pool + 1) % FE_CACHE;
             }
-            c = fe.sprite_pool;
+            c = fe.sprite_cache_pool;
         }
 
         unsigned int co = c * FE_CACHE;
@@ -268,7 +268,8 @@ void sprite_map_header(sprite_file_header_t* sprite_file_header, sprite_bram_t* 
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
-unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset) {
+unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset)
+{
     
     bank_push_set_bram(BRAM_SPRITE_CONTROL);
 

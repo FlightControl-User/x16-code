@@ -28,8 +28,10 @@ void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine)
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
+    stage.player_count++;
+
 	// player
-	unsigned char p = fe.player_pool;
+	unsigned char p = stage.player_pool;
 
 	while(player.used[p]) {
 		p = (p+1)%FE_PLAYER;
@@ -50,7 +52,7 @@ void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine)
     unsigned char s = fe_sprite_cache_copy(sprite_player);
     player.sprite[p] = s;
 
-	player.sprite_offset[p] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
+	player.sprite_offset[p] = sprite_next_offset();
 	fe_sprite_configure(player.sprite_offset[p], s);
 
 
@@ -61,14 +63,14 @@ void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine)
 
     player.health[p] = 100;
 
-	fe.player_pool = (p+1)%FE_PLAYER;
+	stage.player_pool = (p+1)%FE_PLAYER;
 
 	// Engine
-	while(engine.used[fe.engine_pool]) {
-		fe.engine_pool = (fe.engine_pool++)%FE_ENGINE;
+	while(engine.used[stage.engine_pool]) {
+		stage.engine_pool = (stage.engine_pool++)%FE_ENGINE;
 	}
 
-	unsigned char n = fe.engine_pool;
+	unsigned char n = stage.engine_pool;
 
 	player.engine[p] = n;
 
@@ -80,10 +82,10 @@ void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine)
     unsigned char cn = fe_sprite_cache_copy(sprite_engine);
     engine.sprite[n] = cn;
 
-	engine.sprite_offset[n] = NextOffset(SPRITE_OFFSET_PLAYER_START, SPRITE_OFFSET_PLAYER_END, &stage.sprite_player, &stage.sprite_player_count);
+	engine.sprite_offset[n] = sprite_next_offset();
 	fe_sprite_configure(engine.sprite_offset[n], cn);
 
-	fe.engine_pool = (fe.engine_pool++)%FE_ENGINE;
+	stage.engine_pool = (stage.engine_pool++)%FE_ENGINE;
 
     // stage.player_xor = player_checkxor();
 
@@ -101,7 +103,7 @@ void player_remove(unsigned char p, unsigned char b)
     if(player.health[p] <= 0) {
 
         vera_sprite_offset sprite_offset = player.sprite_offset[p];
-        FreeOffset(sprite_offset, &stage.sprite_player_count);
+        sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
         palette16_unuse(sprite_cache.palette_offset[player.sprite[p]]);
         fe_sprite_cache_free(player.sprite[p]);
@@ -110,11 +112,13 @@ void player_remove(unsigned char p, unsigned char b)
 
         unsigned char n = player.engine[p];
         sprite_offset = engine.sprite_offset[n];
-        FreeOffset(sprite_offset, &stage.sprite_player_count);
+        sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
         palette16_unuse(sprite_cache.palette_offset[engine.sprite[n]]);
         fe_sprite_cache_free(engine.sprite[n]);
         engine.used[n] = 0;
+
+        stage.player_count--;
 
         stage.lives--;
         stage.respawn = 64;
