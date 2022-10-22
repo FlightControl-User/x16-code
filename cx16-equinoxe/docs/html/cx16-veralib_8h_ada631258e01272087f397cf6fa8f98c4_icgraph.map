@@ -1,0 +1,7 @@
+<map id="vera_sprite_set_xy" name="vera_sprite_set_xy">
+<area shape="rect" id="node1" title="Set a sprite position on the display. Note that the x and y coordinates are expressed in 2s complemen..." alt="" coords="279,55,409,80"/>
+<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="136,5,231,31"/>
+<area shape="rect" id="node4" href="$equinoxe-bullet_8c.html#ad9fd744a793e6f010ea6e93af2d3b2f7" title=" " alt="" coords="137,55,230,80"/>
+<area shape="rect" id="node5" href="$cx16-bankload_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="158,104,209,129"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,31,88,56"/>
+</map>

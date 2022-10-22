@@ -1,0 +1,13 @@
+<map id="petscii" name="petscii">
+<area shape="rect" id="node1" title=" " alt="" coords="5,177,65,202"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#ad8716430bddb0a30b96aa0f9312ea08d" title="Hide the layer 0 to be displayed from the screen." alt="" coords="129,127,248,153"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#ace6cdf2382819300411e2391ef38089b" title=" " alt="" coords="113,177,264,202"/>
+<area shape="rect" id="node11" href="$cx16-veralib_8c.html#a6c9053c9d19240c80ad1cb4e387cc87b" title="Enable the layer 1 to be displayed on the screen." alt="" coords="127,226,251,251"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#a82fa2152a302fabf1f8b959e246d02dd" title="Set the color depth of layer 1 in bit per pixel (BPP)." alt="" coords="325,5,471,45"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#ae6448affb08573dc978d86f9cf854a29" title="Set the map height of layer 1." alt="" coords="321,70,475,95"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a47e7f5b25815369f6c7b3787c08daf58" title="Set the base of the map layer 1." alt="" coords="312,119,484,145"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#ac0bf4ba4999772e9d93f1d5a38d43b76" title="Set the tileheight of layer 1." alt="" coords="330,169,466,209"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a5956971d159cc3fab01bcaa9b6c7df3c" title="Set the tilewidth of layer 1." alt="" coords="330,233,466,273"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#a7a83e19462034de0eb188de85bd10cca" title="Set the base of the tiles for the layer 1." alt="" coords="316,298,480,323"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8c.html#a645c42424275e82a9bfc4bdc852b3eb3" title="Set the map width of layer 1." alt="" coords="323,347,473,373"/>
+</map>

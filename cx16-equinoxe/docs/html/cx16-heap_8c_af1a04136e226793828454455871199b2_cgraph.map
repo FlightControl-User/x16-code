@@ -1,0 +1,4 @@
+<map id="heap_bram_unpack_bank" name="heap_bram_unpack_bank">
+<area shape="rect" id="node1" title="Return from a packed banked ram pointer the embedded bank in an 8&#45;bit byte." alt="" coords="5,5,176,31"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a969a7c774293cd48e76d3959662a1a96" title=" " alt="" coords="224,5,395,31"/>
+</map>

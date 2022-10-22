@@ -1,0 +1,6 @@
+<map id="vera_heap_dump_index_print" name="vera_heap_dump_index_print">
+<area shape="rect" id="node1" title="Print an index list." alt="" coords="416,5,573,45"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a3b0991a23f07d164ce8031f97fcd41a7" title="Ddump the index of the segment." alt="" coords="241,13,368,38"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a86faf47430865098e64497cd92478c7a" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="104,13,193,38"/>
+<area shape="rect" id="node4" href="$cx16-heap-test2_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,13,56,38"/>
+</map>

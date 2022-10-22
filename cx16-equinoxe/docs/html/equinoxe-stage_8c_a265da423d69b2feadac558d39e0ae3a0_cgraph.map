@@ -1,0 +1,21 @@
+<map id="stage_logic" name="stage_logic">
+<area shape="rect" id="node1" title=" " alt="" coords="5,159,93,184"/>
+<area shape="rect" id="node2" href="$equinoxe-stage_8c.html#a0f92d9c54d43b2d75268425969330081" title=" " alt="" coords="161,133,250,159"/>
+<area shape="rect" id="node3" href="$equinoxe-stage_8c.html#a111cae1e7feb789d4b3b396967a284cd" title=" " alt="" coords="141,183,269,208"/>
+<area shape="rect" id="node4" href="$equinoxe-enemy_8c.html#a397116eab5d20aaaff60d6815822cba7" title=" " alt="" coords="317,183,407,208"/>
+<area shape="rect" id="node5" href="$equinoxe-enemy_8c.html#aec06eadca6ed0d7dc752d8fee5f1b1e6" title=" " alt="" coords="471,84,586,109"/>
+<area shape="rect" id="node6" href="$equinoxe-flightengine_8c.html#a544eb58c5274b79418bd28e1e7777bd1" title=" " alt="" coords="455,133,603,159"/>
+<area shape="rect" id="node7" href="$equinoxe-flightengine_8c.html#abad63961bd64b8542e1221daa9d4700a" title=" " alt="" coords="463,183,594,208"/>
+<area shape="rect" id="node17" href="$cx16-error-test_8c.html#aeb3ab94fc716313b097ae7f17f1a7723" title=" " alt="" coords="509,232,548,257"/>
+<area shape="rect" id="node18" href="$equinoxe-flightengine_8c.html#ab03746878869c39419b840b5b8a54ebf" title=" " alt="" coords="467,309,591,335"/>
+<area shape="rect" id="node8" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="673,5,775,31"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8c.html#abf5c8a3bb1cf612e6d87c7df84eb8bc1" title="Set the sprite bits per pixel." alt="" coords="668,55,780,80"/>
+<area shape="rect" id="node12" href="$cx16-veralib_8c.html#a77ec2e3492018d5545cf0dfea55b43b3" title=" " alt="" coords="661,104,787,129"/>
+<area shape="rect" id="node13" href="$cx16-veralib_8c.html#a2297b6d6c5d23c5523f4cfd80730eee0" title=" " alt="" coords="667,153,781,179"/>
+<area shape="rect" id="node14" href="$cx16-veralib_8c.html#a87120f981768e101d15f9d7fe9b2dbb7" title="Set the palette offset of the sprite." alt="" coords="659,203,789,243"/>
+<area shape="rect" id="node15" href="$cx16-veralib_8c.html#af937394917fdb5471a2a1a52f2a5d7f6" title=" " alt="" coords="668,268,780,293"/>
+<area shape="rect" id="node16" href="$cx16-veralib_8c.html#afe9e97b960c4c91c2f7964d0c62bb68d" title=" " alt="" coords="663,317,785,343"/>
+<area shape="rect" id="node9" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="867,5,977,31"/>
+<area shape="rect" id="node11" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="845,174,999,214"/>
+<area shape="rect" id="node19" href="$cx16-veralib_8c.html#a55e41876d7f39601029feb359ee52348" title="The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control." alt="" coords="651,367,797,392"/>
+</map>

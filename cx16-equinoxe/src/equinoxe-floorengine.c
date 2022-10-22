@@ -22,17 +22,17 @@
 #include "equinoxe-palette.h"
 
 
-void floor_draw_clear(floor_t* floor) 
+void floor_draw_clear(unsigned char layer, floor_t* floor) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    byte palette = 0;
-    byte Offset = 0;
+    unsigned char palette = 0;
+    unsigned char Offset = 0;
 
     vera_vram_data0_bank_offset(floor->bank, floor->offset, VERA_INC_1);
 
     // TODO: VERA MEMSET
-    for(unsigned int i=0; i<64*64; i++ ) {
+    for(unsigned int i=0; i<32*64; i++ ) {
         *VERA_DATA0 = BYTE0(Offset);
         *VERA_DATA0 = BYTE1(Offset);
     }
@@ -40,41 +40,30 @@ void floor_draw_clear(floor_t* floor)
     bank_pull_bram();
 }
 
-void floor_draw_slab(floor_t* floor, unsigned int segment, unsigned char x, unsigned char y) 
+void floor_clear_row(unsigned char layer, floor_t* floor, unsigned char x, unsigned char y) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
     unsigned int row = (word)y << 2;
     unsigned int column = (word)x;
 
-    // gotoxy(x<<2+10,y<<2+4);
-    // printf("xx");
-
     floor_parts_t* floor_parts = floor->floor_parts; // todo to pass this as the parameter!
 
     unsigned char mapbase_bank = floor->bank;
     unsigned int mapbase_offset = floor->offset;
 
-    byte shift = vera_layer0_get_rowshift();
+    unsigned char shift = vera_layer0_get_rowshift();
     mapbase_offset += ((word)row << shift);
     mapbase_offset += column*8;
-
-    segment = segment << 2;
 
     for(unsigned char sr = 0; sr<4; sr+=2) {
         for(unsigned char r=0; r<4; r+=2) {
             vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
             for(unsigned char sc = 0; sc<2; sc++) {
                 unsigned char s = sc+sr;
-                unsigned char segment2 = floor->slab[(unsigned char)segment+s]; // todo i need to create a new variable because the optimizer deletes the old!
-                segment2 = segment2<<2;
                 for(unsigned char c=0; c<2; c++) {
-                    unsigned char tile = floor->composition[segment2+c+r]; // BRAM_FLOOR_CONTROL
-                    unsigned int offset = floor_parts->floor_tile_offset[tile];
-                    unsigned char palette = floor_parts->palette[tile];
-                    palette = palette<<4; 
-                    *VERA_DATA0 = BYTE0(offset);
-                    *VERA_DATA0 = palette | BYTE1(offset);
+                    *VERA_DATA0 = 0;
+                    *VERA_DATA0 = 0;
                 }
             }
             mapbase_offset += 64*2;
@@ -85,7 +74,7 @@ void floor_draw_slab(floor_t* floor, unsigned int segment, unsigned char x, unsi
 }
 
 
-void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column) 
+void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsigned char column) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
@@ -94,25 +83,25 @@ void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
     unsigned char mapbase_bank = floor->bank;
     unsigned int mapbase_offset = floor->offset;
 
-    byte shift = vera_layer0_get_rowshift();
+    unsigned char shift = vera_layer0_get_rowshift();
     mapbase_offset += ((word)row << shift);
     mapbase_offset += column*8;
 
+    unsigned char sr = ( (row % 4) / 2 ) * 2;
+    unsigned char r = (row % 2) * 2;
 
-    byte sr = ( (row % 4) / 2 ) * 2;
-    byte r = (row % 2) * 2;
-
-    word segment = (word)floor_cache[floor_index].floor_segment[column];
+    unsigned char cache = FLOOR_CACHE(layer, row/4, column);
+    word segment = (word)floor_cache[cache];
     segment = segment << 2;
     vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset,VERA_INC_1);
-    for(byte sc=0;sc<2;sc++) {
-        byte s = sc + sr;
+    for(unsigned char sc=0;sc<2;sc++) {
+        unsigned char s = sc + sr;
         unsigned char segment2 = floor->slab[(unsigned char)segment+s]; // todo i need to create a new variable because the optimizer deletes the old!
         segment2 = segment2 << 2;
-        for(byte c=0;c<2;c++) {
+        for(unsigned char c=0;c<2;c++) {
             unsigned char tile = floor->composition[segment2+c+r]; // BRAM_FLOOR_CONTROL
             unsigned char palette = floor_part->palette[tile];
-            palette = palette << 4; 
+            palette = palette << 4;
             *VERA_DATA0 = BYTE0(tile);
             *VERA_DATA0 = palette | BYTE1(tile);
         }
@@ -121,6 +110,10 @@ void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
 }
 
 
+unsigned char FLOOR_CACHE(unsigned char layer, unsigned char row, unsigned char column)
+{
+    return ((char)((char)(layer<<7) | (char)(row<<4) | (char)(column)));
+}
 void floor_init() {
 
     // Initialize the first new floor was blank tiles.
@@ -158,7 +151,7 @@ void floor_init() {
  *     # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #  # # # # #        
  * 
  * The segment painting is nothing more than selecting the correct segments for a row.
- * In order to achieve this, the logic works with 2 arrays of 16 bytes, that represent the "New" and the "Old" segment rows.
+ * In order to achieve this, the logic works with 2 arrays of 16 unsigned chars, that represent the "New" and the "Old" segment rows.
  * The painting works from bottom to top, so the old segment row will be at the bottom from the new segment row.
  * 
  * The new segments are painted from right to left on the new row, and are carefully selected so that:
@@ -172,68 +165,87 @@ void floor_init() {
  */
 void floor_paint(unsigned char row, unsigned char column) 
 {
-    floor_index = row>>2 & 0x0F;
-    unsigned char floor_index_new = floor_index;
-    unsigned char floor_index_old = floor_index+1 & 0x0F;
-
     unsigned char rnd = BYTE0(rand());
+
+    unsigned char cache;
 
     // Now that we know the weight, select a record from the weight table.
     // char div = div8u(rnd,16);
-    // byte tile = rem8u;
-    // byte tile = 13;
+    // unsigned char tile = rem8u;
+    // unsigned char tile = 13;
 
-    byte tile = (BYTE0(rand()) & 0x0F);
+    unsigned char tile = (BYTE0(rand()) & 0x0F);
 
     if(column<15) {
-        byte TileRight = floor_cache[floor_index_new].floor_segment[column+1];
-        byte TileMask = ((TileRight >> 1) & 0b0100) | ((TileRight << 1) & 0b0010);
+        // unsigned char TileRight = floor_cache.layer[0].row[row].column[column+1];
+        cache = FLOOR_CACHE(0, row, column+1);
+        unsigned char TileRight = floor_cache[cache];
+        unsigned char TileMask = ((TileRight >> 1) & 0b0100) | ((TileRight << 1) & 0b0010);
         tile = tile & 0b1001;
         tile = tile | TileMask;
     }
 
-    byte TileDown = floor_cache[floor_index_old].floor_segment[column];
-    byte TileMask = ((TileDown >> 3) & 0b0001) | ((TileDown >> 1) & 0b0010);
+    // unsigned char TileDown = floor_cache.layer[0].row[(row+1)&0x0F].column[column];
+    cache = FLOOR_CACHE(0, (row+1)&0x07, column);
+    unsigned char TileDown = floor_cache[cache];
+    unsigned char TileMask = ((TileDown >> 3) & 0b0001) | ((TileDown >> 1) & 0b0010);
     tile = tile & 0b1100;
     tile = tile | TileMask;
 
-    floor_cache[floor_index_new].floor_segment[column] = tile;
+    cache = FLOOR_CACHE(0, row, column);
+    floor_cache[cache] = tile;
 
 #ifdef __DEBUG_FLOOR
     gotoxy(column<<2+10, row);
     printf("%2u", tile);
     if(!column) {
         gotoxy(0, row);
-        printf("row %2u %1u", row, floor_index);
+        printf("row %2u", row);
     }
 #endif
 }
 
-void floor_paint_background(floor_t* floor) 
+void floor_paint_background(unsigned char layer, floor_t* floor) 
 {
-
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    vera_layer0_set_vertical_scroll(8*64);
-    
-    floor_index = 0;
-    for(byte x=0; x<TILES; x++) {
-        floor_cache[(word)floor_index].floor_segment[(word)x] = 0;
+    unsigned char cache;
+
+    for(unsigned char column=0; column<TILES; column++) {
+        cache = FLOOR_CACHE(layer, 0, column);
+        floor_cache[cache] = 0;
     }
 
-    for(floor_tile_row=FLOOR_ROW_63;floor_tile_row>=FLOOR_TILE_ROW_31;floor_tile_row--) {
+    unsigned char row = 8;
+    do {
+        row--;
         // The 3 is very important, because we draw from the bottom to the top.
         // So every 4 rows, but we draw when the row is 4, not 0;
         unsigned char column=16;
         do {
             column--;
-            if(floor_tile_row%4==3) {
-                floor_paint(floor_tile_row, column);
-            }
-            floor_draw_row(floor, floor_tile_row, column);
-        } while(column>0);
-    }
-    floor_tile_row++;
+            floor_paint(row, column);
+        } while(column);
+    } while(row);
+
+    bank_pull_bram();
+}
+
+void floor_draw_background(unsigned char layer, floor_t* floor) 
+{
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+
+    unsigned char row_draw=32;
+    do {
+        row_draw--;
+        // The 3 is very important, because we draw from the bottom to the top.
+        // So every 4 rows, but we draw when the row is 4, not 0;
+        unsigned char column_draw=16;
+        do {
+            column_draw--;
+            floor_draw_row(layer, floor, row_draw, column_draw);
+        } while(column_draw);
+    } while(row_draw);
 
     bank_pull_bram();
 }
@@ -257,7 +269,7 @@ void floor_vram_copy(unsigned int part, floor_t* floor, vera_heap_segment_index_
     memcpy_vram_bram(vram_bank, vram_offset, bram_bank, bram_ptr, FLOOR_TILE_SIZE);
 
     // The offset starts at 0x2000.
-    // Each tile is 0x0080 bytes large.
+    // Each tile is 0x0080 unsigned chars large.
     // So we need to shift each tile 7 bits to the left to get the tile index.
     unsigned int offset = vram_offset - (unsigned int)0x2000; // todo refer to the start of the tile data in vram!
 

@@ -1,0 +1,19 @@
+<map id="palette16_alloc" name="palette16_alloc">
+<area shape="rect" id="node1" title=" " alt="" coords="996,153,1105,179"/>
+<area shape="rect" id="node2" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="845,153,948,179"/>
+<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#abad63961bd64b8542e1221daa9d4700a" title=" " alt="" coords="667,103,797,128"/>
+<area shape="rect" id="node12" href="$equinoxe-tower_8c.html#aaa23697dc0f0673c40e52a6a0b779848" title=" " alt="" coords="517,153,598,179"/>
+<area shape="rect" id="node15" href="$equinoxe-floorengine_8c.html#ab4f82e9f3dd25bc7c54abc6cc3501f25" title=" " alt="" coords="675,204,789,229"/>
+<area shape="rect" id="node4" href="$equinoxe-enemy_8c.html#a397116eab5d20aaaff60d6815822cba7" title=" " alt="" coords="513,5,602,31"/>
+<area shape="rect" id="node9" href="$equinoxe-bullet_8c.html#a8f72b9df97809bc7ae9c24d891b5e16c" title=" " alt="" coords="519,55,596,80"/>
+<area shape="rect" id="node10" href="$equinoxe-bullet_8c.html#a15c967602a72c7be882ed259922722a2" title=" " alt="" coords="498,104,617,129"/>
+<area shape="rect" id="node5" href="$equinoxe-stage_8c.html#a111cae1e7feb789d4b3b396967a284cd" title=" " alt="" coords="320,29,448,55"/>
+<area shape="rect" id="node6" href="$equinoxe-stage_8c.html#a265da423d69b2feadac558d39e0ae3a0" title=" " alt="" coords="160,53,248,79"/>
+<area shape="rect" id="node7" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,103,88,128"/>
+<area shape="rect" id="node8" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="21,53,72,79"/>
+<area shape="rect" id="node11" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="157,103,251,128"/>
+<area shape="rect" id="node13" href="$equinoxe-tower_8c.html#a7950ff8563924fcbc11f5f1b036db051" title=" " alt="" coords="340,153,428,179"/>
+<area shape="rect" id="node14" href="$equinoxe_8c.html#a5b31241c233fdc9000278daaa2de8f21" title=" " alt="" coords="136,152,272,177"/>
+<area shape="rect" id="node16" href="$equinoxe-stage_8c.html#a7f975c51751f181280c226cc750130ee" title=" " alt="" coords="499,203,615,228"/>
+<area shape="rect" id="node17" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="496,252,619,277"/>
+</map>

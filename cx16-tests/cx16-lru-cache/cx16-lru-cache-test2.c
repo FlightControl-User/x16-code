@@ -9,7 +9,7 @@
 
 lru_cache_table_t lru_cache;
 
-volatile unsigned char row = 2;
+volatile unsigned char floor_tile_row = 2;
 volatile unsigned char col = 0;
 volatile unsigned char count = 0;
 
@@ -21,9 +21,9 @@ void wait_key() {
 
 void display() {
     count++;
-    row++;
+    floor_tile_row++;
     if (!(count % 16)) {
-        row = 2;
+        floor_tile_row = 2;
         col += 8;
     }
 

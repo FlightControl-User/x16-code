@@ -1,0 +1,4 @@
+<map id="heap_vram_unpack_offset" name="heap_vram_unpack_offset">
+<area shape="rect" id="node1" title="Return from a packed vera ram address the 16 bit offset, but is now aligned to 2 bytes in vera ram!..." alt="" coords="5,5,176,31"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#ae7775332be17fc18c96e8f35a2410802" title=" " alt="" coords="224,5,395,31"/>
+</map>

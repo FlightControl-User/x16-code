@@ -1,0 +1,7 @@
+<map id="vera_layer0_mode_bitmap" name="vera_layer0_mode_bitmap">
+<area shape="rect" id="node1" title=" " alt="" coords="5,109,177,134"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a491beea020fb4318b12e2cccb030c9b8" title="Double scaling of the vera display. The characters and graphics will work at a 320x240 resolution." alt="" coords="229,5,385,45"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a7e3611a07d8a7b250ff3bac0c2adf12d" title="Set the color depth of layer 0 in bit per pixel (BPP)." alt="" coords="234,69,381,109"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#ad47288d300ea78316df5f184a6aa7b5f" title="Set the tilewidth of layer 0." alt="" coords="239,133,375,173"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#a26526c948bb2540d97de264c5dd236b0" title="Set the base of the tiles for the layer 0." alt="" coords="225,198,389,223"/>
+</map>

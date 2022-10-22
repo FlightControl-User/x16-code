@@ -1,0 +1,11 @@
+<map id="main" name="main">
+<area shape="rect" id="node1" title=" " alt="" coords="5,161,56,187"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#ab75d5834b638b10b33e17e4df0d88a7a" title="Set the color depth of a sprite to 4 bits per pixel (16 color)." alt="" coords="118,5,237,31"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#a2b8cb633cb63bbf25f9c70ef02960dfa" title=" " alt="" coords="109,55,246,80"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#add9c9599ed57d5eefcba1afac76828f6" title="Set the height of the sprite to 64 pixels." alt="" coords="104,104,251,129"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a87120f981768e101d15f9d7fe9b2dbb7" title="Set the palette offset of the sprite." alt="" coords="112,154,243,194"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#ada631258e01272087f397cf6fa8f98c4" title="Set a sprite position on the display. Note that the x and y coordinates are expressed in 2s complemen..." alt="" coords="112,219,243,244"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#af47271069babd1526dea11d68a0deae8" title="Set the width of the sprite to 64 pixels." alt="" coords="106,268,249,293"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#ab1142c41c6098339be0a560658a38ba5" title="Position the z depth of the sprite in front of everything." alt="" coords="112,318,243,358"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="299,154,452,194"/>
+</map>

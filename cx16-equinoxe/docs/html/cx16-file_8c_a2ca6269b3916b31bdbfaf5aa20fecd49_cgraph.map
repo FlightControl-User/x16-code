@@ -1,0 +1,6 @@
+<map id="fload_bram" name="fload_bram">
+<area shape="rect" id="node1" title="Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks." alt="" coords="5,55,91,80"/>
+<area shape="rect" id="node2" href="$cx16-file_8c.html#a3abd78c220b4b49d1b088f0dfe40bf23" title="Close a file." alt="" coords="139,5,195,31"/>
+<area shape="rect" id="node3" href="$cx16-file_8c.html#aef316c9afac0ddebb7f341bfd0335b0b" title="Load a file to ram or (banked ram located between address 0xA000 and 0xBFFF), incrementing the banks...." alt="" coords="141,55,192,80"/>
+<area shape="rect" id="node4" href="$cx16-file_8c.html#ab292805d3cec1f92c073b372e847b5bf" title="Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks." alt="" coords="140,104,193,129"/>
+</map>

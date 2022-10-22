@@ -1,0 +1,12 @@
+<map id="vera_layer0_mode_text" name="vera_layer0_mode_text">
+<area shape="rect" id="node1" title=" " alt="" coords="5,206,160,231"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a44a508b98aa3932589abaec20e24de19" title=" " alt="" coords="208,177,359,202"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8c.html#a569846cef66ec0c7422e3e44c0f00aab" title="Set the configuration of the layer text color mode." alt="" coords="213,227,354,267"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a7e3611a07d8a7b250ff3bac0c2adf12d" title="Set the color depth of layer 0 in bit per pixel (BPP)." alt="" coords="419,5,566,45"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#aadb9b12960e80430183708819720559c" title="Set the map height of layer 0." alt="" coords="415,70,570,95"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#a498cab4e745da0e121d137466b6cf1df" title="Set the base of the map layer 0." alt="" coords="407,119,579,145"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a19caaad54cd24db560d5454e7034080e" title="Set the tileheight of layer 0." alt="" coords="425,169,561,209"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#ad47288d300ea78316df5f184a6aa7b5f" title="Set the tilewidth of layer 0." alt="" coords="425,233,561,273"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a26526c948bb2540d97de264c5dd236b0" title="Set the base of the tiles for the layer 0." alt="" coords="411,298,575,323"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#af7c7be1441eec768f5971c236a18e0b6" title="Set the map width of layer 0." alt="" coords="418,347,567,373"/>
+</map>

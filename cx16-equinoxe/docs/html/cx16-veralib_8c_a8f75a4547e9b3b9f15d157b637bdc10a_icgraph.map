@@ -1,0 +1,4 @@
+<map id="vera_vram_data1_bank_offset" name="vera_vram_data1_bank_offset">
+<area shape="rect" id="node1" title="Configure data port 1 of the vera using bank and offset." alt="" coords="224,5,377,45"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a920e37a818c7580a4abe187fc9e2a1c4" title="Configure data port 1 of the vera using an address structure." alt="" coords="5,13,176,38"/>
+</map>

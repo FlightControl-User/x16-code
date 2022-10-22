@@ -1,0 +1,4 @@
+<map id="sprite_next_offset" name="sprite_next_offset">
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,129,31"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a55e41876d7f39601029feb359ee52348" title="The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control." alt="" coords="177,5,324,31"/>
+</map>

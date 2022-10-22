@@ -4,7 +4,7 @@
 
 
 extern unsigned char volatile floor_index;
-extern floor_cache_t volatile floor_cache[2];
+extern volatile floor_cache_t floor_cache[FLOOR_CACHE_LAYERS*FLOOR_CACHE_ROWS*FLOOR_CACHE_COLUMNS];
 
 
 const vera_heap_segment_index_t VERA_HEAP_SEGMENT_TILES = 0;

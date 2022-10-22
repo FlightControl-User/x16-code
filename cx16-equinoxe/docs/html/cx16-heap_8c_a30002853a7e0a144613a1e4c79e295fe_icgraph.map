@@ -1,0 +1,10 @@
+<map id="heap_index_add" name="heap_index_add">
+<area shape="rect" id="node1" title=" " alt="" coords="932,56,1048,81"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a876d929ae42824b959489d75454c3adb" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="766,5,845,31"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a61be93ce8957e936f1c58f905fcb8144" title=" " alt="" coords="531,56,655,81"/>
+<area shape="rect" id="node5" href="$cx16-heap_8c.html#ae9378a99d0a49522a6715be5900c9f93" title=" " alt="" coords="727,107,884,132"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#a6412f1057881e976c5096a066c3a0862" title="Allocated a specified size of memory on the heap of the segment." alt="" coords="5,81,89,107"/>
+<area shape="rect" id="node6" href="$cx16-heap_8c.html#a88b916ba335e97c1f676d65e8ef87198" title=" " alt="" coords="507,107,679,132"/>
+<area shape="rect" id="node7" href="$cx16-heap_8c.html#a3793be05f897d511214a01af772a3f26" title=" " alt="" coords="308,107,459,132"/>
+<area shape="rect" id="node8" href="$cx16-heap_8c.html#ada4896b02c851f3a923c200bbe508260" title=" " alt="" coords="137,107,260,132"/>
+</map>

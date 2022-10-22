@@ -1,0 +1,6 @@
+<map id="heap_data_ptr" name="heap_data_ptr">
+<area shape="rect" id="node1" title=" " alt="" coords="172,55,276,80"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a876d929ae42824b959489d75454c3adb" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="25,5,104,31"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#ad3a72919ae742a6e876f9eeb36e95c80" title=" " alt="" coords="5,55,124,80"/>
+<area shape="rect" id="node4" href="$cx16-heap-test1_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="39,104,90,129"/>
+</map>

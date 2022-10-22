@@ -1,0 +1,5 @@
+<map id="draw_characters" name="draw_characters">
+<area shape="rect" id="node1" title=" " alt="" coords="5,13,123,38"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a64f29f4cc6e2b8cbd47821945fbd4d47" title="Configure data port 0 of the vera using an address structure." alt="" coords="171,13,341,38"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="389,5,543,45"/>
+</map>

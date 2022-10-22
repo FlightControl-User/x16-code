@@ -145,6 +145,14 @@ void stage_load_tower(stage_tower_t* stage_tower)
     bank_pull_bram();
 }
 
+stage_tower_t* stage_tower_get()
+{
+    stage_playbook_t* stage_playbooks = stage.script.playbook;
+    stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
+    stage_tower_t* stage_towers = stage_playbook->stage_towers;
+    return stage_towers;
+}
+
 static void stage_load(void)
 {
     bank_push_set_bram(BRAM_LEVELS); // stage data
@@ -323,17 +331,6 @@ void stage_logic()
                     bank_pull_bram();
                 }
             }
-
-            #ifdef __TOWER
-            if(!(game.tickstage)) {
-                bank_push_set_bram(BRAM_LEVELS);
-                stage_playbook_t* stage_playbooks = stage.script.playbook;
-                stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
-                stage_tower_t* stage_towers = stage_playbook->stage_towers;
-                tower_paint(stage_towers->turret, stage_towers->turret_x, stage_towers->turret_y);
-                bank_pull_bram();
-            }
-            #endif
         }
     }
 

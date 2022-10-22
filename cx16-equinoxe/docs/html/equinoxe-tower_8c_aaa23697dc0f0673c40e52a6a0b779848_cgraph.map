@@ -1,0 +1,17 @@
+<map id="tower_add" name="tower_add">
+<area shape="rect" id="node1" title=" " alt="" coords="5,153,87,179"/>
+<area shape="rect" id="node2" href="$equinoxe-flightengine_8c.html#a544eb58c5274b79418bd28e1e7777bd1" title=" " alt="" coords="135,52,283,77"/>
+<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#abad63961bd64b8542e1221daa9d4700a" title=" " alt="" coords="143,153,274,179"/>
+<area shape="rect" id="node4" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="353,5,455,31"/>
+<area shape="rect" id="node13" href="$cx16-error-test_8c.html#aeb3ab94fc716313b097ae7f17f1a7723" title=" " alt="" coords="189,203,228,228"/>
+<area shape="rect" id="node14" href="$equinoxe-flightengine_8c.html#ab03746878869c39419b840b5b8a54ebf" title=" " alt="" coords="147,309,271,335"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#abf5c8a3bb1cf612e6d87c7df84eb8bc1" title="Set the sprite bits per pixel." alt="" coords="348,55,460,80"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a77ec2e3492018d5545cf0dfea55b43b3" title=" " alt="" coords="341,104,467,129"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#a2297b6d6c5d23c5523f4cfd80730eee0" title=" " alt="" coords="347,153,461,179"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8c.html#a87120f981768e101d15f9d7fe9b2dbb7" title="Set the palette offset of the sprite." alt="" coords="339,203,469,243"/>
+<area shape="rect" id="node11" href="$cx16-veralib_8c.html#af937394917fdb5471a2a1a52f2a5d7f6" title=" " alt="" coords="348,268,460,293"/>
+<area shape="rect" id="node12" href="$cx16-veralib_8c.html#afe9e97b960c4c91c2f7964d0c62bb68d" title=" " alt="" coords="343,317,465,343"/>
+<area shape="rect" id="node5" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="547,5,657,31"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="525,174,679,214"/>
+<area shape="rect" id="node15" href="$cx16-veralib_8c.html#a55e41876d7f39601029feb359ee52348" title="The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control." alt="" coords="331,367,477,392"/>
+</map>

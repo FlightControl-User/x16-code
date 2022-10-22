@@ -1,0 +1,6 @@
+<map id="cx16_vram_unpack_bank" name="cx16_vram_unpack_bank">
+<area shape="rect" id="node1" title=" " alt="" coords="225,63,393,88"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a0946a4292d339db7ad134087a4c02cde" title=" " alt="" coords="33,5,150,31"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#ae9c750a04242a15646d67941ca3a9404" title=" " alt="" coords="5,55,177,95"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#ac016bd10cb4613a75217cc33c7ba8b33" title="Return from a packed vera ram address the embedded bank in an 8&#45;bit byte." alt="" coords="7,120,175,145"/>
+</map>

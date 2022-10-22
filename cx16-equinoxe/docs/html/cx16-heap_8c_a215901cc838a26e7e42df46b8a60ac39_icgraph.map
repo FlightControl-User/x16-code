@@ -1,0 +1,21 @@
+<map id="vera_heap_size_packed_get" name="vera_heap_size_packed_get">
+<area shape="rect" id="node1" title=" " alt="" coords="943,186,1128,211"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#af676409759ce94ac0744c73d481ceee0" title=" " alt="" coords="727,38,895,63"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a876d929ae42824b959489d75454c3adb" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="553,87,632,113"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#a3f088d483ab9b6078b74f5b4cc9a11d8" title=" " alt="" coords="729,87,892,113"/>
+<area shape="rect" id="node5" href="$cx16-heap_8c.html#a4309819103e63a675362df40166c61ad" title=" " alt="" coords="741,137,881,162"/>
+<area shape="rect" id="node6" href="$cx16-heap_8c.html#a89612d095562858164c8b6b39211094e" title=" " alt="" coords="743,186,878,211"/>
+<area shape="rect" id="node7" href="$cx16-heap_8c.html#a3793be05f897d511214a01af772a3f26" title=" " alt="" coords="308,262,459,287"/>
+<area shape="rect" id="node10" href="$cx16-heap_8c.html#a550616f05c10956e49d0ecaafbf8a197" title=" " alt="" coords="757,386,864,411"/>
+<area shape="rect" id="node17" href="$cx16-heap_8c.html#a816ba17a988728f4dd77f2866a48fbf1" title=" " alt="" coords="727,287,894,313"/>
+<area shape="rect" id="node19" href="$cx16-heap_8c.html#ae9378a99d0a49522a6715be5900c9f93" title=" " alt="" coords="732,337,889,362"/>
+<area shape="rect" id="node8" href="$cx16-heap_8c.html#ada4896b02c851f3a923c200bbe508260" title=" " alt="" coords="137,262,260,287"/>
+<area shape="rect" id="node9" href="$cx16-heap_8c.html#a6412f1057881e976c5096a066c3a0862" title="Allocated a specified size of memory on the heap of the segment." alt="" coords="5,262,89,287"/>
+<area shape="rect" id="node11" href="$cx16-heap_8c.html#ad3a72919ae742a6e876f9eeb36e95c80" title=" " alt="" coords="533,337,652,362"/>
+<area shape="rect" id="node12" href="$cx16-heap-fragmentation1_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="567,386,618,411"/>
+<area shape="rect" id="node13" href="$cx16-heap_8c.html#ae46d850700331194e593e53157948003" title="Print an index list." alt="" coords="514,436,671,476"/>
+<area shape="rect" id="node14" href="$cx16-heap_8c.html#a3b0991a23f07d164ce8031f97fcd41a7" title="Ddump the index of the segment." alt="" coords="320,443,447,469"/>
+<area shape="rect" id="node15" href="$cx16-heap_8c.html#a86faf47430865098e64497cd92478c7a" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="154,443,243,469"/>
+<area shape="rect" id="node16" href="$cx16-heap-test2_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="22,443,73,469"/>
+<area shape="rect" id="node18" href="$cx16-heap_8c.html#a88b916ba335e97c1f676d65e8ef87198" title=" " alt="" coords="507,287,679,313"/>
+</map>

@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['p_0',['p',['../struct_p.html#a33937ce854d969715331caec715cce1e',1,'P::p()'],['../struct_p.html#a533391314665d6bf1b5575e9a9cd8552',1,'P::p()']]],
+  ['p001_1',['p001',['../equinoxe-bin-sprites_8c.html#a435c27518da830553d7430b4cf2f6092',1,'p001():&#160;equinoxe-bin-sprites.c'],['../equinoxe-target-sprites_8c.html#a435c27518da830553d7430b4cf2f6092',1,'p001():&#160;equinoxe-target-sprites.c']]],
+  ['palette_2',['palette',['../structfloor__bram__tiles__t.html#a3f9b17d8b7d5c2f844ea3758495e1cc5',1,'floor_bram_tiles_t::palette()'],['../structfloor__parts__t.html#a07667c839ba444fa97d0d3702d744a96',1,'floor_parts_t::palette()'],['../structpalette__16__t.html#ae1c65daeaacc4ee5098be1a81dfedd64',1,'palette_16_t::palette()'],['../structpalette__64__t.html#a62b9566c7ecafd285da2581e5131b9df',1,'palette_64_t::palette()'],['../structstage__t.html#a31f04077514b82186ab97b948053f86b',1,'stage_t::palette()'],['../structtower__t.html#a04687e9d7fd19aefbde94be1241ea47c',1,'tower_t::palette()'],['../structsprite__t.html#a31f04077514b82186ab97b948053f86b',1,'sprite_t::palette()'],['../equinoxe-palette_8c.html#aae3bd785d4e29f8f006fabc57ea92534',1,'palette():&#160;equinoxe-palette.c']]],
+  ['palette_5f16_3',['palette_16',['../structpalette__bram__t.html#ae20129d5f864c48bbde1088b89c4e04d',1,'palette_bram_t']]],
+  ['palette_5f64_4',['palette_64',['../structpalette__bram__t.html#ada4985fa7bfa8a3f2003e6ab3b99a57f',1,'palette_bram_t']]],
+  ['palette_5fbram_5',['palette_bram',['../equinoxe-palette_8h.html#a598dc7ed36d2a8e233461a314b14bfcc',1,'palette_bram():&#160;equinoxe-palette.c'],['../equinoxe-palette_8c.html#a598dc7ed36d2a8e233461a314b14bfcc',1,'palette_bram():&#160;equinoxe-palette.c']]],
+  ['palette_5fcount_6',['palette_count',['../structstage__t.html#a47e6dd81d95db3f06bbd80fcd08b2e8f',1,'stage_t']]],
+  ['palette_5ffiles_7',['palette_files',['../equinoxe-palette_8h.html#a69c7763e74f6aa538cc6986695eafe6e',1,'palette_files():&#160;equinoxe-palette.c'],['../equinoxe-palette_8c.html#ab09315df66e6df6b5c2794a3fbb17a77',1,'palette_files():&#160;equinoxe-palette.c']]],
+  ['palette_5foffset_8',['palette_offset',['../structsprite__file__header__t.html#a98930cd9d283a43e65b7a076a3dbda84',1,'sprite_file_header_t::palette_offset()'],['../structfe__sprite__cache__t.html#ad76580142901d1c1cc4dd8e904e19bb2',1,'fe_sprite_cache_t::palette_offset()']]],
+  ['paletteoffset_9',['PaletteOffset',['../structsprite__bram__t.html#a2aaf5269858fd68cbd26660cdfdb2682',1,'sprite_bram_t']]],
+  ['palettes_10',['PALETTES',['../bitmapfile_8h.html#aa81933fc138895ba05deab2e69abc7e0',1,'bitmapfile.h']]],
+  ['palettes_11',['palettes',['../equinoxe-bin-routines_8h.html#ac6127d0fe119078c8d2ed610333f09a3',1,'palettes():&#160;equinoxe-bin-routines.h'],['../equinoxe-graphics-routines_8h.html#ac6127d0fe119078c8d2ed610333f09a3',1,'palettes():&#160;equinoxe-graphics-routines.h'],['../cx16-sprite-routines_8h.html#ac6127d0fe119078c8d2ed610333f09a3',1,'palettes():&#160;cx16-sprite-routines.h']]],
+  ['parts_12',['parts',['../structtile__t.html#aab16b02bbd811e024312dae6ac6ab7c4',1,'tile_t']]],
+  ['penalty_13',['penalty',['../structstage__t.html#a09d605a9e1cce2fbe81fa36bbc2efe93',1,'stage_t']]],
+  ['playbook_14',['playbook',['../structstage__t.html#aa6cb8f9ddc73dfdb1ddc3cee4c5030ab',1,'stage_t::playbook()'],['../structstage__script__t.html#a0ed28612ed165a7b535bbffd1cee9c4a',1,'stage_script_t::playbook()']]],
+  ['playbooks_15',['playbooks',['../structstage__script__t.html#ae8a22dc49e16a9cf46debc74346284af',1,'stage_script_t']]],
+  ['player_16',['player',['../equinoxe-flightengine_8c.html#a2605d32b7462b4bee2dec493b29c106a',1,'player():&#160;equinoxe-flightengine.c'],['../equinoxe-flightengine_8h.html#a2605d32b7462b4bee2dec493b29c106a',1,'player():&#160;equinoxe-flightengine.c']]],
+  ['player_5fcount_17',['player_count',['../structstage__t.html#ae1064174b7403a8b07ac9afc5d11319b',1,'stage_t']]],
+  ['player_5fpool_18',['player_pool',['../structstage__t.html#ae4990ecc7546e1aad1e27252cd9ac8b8',1,'stage_t']]],
+  ['player_5fsprite_19',['player_sprite',['../structstage__player__t.html#aa2b142b390a641d038f01c80b33a4058',1,'stage_player_t']]],
+  ['player_5fxor_20',['player_xor',['../structstage__t.html#a5995b880734fa14b359ae723b236b964',1,'stage_t']]],
+  ['pool_21',['pool',['../structfb__heap__segment__t.html#ae696bb6920b345209a9e36112edf2c70',1,'fb_heap_segment_t']]],
+  ['prev_22',['prev',['../structentity__s.html#a6abc161817251aab6c0dad0b349b10a7',1,'entity_s::prev()'],['../struct_list.html#a1de83cb8bad4ff4796b40c7b9bee9bd7',1,'List::prev()'],['../structfb__heap__list__t.html#a8aef0cf163c41ea60fa7d141ed68a46c',1,'fb_heap_list_t::prev()'],['../struct_h_e_a_p___i_n_d_e_x.html#a8fdfc43dc3039e85e571e3d81d3aa780',1,'HEAP_INDEX::prev()'],['../structvera__heap__map__t.html#a1dd9e3c18b90aba034fc1c2ea71d4936',1,'vera_heap_map_t::prev()'],['../structlru__cache__table__t.html#a6529e261b50cbd533cc76cda75dc8f8e',1,'lru_cache_table_t::prev()'],['../structstage__scenario__t.html#a64d0c39624b8e627889e0893b77a9c8f',1,'stage_scenario_t::prev()'],['../structstage__wave__t.html#a62d49ad636711aa947aff56a7e56ffbf',1,'stage_wave_t::prev()']]]
+];

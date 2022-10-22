@@ -1,0 +1,4 @@
+<map id="vera_display_get_vscale" name="vera_display_get_vscale">
+<area shape="rect" id="node1" title="Return the current vertical scale of the vera display." alt="" coords="213,5,375,31"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a254f9fa43c14730f5875dd2db6d0e185" title="Return the current height of the vera display." alt="" coords="5,5,165,31"/>
+</map>

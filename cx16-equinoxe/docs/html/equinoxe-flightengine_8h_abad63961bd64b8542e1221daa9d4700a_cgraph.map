@@ -1,0 +1,12 @@
+<map id="fe_sprite_configure" name="fe_sprite_configure">
+<area shape="rect" id="node1" title=" " alt="" coords="5,153,136,179"/>
+<area shape="rect" id="node2" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="198,5,301,31"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#abf5c8a3bb1cf612e6d87c7df84eb8bc1" title="Set the sprite bits per pixel." alt="" coords="193,55,305,80"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a77ec2e3492018d5545cf0dfea55b43b3" title=" " alt="" coords="186,104,313,129"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#a2297b6d6c5d23c5523f4cfd80730eee0" title=" " alt="" coords="192,153,307,179"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a87120f981768e101d15f9d7fe9b2dbb7" title="Set the palette offset of the sprite." alt="" coords="184,203,315,243"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#af937394917fdb5471a2a1a52f2a5d7f6" title=" " alt="" coords="193,268,305,293"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8c.html#afe9e97b960c4c91c2f7964d0c62bb68d" title=" " alt="" coords="189,317,310,343"/>
+<area shape="rect" id="node3" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="385,5,494,31"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="363,174,516,214"/>
+</map>

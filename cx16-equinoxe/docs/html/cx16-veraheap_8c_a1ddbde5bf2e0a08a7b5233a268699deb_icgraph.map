@@ -1,0 +1,20 @@
+<map id="vera_heap_size_unpack" name="vera_heap_size_unpack">
+<area shape="rect" id="node1" title=" " alt="" coords="925,132,1085,157"/>
+<area shape="rect" id="node2" href="$cx16-veraheap_01copy_8c.html#a3a1b50983b48d42e83cbc6b93d3350ef" title="Return the size of allocated heap records of the segment." alt="" coords="721,5,867,31"/>
+<area shape="rect" id="node3" href="$cx16-veraheap_8c.html#a85078ca7ea2d6a429b44023b45461114" title=" " alt="" coords="728,107,860,132"/>
+<area shape="rect" id="node14" href="$cx16-veraheap_8c.html#a4bac38b11af0a6a4510564a34928f4c7" title=" " alt="" coords="711,205,877,231"/>
+<area shape="rect" id="node15" href="$cx16-veraheap_8c.html#ab403fdf10251a0079e602dd3c2f24de8" title=" " alt="" coords="716,156,872,181"/>
+<area shape="rect" id="node17" href="$cx16-veraheap_8c.html#a0c9c31627798298923a5429c59206636" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="541,57,649,83"/>
+<area shape="rect" id="node18" href="$cx16-veraheap_01copy_8c.html#a66815c3b40185c298956b2a8bc913fd0" title="Return the size of free heap of the segment." alt="" coords="725,255,863,280"/>
+<area shape="rect" id="node4" href="$cx16-veraheap_01copy_8c.html#a734f60bd496e9c9911ee80f2bb899509" title="Allocated a specified size of memory on the heap of the segment." alt="" coords="537,107,652,132"/>
+<area shape="rect" id="node5" href="$equinoxe-floorengine_8c.html#a0417b76d7754050050583d3e124d964c" title=" " alt="" coords="335,180,450,205"/>
+<area shape="rect" id="node8" href="$cx16-veraheap__test__graphical_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="367,57,418,83"/>
+<area shape="rect" id="node9" href="$equinoxe-flightengine_8c.html#ae4731a2e1533d0c4c94d6d746fd4b981" title=" " alt="" coords="307,107,479,132"/>
+<area shape="rect" id="node6" href="$equinoxe-stage_8c.html#a7f975c51751f181280c226cc750130ee" title=" " alt="" coords="139,180,255,205"/>
+<area shape="rect" id="node7" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="136,229,259,255"/>
+<area shape="rect" id="node10" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="150,32,245,57"/>
+<area shape="rect" id="node12" href="$equinoxe-bullet_8c.html#ad9fd744a793e6f010ea6e93af2d3b2f7" title=" " alt="" coords="151,81,244,107"/>
+<area shape="rect" id="node13" href="$equinoxe-tower_8c.html#a4b275d520412a68d995f34a4285829ab" title=" " alt="" coords="154,131,241,156"/>
+<area shape="rect" id="node11" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,81,88,107"/>
+<area shape="rect" id="node16" href="$cx16-veraheap_8c.html#a966077fe1e9b76be7072e38bb70be0d6" title="Return if there is free memory according to the requested size." alt="" coords="527,156,663,181"/>
+</map>

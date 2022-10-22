@@ -1,0 +1,9 @@
+<map id="heap_size_get" name="heap_size_get">
+<area shape="rect" id="node1" title=" " alt="" coords="621,55,728,80"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#ad3a72919ae742a6e876f9eeb36e95c80" title=" " alt="" coords="435,5,554,31"/>
+<area shape="rect" id="node3" href="$cx16-heap-fragmentation1_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="469,55,520,80"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#ae46d850700331194e593e53157948003" title="Print an index list." alt="" coords="416,105,573,145"/>
+<area shape="rect" id="node5" href="$cx16-heap_8c.html#a3b0991a23f07d164ce8031f97fcd41a7" title="Ddump the index of the segment." alt="" coords="241,112,368,137"/>
+<area shape="rect" id="node6" href="$cx16-heap_8c.html#a86faf47430865098e64497cd92478c7a" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="104,112,193,137"/>
+<area shape="rect" id="node7" href="$cx16-heap-test2_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,112,56,137"/>
+</map>

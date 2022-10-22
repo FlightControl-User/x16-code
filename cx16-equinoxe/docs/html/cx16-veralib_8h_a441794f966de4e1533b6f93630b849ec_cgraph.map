@@ -1,0 +1,4 @@
+<map id="vera_sprite_zdepth_between_layer0_and_layer1" name="vera_sprite_zdepth_between_layer0_and_layer1">
+<area shape="rect" id="node1" title="Position the z depth of the sprite between layer 0 and layer 1." alt="" coords="5,5,152,60"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="200,13,353,53"/>
+</map>

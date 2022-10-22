@@ -92,7 +92,7 @@ unsigned char tower_remove(unsigned char t)
     towers.used[t] = 0;
     towers.enabled[t] = 0;
 
-    stage.enemy_count--;
+    stage.tower_count--;
 
     bank_pull_bram();
 
@@ -100,30 +100,47 @@ unsigned char tower_remove(unsigned char t)
     return ret;
 }
 
-
-void tower_paint(sprite_bram_t* turret, unsigned char tx, unsigned char ty) 
+void tower_unpaint(unsigned char tile_row, unsigned char tile_column)
 {
-
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
-    for(unsigned char x=0; x<12; x++) {
-        for(unsigned char y=0; y<16; y++) {
+    unsigned char y = ((tile_row) / 4) % 16;
+    unsigned char x = tile_column;
 
-            unsigned char rnd = BYTE0(rand());
+    printf("unpaint row=%u, y=%u", tile_row, y);
 
-            byte slab = (BYTE0(rand()) & 0x0F);
+    for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
+        if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
+            unsigned char tower_slab = floor_cache[FLOOR_CACHE(1, y, x)];
+            if(!tower_slab) {	
+                #ifdef __LAYER1
+                floor_cache[FLOOR_CACHE(1, y, x)] = 0;
+                tower_remove(t);
+                #endif
+            }
+        }
+    }
 
-            unsigned char floor_slab = floor_cache[y].floor_segment[x];
+    bank_pull_bram();
+}
 
-            if( floor_slab == 15 ) {
-                if( rnd <= 128 ) {
-                    if( stage.tower_count < TOWERS_TOTAL) {
-                        tower_add(turret, x, y, (unsigned int)x*64+tx, (unsigned int)y*64+ty, 4, 4);
-                        #ifdef __LAYER1
-                        floor_draw_slab(stage.towers, 0, x, y);
-                        #endif
-                    }
-                }
+void tower_paint(unsigned char tile_row, unsigned char tile_column) 
+{
+    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+
+    unsigned char y = ((tile_row-1) / 4) % 16;
+    unsigned char x = tile_column;
+
+    printf(", paint row=%u, y=%u\n", tile_row, y);
+
+    unsigned char rnd = BYTE0(rand());
+    unsigned char floor_slab = floor_cache[FLOOR_CACHE(1, y, x)];
+    if( floor_slab == 15 ) {
+        if( rnd <= 255 ) {
+            if( stage.tower_count < TOWERS_TOTAL) {
+        // floor_draw_row(0, stage.floor, row, floor_tile_column);
+        //         tower_add(turret, x, y, (unsigned int)x*64+tx, (unsigned int)y*64+ty, 4, 4);
+                floor_cache[FLOOR_CACHE(1, y, x)] = 1;
             }
         }
     }
@@ -194,19 +211,7 @@ void tower_logic() {
 
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {	
-            if(game.row == 32) {
-                if (towers.y[t] < 8) {
-                    tower_remove(t);
-                    // printf("unusing tower t=%u, row=%u", t, game.row);
-                }
-            }
 
-            if(game.row == 0) {
-                if (towers.y[t] >= 8) {
-                    tower_remove(t);
-                    // printf("unusing tower t=%u, row=%u", t, game.row);
-                }
-            }
 		}
 
         tower_animate(t);

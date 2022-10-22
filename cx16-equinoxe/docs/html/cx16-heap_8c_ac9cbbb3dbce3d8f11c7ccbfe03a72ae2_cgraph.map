@@ -1,0 +1,8 @@
+<map id="heap_dump_stats" name="heap_dump_stats">
+<area shape="rect" id="node1" title="Print the heap memory manager statistics of the segment." alt="" coords="5,104,131,129"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a15be5ced50e60d6010483bcb6efc8e1d" title="Return the amount of heap records in the index of the segment." alt="" coords="179,5,301,31"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a8f5616a70d86f2f35f73081abc97ba52" title="Return the size of allocated heap records of the segment." alt="" coords="183,55,297,80"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#a176b657865aac15ac64a15899670daad" title="Return the amount of free records in the index of the segment." alt="" coords="181,104,299,129"/>
+<area shape="rect" id="node5" href="$cx16-heap_8c.html#aeb2547feaf9bdfdf02827eb970f3bda8" title="Return the size of allocated heap records of the segment." alt="" coords="185,153,295,179"/>
+<area shape="rect" id="node6" href="$cx16-heap_8c.html#a642230775708d3e3f1f0296c4f4b7284" title="Return the amount of idle records in the index of the segment." alt="" coords="182,203,298,228"/>
+</map>

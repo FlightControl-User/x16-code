@@ -42,12 +42,13 @@ typedef struct {
     unsigned char TileSegment[FLOOR_WEIGHT_SEGMENTS];
 } tile_weight_t;
 
-// todo: rework naming to floor_cache
-#define FLOOR_CACHE_TILES 16
-typedef struct {
-    char floor_segment[FLOOR_CACHE_TILES];
-} floor_cache_t;
+#define FLOOR_CACHE_LAYERS 2
+#define FLOOR_CACHE_ROWS 8
+#define FLOOR_CACHE_COLUMNS 16
+typedef unsigned char floor_cache_t; // this is exactly 256 bytes, so we have a very efficient cache!
 
+
+// #define FLOOR_CACHE(layer, row, column) ((char)((char)(layer<<7) | (char)(row<<4) | (char)(column)))
 typedef heap_bram_fb_handle_t floor_bram_handles_t;
 
 #endif

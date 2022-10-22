@@ -1,0 +1,52 @@
+<map id="LogicBullets" name="LogicBullets">
+<area shape="rect" id="node1" title=" " alt="" coords="5,284,99,309"/>
+<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html#abe139181be3d02c1ff5714f34a861ccd" title=" " alt="" coords="182,104,283,129"/>
+<area shape="rect" id="node10" href="$equinoxe-collision_8c.html#a3a323ff1fbddb8b9c0a4a25e86c0a7e7" title=" " alt="" coords="191,361,274,387"/>
+<area shape="rect" id="node16" href="$equinoxe-flightengine_8c.html#ae4731a2e1533d0c4c94d6d746fd4b981" title=" " alt="" coords="147,816,319,841"/>
+<area shape="rect" id="node48" href="$cx16-veralib_8c.html#ada631258e01272087f397cf6fa8f98c4" title="Set a sprite position on the display. Note that the x and y coordinates are expressed in 2s complemen..." alt="" coords="167,197,298,223"/>
+<area shape="rect" id="node49" href="$cx16-veralib_8c.html#aaa442f55937ab4c59c3ee3dca85c724a" title="Set a sprite position on the display and animate the sprite shape. Note that the x and y coordinates ..." alt="" coords="167,247,298,287"/>
+<area shape="rect" id="node50" href="$cx16-veralib_8c.html#acb0fe5ce904958f2714aa9edd4b3d7c5" title=" " alt="" coords="167,312,298,337"/>
+<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#a65fe82d3b4c6eb47ca1344b25ba47027" title=" " alt="" coords="377,5,519,31"/>
+<area shape="rect" id="node5" href="$equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3" title=" " alt="" coords="389,104,507,129"/>
+<area shape="rect" id="node6" href="$equinoxe-flightengine_8c.html#a9c4e9dff93216d3ca1e8ffbaa4957270" title=" " alt="" coords="388,55,508,80"/>
+<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a7afb2f45ba056b96f68c3a18856d8193" title="Hide a sprite." alt="" coords="382,153,514,179"/>
+<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="616,5,729,31"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#a4fbaac8d029ed0e06c6ffe8e7ad7a429" title="The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control." alt="" coords="609,55,736,80"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="596,222,749,262"/>
+<area shape="rect" id="node11" href="$equinoxe-collision_8c.html#a29ee59222db31deda79db7df1ceaea30" title=" " alt="" coords="413,405,483,431"/>
+<area shape="rect" id="node12" href="$ht_8c.html#ac849a834a93167f3d0a09841e899f35e" title=" " alt="" coords="412,356,484,381"/>
+<area shape="rect" id="node13" href="$ht_8c.html#a501b835791ac6d9e21227f7173e583ba" title=" " alt="" coords="639,332,707,357"/>
+<area shape="rect" id="node14" href="$cx16-heap-test3_8c.html#a45e40a82da2f8df531da34a0061775a1" title=" " alt="" coords="875,432,917,457"/>
+<area shape="rect" id="node15" href="$ht_8c.html#aa2b135585f1bbcb901bc3bd1737426f4" title=" " alt="" coords="623,381,723,407"/>
+<area shape="rect" id="node17" href="$cx16-heap-bram-fb_8c.html#adbe8c4fd229e179ad6e4ec98177a8f73" title=" " alt="" coords="367,1267,529,1292"/>
+<area shape="rect" id="node18" href="$cx16-heap-bram-fb_8c.html#a65b9af81b17b3490915665ceabc71b17" title=" " alt="" coords="373,1316,523,1341"/>
+<area shape="rect" id="node19" href="$lru-cache_8c.html#a94aa39ba1605171b17726eb4e293cad5" title=" " alt="" coords="393,455,503,480"/>
+<area shape="rect" id="node20" href="$lru-cache_8c.html#afec33fc082b7614c675238c2b5b33223" title=" " alt="" coords="388,767,508,792"/>
+<area shape="rect" id="node23" href="$lru-cache_8c.html#a39de9a1a0af3d847dbde6ce55ce5e00f" title=" " alt="" coords="397,504,499,529"/>
+<area shape="rect" id="node24" href="$lru-cache_8c.html#ad140926429ebcdcb07e315c9b83f1f16" title=" " alt="" coords="390,816,506,841"/>
+<area shape="rect" id="node25" href="$lru-cache_8c.html#ac73267b1ba9f167bd3bed7b9b6efe3a8" title=" " alt="" coords="389,717,507,743"/>
+<area shape="rect" id="node26" href="$lru-cache_8c.html#a6b260e49e9ba5f84e8f00d66ad691e11" title=" " alt="" coords="395,553,501,579"/>
+<area shape="rect" id="node27" href="$lru-cache_8c.html#a5a54d7fbaf44e4e82659a0afcc8849a2" title=" " alt="" coords="393,603,503,628"/>
+<area shape="rect" id="node28" href="$cx16-veralib_8c.html#a9735b87e7d00cc0c80a7b14040724de8" title="Set the border color of the vera display." alt="" coords="367,653,529,693"/>
+<area shape="rect" id="node29" href="$cx16-veraheap_01copy_8c.html#a734f60bd496e9c9911ee80f2bb899509" title="Allocated a specified size of memory on the heap of the segment." alt="" coords="391,915,505,940"/>
+<area shape="rect" id="node36" href="$cx16-veraheap_8c.html#af3f00b4da9113ccbf9606ccd4396f16b" title=" " alt="" coords="587,1013,759,1039"/>
+<area shape="rect" id="node37" href="$cx16-veraheap_8c.html#a13d756b011758f9318defc4629bafaf0" title=" " alt="" coords="604,1513,741,1553"/>
+<area shape="rect" id="node39" href="$cx16-veraheap_8c.html#a0c9c31627798298923a5429c59206636" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="394,1165,502,1191"/>
+<area shape="rect" id="node46" href="$cx16-veraheap_8c.html#a966077fe1e9b76be7072e38bb70be0d6" title="Return if there is free memory according to the requested size." alt="" coords="380,865,516,891"/>
+<area shape="rect" id="node47" href="$cx16-veralib_8c.html#a2a353db22a55e30b50d175a886e0366d" title="Obtain the offset of the image, aligned with the sprite control data structure." alt="" coords="373,965,523,1005"/>
+<area shape="rect" id="node21" href="$lru-cache_8c.html#a51142e6fed8501df6ac7dff8e8d2fdba" title=" " alt="" coords="616,717,729,743"/>
+<area shape="rect" id="node22" href="$lru-cache_8c.html#ae564f350e811b0b3e3c43585d27f4d9d" title=" " alt="" coords="613,767,733,792"/>
+<area shape="rect" id="node30" href="$cx16-veraheap_8c.html#af1ff4eb41167cd4684c74e14dfdfca1c" title=" " alt="" coords="587,865,758,891"/>
+<area shape="rect" id="node31" href="$cx16-veraheap_8c.html#a85078ca7ea2d6a429b44023b45461114" title=" " alt="" coords="607,915,739,940"/>
+<area shape="rect" id="node34" href="$cx16-veraheap_8c.html#a1e512dab113bfd2f473dae29ffa45c9d" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="613,964,732,989"/>
+<area shape="rect" id="node35" href="$cx16-veraheap_8c.html#ab403fdf10251a0079e602dd3c2f24de8" title=" " alt="" coords="595,816,751,841"/>
+<area shape="rect" id="node32" href="$cx16-veraheap_8c.html#a3444846eaba3528013cd64fcc44ccf85" title=" " alt="" coords="828,1107,964,1147"/>
+<area shape="rect" id="node33" href="$cx16-veraheap_8c.html#a1ddbde5bf2e0a08a7b5233a268699deb" title=" " alt="" coords="816,915,976,940"/>
+<area shape="rect" id="node38" href="$cx16-veraheap_8c.html#ad4c952644896409c07afe5383f204a81" title=" " alt="" coords="827,1405,965,1445"/>
+<area shape="rect" id="node40" href="$cx16-veraheap_8c.html#ad69c8a84524912f71f3ffef1b8c96884" title=" " alt="" coords="588,1412,757,1437"/>
+<area shape="rect" id="node41" href="$cx16-veraheap_8c.html#a9f27fe2679e3685c1855cece849c580f" title=" " alt="" coords="577,1363,768,1388"/>
+<area shape="rect" id="node42" href="$cx16-veraheap_8c.html#af678bf56278342ac9ce12c3f603439eb" title=" " alt="" coords="603,1215,742,1240"/>
+<area shape="rect" id="node43" href="$cx16-veraheap_8c.html#ac2c9255c3eab12662c04bc9edc453bdc" title=" " alt="" coords="599,1264,746,1289"/>
+<area shape="rect" id="node44" href="$cx16-veraheap_8c.html#ab9a0e749baac7845889cc04aa05f13ff" title=" " alt="" coords="594,1165,751,1191"/>
+<area shape="rect" id="node45" href="$cx16-veraheap_8c.html#a989251e5854073d35cbc66026e11332d" title=" " alt="" coords="591,1313,754,1339"/>
+</map>

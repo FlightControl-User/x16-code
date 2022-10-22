@@ -1,0 +1,4 @@
+<map id="vera_sprite_height_16" name="vera_sprite_height_16">
+<area shape="rect" id="node1" title="Set the height of the sprite to 16 pixels." alt="" coords="5,13,152,38"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="200,5,353,45"/>
+</map>

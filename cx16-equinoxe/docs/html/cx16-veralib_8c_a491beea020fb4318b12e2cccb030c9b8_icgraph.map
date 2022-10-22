@@ -1,0 +1,7 @@
+<map id="vera_display_set_scale_double" name="vera_display_set_scale_double">
+<area shape="rect" id="node1" title="Double scaling of the vera display. The characters and graphics will work at a 320x240 resolution." alt="" coords="324,47,480,87"/>
+<area shape="rect" id="node2" href="$cx16-veramodes_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="165,5,215,31"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#ab15a039783f45622075c40d62da9609b" title=" " alt="" coords="104,55,276,80"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#a7427ef77e1a8b2e2e67b05fcc370a9db" title=" " alt="" coords="104,104,276,129"/>
+<area shape="rect" id="node4" href="$bitmap__1bpp__320__x__240_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,55,56,80"/>
+</map>

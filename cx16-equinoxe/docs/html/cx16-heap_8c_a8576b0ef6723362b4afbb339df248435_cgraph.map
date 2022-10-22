@@ -1,0 +1,4 @@
+<map id="heap_vram_pack" name="heap_vram_pack">
+<area shape="rect" id="node1" title="Create a packed vera ram pointer from an 8 bit bank and 16 bit offset, which is compressed in a 2 byt..." alt="" coords="5,5,124,31"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#ac902874d357e29150c04011f014f3192" title=" " alt="" coords="172,5,291,31"/>
+</map>

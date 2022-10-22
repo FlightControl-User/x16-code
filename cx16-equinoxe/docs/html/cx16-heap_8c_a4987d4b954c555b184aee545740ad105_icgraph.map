@@ -1,0 +1,9 @@
+<map id="vera_heap_idle_insert" name="vera_heap_idle_insert">
+<area shape="rect" id="node1" title=" " alt="" coords="507,55,653,80"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#a4309819103e63a675362df40166c61ad" title=" " alt="" coords="313,5,453,31"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#a89612d095562858164c8b6b39211094e" title=" " alt="" coords="316,55,451,80"/>
+<area shape="rect" id="node5" href="$cx16-heap_8c.html#a3793be05f897d511214a01af772a3f26" title=" " alt="" coords="308,104,459,129"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a876d929ae42824b959489d75454c3adb" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="159,31,238,56"/>
+<area shape="rect" id="node6" href="$cx16-heap_8c.html#ada4896b02c851f3a923c200bbe508260" title=" " alt="" coords="137,104,260,129"/>
+<area shape="rect" id="node7" href="$cx16-heap_8c.html#a6412f1057881e976c5096a066c3a0862" title="Allocated a specified size of memory on the heap of the segment." alt="" coords="5,104,89,129"/>
+</map>

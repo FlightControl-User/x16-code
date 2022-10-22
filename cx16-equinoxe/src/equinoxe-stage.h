@@ -5,6 +5,7 @@ extern stage_wave_t wave;
 
 void stage_reset();
 
+stage_tower_t* stage_tower_get();
 
 inline void stage_enemy_add(unsigned char w);
 inline void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b);

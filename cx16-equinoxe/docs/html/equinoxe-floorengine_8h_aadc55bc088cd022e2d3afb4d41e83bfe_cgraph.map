@@ -1,0 +1,8 @@
+<map id="floor_paint_background" name="floor_paint_background">
+<area shape="rect" id="node1" title=" " alt="" coords="5,83,160,108"/>
+<area shape="rect" id="node2" href="$equinoxe-floorengine_8c.html#a21a434dbe1cbe82c8552b65571fc880f" title=" " alt="" coords="234,33,341,59"/>
+<area shape="rect" id="node5" href="$equinoxe-floorengine_8c.html#ab1c60747ff95f013e1f07d769c6970c8" title="Paint the segments according a progressing tiling mechanism." alt="" coords="247,83,328,108"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a54502100fc18631330d7b7c4e8c75866" title="Scroll the vertical (Y) axis of the layer 0 visible area over the layer tile map area." alt="" coords="208,133,367,173"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a112d0364c810269df1eb6785fbe0f3ba" title=" " alt="" coords="415,5,577,31"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8h.html#a5d8d4ff49df4408210a62b42da6882f4" title=" " alt="" coords="419,55,573,95"/>
+</map>

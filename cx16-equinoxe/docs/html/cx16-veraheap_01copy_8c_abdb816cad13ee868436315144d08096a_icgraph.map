@@ -1,0 +1,6 @@
+<map id="vera_heap_data_get_offset" name="vera_heap_data_get_offset">
+<area shape="rect" id="node1" title=" " alt="" coords="583,5,720,45"/>
+<area shape="rect" id="node2" href="$cx16-veraheap_01copy_8c.html#ae7a287fb1c8a83b7571e0d46548ebdf1" title="Print an index list." alt="" coords="377,5,535,45"/>
+<area shape="rect" id="node3" href="$cx16-veraheap_01copy_8c.html#a750fde3007c0d36b20fa6de7bb0a59fc" title="Ddump the index of the segment." alt="" coords="172,13,329,38"/>
+<area shape="rect" id="node4" href="$cx16-veraheap_01copy_8c.html#a70aecb970d4d7a4eb65d808100098a4c" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="5,13,124,38"/>
+</map>

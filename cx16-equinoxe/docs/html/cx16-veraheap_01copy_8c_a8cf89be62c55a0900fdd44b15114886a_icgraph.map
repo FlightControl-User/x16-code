@@ -1,0 +1,6 @@
+<map id="vera_heap_free_remove" name="vera_heap_free_remove">
+<area shape="rect" id="node1" title=" " alt="" coords="351,31,507,56"/>
+<area shape="rect" id="node2" href="$cx16-veraheap_01copy_8c.html#a1b33f5005fe06c3a09d3ba32ff5ad18f" title=" " alt="" coords="165,5,299,31"/>
+<area shape="rect" id="node4" href="$cx16-veraheap_01copy_8c.html#a0bc33a6220a6510b1cfbf513e9dda659" title=" " alt="" coords="161,55,303,80"/>
+<area shape="rect" id="node3" href="$cx16-veraheap_01copy_8c.html#aafe72079c3b4eb5d6eedc0fe79af2143" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="5,31,113,56"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="vera_vram_data0_address" name="vera_vram_data0_address">
+<area shape="rect" id="node1" title="Configure data port 0 of the vera using an address structure." alt="" coords="269,5,440,31"/>
+<area shape="rect" id="node2" href="$cx16-tilemap_8c.html#ad2fad8648f58f574ae049364cdafd6a3" title=" " alt="" coords="104,5,221,31"/>
+<area shape="rect" id="node3" href="$cx16-tilemap_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,31"/>
+</map>

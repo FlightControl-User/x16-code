@@ -1,0 +1,4 @@
+<map id="vera_display_get_width" name="vera_display_get_width">
+<area shape="rect" id="node1" title="Return the current width of the vera display." alt="" coords="5,5,160,31"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#ad42283049b62ff24d7d3a48b98061846" title="Return the current horizonal scale of the vera display." alt="" coords="208,5,371,31"/>
+</map>

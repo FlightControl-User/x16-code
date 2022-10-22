@@ -1,0 +1,9 @@
+<map id="vera_heap_dump_stats" name="vera_heap_dump_stats">
+<area shape="rect" id="node1" title="Print the heap memory manager statistics of the segment." alt="" coords="5,104,160,129"/>
+<area shape="rect" id="node2" href="$cx16-veraheap_01copy_8c.html#ace3c3a8bfccf7dbef51dc719e5d396d3" title="Return the amount of heap records in the index of the segment." alt="" coords="208,5,361,31"/>
+<area shape="rect" id="node3" href="$cx16-veraheap_01copy_8c.html#a3a1b50983b48d42e83cbc6b93d3350ef" title="Return the size of allocated heap records of the segment." alt="" coords="212,55,357,80"/>
+<area shape="rect" id="node5" href="$cx16-veraheap_01copy_8c.html#a24ce691729abc378d79c4c42a2c10d9b" title="Return the amount of free records in the index of the segment." alt="" coords="211,104,358,129"/>
+<area shape="rect" id="node6" href="$cx16-veraheap_01copy_8c.html#a66815c3b40185c298956b2a8bc913fd0" title="Return the size of allocated heap records of the segment." alt="" coords="215,153,354,179"/>
+<area shape="rect" id="node7" href="$cx16-veraheap_01copy_8c.html#ab7ab1c648af3c4ec465166ead18d09e9" title="Return the amount of idle records in the index of the segment." alt="" coords="211,203,358,228"/>
+<area shape="rect" id="node4" href="$cx16-veraheap_8c.html#a1ddbde5bf2e0a08a7b5233a268699deb" title=" " alt="" coords="409,104,569,129"/>
+</map>

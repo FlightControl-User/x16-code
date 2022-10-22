@@ -1,0 +1,7 @@
+<map id="heap_idle_count" name="heap_idle_count">
+<area shape="rect" id="node1" title="Return the amount of idle records in the index of the segment." alt="" coords="415,31,531,56"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#ac9cbbb3dbce3d8f11c7ccbfe03a72ae2" title="Print the heap memory manager statistics of the segment." alt="" coords="241,31,367,56"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a86faf47430865098e64497cd92478c7a" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="104,5,193,31"/>
+<area shape="rect" id="node5" href="$cx16-heap-fragmentation1_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="123,55,174,80"/>
+<area shape="rect" id="node4" href="$cx16-heap-test2_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,31"/>
+</map>

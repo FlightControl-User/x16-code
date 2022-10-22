@@ -1,0 +1,8 @@
+<map id="vera_display_set_border_color" name="vera_display_set_border_color">
+<area shape="rect" id="node1" title="Set the border color of the vera display." alt="" coords="499,28,660,68"/>
+<area shape="rect" id="node2" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,62,88,87"/>
+<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#ae4731a2e1533d0c4c94d6d746fd4b981" title=" " alt="" coords="279,60,451,86"/>
+<area shape="rect" id="node4" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="136,36,231,62"/>
+<area shape="rect" id="node5" href="$equinoxe-bullet_8c.html#ad9fd744a793e6f010ea6e93af2d3b2f7" title=" " alt="" coords="137,86,230,111"/>
+<area shape="rect" id="node6" href="$equinoxe-tower_8c.html#a4b275d520412a68d995f34a4285829ab" title=" " alt="" coords="140,135,227,160"/>
+</map>

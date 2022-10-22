@@ -1,0 +1,13 @@
+<map id="stage_enemy_hit" name="stage_enemy_hit">
+<area shape="rect" id="node1" title=" " alt="" coords="5,104,127,129"/>
+<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#a86ce75c7da5956db16c737f8dce1256e" title=" " alt="" coords="175,104,257,129"/>
+<area shape="rect" id="node3" href="$equinoxe-enemy_8c.html#a48e186aa7fec971deff3bec3e565a66c" title=" " alt="" coords="305,104,415,129"/>
+<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#a65fe82d3b4c6eb47ca1344b25ba47027" title=" " alt="" coords="463,5,604,31"/>
+<area shape="rect" id="node6" href="$equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3" title=" " alt="" coords="475,55,592,80"/>
+<area shape="rect" id="node7" href="$cx16-error-test_8c.html#aeb3ab94fc716313b097ae7f17f1a7723" title=" " alt="" coords="514,104,553,129"/>
+<area shape="rect" id="node8" href="$equinoxe-flightengine_8c.html#a9c4e9dff93216d3ca1e8ffbaa4957270" title=" " alt="" coords="473,153,593,179"/>
+<area shape="rect" id="node10" href="$cx16-veralib_8c.html#a7afb2f45ba056b96f68c3a18856d8193" title="Hide a sprite." alt="" coords="467,204,599,229"/>
+<area shape="rect" id="node5" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="672,5,785,31"/>
+<area shape="rect" id="node9" href="$cx16-veralib_8c.html#a4fbaac8d029ed0e06c6ffe8e7ad7a429" title="The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control." alt="" coords="665,151,792,176"/>
+<area shape="rect" id="node11" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="652,201,805,241"/>
+</map>

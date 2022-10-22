@@ -1,0 +1,4 @@
+<map id="vera_sprite_bpp_get" name="vera_sprite_bpp_get">
+<area shape="rect" id="node1" title=" " alt="" coords="5,13,143,38"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="191,5,344,45"/>
+</map>

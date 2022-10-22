@@ -11,26 +11,27 @@
 
 #include "equinoxe-bank.h"
 
+// #define __CONIO_BSOUT
+
+
 #define __MAIN
-
-// #define __NOVSYNC
-
+#define __NOVSYNC
 // #define __CPULINES
 
 #define __PALETTE
 
-#define __FLIGHT
+// #define __FLIGHT
 #define __STAGE
-#define __COLLISION
+// #define __COLLISION
 
-#define __LAYER1
+// #define __LAYER1
 
 #define __FLOOR
-#define __TOWER
-#define __PLAYER
-#define __BULLET
-#define __ENEMY
-#define __ENGINE
+// #define __TOWER
+// #define __PLAYER
+// #define __BULLET
+// #define __ENEMY
+// #define __ENGINE
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE

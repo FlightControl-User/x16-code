@@ -1,0 +1,9 @@
+<map id="cx16_vram_unpack_offset" name="cx16_vram_unpack_offset">
+<area shape="rect" id="node1" title=" " alt="" coords="392,112,563,137"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#acbcfab14fcf5ab528c7c2b122d01e90f" title=" " alt="" coords="206,55,310,80"/>
+<area shape="rect" id="node6" href="$cx16-heap_8c.html#ae9c750a04242a15646d67941ca3a9404" title=" " alt="" coords="172,105,344,145"/>
+<area shape="rect" id="node7" href="$cx16-heap_8c.html#aa96768d4a007ee54adc173fdf97961fe" title="Return from a packed vera ram address the 16 bit offset, but is now aligned to 2 bytes in vera ram!..." alt="" coords="173,169,343,195"/>
+<area shape="rect" id="node3" href="$cx16-heap_8c.html#a876d929ae42824b959489d75454c3adb" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="25,5,104,31"/>
+<area shape="rect" id="node4" href="$cx16-heap_8c.html#ad3a72919ae742a6e876f9eeb36e95c80" title=" " alt="" coords="5,55,124,80"/>
+<area shape="rect" id="node5" href="$cx16-heap-test1_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="39,104,90,129"/>
+</map>

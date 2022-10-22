@@ -1,0 +1,6 @@
+<map id="fload_bram" name="fload_bram">
+<area shape="rect" id="node1" title="Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks." alt="" coords="251,31,336,56"/>
+<area shape="rect" id="node2" href="$equinoxe_8c.html#a8ef7209f1aaeeaf916fb605060d832c5" title=" " alt="" coords="104,5,203,31"/>
+<area shape="rect" id="node4" href="$equinoxe-palette_8c.html#abbda3630d8f53ee07e4849a9f3ea2db0" title=" " alt="" coords="107,55,199,80"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,31"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="vera_layers_reset" name="vera_layers_reset">
+<area shape="rect" id="node1" title="Resets the vera back to default settings. Show Layer 1, hide layer 0. Map from bank 1,..." alt="" coords="104,5,227,31"/>
+<area shape="rect" id="node2" href="$tilemap__1bpp__8__x__8__256__color_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,31"/>
+</map>

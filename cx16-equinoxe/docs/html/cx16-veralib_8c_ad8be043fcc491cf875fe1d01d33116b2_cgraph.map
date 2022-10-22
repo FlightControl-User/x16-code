@@ -1,0 +1,4 @@
+<map id="vera_sprite_width_16" name="vera_sprite_width_16">
+<area shape="rect" id="node1" title="Set the width of the sprite to 16 pixels." alt="" coords="5,13,148,38"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="196,5,349,45"/>
+</map>

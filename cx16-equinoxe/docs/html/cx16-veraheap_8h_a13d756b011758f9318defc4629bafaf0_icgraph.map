@@ -1,0 +1,12 @@
+<map id="vera_heap_data_get_offset" name="vera_heap_data_get_offset">
+<area shape="rect" id="node1" title=" " alt="" coords="704,35,841,75"/>
+<area shape="rect" id="node2" href="$cx16-veraheap_8c.html#a7f320c26678300e592e9527805bbe451" title="Print an index list." alt="" coords="499,5,656,45"/>
+<area shape="rect" id="node4" href="$cx16-veraheap_8c.html#a0c9c31627798298923a5429c59206636" title="Free a memory block from the heap using the handle of allocated memory of the segment." alt="" coords="523,70,631,95"/>
+<area shape="rect" id="node3" href="$cx16-veraheap_01copy_8c.html#a750fde3007c0d36b20fa6de7bb0a59fc" title="Ddump the index of the segment." alt="" coords="286,13,443,38"/>
+<area shape="rect" id="node5" href="$cx16-veraheap__test__graphical_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="339,66,390,91"/>
+<area shape="rect" id="node6" href="$equinoxe-flightengine_8c.html#ae4731a2e1533d0c4c94d6d746fd4b981" title=" " alt="" coords="279,115,451,141"/>
+<area shape="rect" id="node7" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="136,66,231,91"/>
+<area shape="rect" id="node9" href="$equinoxe-bullet_8c.html#ad9fd744a793e6f010ea6e93af2d3b2f7" title=" " alt="" coords="137,115,230,141"/>
+<area shape="rect" id="node10" href="$equinoxe-tower_8c.html#a4b275d520412a68d995f34a4285829ab" title=" " alt="" coords="140,165,227,190"/>
+<area shape="rect" id="node8" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,115,88,141"/>
+</map>

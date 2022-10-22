@@ -1,0 +1,4 @@
+<map id="vera_sprite_set_xy" name="vera_sprite_set_xy">
+<area shape="rect" id="node1" title="Set a sprite position on the display. Note that the x and y coordinates are expressed in 2s complemen..." alt="" coords="5,13,136,38"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="184,5,337,45"/>
+</map>

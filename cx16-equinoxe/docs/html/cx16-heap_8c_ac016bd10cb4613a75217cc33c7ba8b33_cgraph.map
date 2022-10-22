@@ -1,0 +1,4 @@
+<map id="heap_vram_unpack_bank" name="heap_vram_unpack_bank">
+<area shape="rect" id="node1" title="Return from a packed vera ram address the embedded bank in an 8&#45;bit byte." alt="" coords="5,5,173,31"/>
+<area shape="rect" id="node2" href="$cx16-heap_8c.html#adafc2960cafd670f4d4d2a5693ef0fc3" title=" " alt="" coords="221,5,389,31"/>
+</map>

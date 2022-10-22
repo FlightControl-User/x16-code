@@ -1,0 +1,33 @@
+<map id="main" name="main">
+<area shape="rect" id="node1" title=" " alt="" coords="5,253,56,279"/>
+<area shape="rect" id="node2" href="$cx16-heap-bram-fb_8c.html#a2001dc89b2f1d87bc3c4f156805c36d3" title=" " alt="" coords="133,105,217,131"/>
+<area shape="rect" id="node11" href="$cx16-heap_8h.html#a7997df5dc4b0113b58e80cbd6bd19d61" title=" " alt="" coords="115,155,236,180"/>
+<area shape="rect" id="node12" href="$cx16-heap_8c.html#a5ec3d81cea7bb0056cadbdf25fe0924d" title=" " alt="" coords="122,204,229,229"/>
+<area shape="rect" id="node17" href="$cx16-heap_8c.html#ac9cbbb3dbce3d8f11c7ccbfe03a72ae2" title="Print the heap memory manager statistics of the segment." alt="" coords="113,303,238,328"/>
+<area shape="rect" id="node23" href="$cx16-heap-bram-fb_8c.html#aad37440736289c7eda00e2b1ec9af201" title=" " alt="" coords="136,31,215,56"/>
+<area shape="rect" id="node26" href="$cx16-heap_8h.html#a31ba0839f110bfacb0cc194e1c3cddf9" title=" " alt="" coords="104,352,247,377"/>
+<area shape="rect" id="node27" href="$cx16-heap_8c.html#a550616f05c10956e49d0ecaafbf8a197" title=" " alt="" coords="122,253,229,279"/>
+<area shape="rect" id="node29" href="$cx16-heap_8c.html#a583320493b13deff76b3a1f523432317" title=" " alt="" coords="117,401,233,427"/>
+<area shape="rect" id="node30" href="$cx16-heap-fragmentation1_8c.html#a036bd8426d20d7fcb7d398b833742e78" title=" " alt="" coords="131,475,219,500"/>
+<area shape="rect" id="node3" href="$cx16-heap-bram-fb_8c.html#ad1d0aff20c04a3ee41c3f153af6fe517" title=" " alt="" coords="317,105,459,131"/>
+<area shape="rect" id="node4" href="$cx16-heap-bram-fb_8c.html#ab2c5e79b65058e6530102318856e6123" title=" " alt="" coords="722,104,814,129"/>
+<area shape="rect" id="node7" href="$cx16-heap-bram-fb_8c.html#afd37161a595e382b5f35f4f886e9da09" title=" " alt="" coords="542,156,622,181"/>
+<area shape="rect" id="node9" href="$cx16-heap-bram-fb_8c.html#af8241726b059634b75a84353dd12ae77" title=" " alt="" coords="543,55,621,80"/>
+<area shape="rect" id="node5" href="$cx16-heap-bram-fb_8c.html#adbe8c4fd229e179ad6e4ec98177a8f73" title=" " alt="" coords="901,55,1064,80"/>
+<area shape="rect" id="node6" href="$cx16-heap-bram-fb_8c.html#a65b9af81b17b3490915665ceabc71b17" title=" " alt="" coords="907,104,1058,129"/>
+<area shape="rect" id="node8" href="$cx16-heap-bram-fb_8c.html#a77f413d1fe766b611cdb68af527ae6b9" title=" " alt="" coords="703,156,833,181"/>
+<area shape="rect" id="node10" href="$cx16-heap-bram-fb_8c.html#a2a146caa5946821575fffaebaf7def12" title=" " alt="" coords="705,55,831,80"/>
+<area shape="rect" id="node13" href="$cx16-heap_8c.html#a77d15dd73e919e44ace3ef729a98df2a" title=" " alt="" coords="295,155,481,180"/>
+<area shape="rect" id="node14" href="$cx16-heap_8c.html#ac02b19e36c6829070681df1528f7c3a3" title=" " alt="" coords="529,205,635,231"/>
+<area shape="rect" id="node15" href="$cx16-heap_8c.html#a969a7c774293cd48e76d3959662a1a96" title=" " alt="" coords="683,255,853,280"/>
+<area shape="rect" id="node16" href="$cx16-heap_8c.html#ae5a8885c1c7e8b3ac215274211401d33" title=" " alt="" coords="689,205,847,231"/>
+<area shape="rect" id="node18" href="$cx16-heap_8c.html#a15be5ced50e60d6010483bcb6efc8e1d" title="Return the amount of heap records in the index of the segment." alt="" coords="327,253,449,279"/>
+<area shape="rect" id="node19" href="$cx16-heap_8c.html#a8f5616a70d86f2f35f73081abc97ba52" title="Return the size of allocated heap records of the segment." alt="" coords="331,303,445,328"/>
+<area shape="rect" id="node20" href="$cx16-heap_8c.html#a176b657865aac15ac64a15899670daad" title="Return the amount of free records in the index of the segment." alt="" coords="329,352,447,377"/>
+<area shape="rect" id="node21" href="$cx16-heap_8c.html#aeb2547feaf9bdfdf02827eb970f3bda8" title="Return the size of allocated heap records of the segment." alt="" coords="333,401,443,427"/>
+<area shape="rect" id="node22" href="$cx16-heap_8c.html#a642230775708d3e3f1f0296c4f4b7284" title="Return the amount of idle records in the index of the segment." alt="" coords="330,451,446,476"/>
+<area shape="rect" id="node24" href="$cx16-heap-bram-fb_8c.html#acd24179708218317e07dc670e5246e7d" title=" " alt="" coords="321,17,455,43"/>
+<area shape="rect" id="node25" href="$cx16-heap-bram-fb_8c.html#af40810a1d4781d07a8bd5e12a8f0bc8c" title=" " alt="" coords="539,5,625,31"/>
+<area shape="rect" id="node28" href="$cx16-heap_8c.html#a215901cc838a26e7e42df46b8a60ac39" title=" " alt="" coords="295,204,481,229"/>
+<area shape="rect" id="node31" href="$cx16-heap-fragmentation1_8c.html#ab16485806b5067774321fb1cd15c6b94" title=" " alt="" coords="347,500,429,525"/>
+</map>

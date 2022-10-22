@@ -1,0 +1,6 @@
+<map id="vera_heap_idle_count" name="vera_heap_idle_count">
+<area shape="rect" id="node1" title="Return the amount of idle records in the index of the segment." alt="" coords="375,31,521,56"/>
+<area shape="rect" id="node2" href="$cx16-veraheap_01copy_8c.html#a447cbbc904306ccd5fe6805bf5a3333d" title="Print the heap memory manager statistics of the segment." alt="" coords="172,31,327,56"/>
+<area shape="rect" id="node3" href="$cx16-veraheap__test__graphical_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="39,5,90,31"/>
+<area shape="rect" id="node4" href="$cx16-veraheap_01copy_8c.html#a70aecb970d4d7a4eb65d808100098a4c" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="5,55,124,80"/>
+</map>

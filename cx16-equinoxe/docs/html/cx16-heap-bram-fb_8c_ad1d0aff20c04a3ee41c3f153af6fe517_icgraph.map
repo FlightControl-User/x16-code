@@ -1,0 +1,14 @@
+<map id="heap_segment_alloc" name="heap_segment_alloc">
+<area shape="rect" id="node1" title=" " alt="" coords="509,191,651,216"/>
+<area shape="rect" id="node2" href="$cx16-heap-bram-fb_8c.html#a2001dc89b2f1d87bc3c4f156805c36d3" title=" " alt="" coords="374,165,458,191"/>
+<area shape="rect" id="node12" href="$cx16-heap-bram-fb_8c.html#a303f7a12efdc023b5ea771fdd1d98bdc" title=" " alt="" coords="371,215,461,240"/>
+<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#adbbe47e13c66208ab3c1ef1bc0ec7b75" title=" " alt="" coords="184,67,323,92"/>
+<area shape="rect" id="node7" href="$equinoxe-floorengine_8c.html#ab4f82e9f3dd25bc7c54abc6cc3501f25" title=" " alt="" coords="197,140,310,165"/>
+<area shape="rect" id="node9" href="$cx16-heap-test3_8c.html#ac41f10d165ab7a65a027200f868e7b6b" title=" " alt="" coords="215,189,292,215"/>
+<area shape="rect" id="node11" href="$cx16-heap-fragmentation1_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="228,239,279,264"/>
+<area shape="rect" id="node4" href="$equinoxe-stage_8c.html#a5243bec4bdca8b0c4f7573a82eb5f81c" title=" " alt="" coords="5,5,136,31"/>
+<area shape="rect" id="node5" href="$equinoxe-stage_8c.html#a92740df4d4c92b516cf1c3128e984b26" title=" " alt="" coords="7,55,134,80"/>
+<area shape="rect" id="node6" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="9,104,132,129"/>
+<area shape="rect" id="node8" href="$equinoxe-stage_8c.html#a7f975c51751f181280c226cc750130ee" title=" " alt="" coords="13,153,129,179"/>
+<area shape="rect" id="node10" href="$cx16-heap-test3_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="45,203,96,228"/>
+</map>

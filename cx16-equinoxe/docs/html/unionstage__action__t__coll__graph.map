@@ -1,0 +1,5 @@
+<map id="stage_action_t" name="stage_action_t">
+<area shape="rect" id="node1" title=" " alt="" coords="105,93,212,119"/>
+<area shape="rect" id="node2" href="$structstage__action__move__t.html" title=" " alt="" coords="5,5,149,31"/>
+<area shape="rect" id="node3" href="$structstage__action__turn__t.html" title=" " alt="" coords="173,5,309,31"/>
+</map>

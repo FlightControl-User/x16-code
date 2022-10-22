@@ -1,0 +1,9 @@
+<map id="main" name="main">
+<area shape="rect" id="node1" title=" " alt="" coords="5,134,56,159"/>
+<area shape="rect" id="node2" href="$cx16-veralib_8c.html#ab15a039783f45622075c40d62da9609b" title=" " alt="" coords="104,109,276,134"/>
+<area shape="rect" id="node7" href="$cx16-veralib_8c.html#a656d944b9eb51838b10007c111b2b25d" title="Enable the layer 0 to be displayed on the screen." alt="" coords="128,158,252,183"/>
+<area shape="rect" id="node3" href="$cx16-veralib_8c.html#a491beea020fb4318b12e2cccb030c9b8" title="Double scaling of the vera display. The characters and graphics will work at a 320x240 resolution." alt="" coords="328,5,484,45"/>
+<area shape="rect" id="node4" href="$cx16-veralib_8c.html#a7e3611a07d8a7b250ff3bac0c2adf12d" title="Set the color depth of layer 0 in bit per pixel (BPP)." alt="" coords="333,69,479,109"/>
+<area shape="rect" id="node5" href="$cx16-veralib_8c.html#ad47288d300ea78316df5f184a6aa7b5f" title="Set the tilewidth of layer 0." alt="" coords="338,133,474,173"/>
+<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a26526c948bb2540d97de264c5dd236b0" title="Set the base of the tiles for the layer 0." alt="" coords="324,198,488,223"/>
+</map>
