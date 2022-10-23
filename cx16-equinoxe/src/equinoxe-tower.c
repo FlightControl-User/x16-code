@@ -100,47 +100,24 @@ unsigned char tower_remove(unsigned char t)
     return ret;
 }
 
-void tower_unpaint(unsigned char tile_row, unsigned char tile_column)
+
+
+void tower_paint(unsigned char row, unsigned char column) 
 {
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
-
-    unsigned char y = ((tile_row) / 4) % 16;
-    unsigned char x = tile_column;
-
-    printf("unpaint row=%u, y=%u", tile_row, y);
-
-    for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
-        if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
-            unsigned char tower_slab = floor_cache[FLOOR_CACHE(1, y, x)];
-            if(!tower_slab) {	
-                #ifdef __LAYER1
-                floor_cache[FLOOR_CACHE(1, y, x)] = 0;
-                tower_remove(t);
-                #endif
-            }
-        }
-    }
-
-    bank_pull_bram();
-}
-
-void tower_paint(unsigned char tile_row, unsigned char tile_column) 
-{
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
-
-    unsigned char y = ((tile_row-1) / 4) % 16;
-    unsigned char x = tile_column;
-
-    printf(", paint row=%u, y=%u\n", tile_row, y);
+    unsigned char cache;
 
     unsigned char rnd = BYTE0(rand());
-    unsigned char floor_slab = floor_cache[FLOOR_CACHE(1, y, x)];
+    unsigned char cache_floor = FLOOR_CACHE(0, row, column);
+    unsigned char cache_tower = FLOOR_CACHE(1, row, column);
+    unsigned char floor_slab = floor_cache[cache_floor];
+    floor_cache[cache_tower] = 0;
     if( floor_slab == 15 ) {
         if( rnd <= 255 ) {
             if( stage.tower_count < TOWERS_TOTAL) {
         // floor_draw_row(0, stage.floor, row, floor_tile_column);
         //         tower_add(turret, x, y, (unsigned int)x*64+tx, (unsigned int)y*64+ty, 4, 4);
-                floor_cache[FLOOR_CACHE(1, y, x)] = 1;
+                floor_cache[cache_tower] = 1;
             }
         }
     }

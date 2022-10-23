@@ -24,7 +24,7 @@ __export char header[] =kickasm {{
 
 
 __export char FLOOR_01[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,21,1,16,16,4,16,0)
+    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,20,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)

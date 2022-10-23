@@ -71,8 +71,6 @@ fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 #pragma data_seg(Data)
 
-__mem unsigned char volatile floor_index = 0;
-__mem volatile floor_cache_t floor_cache[FLOOR_CACHE_LAYERS*FLOOR_CACHE_ROWS*FLOOR_CACHE_COLUMNS];
 
 
 #pragma data_seg(Data)
@@ -104,13 +102,15 @@ void equinoxe_init() {
     // Initialize the cache in vram for the sprite animations.
     lru_cache_init(&sprite_cache_vram);
 
-    game.row = FLOOR_TILE_ROW_31;
-
 }
+
+volatile    unsigned char floor_tile_row = 0;
+volatile    unsigned char floor_tile_column = 0;
 
 
 #ifdef __FLOOR
 void equinoxe_scrollfloor() {
+
 
     // We only will execute the scroll logic when a scroll action needs to be done.
     if(!game.screen_vscroll_wait--) {
@@ -130,9 +130,8 @@ void equinoxe_scrollfloor() {
         // We paint when the row is the bottom row of the paint segment, so row 3. Row 0 is the top row of the segment.
         if(floor_tile_row%4==3) {
             #ifdef __TOWER
-                tower_unpaint(row, floor_tile_column);
-                floor_paint(row, floor_tile_column);
-                tower_paint(row, floor_tile_column);
+                floor_paint(floor_tile_row/4, floor_tile_column);
+                tower_paint(floor_tile_row/4, floor_tile_column);
             #else
                 floor_paint(floor_tile_row/4, floor_tile_column);
             #endif
@@ -143,7 +142,7 @@ void equinoxe_scrollfloor() {
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
         floor_draw_row(0, stage.floor, floor_tile_row, floor_tile_column);
-        // floor_draw_row(1, stage.towers, floor_tile_row, floor_tile_column);
+        floor_draw_row(1, stage.towers, floor_tile_row, floor_tile_column);
 
         // Now we set the vertical scroll to the required scroll position.
         vera_layer0_set_vertical_scroll(game.screen_vscroll);
@@ -538,6 +537,7 @@ void main() {
     stage_reset();
 #endif
 
+    while(!getin());
 
 #ifdef __FLOOR
     vera_layer0_mode_tile( 
@@ -571,7 +571,6 @@ void main() {
 #endif
 
     floor_draw_clear(0, stage.floor);
-
     floor_draw_clear(1, stage.towers);
     
     floor_paint_background(0, stage.floor);
@@ -602,8 +601,6 @@ void main() {
 
     cx16_mouse_config(0xFF, 80, 60);
     cx16_mouse_get();
-
-    vera_layer0_set_vertical_scroll(0);
 
     vera_sprites_show();
 

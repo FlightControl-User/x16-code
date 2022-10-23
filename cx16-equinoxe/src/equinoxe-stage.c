@@ -101,14 +101,16 @@ void stage_load_floor(stage_floor_t* stage_floor)
     stage_floor_bram_tiles_t* floor_bram_tiles = stage_floor->floor_bram_tiles;
     floor_t* floor = stage_floor->floor;
 
-    unsigned int part = 0;
+    floor_part_memset_vram(0, floor, VERA_HEAP_SEGMENT_TILES, 0);
+
+    unsigned int part = 1;
     for(unsigned char f = 0; f<stage_floor->floor_file_count; f++) {
         floor_bram_tiles_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
-        part = floor_bram_load(part, floor, floor_bram);
+        part = floor_parts_load_bram(part, floor, floor_bram);
     }
 
-    for(part=0;part<23;part++) {
-        floor_vram_copy(part, floor, VERA_HEAP_SEGMENT_TILES);
+    for(part=1;part<=22;part++) {
+        floor_part_memcpy_vram_bram(part, floor, VERA_HEAP_SEGMENT_TILES);
     }
 
     stage.floor = stage_floor->floor;
@@ -123,24 +125,26 @@ void stage_load_tower(stage_tower_t* stage_tower)
     // Loading the floor in bram.
 
     stage_floor_bram_tiles_t* tower_bram_tiles = stage_tower->tower_bram_tiles;
-    floor_t* tower = stage_tower->towers;
+    floor_t* towers = stage_tower->towers;
     sprite_bram_t* tower_sprite = stage_tower->turret;
 
-    unsigned int part = 0;
-    for(unsigned char t = 0; t<stage_tower->tower_file_count; t++) {
+    floor_part_memset_vram(0, towers, VERA_HEAP_SEGMENT_TILES, 0); // Set the transparency tile for the towers.
+
+    // Now count from 1!
+    unsigned int part=1;
+    for(unsigned char t=0; t<stage_tower->tower_file_count; t++) {
         floor_bram_tiles_t* tower_bram = tower_bram_tiles[t].floor_bram_tile;
-        part = floor_bram_load(part, tower, tower_bram);
+        part = floor_parts_load_bram(part, towers, tower_bram);
     }
 
-
-    for(part=0;part<16;part++) {
-        floor_vram_copy(part, tower, VERA_HEAP_SEGMENT_TILES);
+    for(unsigned char part=1; part<=16; part++) {
+        floor_part_memcpy_vram_bram(part, towers, VERA_HEAP_SEGMENT_TILES);
     }
 
     printf("stage: tower_sprite = %p, bank = %x\n", tower_sprite, bank_get_bram());
     stage.sprite_offset = fe_sprite_bram_load(tower_sprite, stage.sprite_offset);
          
-    stage.towers = tower;
+    stage.towers = towers;
 
     bank_pull_bram();
 }
@@ -168,7 +172,7 @@ static void stage_load(void)
 
 
 #ifdef __TOWER
-    // Loading tower tiles and tower sprites in bram.
+    // Loading towers tiles and towers sprites in bram.
     for(unsigned char t=0; t<stage_playbook->tower_count; t++) {
         stage_load_tower(stage_playbook->stage_towers);
     }

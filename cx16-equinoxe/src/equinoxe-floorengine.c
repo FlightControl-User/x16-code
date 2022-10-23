@@ -21,6 +21,13 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-palette.h"
 
+floor_layer_t floor_layer[2] = {
+    { FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM },
+    { FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM }
+};
+
+floor_cache_t floor_cache[FLOOR_CACHE_LAYERS*FLOOR_CACHE_ROWS*FLOOR_CACHE_COLUMNS];
+
 
 void floor_draw_clear(unsigned char layer, floor_t* floor) 
 {
@@ -29,7 +36,7 @@ void floor_draw_clear(unsigned char layer, floor_t* floor)
     unsigned char palette = 0;
     unsigned char Offset = 0;
 
-    vera_vram_data0_bank_offset(floor->bank, floor->offset, VERA_INC_1);
+    vera_vram_data0_bank_offset(floor_layer[0].bank, floor_layer[1].offset, VERA_INC_1);
 
     // TODO: VERA MEMSET
     for(unsigned int i=0; i<32*64; i++ ) {
@@ -49,8 +56,9 @@ void floor_clear_row(unsigned char layer, floor_t* floor, unsigned char x, unsig
 
     floor_parts_t* floor_parts = floor->floor_parts; // todo to pass this as the parameter!
 
-    unsigned char mapbase_bank = floor->bank;
-    unsigned int mapbase_offset = floor->offset;
+
+    unsigned char mapbase_bank = floor_layer[layer].bank;
+    unsigned int mapbase_offset = floor_layer[layer].offset;
 
     unsigned char shift = vera_layer0_get_rowshift();
     mapbase_offset += ((word)row << shift);
@@ -78,10 +86,10 @@ void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsi
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
-    floor_parts_t* floor_part = floor->floor_parts; // todo to pass this as the parameter!
+    floor_parts_t* floor_parts = floor->floor_parts; // todo to pass this as the parameter!
  
-    unsigned char mapbase_bank = floor->bank;
-    unsigned int mapbase_offset = floor->offset;
+    unsigned char mapbase_bank = floor_layer[layer].bank;
+    unsigned int mapbase_offset = floor_layer[layer].offset;
 
     unsigned char shift = vera_layer0_get_rowshift();
     mapbase_offset += ((word)row << shift);
@@ -100,10 +108,11 @@ void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsi
         segment2 = segment2 << 2;
         for(unsigned char c=0;c<2;c++) {
             unsigned char tile = floor->composition[segment2+c+r]; // BRAM_FLOOR_CONTROL
-            unsigned char palette = floor_part->palette[tile];
+            unsigned int offset = floor_parts->floor_tile_offset[tile];
+            unsigned char palette = floor_parts->palette[tile];
             palette = palette << 4;
-            *VERA_DATA0 = BYTE0(tile);
-            *VERA_DATA0 = palette | BYTE1(tile);
+            *VERA_DATA0 = BYTE0(offset);
+            *VERA_DATA0 = palette | BYTE1(offset);
         }
     }
     bank_pull_bram();
@@ -211,7 +220,7 @@ void floor_paint_background(unsigned char layer, floor_t* floor)
 
     unsigned char cache;
 
-    for(unsigned char column=0; column<TILES; column++) {
+    for(unsigned char column=0; column<16; column++) {
         cache = FLOOR_CACHE(layer, 0, column);
         floor_cache[cache] = 0;
     }
@@ -250,23 +259,14 @@ void floor_draw_background(unsigned char layer, floor_t* floor)
     bank_pull_bram();
 }
 
-void floor_vram_copy(unsigned int part, floor_t* floor, vera_heap_segment_index_t segment) 
+vera_heap_handle_t floor_part_alloc_vram(unsigned char part, floor_parts_t* floor_parts, vera_heap_segment_index_t segment)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
-
-    floor_parts_t* floor_parts = floor->floor_parts;
-
-    heap_bram_fb_handle_t bram_handle = floor_parts->bram_handles[part];
-
     // Dynamic allocation of tiles in vera vram.
-    floor_parts->vram_handles[part] = vera_heap_alloc(segment, FLOOR_TILE_SIZE);
-    vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, floor_parts->vram_handles[part]);
-    vram_offset_t vram_offset = vera_heap_data_get_offset(segment, floor_parts->vram_handles[part]);
+    vera_heap_handle_t vram_handle = vera_heap_alloc(segment, FLOOR_TILE_SIZE);
+    vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, vram_handle);
+    vram_offset_t vram_offset = vera_heap_data_get_offset(segment, vram_handle);
 
-    bram_bank_t   bram_bank = heap_bram_fb_bank_get(bram_handle);
-    bram_ptr_t    bram_ptr = heap_bram_fb_ptr_get(bram_handle);
-
-    memcpy_vram_bram(vram_bank, vram_offset, bram_bank, bram_ptr, FLOOR_TILE_SIZE);
+    floor_parts->vram_handles[part] = vram_handle;
 
     // The offset starts at 0x2000.
     // Each tile is 0x0080 unsigned chars large.
@@ -285,7 +285,40 @@ void floor_vram_copy(unsigned int part, floor_t* floor, vera_heap_segment_index_
     }
 
     floor_parts->floor_tile_offset[part] = offset;
-    // printf(", offset:%x,%x", part, floor_parts->floor_tile_offset[part]);
+
+    return vram_handle;
+}
+
+void floor_part_memset_vram(unsigned char part, floor_t* floor, vera_heap_segment_index_t segment, unsigned char pattern)
+{
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+
+    floor_parts_t* floor_parts = floor->floor_parts;
+
+    vera_heap_handle_t vram_handle = floor_part_alloc_vram(part, floor_parts, segment);
+
+    vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, vram_handle);
+    vram_offset_t vram_offset = vera_heap_data_get_offset(segment, vram_handle);
+    memset_vram(vram_bank, vram_offset, pattern, FLOOR_TILE_SIZE);
+
+    bank_pull_bram();
+}
+
+void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor, vera_heap_segment_index_t segment) 
+{
+    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+
+    floor_parts_t* floor_parts = floor->floor_parts;
+
+    vera_heap_handle_t vram_handle = floor_part_alloc_vram(part, floor_parts, segment);
+    vram_bank_t   vram_bank   = vera_heap_data_get_bank(segment, floor_parts->vram_handles[part]);
+    vram_offset_t vram_offset = vera_heap_data_get_offset(segment, floor_parts->vram_handles[part]);
+
+    heap_bram_fb_handle_t bram_handle = floor_parts->bram_handles[part];
+    bram_bank_t   bram_bank = heap_bram_fb_bank_get(bram_handle);
+    bram_ptr_t    bram_ptr = heap_bram_fb_ptr_get(bram_handle);
+
+    memcpy_vram_bram(vram_bank, vram_offset, bram_bank, bram_ptr, FLOOR_TILE_SIZE);
 
     bank_pull_bram();
 }
@@ -293,7 +326,7 @@ void floor_vram_copy(unsigned int part, floor_t* floor, vera_heap_segment_index_
 
 
 // Load the floor tiles into bram using the bram heap manager.
-unsigned int floor_bram_load(unsigned int part, floor_t* floor, floor_bram_tiles_t * floor_bram_tile) 
+unsigned int floor_parts_load_bram(unsigned int part, floor_t* floor, floor_bram_tiles_t * floor_bram_tile) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 

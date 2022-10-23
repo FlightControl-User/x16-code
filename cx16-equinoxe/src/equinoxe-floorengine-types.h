@@ -27,12 +27,11 @@ typedef struct {
 #define FLOOR_SEGMENT_WEIGHTS 64
 #define FLOOR_SEGMENT_COMPOSITIONS 256
 typedef struct {
-    vera_bank bank;
-    vera_map_offset offset;
     floor_parts_t* floor_parts;
     unsigned char weight[FLOOR_SEGMENT_WEIGHTS];
     unsigned char composition[FLOOR_SEGMENT_COMPOSITIONS];
     unsigned char slab[FLOOR_SEGMENT_COMPOSITIONS];
+    unsigned char parts_count;
 } floor_t;
 
 #define FLOOR_WEIGHT_SEGMENTS 15
@@ -47,6 +46,10 @@ typedef struct {
 #define FLOOR_CACHE_COLUMNS 16
 typedef unsigned char floor_cache_t; // this is exactly 256 bytes, so we have a very efficient cache!
 
+typedef struct {
+    vram_bank_t bank;
+    vram_offset_t offset;
+} floor_layer_t;
 
 // #define FLOOR_CACHE(layer, row, column) ((char)((char)(layer<<7) | (char)(row<<4) | (char)(column)))
 typedef heap_bram_fb_handle_t floor_bram_handles_t;

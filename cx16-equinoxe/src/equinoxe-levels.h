@@ -31,9 +31,9 @@ __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 
 
 #pragma data_seg(floorcontrol)
 
-// FLOOR 01
+// FLOOR
 
-__export floor_bram_tiles_t floor_bram_01 = { 0, "floor01", 21, 16*16*21, 128, 0 };
+__export floor_bram_tiles_t floor_bram_01 = { 0, "floor01", 20, 16*16*20, 128, 0 };
 __export floor_bram_tiles_t floor_bram_02 = { 0, "floor02", 1, 16*16*1, 128, 0 };
 __export floor_bram_tiles_t floor_bram_03 = { 0, "floor03", 1, 16*16*1, 128, 0 };
 
@@ -42,8 +42,6 @@ __export volatile floor_parts_t floor_parts_01 = {
 };
 
 __export volatile floor_t floor_01 = {
-    FLOOR_MAP0_BANK_VRAM,
-    FLOOR_MAP0_OFFSET_VRAM,
     &floor_parts_01,
     { 0 },  
     {
@@ -79,10 +77,11 @@ __export volatile floor_t floor_01 = {
         09, 07, 05, 00, // 13
         07, 11, 00, 04, // 14
         13, 13, 13, 13  // 15
-    }
+    },
+    0
 };
 
-// TOWER 01
+// TOWER
 
 __export floor_bram_tiles_t tower_bram_01 = { 0, "tower01", 16, 16*16*16, 128, 0 };
 
@@ -91,8 +90,6 @@ __export volatile floor_parts_t tower_parts_01 = {
 };
 
 __export volatile floor_t tower_01 = {
-    FLOOR_MAP1_BANK_VRAM,
-    FLOOR_MAP1_OFFSET_VRAM,
     &tower_parts_01,
     { 0 },  
     {
@@ -104,8 +101,9 @@ __export volatile floor_t tower_01 = {
     },
     {
         00, 00, 00, 00, // 00
-        00, 01, 02, 03, // 01
-    }
+        01, 02, 03, 04 // 00
+    },
+    0
 };
 
 // TODO: rework to byte level addressing
