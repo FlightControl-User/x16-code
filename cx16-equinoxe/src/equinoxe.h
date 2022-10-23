@@ -2,12 +2,10 @@
 #include <lru-cache.h>
 #include "equinoxe-types.h"
 
+#define VERA_HEAP_SEGMENT_TILES     (vera_heap_segment_index_t)0
+#define VERA_HEAP_SEGMENT_SPRITES   (vera_heap_segment_index_t)1
 
-
-
-const vera_heap_segment_index_t VERA_HEAP_SEGMENT_TILES = 0;
-const vera_heap_segment_index_t VERA_HEAP_SEGMENT_SPRITES = 1;
-
+// todo move to flightengine
 extern lru_cache_table_t sprite_cache_vram;
 
 extern equinoxe_game_t game;

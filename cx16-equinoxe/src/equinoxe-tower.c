@@ -27,8 +27,8 @@ unsigned char tower_add(
     sprite_bram_t* turret, 
     unsigned char x, 
     unsigned char y,
-    unsigned int tx,
-    unsigned int ty,
+    signed int tx,
+    signed int ty,
     unsigned char anim_speed, 
     unsigned char palette_index ) 
 {
@@ -84,8 +84,8 @@ unsigned char tower_remove(unsigned char t)
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
     vera_sprite_offset sprite_offset = towers.sprite_offset[t];
-    sprite_free_offset(sprite_offset);
     vera_sprite_disable(sprite_offset);
+    sprite_free_offset(sprite_offset);
     palette16_unuse(sprite_cache.palette_offset[towers.sprite[t]]);
     fe_sprite_cache_free(towers.sprite[t]);
 
@@ -115,9 +115,14 @@ void tower_paint(unsigned char row, unsigned char column)
     if( floor_slab == 15 ) {
         if( rnd <= 255 ) {
             if( stage.tower_count < TOWERS_TOTAL) {
-        // floor_draw_row(0, stage.floor, row, floor_tile_column);
-        //         tower_add(turret, x, y, (unsigned int)x*64+tx, (unsigned int)y*64+ty, 4, 4);
                 floor_cache[cache_tower] = 1;
+                bank_push_set_bram(BRAM_LEVELS);
+                stage_tower_t* stage_tower = stage.current_playbook.stage_towers;
+                sprite_bram_t* turret = stage_tower->turret;
+                signed int tx = stage_tower->turret_x;
+                signed int ty = stage_tower->turret_y;
+                bank_pull_bram();
+                tower_add(turret, column, row, (signed int)column*64+tx, ty-64, 4, 4);
             }
         }
     }
@@ -125,61 +130,64 @@ void tower_paint(unsigned char row, unsigned char column)
     bank_pull_bram();
 }
 
-void tower_animate(unsigned char t) {
+void tower_animate()
+{
 
-    // bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
-    if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {	
+	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
+        if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {	
 
-        switch(towers.state[t]) {
-            case 0:
-                unsigned char rnd = rand();
-                if(rnd<=5) towers.state[t] = 1;
-                break;
-            case 1:
-                towers.anim_start[t] = 0;
-                towers.anim_stop[t] = 11;
-                towers.anim_wait[t] = 0;
-                towers.state[t] = 2;
-                break;
-            case 2:
-                if(!towers.anim_wait[t]) {
-                    towers.anim_wait[t] = towers.anim_speed[t];
-                    if(towers.anim_state[t] >= towers.anim_stop[t]) {
-                        towers.anim_wait[t] = 255;
-                        towers.state[t] = 3;
+            switch(towers.state[t]) {
+                case 0:
+                    unsigned char rnd = rand();
+                    if(rnd<=5) towers.state[t] = 1;
+                    break;
+                case 1:
+                    towers.anim_start[t] = 0;
+                    towers.anim_stop[t] = 11;
+                    towers.anim_wait[t] = 0;
+                    towers.state[t] = 2;
+                    break;
+                case 2:
+                    if(!towers.anim_wait[t]) {
+                        towers.anim_wait[t] = towers.anim_speed[t];
+                        if(towers.anim_state[t] >= towers.anim_stop[t]) {
+                            towers.anim_wait[t] = 255;
+                            towers.state[t] = 3;
+                        } else {
+                            towers.anim_state[t] += 1;
+                        }
                     } else {
-                        towers.anim_state[t] += 1;
+                        towers.anim_wait[t]--;
                     }
-                } else {
+                    break;
+                case 3:
+                    // Shoot
+                    if(!towers.anim_wait[t]) {
+                        towers.anim_wait[t] = 0;
+                        towers.state[t] = 4;
+                    } else {
+                        towers.anim_wait[t] = 0;
+                    }
+                    break;   
+                case 4:
+                    if(!towers.anim_wait[t]) {
+                        towers.anim_wait[t] = towers.anim_speed[t];
+                        if(towers.anim_state[t] <= towers.anim_start[t]) {
+                            towers.state[t] = 0;
+                        } else {
+                            towers.anim_state[t] -= 1;
+                        }
+                    }
                     towers.anim_wait[t]--;
-                }
-                break;
-            case 3:
-                // Shoot
-                if(!towers.anim_wait[t]) {
-                    towers.anim_wait[t] = 0;
-                    towers.state[t] = 4;
-                } else {
-                    towers.anim_wait[t] = 0;
-                }
-                break;   
-            case 4:
-                if(!towers.anim_wait[t]) {
-                    towers.anim_wait[t] = towers.anim_speed[t];
-                    if(towers.anim_state[t] <= towers.anim_start[t]) {
-                        towers.state[t] = 0;
-                    } else {
-                        towers.anim_state[t] -= 1;
-                    }
-                }
-                towers.anim_wait[t]--;
-                break;
-            default:
+                    break;
+                default:
+            }
         }
     }
 
-    // bank_pull_bram();
+    bank_pull_bram();
 }
 
 void tower_logic() {
@@ -187,24 +195,24 @@ void tower_logic() {
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
-		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {	
-
-		}
-
-        tower_animate(t);
 
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
             // todo i need to review this statement as it compiles wrongly like this:
             // signed int py = (signed int)((unsigned int)towers.y[t] * 64) - (signed int)game.screen_vscroll; // the screen_vscroll contains the current scroll position.
-            unsigned int y = (unsigned int)towers.ty[t];
-            signed int py = (signed int)y - (signed int)game.screen_vscroll; // the screen_vscroll contains the current scroll position.
-            signed int px = (signed int)towers.tx[t];
-            // floor_draw_slab(stage.towers, 0, towers.x[t], towers.y[t]);
-            vera_sprite_offset sprite_offset = towers.sprite_offset[t];
-            vera_sprite_zdepth_in_front(sprite_offset);
-            vera_sprite_set_xy_and_image_offset(sprite_offset, px, py, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
-            // printf("tower logic: t=%u, towers x[t]=%3u, y[t]=%3u", t, towers.x[t], y, towers.y[t]);
-            // printf("vscroll=%4u, px=%i, py=%i, y=%u\n", game.screen_vscroll, px, py, y);
+            signed int volatile py = towers.ty[t];
+            py++;
+            towers.ty[t] = py;
+            signed int volatile px = towers.tx[t];
+            if(py > 32*16) {
+                // printf("remove=%u", t);
+                tower_remove(t);
+            } else {
+                vera_sprite_offset sprite_offset = towers.sprite_offset[t];
+                vera_sprite_zdepth_in_front(sprite_offset);
+                vera_sprite_set_xy_and_image_offset(sprite_offset, px, py, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
+                // printf("tower logic: t=%u, towers x[t]=%3u, y[t]=%3u", t, towers.x[t], y, towers.y[t]);
+                // printf("vscroll=%4u, px=%i, py=%i, y=%u\n", game.screen_vscroll, px, py, y);
+            }
         }
 	}
     bank_pull_bram();

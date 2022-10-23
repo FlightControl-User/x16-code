@@ -2,8 +2,41 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "CX16-KICKC-Compile",
+            "label": "CX16-KICKC-Compile-Normal",
             "command": ".scripts/cx16-kickc-compile.ps1",
+            "args": [
+                "${workspaceFolder}",
+                "${relativeFileDirname}",
+                "${fileBasename}"
+            ],
+            "type": "shell",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "CX16-KICKC-Compile-Optimized",
+            "command": ".scripts/cx16-kickc-optimized.ps1",
             "args": [
                 "${workspaceFolder}",
                 "${relativeFileDirname}",

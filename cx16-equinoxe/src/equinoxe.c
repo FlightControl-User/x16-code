@@ -69,9 +69,6 @@ fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
 fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 
-#pragma data_seg(Data)
-
-
 
 #pragma data_seg(Data)
 
@@ -142,7 +139,13 @@ void equinoxe_scrollfloor() {
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
         floor_draw_row(0, stage.floor, floor_tile_row, floor_tile_column);
+        #ifdef _LAYER1
         floor_draw_row(1, stage.towers, floor_tile_row, floor_tile_column);
+        #endif
+
+        #ifdef __TOWER
+        tower_logic();
+        #endif
 
         // Now we set the vertical scroll to the required scroll position.
         vera_layer0_set_vertical_scroll(game.screen_vscroll);
@@ -334,9 +337,6 @@ void irq_vsync() {
     #endif
     equinoxe_scrollfloor();
 
-    #ifdef __TOWER
-        tower_logic();
-    #endif
 #endif
 
 #if defined(__FLIGHT) || defined(__FLOOR)
@@ -391,6 +391,10 @@ void irq_vsync() {
 
     #ifdef __CPULINES
         vera_display_set_border_color(CYAN);
+    #endif
+
+    #ifdef __TOWER
+        tower_animate();
     #endif
 
     #ifdef __ENEMY

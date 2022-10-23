@@ -8,8 +8,8 @@ typedef struct {
     unsigned char offset[8];
     unsigned char x[8];
     unsigned char y[8];
-    unsigned int tx[8];
-    unsigned int ty[8];
+    signed int tx[8];
+    signed int ty[8];
 
     unsigned char state[8];
 
