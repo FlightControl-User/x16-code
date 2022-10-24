@@ -139,7 +139,7 @@ void equinoxe_scrollfloor() {
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
         floor_draw_row(0, stage.floor, floor_tile_row, floor_tile_column);
-        #ifdef _LAYER1
+        #ifdef __LAYER1
         floor_draw_row(1, stage.towers, floor_tile_row, floor_tile_column);
         #endif
 

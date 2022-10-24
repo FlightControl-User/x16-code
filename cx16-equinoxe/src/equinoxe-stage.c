@@ -142,7 +142,11 @@ void stage_load_tower(stage_tower_t* stage_tower)
     }
 
     stage.sprite_offset = fe_sprite_bram_load(tower_sprite, stage.sprite_offset);
-         
+
+    stage_bullet_t* stage_bullet = stage_tower->stage_bullet;
+    sprite_bram_t* bullet_sprite = stage_bullet->bullet_sprite;
+    stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset);
+
     stage.towers = towers;
 
     bank_pull_bram();
@@ -183,7 +187,7 @@ static void stage_load(void)
 #endif
 
 
-#ifdef __ENEMY
+#if defined(__ENEMY)
     // Loading the enemy sprites in bram.
     for(unsigned int scenario = 0; scenario < stage_scenario_count; scenario++) {
         stage_scenario_t* stage_scenario = &stage_scenarios[scenario];

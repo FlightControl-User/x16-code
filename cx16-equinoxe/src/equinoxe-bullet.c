@@ -7,6 +7,7 @@
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-levels.h"
+#include "equinoxe-tower.h"
 
 void bullet_init()
 {
@@ -121,14 +122,64 @@ void FireBulletEnemy(unsigned char e)
     bank_pull_bram();
 }
 
+void FireBulletTower(unsigned char t)
+{
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
+
+    if(stage.bullet_count<FE_BULLET) {
+
+        stage.bullet_count++;
+
+        unsigned char b = stage.bullet_pool;
+
+        while(bullet.used[b]) {
+            b = (b+1)%FE_BULLET;
+        }
+
+        unsigned int volatile ex = (unsigned int)towers.tx[t];
+        unsigned int volatile ey = (unsigned int)towers.ty[t];
+
+        bullet.used[b] = 1;
+        bullet.enabled[b] = 0;
+        bullet.side[b] = SIDE_ENEMY;
+
+        fe_sprite_index_t s = fe_sprite_cache_copy(&sprite_b003);
+        bullet.sprite[b] = s;
+
+        bullet.sprite_offset[b] = sprite_next_offset();
+        fe_sprite_configure(bullet.sprite_offset[b], s);
+
+        bullet.tx[b] = MAKELONG(ex, 0);
+        bullet.ty[b] = MAKELONG(ey, 0);
+
+        unsigned char angle = 90;
+
+        bullet.tdx[b] = 0;
+        bullet.tdy[b] = MAKELONG((unsigned int)2, 0); 
+
+        bullet.wait_animation[b] = 0;
+        bullet.speed_animation[b] = 1;
+        bullet.state_animation[b] = 0;
+        bullet.reverse_animation[b] = sprite_cache.reverse[s];
+        bullet.start_animation[b] = 0;
+        bullet.stop_animation[b] = sprite_cache.count[s]-1;
+        bullet.direction_animation[b] = 1;
+
+        bullet.energy[b] = -50;
+
+        stage.bullet_pool = (b+1)%FE_BULLET;
+    }
+    bank_pull_bram();
+}
+
 
 void bullet_remove(unsigned char b) 
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
-    sprite_free_offset(sprite_offset);
     vera_sprite_disable(sprite_offset);
+    sprite_free_offset(sprite_offset);
     palette16_unuse(sprite_cache.palette_offset[bullet.sprite[b]]);
     fe_sprite_cache_free(bullet.sprite[b]);
     bullet.used[b] = 0;
@@ -177,9 +228,7 @@ void LogicBullets()
 			}
 			bullet.wait_animation[b]--;
 
-            if(y < -32 || x < -32 || x > 640 || y > 480) {
-                bullet_remove(b);
-            } else {
+            if(y>-32 && x>-32 && x<640 && y<480) {
                 if(!bullet.enabled[b]) {
                     vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[bullet.sprite[b]]);
                     bullet.enabled[b] = 1;
@@ -191,7 +240,14 @@ void LogicBullets()
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], bullet.state_animation[b]));
 				}
 				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
+            } else {
+                bullet_remove(b);
             }
+
+            if(y>0 && x>0 && x<640 && y<480) {
+				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
+            }
+
 
         }
         

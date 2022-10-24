@@ -8,6 +8,7 @@
 #include <division.h>
 #include <multiply.h>
 
+#include "equinoxe-defines.h"
 #include "equinoxe-types.h"
 #include "equinoxe.h"
 #include "equinoxe-stage.h"
@@ -122,7 +123,7 @@ void tower_paint(unsigned char row, unsigned char column)
                 signed int tx = stage_tower->turret_x;
                 signed int ty = stage_tower->turret_y;
                 bank_pull_bram();
-                tower_add(turret, column, row, (signed int)column*64+tx, ty-64, 4, 4);
+                tower_add(turret, column, row, (signed int)column*64+tx, ty-(signed int)64-(signed int)(game.screen_vscroll % 16), 4, 4);
             }
         }
     }
@@ -165,10 +166,10 @@ void tower_animate()
                 case 3:
                     // Shoot
                     if(!towers.anim_wait[t]) {
-                        towers.anim_wait[t] = 0;
+                        towers.anim_wait[t] = 255;
                         towers.state[t] = 4;
                     } else {
-                        towers.anim_wait[t] = 0;
+                        towers.anim_wait[t]--;
                     }
                     break;   
                 case 4:
@@ -212,6 +213,17 @@ void tower_logic() {
                 vera_sprite_set_xy_and_image_offset(sprite_offset, px, py, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
                 // printf("tower logic: t=%u, towers x[t]=%3u, y[t]=%3u", t, towers.x[t], y, towers.y[t]);
                 // printf("vscroll=%4u, px=%i, py=%i, y=%u\n", game.screen_vscroll, px, py, y);
+            }
+            if(towers.anim_state[t] == 3) {
+#ifdef __BULLET                
+				unsigned int r = rand();
+				if(r>=10300) {
+                    signed int volatile py = towers.ty[t];
+                    if(py>0) {
+                        FireBulletTower(t);
+                    }
+				}
+#endif
             }
         }
 	}

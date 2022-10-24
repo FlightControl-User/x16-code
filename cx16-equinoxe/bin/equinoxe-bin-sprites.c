@@ -248,10 +248,10 @@ __export char b002[] = kickasm {{{
 };}};
 
 __export char b003[] = kickasm {{{
-    .var sprite = Sprite("cx16-equinoxe/graphics/bullets/b003","png",0,4,1,128,16,16,3,0,0,4,2,0,16)
-    .var pallist = GetPalette2(sprite)
-    .var tiledata = MakeTile2(sprite,pallist)
-    .var pallistdata = MakePalette2(sprite,pallist)
+    .var sprite = Sprite("cx16-equinoxe/graphics/bullets/b003","png",0,9,1,512,16,64,3,0,1,4,2,0,16)
+    .var pallist = GetPalette3(sprite)
+    .var tiledata = MakeTile3(sprite,pallist)
+    .var pallistdata = MakePalette3(sprite,pallist)
     .file [name="B003.BIN", type="bin", segments="b003"]
     .segmentdef b003
     .segment b003
