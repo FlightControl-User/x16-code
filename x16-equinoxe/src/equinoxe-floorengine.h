@@ -19,7 +19,7 @@ unsigned char FLOOR_CACHE(unsigned char layer, unsigned char row, unsigned char 
 
 void floor_paint(unsigned char row, unsigned char column);
 
-void floor_draw_clear(unsigned char layer, floor_t* floor);
+void floor_draw_clear(unsigned char layer);
 void floor_clear_row(unsigned char layer, floor_t* floor, unsigned char x, unsigned char y);
 void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsigned char column);
 

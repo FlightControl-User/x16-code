@@ -29,14 +29,15 @@ floor_layer_t floor_layer[2] = {
 floor_cache_t floor_cache[FLOOR_CACHE_LAYERS*FLOOR_CACHE_ROWS*FLOOR_CACHE_COLUMNS];
 
 
-void floor_draw_clear(unsigned char layer, floor_t* floor) 
+
+void floor_draw_clear(unsigned char layer) 
 {
     bank_push_set_bram(BRAM_FLOOR_CONTROL);
 
     unsigned char palette = 0;
     unsigned char Offset = 0;
 
-    vera_vram_data0_bank_offset(floor_layer[0].bank, floor_layer[1].offset, VERA_INC_1);
+    vera_vram_data0_bank_offset(floor_layer[layer].bank, floor_layer[layer].offset, VERA_INC_1);
 
     // TODO: VERA MEMSET
     for(unsigned int i=0; i<32*64; i++ ) {
@@ -409,6 +410,7 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
 
     return part;
 }
+
 
 
 #pragma data_seg(Data)

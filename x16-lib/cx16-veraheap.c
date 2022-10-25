@@ -45,7 +45,7 @@ vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, v
 }
 
 
-vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index)
+inline vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
     vram_bank_t vram_bank = vera_heap_index.data1[index] >> 5;
@@ -54,7 +54,7 @@ vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index
 }
 
 
-vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index)
+inline vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
     vram_offset_t vram_offset = (vram_offset_t)vera_heap_get_data_packed(s, index) << 3;

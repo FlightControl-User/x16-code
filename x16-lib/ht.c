@@ -93,26 +93,30 @@ __mem unsigned char ht_seed;
 
  ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data) 
 {
-   ht_index_t ht_index = ht_hash(key);
+    ht_index_t ht_index = ht_hash(key);
 
-   while(ht->next[ht_index] && ht->key[ht_index]!=key) {
-      ht_index = ht_hash_next();
-      // ht_index %= HT_SIZE;
-   }
+    char count = 0;
+    while(ht->next[ht_index] && ht->key[ht_index]!=key) {
+        ht_index = ht_hash_next();
+        count++;
+        // ht_index %= HT_SIZE;
+    }
 
-   ht->key[ht_index] = key;
+    // printf("ht_i:c=%u",count);
 
-   // There is already an entry in the main node, so we add this item as a new node in the duplicate list.
-   ht_index_t next = ht->next[ht_index];
-   ht_list.data[ht_list_index] = data;
+    ht->key[ht_index] = key;
 
-   // Now the new node becomes the first node in the list;
-   ht_list.next[ht_list_index] = next;
-   ht->next[ht_index] = ht_list_index;
+    // There is already an entry in the main node, so we add this item as a new node in the duplicate list.
+    ht_index_t next = ht->next[ht_index];
+    ht_list.data[ht_list_index] = data;
 
-   ht_list_index--;
+    // Now the new node becomes the first node in the list;
+    ht_list.next[ht_list_index] = next;
+    ht->next[ht_index] = ht_list_index;
 
-   return ht_index;
+    ht_list_index--;
+
+    return ht_index;
 }
 
 void ht_display(ht_item_t* ht) {

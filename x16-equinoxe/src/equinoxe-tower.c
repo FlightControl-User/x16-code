@@ -84,7 +84,7 @@ unsigned char tower_add(
     return ret;
 }
 
-unsigned char tower_remove(unsigned char t) 
+unsigned char tower_remove(unsigned char t)
 {
 
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
@@ -207,18 +207,18 @@ void tower_logic() {
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
             // todo i need to review this statement as it compiles wrongly like this:
             // signed int py = (signed int)((unsigned int)towers.y[t] * 64) - (signed int)game.screen_vscroll; // the screen_vscroll contains the current scroll position.
-            signed int volatile py = towers.ty[t];
-            py++;
-            towers.ty[t] = py;
-            signed int volatile px = towers.tx[t];
-            if(py > 32*16) {
+            signed int volatile y = towers.ty[t];
+            y++;
+            towers.ty[t] = y;
+            signed int volatile x = towers.tx[t];
+            if(y > 32*16) {
                 // printf("remove=%u", t);
                 tower_remove(t);
             } else {
-                // grid_insert(&ht_collision, 2, BYTE0(px>>2), BYTE0(py>>2), t);
+                grid_insert(&ht_collision, 4, BYTE0(x>>2), BYTE0(y>>2), t);
                 vera_sprite_offset sprite_offset = towers.sprite_offset[t];
                 vera_sprite_zdepth_in_front(sprite_offset);
-                vera_sprite_set_xy_and_image_offset(sprite_offset, px, py, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
+                vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
                 // printf("tower logic: t=%u, towers x[t]=%3u, y[t]=%3u", t, towers.x[t], y, towers.y[t]);
                 // printf("vscroll=%4u, px=%i, py=%i, y=%u\n", game.screen_vscroll, px, py, y);
             }

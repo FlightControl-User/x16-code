@@ -10,7 +10,7 @@
 #include "equinoxe-tower.h"
 #include "equinoxe-animate.h"
 
-#pragma var_model(zp)
+
 
 void bullet_init()
 {
@@ -218,7 +218,9 @@ void bullet_remove(unsigned char b)
 }
 
 
-void LogicBullets()
+#pragma var_model(zp)
+
+void bullet_logic()
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
@@ -230,8 +232,8 @@ void LogicBullets()
             bullet.tx[b] += bullet.tdx[b];
             bullet.ty[b] += bullet.tdy[b];
 
-            signed int x = (signed int)WORD1(bullet.tx[b]);
-            signed int y = (signed int)WORD1(bullet.ty[b]);
+            volatile signed int x = (signed int)WORD1(bullet.tx[b]);
+            volatile signed int y = (signed int)WORD1(bullet.ty[b]);
 
 
             if(y>-32 && x>-32 && x<640 && y<480) {
@@ -246,21 +248,14 @@ void LogicBullets()
 					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate.state[a]));
 				}
-                animate_logic(bullet.animate[b]);
+                animate_logic(a);
+				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
             } else {
                 bullet_remove(b);
             }
-
-            if(y>0 && x>0 && x<640 && y<480) {
-				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
-            }
-
-
         }
-        
     }
 
     bank_pull_bram();
 }
-
 #pragma var_model(mem)

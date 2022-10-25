@@ -63,6 +63,7 @@ fe_sprite_cache_t sprite_cache;
 fe_t fe;  // Flight engine control.
 vera_sprite_offset sprite_offsets[127] = { 0 };
 
+#pragma var_model(zp)
 
 void fe_init() {
 }
@@ -371,3 +372,4 @@ void fe_sprite_configure(vera_sprite_offset sprite_offset, fe_sprite_index_t s) 
     vera_sprite_palette_offset(sprite_offset, palette16_use(sprite_cache.palette_offset[s]));
 }
 
+#pragma var_model(mem)

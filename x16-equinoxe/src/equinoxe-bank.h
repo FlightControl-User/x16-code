@@ -28,12 +28,12 @@
 // todo to move into vera memory addressing define
 #define FLOOR_MAP0_BANK_VRAM 0
 #define FLOOR_MAP0_OFFSET_VRAM  0x0000
-#define FLOOR_MAP0_ADDRESS_VRAM (unsigned long)0x00000
 
 #define FLOOR_MAP1_BANK_VRAM 1
 #define FLOOR_MAP1_OFFSET_VRAM  0xB000
-#define FLOOR_MAP1_ADDRESS_VRAM (unsigned long)0x02000
 
 #define FLOOR_TILE_BANK_VRAM 0
 #define FLOOR_TILE_OFFSET_VRAM 0x2000
-#define FLOOR_TILE_ADDRESS_VRAM 0x02000
+
+#define SPRITE_BANK_VRAM 0
+#define SPRITE_OFFSET_VRAM 0x4000

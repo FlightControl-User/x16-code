@@ -15,8 +15,8 @@
 
 
 #define __MAIN
-#define __NOVSYNC
-// #define __CPULINES
+// #define __NOVSYNC
+#define __CPULINES
 
 #define __PALETTE
 
@@ -24,13 +24,13 @@
 #define __STAGE
 #define __COLLISION
 
-#define __LAYER1
+// #define __LAYER1
 
 #define __FLOOR
 #define __TOWER
 #define __PLAYER
 #define __BULLET
-#define __ENEMY
+// #define __ENEMY
 #define __ENGINE
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
@@ -69,6 +69,9 @@
 
 // Show stage information when the scenario changes and is active.
 // #define __DEBUG_STAGE
+
+// Show the collision hash table while the game is evolving.
+// #define __DEBUG_COLLISION
 
 // #define __DEBUG_ENGINE
 

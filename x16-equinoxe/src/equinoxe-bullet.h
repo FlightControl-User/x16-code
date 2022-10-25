@@ -13,6 +13,6 @@ void FireBulletTower(unsigned char t);
 
 void bullet_remove(unsigned char b); 
 
-void LogicBullets();
+void bullet_logic();
 
 #endif

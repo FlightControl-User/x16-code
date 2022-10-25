@@ -346,3 +346,4 @@ char enemy_checkxor()
     bank_pull_bram();
     return xor;
 }
+

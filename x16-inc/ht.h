@@ -11,14 +11,6 @@
 
 #include "ht-typedefs.h"
 
-#ifndef HT_SIZE
-    #define HT_SIZE (unsigned int)256
-    #define HT_BOUNDARY ((ht_index_t)(HT_SIZE-1))
-#endif
-
-#ifndef HT_MAX
-    #define HT_MAX (unsigned int)196
-#endif
 
 
 ht_list_t ht_list;

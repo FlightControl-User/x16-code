@@ -183,6 +183,9 @@ void equinoxe_collision() {
 
                 if(ht_index_bullet_init) {
 
+                    // ht_key_t ht_key_tower = grid_key(4, gx, gy);
+                    // ht_index_t ht_index_tower_init = ht_get(&ht_collision, ht_key_tower);
+
                     ht_key_t ht_key_enemy = grid_key(2, gx, gy);
                     ht_index_t ht_index_enemy_init = ht_get(&ht_collision, ht_key_enemy);
 
@@ -237,6 +240,37 @@ void equinoxe_collision() {
                                     }
                                     ht_index_enemy = ht_get_next(ht_index_enemy);
                                 }
+
+                                // ht_index_t ht_index_tower = ht_index_tower_init;
+                                // while(ht_index_tower) {
+                                //     unsigned char t = (unsigned char)ht_get_data(ht_index_tower);
+
+                                //     if(towers.used[t]) {
+
+                                //         signed int x_tower = (signed int)WORD1(towers.tx[t]);
+                                //         signed int y_tower = (signed int)WORD1(towers.ty[t]);
+
+                                //         unsigned char tc = towers.sprite[t]; // Which sprite is it in the cache...
+                                //         unsigned char tco = tc*16;
+
+                                //         // unsigned char enemy_aabb_min_x = sprite_cache.aabb[eco];
+                                //         // unsigned char enemy_aabb_min_y = sprite_cache.aabb[eco+1];
+                                //         // unsigned char enemy_aabb_max_x = sprite_cache.aabb[eco+2];
+                                //         // unsigned char enemy_aabb_max_y = sprite_cache.aabb[eco+3];
+
+                                //         if(!(x_bullet+(signed int)sprite_cache.aabb[bco] <= x_tower+(signed int)sprite_cache.aabb[tco+2]   && 
+                                //              y_bullet+(signed int)sprite_cache.aabb[bco+1] <= y_tower+(signed int)sprite_cache.aabb[tco+3] && 
+                                //              x_bullet+(signed int)sprite_cache.aabb[bco+2] >= x_tower+(signed int)sprite_cache.aabb[tco]   && 
+                                //              y_bullet+(signed int)sprite_cache.aabb[bco+3] >= y_tower+(signed int)sprite_cache.aabb[tco+1])) {
+                                //         } else {
+                                //             bullet_remove(b);
+                                //             tower_remove(t);
+                                //             // stage_tower_hit(enemy.wave[e], e, b);
+                                //             break;
+                                //         }
+                                //     }
+                                //     ht_index_tower = ht_get_next(ht_index_tower);
+                                // }
                             }
 
                             if(bullet.side[b] == SIDE_ENEMY) {
@@ -370,7 +404,7 @@ void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(YELLOW);
         #endif
-        LogicBullets();
+        bullet_logic();
     #endif
 
 
@@ -391,7 +425,7 @@ void irq_vsync() {
 
 
     #ifdef __CPULINES
-        vera_display_set_border_color(CYAN);
+        vera_display_set_border_color(PURPLE);
     #endif
 
     #ifdef __TOWER
@@ -424,7 +458,7 @@ void irq_vsync() {
 
 #ifndef __NOVSYNC
     // Reset the VSYNC interrupt
-    *VERA_ISR = VERA_VSYNC;
+    *VERA_ISR = 480;
 #endif
 
 #ifdef __DEBUG_ENGINE
@@ -519,16 +553,23 @@ void main() {
     
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 
-    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, 0, FLOOR_TILE_OFFSET_VRAM, 0, 0x6000); // FLOOR_TILE segment for tiles of various sizes and types
-    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, 0, 0x6000, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM); // FLOOR_TILE segment for tiles of various sizes and types
+    vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
 
     equinoxe_init();
+
+
+
+#if defined(__FLIGHT) || defined(__FLOOR)
+    stage_reset();
+#endif
 
 #ifdef __DEBUG_HEAP_BRAM
     heap_print(heap_bram_blocked);
     while(!getin());
 #endif
 
+    while(!getin());
 
 #ifdef __CPULINES
     // Set border to measure scan lines
@@ -537,12 +578,6 @@ void main() {
     vera_display_set_vstart(0);
     vera_display_set_vstop(238);
 #endif
-
-#if defined(__FLIGHT) || defined(__FLOOR)
-    stage_reset();
-#endif
-
-    while(!getin());
 
 #ifdef __FLOOR
     vera_layer0_mode_tile( 
@@ -575,14 +610,15 @@ void main() {
     while(!getin());
 #endif
 
-    floor_draw_clear(0, stage.floor);
-    floor_draw_clear(1, stage.towers);
+    floor_draw_clear(0);
+    floor_draw_clear(1);
     
     floor_paint_background(0, stage.floor);
     floor_draw_background(0, stage.floor);
 
     game.screen_vscroll = 16; // This is important, as we need to be exactly at the right spot of the floor_cache.
     vera_layer0_set_vertical_scroll(16);
+    vera_layer1_set_vertical_scroll(16);
    
 #endif
 
@@ -614,10 +650,15 @@ void main() {
         #ifdef __NOVSYNC
             irq_vsync();
         #endif
+
         #ifdef __DEBUG_SPRITE_CACHE
             SEI();
             fe_sprite_debug();
             CLI();
+        #endif
+
+        #ifdef __DEBUG_COLLISION
+            ht_display(&ht_collision);
         #endif
 
         #ifdef __NOVSYNC

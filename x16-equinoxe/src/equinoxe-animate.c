@@ -28,10 +28,10 @@ unsigned char animate_add()
     return stage.animate_pool;
 }
 
-void animate_logic(unsigned char a)
+inline void animate_logic(unsigned char a)
 {
 
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    // bank_push_set_bram(BRAM_FLIGHTENGINE);
 
     if(!animate.wait[a]) {
         animate.wait[a] = animate.speed[a];
@@ -59,6 +59,6 @@ void animate_logic(unsigned char a)
     if(animate.speed[a])
         animate.wait[a]--;
 
-    bank_pull_bram();
+    // bank_pull_bram();
 
 }
