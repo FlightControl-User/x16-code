@@ -400,6 +400,9 @@ vera_heap_index_t vera_heap_split_free_and_allocate(vera_heap_segment_index_t s,
     vera_heap_set_right(s, heap_left, heap_index);
     vera_heap_set_left(s, heap_right, heap_index);
 
+    vera_heap_set_free(s, heap_right);
+    vera_heap_clear_free(s, heap_left);
+
 #ifdef __VERAHEAP_DEBUG
     printf("\n > Split free index %03x size %05x and allocate heap index %03x size %05x.", free_index, vera_heap_get_size(s, free_index), heap_index, vera_heap_get_size(s, heap_index));
 #endif
@@ -545,6 +548,7 @@ vera_heap_index_t heap_can_coalesce_right(vera_heap_segment_index_t s, vera_heap
 
     if(right_free && (heap_offset < right_offset)) {
 #ifdef __VERAHEAP_DEBUG
+    printf("\n > Right index %02x is free %s with offset %04x\n", right_index, right_free?"true":"false", right_offset);
     printf("\n > Can coalesce to the right with free index %03x.", right_index);
 #endif
         return right_index;
@@ -589,6 +593,7 @@ vera_heap_index_t vera_heap_coalesce(vera_heap_segment_index_t s, vera_heap_inde
     vera_heap_set_size_packed(s, right_index, left_size + right_size);
     vera_heap_set_data_packed(s, right_index, left_offset);
 
+    vera_heap_set_free(s, left_index);
     vera_heap_set_free(s, right_index);
 
 #ifdef __VERAHEAP_DEBUG
@@ -890,7 +895,7 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
 
 	do {
         gotoxy(veraheap_dx, veraheap_dy++);
-		printf("%03x %c  ", index, prefix);
+		printf("%03x %c%c ", index, prefix, (vera_heap_is_free(s, index)?'*':' '));
 		printf("%x%04x %05x  ", vera_heap_data_get_bank(s, index), vera_heap_data_get_offset(s, index), vera_heap_get_size(s, index));
 		printf("%03x  %03x  ", vera_heap_get_next(s, index), vera_heap_get_prev(s, index));
 		printf("%03x  %03x  ", vera_heap_get_left(s, index), vera_heap_get_right(s, index));

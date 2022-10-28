@@ -141,6 +141,10 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
     } else {
 
+        #ifdef __CPULINES
+            vera_display_set_border_color(RED);
+        #endif
+
         // The idea of this section is to free up lru_cache and/or vram memory until there is sufficient space available.
         // The size requested contains the required size to be allocated on vram.
         vera_heap_size_int_t vram_size_required = sprite_cache.size[fe_sprite_index];
@@ -180,15 +184,14 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
         vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
 
-#ifdef __CPULINES
-        vera_display_set_border_color(GREEN);
-#endif
         memcpy_vram_bram(vram_bank, vram_offset, heap_bram_fb_bank_get(handle_bram), (bram_ptr_t)heap_bram_fb_ptr_get(handle_bram), sprite_cache.size[fe_sprite_index]);
-#ifdef __CPULINES
-        vera_display_set_border_color(BLACK);
-#endif
+
         sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
         lru_cache_insert(&sprite_cache_vram, image_index, vram_handle);
+
+        #ifdef __CPULINES
+            vera_display_set_border_color(BLACK);
+        #endif
     }
 
     // We return the image offset in vram of the sprite to be drawn.

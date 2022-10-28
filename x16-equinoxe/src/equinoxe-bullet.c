@@ -14,7 +14,7 @@
 
 void bullet_init()
 {
-    bank_push_bram(); bank_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
     memset(&bullet, 0, sizeof(fe_bullet_t));
     bank_pull_bram();
 }
@@ -220,8 +220,6 @@ void bullet_remove(unsigned char b)
 }
 
 
-#pragma var_model(zp)
-
 void bullet_logic()
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
@@ -260,4 +258,3 @@ void bullet_logic()
 
     bank_pull_bram();
 }
-#pragma var_model(mem)

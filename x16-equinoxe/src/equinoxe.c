@@ -540,7 +540,7 @@ void irq_vsync() {
 
     #ifdef __PLAYER
         #ifdef __CPULINES
-            vera_display_set_border_color(GREEN);
+            vera_display_set_border_color(LIGHT_BLUE);
         #endif
         player_logic();
     #endif
@@ -555,14 +555,14 @@ void irq_vsync() {
 
     #ifdef __ENEMY
         #ifdef __CPULINES
-            vera_display_set_border_color(RED);
+            vera_display_set_border_color(PINK);
         #endif
         enemy_logic();
     #endif
 
     #ifdef __TOWER
         #ifdef __CPULINES
-            vera_display_set_border_color(RED);
+            vera_display_set_border_color(LIGHT_GREEN);
         #endif
         tower_logic();
     #endif
@@ -570,7 +570,7 @@ void irq_vsync() {
 
 
     #ifdef __CPULINES
-        vera_display_set_border_color(CYAN);
+        vera_display_set_border_color(GREY);
     #endif
 
     #ifdef __TOWER
@@ -579,29 +579,23 @@ void irq_vsync() {
 
     #ifdef __ENEMY
         #ifdef __CPULINES
-            vera_display_set_border_color(RED);
+            vera_display_set_border_color(GREY);
         #endif
         enemy_animate();
     #endif
 
     #ifdef __BULLET
-        #ifdef __CPULINES
-            vera_display_set_border_color(CYAN);
-        #endif
         // bullets_resource();
     #endif
 
 
     #ifdef __PLAYER
-        #ifdef __CPULINES
-            vera_display_set_border_color(GREEN);
-        #endif
         // player_resource();
     #endif
 
     #ifdef __COLLISION
     #ifdef __CPULINES
-        vera_display_set_border_color(PURPLE);
+        vera_display_set_border_color(WHITE);
     #endif
     equinoxe_collision();
     #endif // __COLLISION
@@ -611,7 +605,7 @@ void irq_vsync() {
 
 #ifndef __NOVSYNC
     // Reset the VSYNC interrupt
-    *VERA_ISR = 480;
+    *VERA_ISR = 1;
 #endif
 
 #ifdef __DEBUG_ENGINE
@@ -661,10 +655,7 @@ void irq_vsync() {
         }
 #endif // __DEBUG_ENGINE
 
-#ifdef __LRU_CACHE_DEBUG
-    gotoxy(0, 30);
-    lru_cache_display(&sprite_cache_vram);
-#endif
+
 
 #ifdef __VERAHEAP_DEBUG
     gotoxy(40, 0);
@@ -804,6 +795,21 @@ void main() {
             irq_vsync();
         #endif
 
+        switch(ch) {
+            case 'x':
+            break;
+            
+            #ifdef __DEBUG_LRU_CACHE
+            case 'l':
+            SEI();
+            gotoxy(0, 30);
+            lru_cache_display(&sprite_cache_vram);
+            CLI();
+            break;
+            #endif
+
+        }
+
         #ifdef __DEBUG_SPRITE_CACHE
             SEI();
             fe_sprite_debug();
@@ -821,11 +827,9 @@ void main() {
             CLI();
         #endif
 
-        #ifdef __NOVSYNC
-            while(!getin());
-        #endif
-
-        ch = getin();
+        SEI();
+        ch=getin();
+        CLI();
     }; 
 
     // Back to basic.
