@@ -19,6 +19,7 @@ stage_t stage;
 stage_wave_t wave;
 
 
+
 void stage_copy(unsigned char ew, unsigned int scenario) {
     stage_playbook_t* stage_playbooks = stage.script.playbook;
     stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
@@ -47,11 +48,11 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
     wave.scenario[ew] = scenario;
 
 
-    #ifdef __DEBUG_STAGE
-        gotoxy(0, (unsigned char)scenario+1);
-        sprite_bram_t* sprite_enemy = stage_enemy->enemy_sprite_flight;
-        printf("%3u %3u %3x %4u %4u %3u", scenario, wave.enemy_count[ew], wave.enemy_spawn[ew], wave.interval[ew], wave.wait[ew], wave.prev[ew]);
-    #endif
+    // #ifdef __DEBUG_STAGE
+    //     gotoxy(0, (unsigned char)scenario+1);
+    //     sprite_bram_t* sprite_enemy = stage_enemy->enemy_sprite_flight;
+    //     printf("%3u %3u %3x %4u %4u %3u", scenario, wave.enemy_count[ew], wave.enemy_spawn[ew], wave.interval[ew], wave.wait[ew], wave.prev[ew]);
+    // #endif
 
 }
 
@@ -273,9 +274,9 @@ void stage_logic()
     if(stage.playbook < stage.script.playbooks) {
         
         if(!(game.tickstage & 0x03)) {
-            #ifdef __DEBUG_STAGE
-            printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
-            #endif
+            // #ifdef __DEBUG_STAGE
+            // printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
+            // #endif
             
             for(unsigned char w=0; w<8; w++) {
                 if(wave.used[w]) {
@@ -361,4 +362,12 @@ void stage_logic()
     }
 
     
+}
+
+void stage_display()
+{
+    gotoxy(0,0);
+    printf("stage statistics\n");
+    printf("count bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_count, stage.enemy_count, stage.tower_count, stage.player_count);
+    printf("pool  bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_pool, stage.enemy_pool, stage.tower_pool, stage.player_pool);
 }

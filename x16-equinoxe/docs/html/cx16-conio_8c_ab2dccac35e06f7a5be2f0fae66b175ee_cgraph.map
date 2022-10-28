@@ -1,0 +1,9 @@
+<map id="cscroll" name="cscroll">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,65,83"/>
+<area shape="rect" id="node2" href="$cx16-conio_8c.html#ab078246aecda8d4b0b3235597292412d" title=" " alt="" coords="267,56,338,83"/>
+<area shape="rect" id="node3" href="$cx16-conio_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="117,5,178,32"/>
+<area shape="rect" id="node6" href="$cx16-conio_8c.html#a600223de498640472a037741bc4d2cea" title=" " alt="" coords="113,107,181,133"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="265,5,341,32"/>
+<area shape="rect" id="node5" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="424,5,531,32"/>
+<area shape="rect" id="node7" href="$cx16_8h.html#a480c71131b9a6f4cb8b196b4e4337e8d" title="Copy a block of memory in VRAM from a source to a target destination. This function is designed to co..." alt="" coords="229,107,376,133"/>
+</map>

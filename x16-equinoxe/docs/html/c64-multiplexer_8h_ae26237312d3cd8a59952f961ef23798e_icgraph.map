@@ -1,0 +1,4 @@
+<map id="plexSetScreen" name="plexSetScreen">
+<area shape="rect" id="node1" title="Set the address of the current screen used for setting sprite pointers (at screen+0x3f8)" alt="" coords="116,5,223,32"/>
+<area shape="rect" id="node2" href="$c64-multiplexer_8h.html#aa5f136c8905628098cd8f58d4139a616" title="Initialize the multiplexer data structures." alt="" coords="5,5,68,32"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="bank_push_bram" name="bank_push_bram">
+<area shape="rect" id="node1" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="393,56,515,83"/>
+<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html#aaefd54c5fe511f25edaa095716313ec1" title=" " alt="" coords="259,5,337,32"/>
+<area shape="rect" id="node5" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="251,56,345,83"/>
+<area shape="rect" id="node7" href="$equinoxe-stage_8c.html#a265da423d69b2feadac558d39e0ae3a0" title=" " alt="" coords="254,107,342,133"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#a8ef7209f1aaeeaf916fb605060d832c5" title=" " alt="" coords="104,5,203,32"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,56,56,83"/>
+<area shape="rect" id="node6" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="115,56,191,83"/>
+</map>

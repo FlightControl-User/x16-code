@@ -1,12 +1,16 @@
 <map id="enemy_hit" name="enemy_hit">
-<area shape="rect" id="node1" title=" " alt="" coords="5,104,88,129"/>
-<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#a48e186aa7fec971deff3bec3e565a66c" title=" " alt="" coords="136,104,245,129"/>
-<area shape="rect" id="node3" href="$equinoxe-flightengine_8c.html#a65fe82d3b4c6eb47ca1344b25ba47027" title=" " alt="" coords="293,5,435,31"/>
-<area shape="rect" id="node5" href="$equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3" title=" " alt="" coords="305,55,423,80"/>
-<area shape="rect" id="node6" href="$cx16-error-test_8c.html#aeb3ab94fc716313b097ae7f17f1a7723" title=" " alt="" coords="345,104,383,129"/>
-<area shape="rect" id="node7" href="$equinoxe-flightengine_8c.html#a9c4e9dff93216d3ca1e8ffbaa4957270" title=" " alt="" coords="304,153,424,179"/>
-<area shape="rect" id="node9" href="$cx16-veralib_8c.html#a7afb2f45ba056b96f68c3a18856d8193" title="Hide a sprite." alt="" coords="298,204,430,229"/>
-<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="503,5,616,31"/>
-<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a4fbaac8d029ed0e06c6ffe8e7ad7a429" title="The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control." alt="" coords="496,151,623,176"/>
-<area shape="rect" id="node10" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="483,201,636,241"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,88,83"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="310,5,423,32"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="293,56,440,83"/>
+<area shape="rect" id="node4" href="$equinoxe-enemy_8c.html#a48e186aa7fec971deff3bec3e565a66c" title=" " alt="" coords="136,107,245,133"/>
+<area shape="rect" id="node5" href="$equinoxe-flightengine_8c.html#a65fe82d3b4c6eb47ca1344b25ba47027" title=" " alt="" coords="296,157,437,184"/>
+<area shape="rect" id="node13" href="$equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3" title=" " alt="" coords="488,107,605,133"/>
+<area shape="rect" id="node14" href="$equinoxe-flightengine_8c.html#a9c4e9dff93216d3ca1e8ffbaa4957270" title=" " alt="" coords="307,208,427,235"/>
+<area shape="rect" id="node6" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="490,157,603,184"/>
+<area shape="rect" id="node7" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="654,81,715,108"/>
+<area shape="rect" id="node10" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="659,132,710,159"/>
+<area shape="rect" id="node11" href="$conio_8h.html#a37df443085e20aac4771fc30421ee78b" title="Return the X position of the cursor." alt="" coords="653,183,716,209"/>
+<area shape="rect" id="node12" href="$conio_8h.html#a40b3e1942a28cae7613792541a23bdd3" title="Return the Y position of the cursor." alt="" coords="653,233,716,260"/>
+<area shape="rect" id="node8" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="764,81,840,108"/>
+<area shape="rect" id="node9" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="888,81,995,108"/>
 </map>

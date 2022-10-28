@@ -1,0 +1,4 @@
+<map id="print_str" name="print_str">
+<area shape="rect" id="node1" title="Print a zero&#45;terminated string." alt="" coords="5,5,75,32"/>
+<area shape="rect" id="node2" href="$c64-print_8c.html#a95a463faeebe05bc853a3a3ffa83c996" title="Print a single char." alt="" coords="123,5,201,32"/>
+</map>

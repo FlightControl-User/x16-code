@@ -1,0 +1,27 @@
+var vic20_8h =
+[
+    [ "BLACK", "vic20_8h.html#ac8d4d070dc9aa133fbdbc8d3eb11b90b", null ],
+    [ "BLUE", "vic20_8h.html#adaaf7d2c463592be5b005e0aa9e60b23", null ],
+    [ "CHARGEN", "vic20_8h.html#a2263b0cad4f0292f7d3d6c7565b1e3e4", null ],
+    [ "CYAN", "vic20_8h.html#aa122dbbb18530770bb572113ef0b0675", null ],
+    [ "DEFAULT_COLORRAM", "vic20_8h.html#a11d951f34cd9626a550f534d473aea02", null ],
+    [ "DEFAULT_SCREEN", "vic20_8h.html#a1182c0f2d6e1f1336991ca863b68638f", null ],
+    [ "GREEN", "vic20_8h.html#aefa183f252d9925671715fd6c273c477", null ],
+    [ "LIGHT_BLUE", "vic20_8h.html#ae343fb056be8816bb033aeeb54b18ac1", null ],
+    [ "LIGHT_CYAN", "vic20_8h.html#a5af8cfa5e0e1d6719cc2944513cbf424", null ],
+    [ "LIGHT_GREEN", "vic20_8h.html#a0f2875aab5c5886599f135c77d145644", null ],
+    [ "LIGHT_ORANGE", "vic20_8h.html#ad4ac449957eea2cdf2c4132e81fc1fa1", null ],
+    [ "LIGHT_PURPLE", "vic20_8h.html#ad2371cceb069b06ba6af0ced5b15649c", null ],
+    [ "LIGHT_YELLOW", "vic20_8h.html#a374b1bfdf33d9f5c9e4f9583e6b6ce6f", null ],
+    [ "ORANGE", "vic20_8h.html#a8a9a48c7e53d8507731c84d44a66ae23", null ],
+    [ "PINK", "vic20_8h.html#a1b99e66d893f076e4b8ceaea0e637dd9", null ],
+    [ "PRIMARY_COLORRAM", "vic20_8h.html#af75afd36cc7e32ceec58f49a731f9d4e", null ],
+    [ "PURPLE", "vic20_8h.html#a8f9b82fde1bc3ac92053d93057b62342", null ],
+    [ "RED", "vic20_8h.html#a6643ade0345f73c90e353d8c798de49f", null ],
+    [ "SECONDARY_COLORRAM", "vic20_8h.html#a7909d6d91a6f18eafe1024ecad138c2b", null ],
+    [ "VIA1", "vic20_8h.html#af1754efe1ec4d9b26120d1c71656abe8", null ],
+    [ "VIA2", "vic20_8h.html#a961783cad36a1f23f9696098520a3bd8", null ],
+    [ "VIC", "vic20_8h.html#ac554a0ff7d73294889fe1237635d66ad", null ],
+    [ "WHITE", "vic20_8h.html#ab1819f3edb4afbd5fdd44eb050acecc8", null ],
+    [ "YELLOW", "vic20_8h.html#af5f2d3f6afbf98367275cb2fcb3898c0", null ]
+];

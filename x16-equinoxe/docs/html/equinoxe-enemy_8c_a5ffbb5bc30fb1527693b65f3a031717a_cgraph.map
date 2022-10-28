@@ -1,5 +1,6 @@
 <map id="enemy_arc" name="enemy_arc">
-<area shape="rect" id="node1" title=" " alt="" coords="5,31,92,56"/>
-<area shape="rect" id="node2" href="$cx16-equinoxe_2src_2equinoxe-math_8c.html#a71bdd692dfaa7421dc930c439ca91a70" title=" " alt="" coords="140,5,204,31"/>
-<area shape="rect" id="node3" href="$cx16-equinoxe_2src_2equinoxe-math_8c.html#a88ed6b5d01759e5a9b4845045ff935d6" title=" " alt="" coords="140,55,204,80"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,92,83"/>
+<area shape="rect" id="node2" href="$equinoxe-math_8c.html#a71bdd692dfaa7421dc930c439ca91a70" title=" " alt="" coords="140,5,204,32"/>
+<area shape="rect" id="node3" href="$multiply_8h.html#aa5553ffd455d7b6079bdbad7339fef66" title="Perform binary multiplication of two unsigned 8&#45;bit chars into a 16&#45;bit unsigned int." alt="" coords="143,56,201,83"/>
+<area shape="rect" id="node4" href="$equinoxe-math_8c.html#a88ed6b5d01759e5a9b4845045ff935d6" title=" " alt="" coords="140,107,204,133"/>
 </map>

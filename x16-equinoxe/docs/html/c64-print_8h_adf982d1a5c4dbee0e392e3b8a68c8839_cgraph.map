@@ -1,0 +1,5 @@
+<map id="print_str_lines" name="print_str_lines">
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,108,57"/>
+<area shape="rect" id="node2" href="$c64-print_8c.html#a95a463faeebe05bc853a3a3ffa83c996" title="Print a single char." alt="" coords="156,5,235,32"/>
+<area shape="rect" id="node3" href="$c64-print_8c.html#ab585bc531acb24759f2bdc42f2a04297" title="Print a newline." alt="" coords="163,56,227,83"/>
+</map>

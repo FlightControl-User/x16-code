@@ -1,6 +1,7 @@
 <map id="math_vecx" name="math_vecx">
-<area shape="rect" id="node1" title="Calculates the x vector from an angle and speed." alt="" coords="445,5,529,31"/>
-<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="136,5,231,31"/>
-<area shape="rect" id="node4" href="$equinoxe-bullet_8c.html#a15c967602a72c7be882ed259922722a2" title=" " alt="" coords="279,31,397,56"/>
-<area shape="rect" id="node3" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,5,88,31"/>
+<area shape="rect" id="node1" title="Calculates the x vector from an angle and speed." alt="" coords="537,5,621,32"/>
+<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="228,5,323,32"/>
+<area shape="rect" id="node5" href="$equinoxe-bullet_8c.html#a15c967602a72c7be882ed259922722a2" title=" " alt="" coords="371,31,489,57"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,5,180,32"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,32"/>
 </map>

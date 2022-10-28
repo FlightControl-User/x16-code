@@ -1,0 +1,9 @@
+<map id="cputs" name="cputs">
+<area shape="rect" id="node1" title="Output a NUL&#45;terminated string at the current cursor position." alt="" coords="5,56,60,83"/>
+<area shape="rect" id="node2" href="$conio-cbm-shared_8c.html#a5308b55039690f6cc3f500d9d18e409a" title="Output one character at the current cursor position. Scroll the screen if needed." alt="" coords="108,56,163,83"/>
+<area shape="rect" id="node3" href="$conio-cbm-shared_8c.html#a4bdb86b4da4001163b7ef9cdad2eb74f" title="Move teh cursor to the start of the next line. Scroll the screen if needed." alt="" coords="211,56,268,83"/>
+<area shape="rect" id="node4" href="$conio-cbm-shared_8c.html#ab2dccac35e06f7a5be2f0fae66b175ee" title=" " alt="" coords="316,56,376,83"/>
+<area shape="rect" id="node5" href="$conio-cbm-shared_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="429,5,491,32"/>
+<area shape="rect" id="node6" href="$string_8h.html#a144edc3322c38480943628e0ac81aacd" title=" " alt="" coords="424,56,496,83"/>
+<area shape="rect" id="node7" href="$string_8h.html#a1e75227138c7a39467d90485305b1270" title="Copies the character c (an unsigned char) to the first num characters of the object pointed to by the..." alt="" coords="425,107,495,133"/>
+</map>

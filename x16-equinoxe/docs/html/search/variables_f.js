@@ -1,5 +1,16 @@
 var searchData=
 [
-  ['offset_0',['offset',['../structsprite__bram__t.html#a29b5297d3393519050e3126c4cb07c1c',1,'sprite_bram_t::offset()'],['../structfe__sprite__cache__t.html#a61317c033ee550377733fac09a3632b5',1,'fe_sprite_cache_t::offset()'],['../structfloor__t.html#ae957ff5bc4793a0250ec1d772fe425e1',1,'floor_t::offset()'],['../structpalette__vram__index__t.html#a7e457258e605469536000e09c9241fb4',1,'palette_vram_index_t::offset()'],['../structtower__t.html#adc2057c3cfb041c7f13e1e44bc5d0786',1,'tower_t::offset()'],['../structtile__parts__t.html#a55f33514d6662acede7a84ef12dbbaca',1,'tile_parts_t::offset()'],['../structsprite__offsets__t.html#a29b5297d3393519050e3126c4cb07c1c',1,'sprite_offsets_t::offset()']]],
-  ['oldbuffer_1',['oldbuffer',['../cx16-swap_8c.html#a3ec11aab0d205244ec0cff21291f7063',1,'cx16-swap.c']]]
+  ['oamaddr_3976',['OAMADDR',['../struct_r_i_c_o_h__2_c02.html#a86caab01c12614b6f7ca12d61c9689ce',1,'RICOH_2C02']]],
+  ['oamdata_3977',['OAMDATA',['../struct_r_i_c_o_h__2_c02.html#ae20a74e11bbd8e6f69282a3bb2293969',1,'RICOH_2C02']]],
+  ['oamdma_3978',['OAMDMA',['../struct_r_i_c_o_h__2_a03.html#a84523bd8a6cf830a1def6b8eb7fb1b1d',1,'RICOH_2A03']]],
+  ['offset_3979',['offset',['../structsprite__bram__t.html#a29b5297d3393519050e3126c4cb07c1c',1,'sprite_bram_t::offset()'],['../structfe__sprite__cache__t.html#a61317c033ee550377733fac09a3632b5',1,'fe_sprite_cache_t::offset()'],['../structfloor__layer__t.html#ab1e6eaa719ed9fc4959aacc81475c321',1,'floor_layer_t::offset()'],['../structpalette__vram__index__t.html#a7e457258e605469536000e09c9241fb4',1,'palette_vram_index_t::offset()'],['../structtower__t.html#adc2057c3cfb041c7f13e1e44bc5d0786',1,'tower_t::offset()'],['../structcx16__conio__t.html#a29b5297d3393519050e3126c4cb07c1c',1,'cx16_conio_t::offset()']]],
+  ['offset_5fsprite_5fptrs_3980',['OFFSET_SPRITE_PTRS',['../mos6569_8h.html#a3815a6ddacb71f86dfa1441bff0d671c',1,'mos6569.h']]],
+  ['offsets_3981',['offsets',['../structcx16__conio__t.html#a565f6a55c8043b332097d5a506d05980',1,'cx16_conio_t']]],
+  ['oldadr_3982',['OLDADR',['../atari-xl_8h.html#ab47c55a1b13a409c13477307adb79eb1',1,'atari-xl.h']]],
+  ['oldchr_3983',['OLDCHR',['../atari-xl_8h.html#abaa49a4f440c1e4548112f787cab12dd',1,'atari-xl.h']]],
+  ['olive_5fgreen_3984',['OLIVE_GREEN',['../atari-xl_8h.html#a5bf46da8370762cf0c2607f4a4a0990b',1,'atari-xl.h']]],
+  ['orange_3985',['ORANGE',['../atari-xl_8h.html#a8a9a48c7e53d8507731c84d44a66ae23',1,'ORANGE():&#160;atari-xl.h'],['../c64_8h.html#a8a9a48c7e53d8507731c84d44a66ae23',1,'ORANGE():&#160;c64.h'],['../cx16-vera_8h.html#a81bef0e8ff603e3f8b15099bf93a3f16',1,'ORANGE():&#160;cx16-vera.h'],['../mega65_8h.html#a8a9a48c7e53d8507731c84d44a66ae23',1,'ORANGE():&#160;mega65.h'],['../vic20_8h.html#a8a9a48c7e53d8507731c84d44a66ae23',1,'ORANGE():&#160;vic20.h']]],
+  ['orange_5fgreen_3986',['ORANGE_GREEN',['../atari-xl_8h.html#a130a5075f128e86ddee7cab7bb4b8e75',1,'atari-xl.h']]],
+  ['origin_5fx_3987',['ORIGIN_X',['../struct_m_o_s6561___v_i_c.html#a48360cffee9afe8d23d1c364b4c97ce1',1,'MOS6561_VIC']]],
+  ['origin_5fy_3988',['ORIGIN_Y',['../struct_m_o_s6561___v_i_c.html#a74d019f8c9ef83cbee0406513d19c6b5',1,'MOS6561_VIC']]]
 ];

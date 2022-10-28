@@ -1,0 +1,6 @@
+<map id="bullet_sprite_animate_add" name="bullet_sprite_animate_add">
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,179,57"/>
+<area shape="rect" id="node2" href="$equinoxe-animate_8c.html#a3248af66093bd6c65937d04aeb806825" title=" " alt="" coords="227,31,323,57"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="387,5,501,32"/>
+<area shape="rect" id="node4" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="371,56,517,83"/>
+</map>

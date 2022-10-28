@@ -1,0 +1,5 @@
+<map id="bitmap_init" name="bitmap_init">
+<area shape="rect" id="node1" title="Initialize the bitmap plotter tables for a specific bitmap." alt="" coords="5,31,91,57"/>
+<area shape="rect" id="node2" href="$cx16-bitmap_8c.html#a4692078d7997d77d5ab0dd4af8790d31" title=" " alt="" coords="139,5,245,32"/>
+<area shape="rect" id="node3" href="$cx16-bitmap_8c.html#af65f45c0142f0b141aeecd2c5f0725d8" title=" " alt="" coords="140,56,244,83"/>
+</map>

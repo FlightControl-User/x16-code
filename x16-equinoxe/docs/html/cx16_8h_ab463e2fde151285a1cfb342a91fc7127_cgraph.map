@@ -1,0 +1,4 @@
+<map id="bank_bram_ptr_inc" name="bank_bram_ptr_inc">
+<area shape="rect" id="node1" title="Increase a banked pointer, located between 0xA000 and 0xBFFF, so that the bank setting evolves with t..." alt="" coords="5,5,137,32"/>
+<area shape="rect" id="node2" href="$cx16_8c.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="185,5,296,32"/>
+</map>

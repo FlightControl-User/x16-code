@@ -1,4 +1,9 @@
 var searchData=
 [
-  ['wait_5fkey_0',['wait_key',['../cx16-lru-cache-test1_8c.html#a95deccb9a0141adf6f6b129d86015c32',1,'wait_key():&#160;cx16-lru-cache-test1.c'],['../cx16-lru-cache-test2_8c.html#a95deccb9a0141adf6f6b129d86015c32',1,'wait_key():&#160;cx16-lru-cache-test2.c'],['../cx16-lru-cache-test3_8c.html#a95deccb9a0141adf6f6b129d86015c32',1,'wait_key():&#160;cx16-lru-cache-test3.c'],['../cx16-memcpy-vram-bram_8c.html#a95deccb9a0141adf6f6b129d86015c32',1,'wait_key():&#160;cx16-memcpy-vram-bram.c']]]
+  ['uctoa_3011',['uctoa',['../stdlib_8c.html#a41dba178a7ecd97764af9a1cee8d0aa1',1,'stdlib.c']]],
+  ['uctoa_5fappend_3012',['uctoa_append',['../stdlib_8c.html#a30a7e9030fce465bbaf03857d415c487',1,'stdlib.c']]],
+  ['ultoa_3013',['ultoa',['../stdlib_8h.html#afa93a6048507b4c0b1c7b4fe6e414c7d',1,'ultoa(unsigned long value, char *buffer, enum RADIX radix):&#160;stdlib.c'],['../stdlib_8c.html#afa93a6048507b4c0b1c7b4fe6e414c7d',1,'ultoa(unsigned long value, char *buffer, enum RADIX radix):&#160;stdlib.c']]],
+  ['ultoa_5fappend_3014',['ultoa_append',['../stdlib_8c.html#aed9113fd730e4fe4afc9201f98f1ad46',1,'stdlib.c']]],
+  ['utoa_3015',['utoa',['../stdlib_8h.html#a68976ddd9b2853bc5eeef6b812d73dfd',1,'utoa(unsigned int value, char *buffer, enum RADIX radix):&#160;stdlib.c'],['../stdlib_8c.html#a68976ddd9b2853bc5eeef6b812d73dfd',1,'utoa(unsigned int value, char *buffer, enum RADIX radix):&#160;stdlib.c']]],
+  ['utoa_5fappend_3016',['utoa_append',['../stdlib_8c.html#a785ac62da8d2a46b58adf07e7a355cf3',1,'stdlib.c']]]
 ];

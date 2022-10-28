@@ -1,11 +1,12 @@
-<map id="cx16&#45;equinoxe/src/equinoxe&#45;collision.h" name="cx16&#45;equinoxe/src/equinoxe&#45;collision.h">
-<area shape="rect" id="node1" title=" " alt="" coords="343,5,527,45"/>
-<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html" title=" " alt="" coords="5,93,189,133"/>
-<area shape="rect" id="node3" href="$equinoxe-collision_8c.html" title=" " alt="" coords="213,93,397,133"/>
-<area shape="rect" id="node4" href="$equinoxe-enemy_8c.html" title=" " alt="" coords="264,181,448,221"/>
-<area shape="rect" id="node5" href="$equinoxe-enemy_8h.html" title=" " alt="" coords="472,93,656,133"/>
-<area shape="rect" id="node9" href="$equinoxe-player_8c.html" title=" " alt="" coords="680,93,864,133"/>
-<area shape="rect" id="node6" href="$equinoxe-palette_8c.html" title=" " alt="" coords="472,181,656,221"/>
-<area shape="rect" id="node7" href="$equinoxe-stage_8c.html" title=" " alt="" coords="680,181,864,221"/>
-<area shape="rect" id="node8" href="$equinoxe_8c.html" title=" " alt="" coords="888,189,1083,214"/>
+<map id="D:/Users/svenv/OneDrive/Documents/GitHub/x16&#45;code/x16&#45;equinoxe/src/equinoxe&#45;collision.h" name="D:/Users/svenv/OneDrive/Documents/GitHub/x16&#45;code/x16&#45;equinoxe/src/equinoxe&#45;collision.h">
+<area shape="rect" id="node1" title=" " alt="" coords="373,5,537,76"/>
+<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html" title=" " alt="" coords="5,124,169,195"/>
+<area shape="rect" id="node3" href="$equinoxe-collision_8c.html" title=" " alt="" coords="193,124,357,195"/>
+<area shape="rect" id="node4" href="$equinoxe-enemy_8c.html" title=" " alt="" coords="245,243,409,313"/>
+<area shape="rect" id="node5" href="$equinoxe-enemy_8h.html" title=" " alt="" coords="433,124,597,195"/>
+<area shape="rect" id="node9" href="$equinoxe-player_8c.html" title=" " alt="" coords="621,124,785,195"/>
+<area shape="rect" id="node10" href="$equinoxe-tower_8c.html" title=" " alt="" coords="809,124,973,195"/>
+<area shape="rect" id="node6" href="$equinoxe-palette_8c.html" title=" " alt="" coords="433,243,597,313"/>
+<area shape="rect" id="node7" href="$equinoxe-stage_8c.html" title=" " alt="" coords="621,243,785,313"/>
+<area shape="rect" id="node8" href="$equinoxe_8c.html" title=" " alt="" coords="809,243,973,313"/>
 </map>

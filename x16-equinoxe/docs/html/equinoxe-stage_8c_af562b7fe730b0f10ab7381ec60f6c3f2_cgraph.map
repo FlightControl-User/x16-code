@@ -1,52 +1,39 @@
 <map id="stage_load_tower" name="stage_load_tower">
-<area shape="rect" id="node1" title=" " alt="" coords="5,485,128,510"/>
-<area shape="rect" id="node2" href="$equinoxe-flightengine_8c.html#adbbe47e13c66208ab3c1ef1bc0ec7b75" title=" " alt="" coords="176,361,315,386"/>
-<area shape="rect" id="node22" href="$equinoxe-floorengine_8c.html#ab4f82e9f3dd25bc7c54abc6cc3501f25" title=" " alt="" coords="189,485,302,510"/>
-<area shape="rect" id="node25" href="$equinoxe-floorengine_8c.html#a0417b76d7754050050583d3e124d964c" title=" " alt="" coords="873,637,988,662"/>
-<area shape="rect" id="node3" href="$cx16-file_8c.html#a3abd78c220b4b49d1b088f0dfe40bf23" title="Close a file." alt="" coords="401,386,457,411"/>
-<area shape="rect" id="node4" href="$cx16-file_8c.html#aef316c9afac0ddebb7f341bfd0335b0b" title="Load a file to ram or (banked ram located between address 0xA000 and 0xBFFF), incrementing the banks...." alt="" coords="403,435,454,461"/>
-<area shape="rect" id="node5" href="$cx16-file_8c.html#ab292805d3cec1f92c073b372e847b5bf" title="Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks." alt="" coords="402,485,455,510"/>
-<area shape="rect" id="node6" href="$cx16-heap-bram-fb_8c.html#a2001dc89b2f1d87bc3c4f156805c36d3" title=" " alt="" coords="387,285,471,310"/>
-<area shape="rect" id="node9" href="$cx16-heap-bram-fb_8c.html#adbe8c4fd229e179ad6e4ec98177a8f73" title=" " alt="" coords="1049,535,1211,561"/>
-<area shape="rect" id="node10" href="$cx16-heap-bram-fb_8c.html#a65b9af81b17b3490915665ceabc71b17" title=" " alt="" coords="1055,385,1205,410"/>
-<area shape="rect" id="node15" href="$equinoxe-flightengine_8c.html#a89a197d5f99d43f7d056b62d76670acd" title=" " alt="" coords="363,235,495,261"/>
-<area shape="rect" id="node7" href="$cx16-heap-bram-fb_8c.html#ad1d0aff20c04a3ee41c3f153af6fe517" title=" " alt="" coords="545,478,687,503"/>
-<area shape="rect" id="node8" href="$cx16-heap-bram-fb_8c.html#ab2c5e79b65058e6530102318856e6123" title=" " alt="" coords="885,483,977,509"/>
-<area shape="rect" id="node11" href="$cx16-heap-bram-fb_8c.html#afd37161a595e382b5f35f4f886e9da09" title=" " alt="" coords="737,434,817,459"/>
-<area shape="rect" id="node13" href="$cx16-heap-bram-fb_8c.html#af8241726b059634b75a84353dd12ae77" title=" " alt="" coords="738,385,817,410"/>
-<area shape="rect" id="node12" href="$cx16-heap-bram-fb_8c.html#a77f413d1fe766b611cdb68af527ae6b9" title=" " alt="" coords="865,434,996,459"/>
-<area shape="rect" id="node14" href="$cx16-heap-bram-fb_8c.html#a2a146caa5946821575fffaebaf7def12" title=" " alt="" coords="868,385,993,410"/>
-<area shape="rect" id="node16" href="$cx16-veralib_8c.html#ad2e2668fcdcbec372996f980297a0f20" title=" " alt="" coords="547,107,685,147"/>
-<area shape="rect" id="node17" href="$cx16-veralib_8c.html#a717f3c9993d3c2c459379f602f2ad3ca" title=" " alt="" coords="553,171,679,211"/>
-<area shape="rect" id="node18" href="$cx16-veralib_8c.html#a7cb0d26716d79363f1f135049afaeab2" title=" " alt="" coords="547,235,685,275"/>
-<area shape="rect" id="node19" href="$cx16-veralib_8c.html#a5d087f7ed6432b9de3314511e867ac5e" title=" " alt="" coords="547,299,685,339"/>
-<area shape="rect" id="node20" href="$cx16-veralib_8c.html#ab142881500df9d2e533fb94614422b91" title=" " alt="" coords="543,363,689,403"/>
-<area shape="rect" id="node21" href="$cx16-veralib_8c.html#a94a4049100b03341684d4b50ffbf9c52" title=" " alt="" coords="551,43,681,83"/>
-<area shape="rect" id="node23" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="377,637,480,662"/>
-<area shape="rect" id="node24" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="561,637,671,662"/>
-<area shape="rect" id="node26" href="$cx16-veraheap_01copy_8c.html#a734f60bd496e9c9911ee80f2bb899509" title="Allocated a specified size of memory on the heap of the segment." alt="" coords="1073,789,1187,814"/>
-<area shape="rect" id="node49" href="$cx16-veraheap_8c.html#af3f00b4da9113ccbf9606ccd4396f16b" title=" " alt="" coords="1044,586,1216,611"/>
-<area shape="rect" id="node50" href="$cx16-veraheap_8c.html#a13d756b011758f9318defc4629bafaf0" title=" " alt="" coords="1281,527,1418,567"/>
-<area shape="rect" id="node27" href="$cx16-veraheap_8c.html#af1ff4eb41167cd4684c74e14dfdfca1c" title=" " alt="" coords="1264,657,1435,682"/>
-<area shape="rect" id="node29" href="$cx16-veraheap_8c.html#a85078ca7ea2d6a429b44023b45461114" title=" " alt="" coords="1283,789,1415,814"/>
-<area shape="rect" id="node43" href="$cx16-veraheap_8c.html#a1e512dab113bfd2f473dae29ffa45c9d" title="Print the heap memory manager statistics and dump the index of the segment." alt="" coords="1290,941,1409,966"/>
-<area shape="rect" id="node47" href="$cx16-veraheap_8c.html#ab403fdf10251a0079e602dd3c2f24de8" title=" " alt="" coords="1271,1039,1427,1065"/>
-<area shape="rect" id="node28" href="$cx16-veraheap_8c.html#a83673b2984c69510aa1345273e7f97fe" title=" " alt="" coords="1489,618,1636,643"/>
-<area shape="rect" id="node30" href="$cx16-veraheap_8c.html#a3444846eaba3528013cd64fcc44ccf85" title=" " alt="" coords="1911,855,2047,895"/>
-<area shape="rect" id="node31" href="$cx16-veraheap_8c.html#a9339e4f4389411871b1c1eafb5fc5717" title=" " alt="" coords="1484,752,1641,792"/>
-<area shape="rect" id="node41" href="$cx16-veraheap_8c.html#a1ddbde5bf2e0a08a7b5233a268699deb" title=" " alt="" coords="1483,867,1643,893"/>
-<area shape="rect" id="node42" href="$cx16-veraheap_8c.html#aa060ffb2b74faa0fbcce044d12466eb0" title=" " alt="" coords="1493,668,1632,708"/>
-<area shape="rect" id="node32" href="$cx16-veraheap_8c.html#aa2a6ee29f8a1bf5aa75b0508b821d4a5" title=" " alt="" coords="1699,913,1855,938"/>
-<area shape="rect" id="node33" href="$cx16-veraheap_8c.html#ad4c952644896409c07afe5383f204a81" title=" " alt="" coords="1708,433,1845,473"/>
-<area shape="rect" id="node34" href="$cx16-veraheap_8c.html#ab73bff0c6196e62fd84eda6513e0ca84" title=" " alt="" coords="1712,811,1841,837"/>
-<area shape="rect" id="node35" href="$cx16-veraheap_8c.html#a42b46038e723399f9ad1475e9d3c3502" title=" " alt="" coords="1708,962,1845,987"/>
-<area shape="rect" id="node36" href="$cx16-veraheap_8c.html#aef4d56d199598446914c122fea6fc5a5" title=" " alt="" coords="1709,549,1845,574"/>
-<area shape="rect" id="node37" href="$cx16-veraheap_8c.html#a878ccb0ebb2a45567fb3a62a333043aa" title=" " alt="" coords="1691,598,1863,623"/>
-<area shape="rect" id="node38" href="$cx16-veraheap_8c.html#afa770d17148a400d11c57970557b64e4" title=" " alt="" coords="1708,648,1845,688"/>
-<area shape="rect" id="node39" href="$cx16-veraheap_8c.html#a95e4a1c9a0f603992d3ba518c5574526" title=" " alt="" coords="1712,713,1841,738"/>
-<area shape="rect" id="node40" href="$cx16-veraheap_8c.html#a8ebe8b24e13ffeabc69aa2f6790d0ebd" title=" " alt="" coords="1708,762,1845,787"/>
-<area shape="rect" id="node44" href="$cx16-veraheap_8c.html#a750fde3007c0d36b20fa6de7bb0a59fc" title="Ddump the index of the segment." alt="" coords="1484,1015,1641,1041"/>
-<area shape="rect" id="node45" href="$cx16-veraheap_8c.html#a447cbbc904306ccd5fe6805bf5a3333d" title="Print the heap memory manager statistics of the segment." alt="" coords="1485,917,1640,942"/>
-<area shape="rect" id="node46" href="$cx16-veraheap_8c.html#a2511a72e731f8ffae94b9907f8b733a0" title=" " alt="" coords="1493,966,1633,991"/>
-<area shape="rect" id="node48" href="$cx16-veraheap_8c.html#a6d0cd9afd1afb4dca65932838951036f" title=" " alt="" coords="1494,1117,1631,1142"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,567,128,593"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="443,541,557,568"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="427,592,573,619"/>
+<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#adbbe47e13c66208ab3c1ef1bc0ec7b75" title=" " alt="" coords="208,364,347,391"/>
+<area shape="rect" id="node27" href="$equinoxe-floorengine_8c.html#a710a9f7ae2129ec15de6ef026b9d9733" title=" " alt="" coords="176,643,379,669"/>
+<area shape="rect" id="node32" href="$equinoxe-floorengine_8c.html#a82ba5e5ee8466d7c28612c7c2afb4390" title=" " alt="" coords="196,693,359,720"/>
+<area shape="rect" id="node34" href="$equinoxe-floorengine_8c.html#a8d0639a6bc59827a2a26028bbca11f81" title=" " alt="" coords="203,491,352,517"/>
+<area shape="rect" id="node5" href="$conio_8h.html#a5308b55039690f6cc3f500d9d18e409a" title="Output one character at the current cursor position. Scroll the screen if needed." alt="" coords="665,187,720,213"/>
+<area shape="rect" id="node22" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="861,484,911,511"/>
+<area shape="rect" id="node23" href="$equinoxe-flightengine_8c.html#a89a197d5f99d43f7d056b62d76670acd" title=" " alt="" coords="434,237,566,264"/>
+<area shape="rect" id="node24" href="$string_8h.html#ad590352aea59c25b94dd3398925085f4" title="Concatenates the C string pointed by source into the array pointed by destination,..." alt="" coords="473,389,527,416"/>
+<area shape="rect" id="node26" href="$string_8h.html#a209edee36fc03d0fa66113c3fb224883" title="Copies the C string pointed by source into the array pointed by destination, including the terminatin..." alt="" coords="471,339,529,365"/>
+<area shape="rect" id="node6" href="$kernal_8h.html#a50a1de6b3fb09f65ddb6e3fa52a530ec" title="Output a character to the defined channel." alt="" coords="834,259,938,285"/>
+<area shape="rect" id="node7" href="$kernal_8h.html#ac2ec7063ab39e75e5111653316f1044f" title="Set current cursor position using x and y coordinates." alt="" coords="829,5,943,32"/>
+<area shape="rect" id="node8" href="$conio-atarixl_8c.html#a4362217d220ec837acd039a5803f8d14" title=" " alt="" coords="812,56,960,83"/>
+<area shape="rect" id="node9" href="$conio-cbm-shared_8c.html#a4bdb86b4da4001163b7ef9cdad2eb74f" title="Move teh cursor to the start of the next line. Scroll the screen if needed." alt="" coords="857,360,915,387"/>
+<area shape="rect" id="node14" href="$conio-atarixl_8c.html#ab5159a45ba6da86b4085607bea7569dc" title=" " alt="" coords="853,309,919,336"/>
+<area shape="rect" id="node16" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="1027,208,1103,235"/>
+<area shape="rect" id="node18" href="$nes_8h.html#a18e9600a8d0c63bc2027346c51216f99" title=" " alt="" coords="841,107,931,133"/>
+<area shape="rect" id="node21" href="$conio-atarixl_8c.html#a425ccf59578cc44df30b3a78dfbafcdd" title=" " alt="" coords="853,157,919,184"/>
+<area shape="rect" id="node10" href="$conio-cbm-shared_8c.html#ab2dccac35e06f7a5be2f0fae66b175ee" title=" " alt="" coords="1035,411,1095,437"/>
+<area shape="rect" id="node11" href="$conio-cbm-shared_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="1193,411,1255,437"/>
+<area shape="rect" id="node12" href="$string_8h.html#a144edc3322c38480943628e0ac81aacd" title=" " alt="" coords="1188,360,1260,387"/>
+<area shape="rect" id="node13" href="$string_8h.html#a1e75227138c7a39467d90485305b1270" title="Copies the character c (an unsigned char) to the first num characters of the object pointed to by the..." alt="" coords="1189,309,1259,336"/>
+<area shape="rect" id="node15" href="$conio-atarixl_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="1035,259,1096,285"/>
+<area shape="rect" id="node17" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="1171,183,1277,209"/>
+<area shape="rect" id="node19" href="$nes_8c.html#a5aeb1e4af355b87509662d40bdc37ae8" title=" " alt="" coords="1008,107,1123,133"/>
+<area shape="rect" id="node20" href="$nes_8c.html#abdcb2261d4513ef832b3180d78b2ede4" title=" " alt="" coords="1020,56,1111,83"/>
+<area shape="rect" id="node25" href="$string_8c.html#a1b466f2a1e360235424abfb1b426f648" title="Computes the length of the string str up to but not including the terminating null character." alt="" coords="665,339,720,365"/>
+<area shape="rect" id="node28" href="$equinoxe-floorengine_8c.html#ad6e6980cd143b7714ab7b79b44ae442b" title=" " alt="" coords="429,693,571,720"/>
+<area shape="rect" id="node29" href="$cx16_8h.html#a9426fda00d3f3934340f79d0c55a5776" title="Copy block of memory from bram to vram. Copies num bytes from the source bram bank/pointer to the des..." alt="" coords="621,599,764,625"/>
+<area shape="rect" id="node30" href="$cx16_8c.html#a32c7920cd987a1320edf434006d8041a" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="831,560,941,587"/>
+<area shape="rect" id="node31" href="$cx16_8c.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="831,611,941,637"/>
+<area shape="rect" id="node33" href="$cx16_8h.html#a80a3998610091d9977cabffb9689f124" title="Set block of memory in vram to a value. Sets num bytes to the destination vram bank/offset to the spe..." alt="" coords="449,744,551,771"/>
+<area shape="rect" id="node35" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="449,440,551,467"/>
+<area shape="rect" id="node36" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="855,411,917,437"/>
+<area shape="rect" id="node37" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="638,440,747,467"/>
 </map>

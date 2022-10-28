@@ -5,6 +5,8 @@
 
 extern tower_t towers;
 
+void tower_move();
+void tower_logic();
 void tower_animate();
 unsigned char tower_remove(unsigned char t);
 unsigned char tower_add( 

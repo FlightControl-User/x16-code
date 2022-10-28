@@ -1,0 +1,8 @@
+<map id="printf_number_buffer" name="printf_number_buffer">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,144,108"/>
+<area shape="rect" id="node2" href="$printf_8c.html#a0af8d814d343000564f46aece7e9140a" title="Print a padding char a number of times." alt="" coords="192,5,295,32"/>
+<area shape="rect" id="node3" href="$printf_8c.html#ac6c3e434338b214c598bf43a9fc880b2" title="Print a NUL&#45;terminated string." alt="" coords="207,56,279,83"/>
+<area shape="rect" id="node4" href="$string_8h.html#a1b466f2a1e360235424abfb1b426f648" title="Computes the length of the string str up to but not including the terminating null character." alt="" coords="216,107,271,133"/>
+<area shape="rect" id="node5" href="$string_8c.html#a4f566a519caf1dc1bbc9a4f94b22c815" title=" " alt="" coords="216,157,271,184"/>
+<area shape="rect" id="node6" href="$ctype_8h.html#a20432919c6ab1d393542e4252b68cb5e" title=" " alt="" coords="343,157,408,184"/>
+</map>

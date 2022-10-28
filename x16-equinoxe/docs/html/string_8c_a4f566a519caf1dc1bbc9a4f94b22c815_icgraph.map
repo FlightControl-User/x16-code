@@ -1,0 +1,10 @@
+<map id="strupr" name="strupr">
+<area shape="rect" id="node1" title=" " alt="" coords="329,132,384,159"/>
+<area shape="rect" id="node2" href="$printf_8h.html#a63d86ddf3465b299d1817deaf287f424" title=" " alt="" coords="143,132,281,159"/>
+<area shape="rect" id="node3" href="$printf_8h.html#a531bb7aa1801d2ea5bdf3c5a98f2696f" title="Print a signed char using a specific format." alt="" coords="5,5,95,32"/>
+<area shape="rect" id="node4" href="$printf_8h.html#a8b4972d210737749ba8e43d6f4ff44a8" title="Print a signed integer using a specific format." alt="" coords="11,56,89,83"/>
+<area shape="rect" id="node5" href="$printf_8h.html#ad0340ded4027542020ec00950dac47b5" title="Print a signed long using a specific format." alt="" coords="6,107,94,133"/>
+<area shape="rect" id="node6" href="$printf_8h.html#a73340ea2e83c2440eae8e54f095b9de1" title="Print an unsigned char using a specific format." alt="" coords="5,157,95,184"/>
+<area shape="rect" id="node7" href="$printf_8h.html#aec5ee610edceedff73d3ebb477777036" title="Print an unsigned int using a specific format." alt="" coords="11,208,89,235"/>
+<area shape="rect" id="node8" href="$printf_8h.html#a9e96c82c7557eda66e1ce905d4bb0f8c" title="Print an unsigned int using a specific format." alt="" coords="6,259,94,285"/>
+</map>

@@ -1,0 +1,26 @@
+var struct_m_o_s6581___s_i_d =
+[
+    [ "CH1_ATTACK_DECAY", "struct_m_o_s6581___s_i_d.html#aaf5e1de8e2312451aa37ee85c74a8339", null ],
+    [ "CH1_CONTROL", "struct_m_o_s6581___s_i_d.html#a1de1b9f9cff12ac392ff7848e23069dc", null ],
+    [ "CH1_FREQ", "struct_m_o_s6581___s_i_d.html#a4863244ef7c8585f940666c1e4fd846c", null ],
+    [ "CH1_PULSE_WIDTH", "struct_m_o_s6581___s_i_d.html#a80c032e94aa1551c3a8006beedb068de", null ],
+    [ "CH1_SUSTAIN_RELEASE", "struct_m_o_s6581___s_i_d.html#aff32a6080fd03a86ab61d7faa85bd766", null ],
+    [ "CH2_ATTACK_DECAY", "struct_m_o_s6581___s_i_d.html#a964c0c6cea029edf89bc3dd813633efe", null ],
+    [ "CH2_CONTROL", "struct_m_o_s6581___s_i_d.html#a7dc94883b106012c8f76d249c6cfae6d", null ],
+    [ "CH2_FREQ", "struct_m_o_s6581___s_i_d.html#aee05bd76c1d7b4a8fd0e6ff079d4f0d3", null ],
+    [ "CH2_PULSE_WIDTH", "struct_m_o_s6581___s_i_d.html#a3a481d932a4a91877d673aafb1beb60f", null ],
+    [ "CH2_SUSTAIN_RELEASE", "struct_m_o_s6581___s_i_d.html#ad1f12a84b9ed8cbeb74efa2919b0ddb1", null ],
+    [ "CH3_ATTACK_DECAY", "struct_m_o_s6581___s_i_d.html#a920413ba929e4686496eda9e7c102037", null ],
+    [ "CH3_CONTROL", "struct_m_o_s6581___s_i_d.html#ac3716f2a288315a3bf023353150c620a", null ],
+    [ "CH3_ENV", "struct_m_o_s6581___s_i_d.html#af568e61cbbdaa181a02459f1e39dc940", null ],
+    [ "CH3_FREQ", "struct_m_o_s6581___s_i_d.html#a0f5ddce4b2a212d29bc68dbc92cc10d9", null ],
+    [ "CH3_OSC", "struct_m_o_s6581___s_i_d.html#a1dd982a6ce8083c4ecd2abd0e6f15a4a", null ],
+    [ "CH3_PULSE_WIDTH", "struct_m_o_s6581___s_i_d.html#a2fbf63403bbb818e5b5f2d9d5379dfb6", null ],
+    [ "CH3_SUSTAIN_RELEASE", "struct_m_o_s6581___s_i_d.html#a082964c4e919625f3be2dbf4d31eb5f6", null ],
+    [ "FILTER_CUTOFF_HIGH", "struct_m_o_s6581___s_i_d.html#a1455dff2cc5648dab62bfe846fdabdfd", null ],
+    [ "FILTER_CUTOFF_LOW", "struct_m_o_s6581___s_i_d.html#a987131f9632acd38cb35f81954b274ec", null ],
+    [ "FILTER_SETUP", "struct_m_o_s6581___s_i_d.html#ab37049af962f204a7eb184c7a711a840", null ],
+    [ "POT_X", "struct_m_o_s6581___s_i_d.html#ad70e8bc8df74c5f77d53f336efa2aa7c", null ],
+    [ "POT_Y", "struct_m_o_s6581___s_i_d.html#a6e4b61e409ec41d6408f7089ad8c7f74", null ],
+    [ "VOLUME_FILTER_MODE", "struct_m_o_s6581___s_i_d.html#a77fbd8cead611dfff05efc0021b03d57", null ]
+];

@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['veraheap_5fdebug_0',['VERAHEAP_DEBUG',['../cx16-veraheap__test__graphical_8c.html#a81fc8099bf7044d4cd4d5516e41268dd',1,'VERAHEAP_DEBUG():&#160;cx16-veraheap_test_graphical.c'],['../cx16-veraheap__test__segments_8c.html#a81fc8099bf7044d4cd4d5516e41268dd',1,'VERAHEAP_DEBUG():&#160;cx16-veraheap_test_segments.c']]],
-  ['veraheap_5ferror_1',['VERAHEAP_ERROR',['../cx16-veraheap-_t_a_b_l_e_t-_s_v_e_n_8h.html#a06142c19c3f843def66547fe89eeb990',1,'VERAHEAP_ERROR():&#160;cx16-veraheap-TABLET-SVEN.h'],['../cx16-veraheap-typedefs_8h.html#a06142c19c3f843def66547fe89eeb990',1,'VERAHEAP_ERROR():&#160;cx16-veraheap-typedefs.h']]],
-  ['veraheap_5findexes_2',['VERAHEAP_INDEXES',['../cx16-veraheap-_t_a_b_l_e_t-_s_v_e_n_8h.html#a377cca15e3997e8246fc12937fbb59b0',1,'VERAHEAP_INDEXES():&#160;cx16-veraheap-TABLET-SVEN.h'],['../cx16-veraheap-typedefs_8h.html#a377cca15e3997e8246fc12937fbb59b0',1,'VERAHEAP_INDEXES():&#160;cx16-veraheap-typedefs.h']]],
-  ['veraheap_5fnull_3',['VERAHEAP_NULL',['../cx16-veraheap-_t_a_b_l_e_t-_s_v_e_n_8h.html#aafd487f0e7bf4e1be740c7112994b5f1',1,'VERAHEAP_NULL():&#160;cx16-veraheap-TABLET-SVEN.h'],['../cx16-veraheap-typedefs_8h.html#aafd487f0e7bf4e1be740c7112994b5f1',1,'VERAHEAP_NULL():&#160;cx16-veraheap-typedefs.h']]],
-  ['veraheap_5fsegments_4',['VERAHEAP_SEGMENTS',['../cx16-veraheap-_t_a_b_l_e_t-_s_v_e_n_8h.html#a494b7dad5545fea7977444b059bf1ac8',1,'VERAHEAP_SEGMENTS():&#160;cx16-veraheap-TABLET-SVEN.h'],['../cx16-veraheap-typedefs_8h.html#a494b7dad5545fea7977444b059bf1ac8',1,'VERAHEAP_SEGMENTS():&#160;cx16-veraheap-typedefs.h']]]
+  ['sprite_5fanimate_4772',['SPRITE_ANIMATE',['../equinoxe-animate-types_8h.html#a60c553c9e4c81b2f2216bc1cc4030207',1,'equinoxe-animate-types.h']]],
+  ['sprite_5fbank_5fvram_4773',['SPRITE_BANK_VRAM',['../equinoxe-bank_8h.html#a47d0ee84c23c598add32c8cd68ef5a05',1,'equinoxe-bank.h']]],
+  ['sprite_5foffset_5fvram_4774',['SPRITE_OFFSET_VRAM',['../equinoxe-bank_8h.html#aaafb7bcd988cb68d6f1eb14ac3f21f1c',1,'equinoxe-bank.h']]],
+  ['stage_5ffloor_5ffile_5fcount_4775',['STAGE_FLOOR_FILE_COUNT',['../equinoxe-level-types_8h.html#ae2a36e247dd26a3b9d21b260c02e9054',1,'equinoxe-level-types.h']]],
+  ['stages_4776',['STAGES',['../equinoxe-stage-types_8h.html#aa0ac20f0f8c058640e746dc75e3ba7ae',1,'equinoxe-stage-types.h']]]
 ];

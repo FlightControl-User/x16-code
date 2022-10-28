@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['waitforvblank_3036',['waitForVBlank',['../nes_8h.html#aa66b47c415abc2d66be824893ad1d079',1,'waitForVBlank():&#160;nes.c'],['../nes_8c.html#aa66b47c415abc2d66be824893ad1d079',1,'waitForVBlank():&#160;nes.c']]],
+  ['wherex_3037',['wherex',['../conio_8h.html#a37df443085e20aac4771fc30421ee78b',1,'wherex(void):&#160;conio-atarixl.c'],['../conio-atarixl_8c.html#ac8d06386549ce62a4ff03b21a6ad3cfa',1,'wherex():&#160;conio-atarixl.c'],['../conio-cbm-shared_8c.html#a37df443085e20aac4771fc30421ee78b',1,'wherex(void):&#160;conio-cbm-shared.c'],['../conio-nes_8c.html#a37df443085e20aac4771fc30421ee78b',1,'wherex(void):&#160;conio-nes.c'],['../cx16-conio_8c.html#a37df443085e20aac4771fc30421ee78b',1,'wherex(void):&#160;cx16-conio.c']]],
+  ['wherey_3038',['wherey',['../conio_8h.html#a40b3e1942a28cae7613792541a23bdd3',1,'wherey(void):&#160;conio-atarixl.c'],['../conio-atarixl_8c.html#aa823c9fd4e6574327f005f52cd2dd8d1',1,'wherey():&#160;conio-atarixl.c'],['../conio-cbm-shared_8c.html#a40b3e1942a28cae7613792541a23bdd3',1,'wherey(void):&#160;conio-cbm-shared.c'],['../conio-nes_8c.html#a40b3e1942a28cae7613792541a23bdd3',1,'wherey(void):&#160;conio-nes.c'],['../cx16-conio_8c.html#a40b3e1942a28cae7613792541a23bdd3',1,'wherey(void):&#160;cx16-conio.c']]]
+];

@@ -1,0 +1,8 @@
+<map id="bullet_sprite_animate_del" name="bullet_sprite_animate_del">
+<area shape="rect" id="node1" title=" " alt="" coords="553,31,723,57"/>
+<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html#abe139181be3d02c1ff5714f34a861ccd" title=" " alt="" coords="404,31,505,57"/>
+<area shape="rect" id="node3" href="$equinoxe-bullet_8c.html#a817287b73c596728ddb302f9d381a894" title=" " alt="" coords="249,5,335,32"/>
+<area shape="rect" id="node6" href="$equinoxe_8c.html#a9ea83367cb3a2d7d6a319456f02274af" title="Equinoxe main collision detection routine." alt="" coords="228,56,356,83"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,31,180,57"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,31,56,57"/>
+</map>

@@ -95,14 +95,10 @@ __mem unsigned char ht_seed;
 {
     ht_index_t ht_index = ht_hash(key);
 
-    char count = 0;
     while(ht->next[ht_index] && ht->key[ht_index]!=key) {
         ht_index = ht_hash_next();
-        count++;
         // ht_index %= HT_SIZE;
     }
-
-    // printf("ht_i:c=%u",count);
 
     ht->key[ht_index] = key;
 

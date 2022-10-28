@@ -1,0 +1,7 @@
+<map id="floor_part_alloc_vram" name="floor_part_alloc_vram">
+<area shape="rect" id="node1" title=" " alt="" coords="427,31,569,57"/>
+<area shape="rect" id="node2" href="$equinoxe-floorengine_8c.html#a710a9f7ae2129ec15de6ef026b9d9733" title=" " alt="" coords="176,5,379,32"/>
+<area shape="rect" id="node5" href="$equinoxe-floorengine_8c.html#a82ba5e5ee8466d7c28612c7c2afb4390" title=" " alt="" coords="196,56,359,83"/>
+<area shape="rect" id="node3" href="$equinoxe-stage_8c.html#a7f975c51751f181280c226cc750130ee" title=" " alt="" coords="9,5,125,32"/>
+<area shape="rect" id="node4" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="5,56,128,83"/>
+</map>

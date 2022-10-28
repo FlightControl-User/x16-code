@@ -1,0 +1,8 @@
+<map id="print_uchar" name="print_uchar">
+<area shape="rect" id="node1" title="Print a char as HEX." alt="" coords="407,31,493,57"/>
+<area shape="rect" id="node2" href="$c64-print_8h.html#a8428d117f0f03c568fb44855b885d1a5" title="Print a signed char as HEX." alt="" coords="272,5,359,32"/>
+<area shape="rect" id="node3" href="$c64-print_8h.html#a73f338a29c1352379d272dda4b95366c" title="Print a unsigned int as HEX." alt="" coords="278,56,353,83"/>
+<area shape="rect" id="node4" href="$c64-print_8h.html#a1b4c76ee4429672ce85232fe5b9a6865" title="Print a int as HEX." alt="" coords="144,31,219,57"/>
+<area shape="rect" id="node5" href="$c64-print_8h.html#a1ed8ba70fca08fbbaf829cfc1199b97f" title="Print a unsigned long as HEX." alt="" coords="139,81,224,108"/>
+<area shape="rect" id="node6" href="$c64-print_8h.html#a39af98d8c65e1af2d4559991db67ddac" title="Print a signed long as HEX." alt="" coords="5,81,91,108"/>
+</map>

@@ -1,0 +1,35 @@
+<map id="bank_set_bram" name="bank_set_bram">
+<area shape="rect" id="node1" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="1569,397,1680,424"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#ab463e2fde151285a1cfb342a91fc7127" title="Increase a banked pointer, located between 0xA000 and 0xBFFF, so that the bank setting evolves with t..." alt="" coords="1384,220,1516,247"/>
+<area shape="rect" id="node3" href="$equinoxe-bullet_8c.html#aaefd54c5fe511f25edaa095716313ec1" title=" " alt="" coords="1411,271,1489,297"/>
+<area shape="rect" id="node6" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="412,245,507,272"/>
+<area shape="rect" id="node8" href="$kernal_8h.html#a7add8f41411085871c122ff70807022e" title="Get a character from keyboard." alt="" coords="1425,499,1475,525"/>
+<area shape="rect" id="node10" href="$equinoxe-collision_8c.html#aef97cccfd6a5ebb19484a1641747b92c" title=" " alt="" coords="1413,549,1487,576"/>
+<area shape="rect" id="node11" href="$cx16_8h.html#a9426fda00d3f3934340f79d0c55a5776" title="Copy block of memory from bram to vram. Copies num bytes from the source bram bank/pointer to the des..." alt="" coords="1379,321,1521,348"/>
+<area shape="rect" id="node26" href="$equinoxe-stage_8c.html#a265da423d69b2feadac558d39e0ae3a0" title=" " alt="" coords="415,347,503,373"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#a8ef7209f1aaeeaf916fb605060d832c5" title=" " alt="" coords="247,17,345,44"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,296,56,323"/>
+<area shape="rect" id="node7" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,220,180,247"/>
+<area shape="rect" id="node9" href="$cx16-conio_8c.html#a355e3b9dd6d02551dc4528e228ce5a6f" title="Return true if there&#39;s a key waiting, return false if not." alt="" coords="1254,499,1305,525"/>
+<area shape="rect" id="node12" href="$equinoxe-floorengine_8c.html#a710a9f7ae2129ec15de6ef026b9d9733" title=" " alt="" coords="977,321,1180,348"/>
+<area shape="rect" id="node15" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="1228,220,1331,247"/>
+<area shape="rect" id="node31" href="$equinoxe-palette_8c.html#a4d610a021d2a5edb3653e66b05ec390a" title=" " alt="" coords="1228,347,1331,373"/>
+<area shape="rect" id="node32" href="$equinoxe-flightengine_8c.html#ae4731a2e1533d0c4c94d6d746fd4b981" title=" " alt="" coords="555,144,727,171"/>
+<area shape="rect" id="node13" href="$equinoxe-stage_8c.html#a7f975c51751f181280c226cc750130ee" title=" " alt="" coords="794,296,910,323"/>
+<area shape="rect" id="node14" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="791,347,913,373"/>
+<area shape="rect" id="node16" href="$equinoxe-flightengine_8c.html#abad63961bd64b8542e1221daa9d4700a" title=" " alt="" coords="1013,195,1144,221"/>
+<area shape="rect" id="node28" href="$equinoxe-tower_8c.html#a5c69df862619beee5b15d88615bef7f0" title=" " alt="" coords="811,93,893,120"/>
+<area shape="rect" id="node30" href="$equinoxe-floorengine_8c.html#a8d0639a6bc59827a2a26028bbca11f81" title=" " alt="" coords="1004,271,1153,297"/>
+<area shape="rect" id="node17" href="$equinoxe-bullet_8c.html#a75fcda6f978807841b1cc224da86a603" title=" " alt="" coords="775,144,929,171"/>
+<area shape="rect" id="node24" href="$equinoxe-enemy_8c.html#a397116eab5d20aaaff60d6815822cba7" title=" " alt="" coords="807,245,897,272"/>
+<area shape="rect" id="node27" href="$equinoxe-player_8c.html#a8146582dc2527f8fca63299794259f48" title=" " alt="" coords="809,195,895,221"/>
+<area shape="rect" id="node18" href="$equinoxe-bullet_8c.html#a8f72b9df97809bc7ae9c24d891b5e16c" title=" " alt="" coords="602,195,679,221"/>
+<area shape="rect" id="node20" href="$equinoxe-bullet_8c.html#a15c967602a72c7be882ed259922722a2" title=" " alt="" coords="581,245,700,272"/>
+<area shape="rect" id="node21" href="$equinoxe-bullet_8c.html#ad45c43fa59b0764dbf0d09b4c0cc366a" title=" " alt="" coords="585,93,696,120"/>
+<area shape="rect" id="node19" href="$equinoxe-player_8c.html#a6abf0c586612e38f73f538cc6ff916de" title=" " alt="" coords="414,195,505,221"/>
+<area shape="rect" id="node22" href="$equinoxe-tower_8c.html#a4b275d520412a68d995f34a4285829ab" title=" " alt="" coords="416,93,503,120"/>
+<area shape="rect" id="node23" href="$equinoxe_8c.html#a5b31241c233fdc9000278daaa2de8f21" title=" " alt="" coords="228,93,364,120"/>
+<area shape="rect" id="node25" href="$equinoxe-stage_8c.html#a111cae1e7feb789d4b3b396967a284cd" title=" " alt="" coords="577,397,705,424"/>
+<area shape="rect" id="node29" href="$equinoxe-tower_8c.html#afa8a112e55ace83f2d26d47b82df9295" title=" " alt="" coords="415,43,503,69"/>
+<area shape="rect" id="node33" href="$equinoxe-bullet_8c.html#a817287b73c596728ddb302f9d381a894" title=" " alt="" coords="253,144,339,171"/>
+</map>

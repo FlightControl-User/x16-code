@@ -1,0 +1,15 @@
+<map id="cputsxy" name="cputsxy">
+<area shape="rect" id="node1" title=" " alt="" coords="5,44,73,71"/>
+<area shape="rect" id="node2" href="$conio-nes_8c.html#aa07942da126bd9b74f9dfd7c369fb2eb" title="Output a NUL&#45;terminated string at the current cursor position." alt="" coords="121,69,176,96"/>
+<area shape="rect" id="node6" href="$conio-nes_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="567,5,629,32"/>
+<area shape="rect" id="node3" href="$conio-nes_8c.html#a5308b55039690f6cc3f500d9d18e409a" title="Output one character at the current cursor position. Scroll the screen if needed." alt="" coords="224,81,279,108"/>
+<area shape="rect" id="node4" href="$conio-nes_8c.html#a4bdb86b4da4001163b7ef9cdad2eb74f" title="Move teh cursor to the start of the next line. Scroll the screen if needed." alt="" coords="327,81,384,108"/>
+<area shape="rect" id="node13" href="$nes_8h.html#a18e9600a8d0c63bc2027346c51216f99" title=" " alt="" coords="553,208,643,235"/>
+<area shape="rect" id="node5" href="$conio-nes_8c.html#ab2dccac35e06f7a5be2f0fae66b175ee" title=" " alt="" coords="432,81,492,108"/>
+<area shape="rect" id="node7" href="$nes_8h.html#a3a7bcf1154dad72116bac141da7c69cd" title=" " alt="" coords="547,56,649,83"/>
+<area shape="rect" id="node10" href="$nes_8h.html#a88c823b7fa241570ee0d32817e0a65ef" title=" " alt="" coords="555,107,641,133"/>
+<area shape="rect" id="node12" href="$nes_8h.html#a64f2c9aa9d13c8e0b253a4c90da87594" title=" " alt="" coords="540,157,656,184"/>
+<area shape="rect" id="node8" href="$nes_8c.html#a5aeb1e4af355b87509662d40bdc37ae8" title=" " alt="" coords="704,107,819,133"/>
+<area shape="rect" id="node9" href="$nes_8c.html#a9336e000abcb30eae7f268a54ec86edf" title=" " alt="" coords="711,56,811,83"/>
+<area shape="rect" id="node11" href="$nes_8c.html#abdcb2261d4513ef832b3180d78b2ede4" title=" " alt="" coords="716,157,807,184"/>
+</map>

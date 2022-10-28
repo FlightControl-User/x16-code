@@ -99,18 +99,19 @@ unsigned char enemy_add(unsigned char w)
 
 unsigned char enemy_remove(unsigned char e) 
 {
-
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
-    sprite_free_offset(sprite_offset);
-    vera_sprite_disable(sprite_offset);
-    palette16_unuse(sprite_cache.palette_offset[enemy.sprite[e]]);
-    fe_sprite_cache_free(enemy.sprite[e]);
-    enemy.used[e] = 0;
-    enemy.enabled[e] = 0;
+    if(enemy.used[e]) {
+        vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+        sprite_free_offset(sprite_offset);
+        vera_sprite_disable(sprite_offset);
+        palette16_unuse(sprite_cache.palette_offset[enemy.sprite[e]]);
+        fe_sprite_cache_free(enemy.sprite[e]);
+        enemy.used[e] = 0;
+        enemy.enabled[e] = 0;
 
-    stage.enemy_count--;
+        stage.enemy_count--;
+    }
 
     bank_pull_bram();
 
@@ -290,7 +291,6 @@ void enemy_logic() {
             // printf("x=%05i, y=%05i, offset=%04x", x, y, sprite_offset);
 
 			if(x>=-68 && x<640+68 && y>=-68 && y<480+68) {
-				grid_insert(&ht_collision, 2, BYTE0(x>>2), BYTE0(y>>2), e);
 
 				if(!enemy.enabled[e]) {
 			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[enemy.sprite[e]]);
@@ -310,6 +310,7 @@ void enemy_logic() {
 					FireBulletEnemy(e);
 				}
 #endif
+				grid_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_ENEMY | e);
 			} else {
 				if(enemy.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);

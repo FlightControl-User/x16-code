@@ -1,0 +1,6 @@
+<map id="print_str_ln" name="print_str_ln">
+<area shape="rect" id="node1" title="Print a zero&#45;terminated string followed by a newline." alt="" coords="5,31,92,57"/>
+<area shape="rect" id="node2" href="$c64-print_8c.html#ab585bc531acb24759f2bdc42f2a04297" title="Print a newline." alt="" coords="143,5,207,32"/>
+<area shape="rect" id="node3" href="$c64-print_8c.html#acbdfad44b656d380d425d40d57b8922b" title="Print a zero&#45;terminated string." alt="" coords="140,56,209,83"/>
+<area shape="rect" id="node4" href="$c64-print_8c.html#a95a463faeebe05bc853a3a3ffa83c996" title="Print a single char." alt="" coords="257,56,336,83"/>
+</map>

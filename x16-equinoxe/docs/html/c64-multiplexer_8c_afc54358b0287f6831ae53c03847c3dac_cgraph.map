@@ -1,0 +1,4 @@
+<map id="plexShowSprite" name="plexShowSprite">
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,117,32"/>
+<area shape="rect" id="node2" href="$c64-multiplexer_8c.html#ac4981278af7315142e759e221fe9506d" title="Update the data structure to reflect that a sprite has been shown. This sprite will be free again aft..." alt="" coords="165,5,260,32"/>
+</map>

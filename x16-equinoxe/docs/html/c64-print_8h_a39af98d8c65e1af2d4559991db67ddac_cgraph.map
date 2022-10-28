@@ -1,0 +1,7 @@
+<map id="print_slong" name="print_slong">
+<area shape="rect" id="node1" title="Print a signed long as HEX." alt="" coords="5,5,91,32"/>
+<area shape="rect" id="node2" href="$c64-print_8c.html#a95a463faeebe05bc853a3a3ffa83c996" title="Print a single char." alt="" coords="529,5,608,32"/>
+<area shape="rect" id="node3" href="$c64-print_8c.html#a1ed8ba70fca08fbbaf829cfc1199b97f" title="Print a unsigned long as HEX." alt="" coords="139,31,224,57"/>
+<area shape="rect" id="node4" href="$c64-print_8c.html#a73f338a29c1352379d272dda4b95366c" title="Print a unsigned int as HEX." alt="" coords="272,31,347,57"/>
+<area shape="rect" id="node5" href="$c64-print_8c.html#a6700301f0968f4eeab0433e2f28fd96b" title="Print a char as HEX." alt="" coords="395,31,481,57"/>
+</map>

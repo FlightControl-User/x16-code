@@ -1,0 +1,5 @@
+<map id="bitmap_clear" name="bitmap_clear">
+<area shape="rect" id="node1" title="Clear all graphics on the bitmap." alt="" coords="5,31,101,57"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a80a3998610091d9977cabffb9689f124" title="Set block of memory in vram to a value. Sets num bytes to the destination vram bank/offset to the spe..." alt="" coords="149,5,252,32"/>
+<area shape="rect" id="node3" href="$multiply_8h.html#a3580ae58b413fdbebf066746e247be8d" title="Perform binary multiplication of two unsigned 16&#45;bit unsigned ints into a 32&#45;bit unsigned double unsi..." alt="" coords="169,56,233,83"/>
+</map>

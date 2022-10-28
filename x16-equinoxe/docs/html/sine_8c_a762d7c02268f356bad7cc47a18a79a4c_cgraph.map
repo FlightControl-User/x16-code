@@ -1,0 +1,9 @@
+<map id="sin16s_gen2" name="sin16s_gen2">
+<area shape="rect" id="node1" title=" " alt="" coords="5,56,100,83"/>
+<area shape="rect" id="node2" href="$division_8h.html#ab46d9be56d7c8d2ab2995d6510861eb4" title=" " alt="" coords="148,5,227,32"/>
+<area shape="rect" id="node4" href="$multiply_8h.html#ad91e8c137b9883f0b384241f16cbebc2" title=" " alt="" coords="155,56,219,83"/>
+<area shape="rect" id="node5" href="$sine_8c.html#ad06185bce5c9aa6f089ff9b91d8000d3" title=" " alt="" coords="157,107,217,133"/>
+<area shape="rect" id="node3" href="$division_8c.html#a6086c0130b6a76b0c3e8d5b1d10e8ec8" title=" " alt="" coords="287,5,350,32"/>
+<area shape="rect" id="node6" href="$sine_8c.html#a68f7f42dbf7e8d3764e157c13078bcbf" title=" " alt="" coords="275,107,363,133"/>
+<area shape="rect" id="node7" href="$multiply_8h.html#a3580ae58b413fdbebf066746e247be8d" title="Perform binary multiplication of two unsigned 16&#45;bit unsigned ints into a 32&#45;bit unsigned double unsi..." alt="" coords="411,107,475,133"/>
+</map>

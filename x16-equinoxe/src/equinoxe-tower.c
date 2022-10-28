@@ -67,7 +67,7 @@ unsigned char tower_add(
 
     towers.palette[t] = palette16_use(palette_index);
 
-	towers.health[t] = 100;
+	towers.health[t] = 250;
 
     towers.tx[t] = tx;
     towers.ty[t] = ty;
@@ -86,19 +86,21 @@ unsigned char tower_add(
 
 unsigned char tower_remove(unsigned char t)
 {
-
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
-    vera_sprite_offset sprite_offset = towers.sprite_offset[t];
-    vera_sprite_disable(sprite_offset);
-    sprite_free_offset(sprite_offset);
-    palette16_unuse(sprite_cache.palette_offset[towers.sprite[t]]);
-    fe_sprite_cache_free(towers.sprite[t]);
+    if(towers.used[t]) {
+        vera_sprite_offset sprite_offset = towers.sprite_offset[t];
+        vera_sprite_disable(sprite_offset);
+        sprite_free_offset(sprite_offset);
+        palette16_unuse(sprite_cache.palette_offset[towers.sprite[t]]);
+        fe_sprite_cache_free(towers.sprite[t]);
 
-    towers.used[t] = 0;
-    towers.enabled[t] = 0;
+        towers.used[t] = 0;
+        towers.enabled[t] = 0;
+        towers.sprite[t] = 255;
 
-    stage.tower_count--;
+        stage.tower_count--;
+    }
 
     bank_pull_bram();
 
@@ -106,7 +108,19 @@ unsigned char tower_remove(unsigned char t)
     return ret;
 }
 
+unsigned char tower_hit(unsigned char t, unsigned char b) 
+{
+    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
+    towers.health[t] += bullet.energy[b];
+    if(towers.health[t] <= 0) {
+        bank_pull_bram();
+        return tower_remove(t);
+    }
+
+    bank_pull_bram();
+    return 0;
+}
 
 void tower_paint(unsigned char row, unsigned char column) 
 {
@@ -161,7 +175,7 @@ void tower_animate()
                     if(!towers.anim_wait[t]) {
                         towers.anim_wait[t] = towers.anim_speed[t];
                         if(towers.anim_state[t] >= towers.anim_stop[t]) {
-                            towers.anim_wait[t] = 255;
+                            towers.anim_wait[t] = 40;
                             towers.state[t] = 3;
                         } else {
                             towers.anim_state[t] += 1;
@@ -173,13 +187,18 @@ void tower_animate()
                 case 3:
                     // Shoot
                     if(!towers.anim_wait[t]) {
-                        towers.anim_wait[t] = 255;
+                        towers.anim_wait[t] = 0;
                         towers.state[t] = 4;
                     } else {
                         towers.anim_wait[t]--;
                     }
                     break;   
                 case 4:
+                    // Shot fired
+                    towers.state[t] = 5;
+                    towers.anim_wait[t] = 0;
+                    break;   
+                case 5:
                     if(!towers.anim_wait[t]) {
                         towers.anim_wait[t] = towers.anim_speed[t];
                         if(towers.anim_state[t] <= towers.anim_start[t]) {
@@ -198,41 +217,55 @@ void tower_animate()
     bank_pull_bram();
 }
 
-void tower_logic() {
-
+void tower_move()
+{
     bank_push_set_bram(BRAM_ENGINE_TOWERS);
 
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
-
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
             // todo i need to review this statement as it compiles wrongly like this:
             // signed int py = (signed int)((unsigned int)towers.y[t] * 64) - (signed int)game.screen_vscroll; // the screen_vscroll contains the current scroll position.
             signed int volatile y = towers.ty[t];
             y++;
             towers.ty[t] = y;
+        }
+	}
+    bank_pull_bram();
+}
+
+void tower_logic() 
+{
+
+    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+
+	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
+
+		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
+            signed int volatile y = towers.ty[t];
             signed int volatile x = towers.tx[t];
             if(y > 32*16) {
-                // printf("remove=%u", t);
                 tower_remove(t);
             } else {
-                grid_insert(&ht_collision, 4, BYTE0(x>>2), BYTE0(y>>2), t);
                 vera_sprite_offset sprite_offset = towers.sprite_offset[t];
                 vera_sprite_zdepth_in_front(sprite_offset);
                 vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
-                // printf("tower logic: t=%u, towers x[t]=%3u, y[t]=%3u", t, towers.x[t], y, towers.y[t]);
-                // printf("vscroll=%4u, px=%i, py=%i, y=%u\n", game.screen_vscroll, px, py, y);
-            }
-            if(towers.anim_state[t] == 3) {
-#ifdef __BULLET                
-				unsigned int r = rand();
-				if(r>=10300) {
+                unsigned char volatile gx = BYTE0((unsigned)x>>2); 
+                unsigned char volatile gy = BYTE0((unsigned)y>>2); 
+                // printf("tower logic: t=%u, towers gx=%04u, gy=%04u\n", t, gx, gy);
+                grid_insert(&ht_collision, gx, gy, COLLISION_TOWER | t);
+                if(towers.anim_state[t] == 3) {
+                    #ifdef __BULLET                
                     signed int volatile py = towers.ty[t];
                     if(py>0) {
-                        FireBulletTower(t);
+                        unsigned char rnd = rand();
+                        if( rnd < 32 ) {
+                            FireBulletTower(t);
+                        }
                     }
-				}
-#endif
+                    #endif
+                }
             }
+
         }
 	}
     bank_pull_bram();

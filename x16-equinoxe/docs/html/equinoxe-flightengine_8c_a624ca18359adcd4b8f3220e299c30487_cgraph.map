@@ -1,0 +1,9 @@
+<map id="fe_sprite_debug" name="fe_sprite_debug">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,119,108"/>
+<area shape="rect" id="node2" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="167,5,229,32"/>
+<area shape="rect" id="node5" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="173,56,223,83"/>
+<area shape="rect" id="node6" href="$conio_8h.html#a37df443085e20aac4771fc30421ee78b" title="Return the X position of the cursor." alt="" coords="167,107,229,133"/>
+<area shape="rect" id="node7" href="$conio_8h.html#a40b3e1942a28cae7613792541a23bdd3" title="Return the Y position of the cursor." alt="" coords="167,157,229,184"/>
+<area shape="rect" id="node3" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="277,5,353,32"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="401,5,508,32"/>
+</map>

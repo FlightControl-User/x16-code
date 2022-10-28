@@ -1,0 +1,4 @@
+<map id="cbm_k_plot_get" name="cbm_k_plot_get">
+<area shape="rect" id="node1" title="Get current x and y cursor position." alt="" coords="159,5,273,32"/>
+<area shape="rect" id="node2" href="$cx16-conio_8c.html#a43b2e29a45bd5e05d7e5796a0035e2e7" title="Initializer for conio.h on X16 Commander." alt="" coords="5,5,111,32"/>
+</map>

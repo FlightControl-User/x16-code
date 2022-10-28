@@ -1,0 +1,7 @@
+<map id="floor_part_memset_vram" name="floor_part_memset_vram">
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,168,108"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="233,5,346,32"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="216,56,363,83"/>
+<area shape="rect" id="node4" href="$equinoxe-floorengine_8c.html#ad6e6980cd143b7714ab7b79b44ae442b" title=" " alt="" coords="218,107,361,133"/>
+<area shape="rect" id="node5" href="$cx16_8h.html#a80a3998610091d9977cabffb9689f124" title="Set block of memory in vram to a value. Sets num bytes to the destination vram bank/offset to the spe..." alt="" coords="238,157,341,184"/>
+</map>

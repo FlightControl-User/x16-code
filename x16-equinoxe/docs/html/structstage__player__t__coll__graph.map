@@ -1,6 +1,6 @@
 <map id="stage_player_t" name="stage_player_t">
-<area shape="rect" id="node1" title=" " alt="" coords="105,181,212,207"/>
-<area shape="rect" id="node2" href="$structsprite__bram__t.html" title=" " alt="" coords="108,5,209,31"/>
-<area shape="rect" id="node3" href="$structstage__engine__t.html" title=" " alt="" coords="103,93,214,119"/>
-<area shape="rect" id="node4" href="$structstage__bullet__t.html" title=" " alt="" coords="238,93,340,119"/>
+<area shape="rect" id="node1" title=" " alt="" coords="105,184,212,211"/>
+<area shape="rect" id="node2" href="$structstage__engine__t.html" title=" " alt="" coords="103,95,214,121"/>
+<area shape="rect" id="node3" href="$structsprite__bram__t.html" title=" " alt="" coords="108,5,209,32"/>
+<area shape="rect" id="node4" href="$structstage__bullet__t.html" title=" " alt="" coords="238,95,340,121"/>
 </map>

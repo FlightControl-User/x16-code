@@ -1,7 +1,7 @@
 <map id="stage_floor_t" name="stage_floor_t">
-<area shape="rect" id="node1" title=" " alt="" coords="45,280,141,305"/>
-<area shape="rect" id="node2" href="$structstage__floor__bram__tiles__t.html" title=" " alt="" coords="5,143,168,168"/>
-<area shape="rect" id="node3" href="$structfloor__bram__tiles__t.html" title=" " alt="" coords="91,5,215,31"/>
-<area shape="rect" id="node5" href="$structfloor__parts__t.html" title=" " alt="" coords="172,93,265,119"/>
-<area shape="rect" id="node4" href="$structfloor__t.html" title=" " alt="" coords="193,192,250,217"/>
+<area shape="rect" id="node1" title=" " alt="" coords="55,285,151,312"/>
+<area shape="rect" id="node2" href="$structfloor__t.html" title=" " alt="" coords="26,196,83,223"/>
+<area shape="rect" id="node3" href="$structfloor__parts__t.html" title=" " alt="" coords="5,95,99,121"/>
+<area shape="rect" id="node4" href="$structfloor__bram__tiles__t.html" title=" " alt="" coords="49,5,173,32"/>
+<area shape="rect" id="node5" href="$structstage__floor__bram__tiles__t.html" title=" " alt="" coords="89,145,252,172"/>
 </map>

@@ -201,14 +201,14 @@ stage_flightpath_t action_flightpath_006[] = {
 __export volatile
 stage_scenario_t stage_level_01[32] = {
 //    ct, sp, &sprite_enemy_xxx, action_flightpath_xxx,                                 xstrt, ystrt, xinc, yinc, ival, wait, prev    
-    { 16, 16, &stage_enemy_e0101, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
-    { 16, 16, &stage_enemy_e0101, action_flightpath_005,                                  704,    96,    0,    0,    4,   20,    0 }, // 1
-    { 16, 16, &stage_enemy_e0102, action_flightpath_006,                                  -64,   160,    0,    0,   12,   20,    0 }, // 2
+    {  8,  1, &stage_enemy_e0501, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
+    { 16, 16, &stage_enemy_e0701, action_flightpath_005,                                  704,    96,    0,    0,    4,   20,    0 }, // 1
+    { 16, 16, &stage_enemy_e0702, action_flightpath_006,                                  -64,   160,    0,    0,   12,   20,    0 }, // 2
     { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,    32,    0,    0,   14,   20,    2 }, // 3
-    { 16, 16, &stage_enemy_e0202, action_flightpath_006,                                  -64,    96,    0,    0,   16,   20,    2 }, // 4
+    { 16, 16, &stage_enemy_e0201, action_flightpath_006,                                  -64,    96,    0,    0,   16,   20,    2 }, // 4
     { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,   160,    0,    0,   18,   20,    2 }, // 5
-    {  8,  8, &stage_enemy_e0301, action_flightpath_006,                                  -64,    32,    0,    0,    8,   20,    5 }, // 6
-    {  8,  8, &stage_enemy_e0302, action_flightpath_005,                                  704,    96,    0,    0,    8,   20,    5 }, // 7
+    {  8,  8, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,    0,    8,   20,    5 }, // 6
+    {  8,  8, &stage_enemy_e0401, action_flightpath_005,                                  704,    96,    0,    0,    8,   20,    5 }, // 7
     {  8,  8, &stage_enemy_e0301, action_flightpath_006,                                  -64,   160,    0,    0,    8,   20,    5 }, // 8
     {  8,  8, &stage_enemy_e0302, action_flightpath_005,                                  704,   224,    0,    0,    8,   20,    8 }, // 9
     {  8,  8, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,   32,    4,   20,    8 }, // 10

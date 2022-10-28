@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['fb_5fheap_5fbank_5ft_0',['fb_heap_bank_t',['../cx16-heap_8h.html#a22424b858c9effded4dd94b35ccccdb2',1,'cx16-heap.h']]],
-  ['fb_5fheap_5fsize_5ft_1',['fb_heap_size_t',['../cx16-heap_8h.html#a1b21d5a7e288413fa7351f5bdbd25ffe',1,'cx16-heap.h']]],
-  ['fe_5fsprite_5findex_5ft_2',['fe_sprite_index_t',['../equinoxe-flightengine-types_8h.html#af97713b8d4dd1b0f5c3889176c1f2b36',1,'equinoxe-flightengine-types.h']]],
-  ['floor_5fbram_5fhandles_5ft_3',['floor_bram_handles_t',['../equinoxe-floorengine-types_8h.html#af5e9c716bc10e9adc871295db3555f1c',1,'equinoxe-floorengine-types.h']]],
-  ['fp_4',['FP',['../fp3-typedefs_8h.html#ae2cf33b0ab4eab3188bc364e3cb456a5',1,'fp3-typedefs.h']]]
+  ['int16_5ft_4685',['int16_t',['../stdint_8h.html#a932e6ccc3d54c58f761c1aead83bd6d7',1,'stdint.h']]],
+  ['int32_5ft_4686',['int32_t',['../stdint_8h.html#a2ba621978a511250f7250fb10e05ffbe',1,'stdint.h']]],
+  ['int8_5ft_4687',['int8_t',['../stdint_8h.html#aef44329758059c91c76d334e8fc09700',1,'stdint.h']]],
+  ['intmax_5ft_4688',['intmax_t',['../stdint_8h.html#a022f62cf5e5bfd72e84da8ce64ea113e',1,'stdint.h']]],
+  ['irq_5ftype_4689',['IRQ_TYPE',['../c64_8h.html#a3afb703064bb74f5d1deb17e86b405b2',1,'IRQ_TYPE():&#160;c64.h'],['../cx16-typedefs_8h.html#a3afb703064bb74f5d1deb17e86b405b2',1,'IRQ_TYPE():&#160;cx16-typedefs.h'],['../mega65_8h.html#a3afb703064bb74f5d1deb17e86b405b2',1,'IRQ_TYPE():&#160;mega65.h']]]
 ];

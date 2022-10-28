@@ -1,5 +1,7 @@
 <map id="bullet_remove" name="bullet_remove">
-<area shape="rect" id="node1" title=" " alt="" coords="277,5,379,31"/>
-<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html#ad9fd744a793e6f010ea6e93af2d3b2f7" title=" " alt="" coords="136,5,229,31"/>
-<area shape="rect" id="node3" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,5,88,31"/>
+<area shape="rect" id="node1" title=" " alt="" coords="404,31,505,57"/>
+<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html#a817287b73c596728ddb302f9d381a894" title=" " alt="" coords="249,5,335,32"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#a9ea83367cb3a2d7d6a319456f02274af" title="Equinoxe main collision detection routine." alt="" coords="228,56,356,83"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,31,180,57"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,31,56,57"/>
 </map>

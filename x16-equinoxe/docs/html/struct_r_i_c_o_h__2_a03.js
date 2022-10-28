@@ -1,0 +1,27 @@
+var struct_r_i_c_o_h__2_a03 =
+[
+    [ "DMC_FREQ", "struct_r_i_c_o_h__2_a03.html#afda735a8216ebbbd3efc0661d2730fa6", null ],
+    [ "DMC_LEN", "struct_r_i_c_o_h__2_a03.html#aa60bc62cd9629534b993f371553184da", null ],
+    [ "DMC_RAW", "struct_r_i_c_o_h__2_a03.html#a609f8381efe9ab824005a6cae61a7d0b", null ],
+    [ "DMC_START", "struct_r_i_c_o_h__2_a03.html#ab8a6b315bf2996394fe2100b1b2eed52", null ],
+    [ "JOY1", "struct_r_i_c_o_h__2_a03.html#a0dca445ce057bb906852055c95006743", null ],
+    [ "JOY2", "struct_r_i_c_o_h__2_a03.html#aa69ca610e4ce716ff566fadbdef05355", null ],
+    [ "NOISE_HI", "struct_r_i_c_o_h__2_a03.html#a928eb96929da1b868f1995af4d879c11", null ],
+    [ "NOISE_LO", "struct_r_i_c_o_h__2_a03.html#a12f48901a537ea7ae1e05a786c52e1d4", null ],
+    [ "NOISE_VOL", "struct_r_i_c_o_h__2_a03.html#affbe3b00339246a9b5374307378fcb7a", null ],
+    [ "OAMDMA", "struct_r_i_c_o_h__2_a03.html#a84523bd8a6cf830a1def6b8eb7fb1b1d", null ],
+    [ "SND_CHN", "struct_r_i_c_o_h__2_a03.html#a0ece6773dc2ce252b8f9dfff8ab6eb02", null ],
+    [ "SQ1_HI", "struct_r_i_c_o_h__2_a03.html#a1f99900ea3ca3ee8db80e92da9122fa4", null ],
+    [ "SQ1_LO", "struct_r_i_c_o_h__2_a03.html#a8cc3eecf71298f4e58f5024d59e30170", null ],
+    [ "SQ1_SWEEP", "struct_r_i_c_o_h__2_a03.html#a4906a67cd990d666284a62fcb1cf7640", null ],
+    [ "SQ1_VOL", "struct_r_i_c_o_h__2_a03.html#a983b9a085ff31d964a5f04d4de4452c7", null ],
+    [ "SQ2_HI", "struct_r_i_c_o_h__2_a03.html#a8bf5901397e5d092b888929b9df5b8e5", null ],
+    [ "SQ2_LO", "struct_r_i_c_o_h__2_a03.html#a35c8a87289dfb7033301ad5e67849098", null ],
+    [ "SQ2_SWEEP", "struct_r_i_c_o_h__2_a03.html#a391ff2ed30df455c77704679837474d1", null ],
+    [ "SQ2_VOL", "struct_r_i_c_o_h__2_a03.html#a87368d37fb3f2b00a7162a0058222d4f", null ],
+    [ "TRI_HI", "struct_r_i_c_o_h__2_a03.html#af51113cf2d1658f24d2312be9742e405", null ],
+    [ "TRI_LINEAR", "struct_r_i_c_o_h__2_a03.html#a3d5beaab24ed26af1f12b560b88cec88", null ],
+    [ "TRI_LO", "struct_r_i_c_o_h__2_a03.html#a6c2109634e25c0c972899203e3de9c35", null ],
+    [ "UNUSED1", "struct_r_i_c_o_h__2_a03.html#a119c9732be1aa1ba4f941e02e028a5b6", null ],
+    [ "UNUSED2", "struct_r_i_c_o_h__2_a03.html#aeddc912f2c88e32e7fff0ef9102668df", null ]
+];

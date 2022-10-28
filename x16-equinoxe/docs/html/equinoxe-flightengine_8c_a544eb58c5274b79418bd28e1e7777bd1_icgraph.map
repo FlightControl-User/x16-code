@@ -1,14 +1,19 @@
 <map id="fe_sprite_cache_copy" name="fe_sprite_cache_copy">
-<area shape="rect" id="node1" title=" " alt="" coords="663,80,811,105"/>
-<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#a397116eab5d20aaaff60d6815822cba7" title=" " alt="" coords="511,5,600,31"/>
-<area shape="rect" id="node7" href="$equinoxe-bullet_8c.html#a8f72b9df97809bc7ae9c24d891b5e16c" title=" " alt="" coords="517,55,594,80"/>
-<area shape="rect" id="node8" href="$equinoxe-bullet_8c.html#a15c967602a72c7be882ed259922722a2" title=" " alt="" coords="496,104,615,129"/>
-<area shape="rect" id="node10" href="$equinoxe-tower_8c.html#aaa23697dc0f0673c40e52a6a0b779848" title=" " alt="" coords="515,153,596,179"/>
-<area shape="rect" id="node3" href="$equinoxe-stage_8c.html#a111cae1e7feb789d4b3b396967a284cd" title=" " alt="" coords="320,29,448,55"/>
-<area shape="rect" id="node4" href="$equinoxe-stage_8c.html#a265da423d69b2feadac558d39e0ae3a0" title=" " alt="" coords="160,53,248,79"/>
-<area shape="rect" id="node5" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,103,88,128"/>
-<area shape="rect" id="node6" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="21,53,72,79"/>
-<area shape="rect" id="node9" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="157,103,251,128"/>
-<area shape="rect" id="node11" href="$equinoxe-tower_8c.html#a7950ff8563924fcbc11f5f1b036db051" title=" " alt="" coords="340,153,428,179"/>
-<area shape="rect" id="node12" href="$equinoxe_8c.html#a5b31241c233fdc9000278daaa2de8f21" title=" " alt="" coords="136,152,272,177"/>
+<area shape="rect" id="node1" title=" " alt="" coords="913,152,1061,179"/>
+<area shape="rect" id="node2" href="$equinoxe-bullet_8c.html#a46fa9ecdf027b3cde2b352a0bd13214e" title=" " alt="" coords="731,113,865,140"/>
+<area shape="rect" id="node12" href="$equinoxe-enemy_8c.html#a397116eab5d20aaaff60d6815822cba7" title=" " alt="" coords="753,252,843,279"/>
+<area shape="rect" id="node15" href="$equinoxe-player_8c.html#a8146582dc2527f8fca63299794259f48" title=" " alt="" coords="755,189,841,216"/>
+<area shape="rect" id="node16" href="$equinoxe-tower_8c.html#a5c69df862619beee5b15d88615bef7f0" title=" " alt="" coords="757,12,839,39"/>
+<area shape="rect" id="node3" href="$equinoxe-bullet_8c.html#a8f72b9df97809bc7ae9c24d891b5e16c" title=" " alt="" coords="580,107,657,133"/>
+<area shape="rect" id="node7" href="$equinoxe-bullet_8c.html#a15c967602a72c7be882ed259922722a2" title=" " alt="" coords="559,157,678,184"/>
+<area shape="rect" id="node9" href="$equinoxe-bullet_8c.html#ad45c43fa59b0764dbf0d09b4c0cc366a" title=" " alt="" coords="563,56,674,83"/>
+<area shape="rect" id="node4" href="$equinoxe-player_8c.html#a6abf0c586612e38f73f538cc6ff916de" title=" " alt="" coords="251,107,341,133"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,157,180,184"/>
+<area shape="rect" id="node6" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,183,56,209"/>
+<area shape="rect" id="node8" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="412,157,507,184"/>
+<area shape="rect" id="node10" href="$equinoxe-tower_8c.html#a4b275d520412a68d995f34a4285829ab" title=" " alt="" coords="416,56,503,83"/>
+<area shape="rect" id="node11" href="$equinoxe_8c.html#a5b31241c233fdc9000278daaa2de8f21" title=" " alt="" coords="228,56,364,83"/>
+<area shape="rect" id="node13" href="$equinoxe-stage_8c.html#a111cae1e7feb789d4b3b396967a284cd" title=" " alt="" coords="555,259,683,285"/>
+<area shape="rect" id="node14" href="$equinoxe-stage_8c.html#a265da423d69b2feadac558d39e0ae3a0" title=" " alt="" coords="252,208,340,235"/>
+<area shape="rect" id="node17" href="$equinoxe-tower_8c.html#afa8a112e55ace83f2d26d47b82df9295" title=" " alt="" coords="415,5,503,32"/>
 </map>

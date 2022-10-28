@@ -1,0 +1,52 @@
+<map id="gotoxy" name="gotoxy">
+<area shape="rect" id="node1" title="Set the cursor to the specified position." alt="" coords="1281,837,1343,864"/>
+<area shape="rect" id="node2" href="$conio_8h.html#a209453284e1e2ed32261e11e00d53760" title="Currently CX16/C64/PLUS4/VIC20 platforms are supported." alt="" coords="752,103,807,129"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="143,375,219,401"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,273,56,300"/>
+<area shape="rect" id="node7" href="$conio-c64_8c.html#ab28d488ce29988b56b3f01114709f6b1" title=" " alt="" coords="1115,761,1221,788"/>
+<area shape="rect" id="node8" href="$conio-mega65_8c.html#a41ba9419c6759cd1ccd9d88b9d39e385" title=" " alt="" coords="1103,812,1233,839"/>
+<area shape="rect" id="node9" href="$conio-plus4_8c.html#a70306d3e141b6d706461976bf684c1b2" title=" " alt="" coords="1111,863,1225,889"/>
+<area shape="rect" id="node10" href="$conio-vic20_8c.html#ad9e0d939c9ac3b7f036cdc64044f811c" title=" " alt="" coords="1111,913,1225,940"/>
+<area shape="rect" id="node11" href="$cx16-conio_8c.html#a43b2e29a45bd5e05d7e5796a0035e2e7" title="Initializer for conio.h on X16 Commander." alt="" coords="1115,964,1221,991"/>
+<area shape="rect" id="node12" href="$conio_8h.html#ab781d17acfbe04de590018a5117312c6" title=" " alt="" coords="745,1116,813,1143"/>
+<area shape="rect" id="node13" href="$conio_8h.html#ad43e579fd92549a34b9adfe2eb871b16" title=" " alt="" coords="534,1268,602,1295"/>
+<area shape="rect" id="node14" href="$conio-cbm-shared_8c.html#ab2dccac35e06f7a5be2f0fae66b175ee" title=" " alt="" coords="1138,1268,1198,1295"/>
+<area shape="rect" id="node17" href="$conio-lines_8h.html#a046fc44869300e2a0a1b2cb0ce1e90a4" title="Output a vertical line with the given length at the current cursor position." alt="" coords="752,1065,807,1092"/>
+<area shape="rect" id="node18" href="$conio-lines_8h.html#af8db8ccad1c7c140f4b0e4bfa050fddb" title=" " alt="" coords="534,1040,602,1067"/>
+<area shape="rect" id="node19" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="1111,255,1225,281"/>
+<area shape="rect" id="node31" href="$equinoxe-floorengine_8c.html#ab1c60747ff95f013e1f07d769c6970c8" title="Paint the segments according a progressing tiling mechanism." alt="" coords="527,609,609,636"/>
+<area shape="rect" id="node33" href="$conio-atarixl_8c.html#ab5159a45ba6da86b4085607bea7569dc" title=" " alt="" coords="1135,1167,1201,1193"/>
+<area shape="rect" id="node39" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="1113,1471,1223,1497"/>
+<area shape="rect" id="node40" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="933,1471,1035,1497"/>
+<area shape="rect" id="node46" href="$equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3" title=" " alt="" coords="925,305,1043,332"/>
+<area shape="rect" id="node47" href="$equinoxe-flightengine_8c.html#ae4731a2e1533d0c4c94d6d746fd4b981" title=" " alt="" coords="693,457,865,484"/>
+<area shape="rect" id="node49" href="$equinoxe-stage_8c.html#a98b752dad7cdcc579fbeab726578c3ef" title=" " alt="" coords="130,704,233,731"/>
+<area shape="rect" id="node50" href="$equinoxe-stage_8c.html#a265da423d69b2feadac558d39e0ae3a0" title=" " alt="" coords="331,660,419,687"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#a9ea83367cb3a2d7d6a319456f02274af" title="Equinoxe main collision detection routine." alt="" coords="504,204,632,231"/>
+<area shape="rect" id="node6" href="$equinoxe-petscii_8c.html#a1f0b9160ad248f4aaf646cb4e2bff14c" title=" " alt="" coords="151,103,211,129"/>
+<area shape="rect" id="node15" href="$conio-cbm-shared_8c.html#a4bdb86b4da4001163b7ef9cdad2eb74f" title="Move teh cursor to the start of the next line. Scroll the screen if needed." alt="" coords="955,1307,1013,1333"/>
+<area shape="rect" id="node16" href="$conio-cbm-shared_8c.html#a5308b55039690f6cc3f500d9d18e409a" title="Output one character at the current cursor position. Scroll the screen if needed." alt="" coords="752,1319,807,1345"/>
+<area shape="rect" id="node20" href="$equinoxe-flightengine_8c.html#a65fe82d3b4c6eb47ca1344b25ba47027" title=" " alt="" coords="913,255,1055,281"/>
+<area shape="rect" id="node21" href="$equinoxe-bullet_8c.html#abe139181be3d02c1ff5714f34a861ccd" title=" " alt="" coords="729,255,830,281"/>
+<area shape="rect" id="node23" href="$equinoxe-enemy_8c.html#a48e186aa7fec971deff3bec3e565a66c" title=" " alt="" coords="725,305,834,332"/>
+<area shape="rect" id="node27" href="$equinoxe-player_8c.html#aad4a01f644beac9bad62c1ce872261d6" title=" " alt="" coords="727,204,832,231"/>
+<area shape="rect" id="node28" href="$equinoxe-tower_8c.html#a322f862c89372ff28086ccb4311e1594" title=" " alt="" coords="729,356,830,383"/>
+<area shape="rect" id="node22" href="$equinoxe-bullet_8c.html#a817287b73c596728ddb302f9d381a894" title=" " alt="" coords="525,255,611,281"/>
+<area shape="rect" id="node24" href="$equinoxe-enemy_8c.html#a86ce75c7da5956db16c737f8dce1256e" title=" " alt="" coords="527,305,609,332"/>
+<area shape="rect" id="node25" href="$equinoxe-stage_8c.html#a05a7f67bcde7b726bee52a08bacb00c5" title=" " alt="" coords="494,356,642,383"/>
+<area shape="rect" id="node26" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="327,363,422,389"/>
+<area shape="rect" id="node29" href="$equinoxe-tower_8c.html#a4b275d520412a68d995f34a4285829ab" title=" " alt="" coords="525,457,611,484"/>
+<area shape="rect" id="node30" href="$equinoxe_8c.html#a5b31241c233fdc9000278daaa2de8f21" title=" " alt="" coords="307,464,443,491"/>
+<area shape="rect" id="node32" href="$equinoxe-floorengine_8c.html#af3a746331028642749e23580c5a07852" title=" " alt="" coords="104,451,259,477"/>
+<area shape="rect" id="node34" href="$conio_8h.html#a5308b55039690f6cc3f500d9d18e409a" title="Output one character at the current cursor position. Scroll the screen if needed." alt="" coords="957,1167,1011,1193"/>
+<area shape="rect" id="node38" href="$conio_8h.html#a4bdb86b4da4001163b7ef9cdad2eb74f" title="Move teh cursor to the start of the next line. Scroll the screen if needed." alt="" coords="955,1231,1013,1257"/>
+<area shape="rect" id="node35" href="$conio-lines_8h.html#a8f2a5b6b526f42a90e0e649e80674d31" title="Output a horizontal line with the given length starting at the current cursor position." alt="" coords="751,1217,807,1244"/>
+<area shape="rect" id="node36" href="$conio_8h.html#aa07942da126bd9b74f9dfd7c369fb2eb" title="Output a NUL&#45;terminated string at the current cursor position." alt="" coords="752,1167,807,1193"/>
+<area shape="rect" id="node37" href="$equinoxe-flightengine_8c.html#adbbe47e13c66208ab3c1ef1bc0ec7b75" title=" " alt="" coords="710,1268,849,1295"/>
+<area shape="rect" id="node41" href="$equinoxe-flightengine_8c.html#abad63961bd64b8542e1221daa9d4700a" title=" " alt="" coords="714,1471,845,1497"/>
+<area shape="rect" id="node44" href="$equinoxe-tower_8c.html#a5c69df862619beee5b15d88615bef7f0" title=" " alt="" coords="527,1521,609,1548"/>
+<area shape="rect" id="node45" href="$equinoxe-floorengine_8c.html#a8d0639a6bc59827a2a26028bbca11f81" title=" " alt="" coords="705,1420,854,1447"/>
+<area shape="rect" id="node42" href="$equinoxe-bullet_8c.html#a75fcda6f978807841b1cc224da86a603" title=" " alt="" coords="491,1420,645,1447"/>
+<area shape="rect" id="node43" href="$equinoxe-enemy_8c.html#a397116eab5d20aaaff60d6815822cba7" title=" " alt="" coords="523,1471,613,1497"/>
+<area shape="rect" id="node48" href="$equinoxe-player_8c.html#a6abf0c586612e38f73f538cc6ff916de" title=" " alt="" coords="329,413,420,440"/>
+</map>

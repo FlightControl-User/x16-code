@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['entity_5fs_0',['entity_s',['../structentity__s.html',1,'']]],
-  ['equinoxe_5fgame_5ft_1',['equinoxe_game_t',['../structequinoxe__game__t.html',1,'']]]
+  ['dma_5flist_5ff018a_2409',['DMA_LIST_F018A',['../struct_d_m_a___l_i_s_t___f018_a.html',1,'']]],
+  ['dma_5flist_5ff018b_2410',['DMA_LIST_F018B',['../struct_d_m_a___l_i_s_t___f018_b.html',1,'']]]
 ];

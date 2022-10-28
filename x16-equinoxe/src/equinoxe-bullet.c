@@ -95,7 +95,7 @@ void FireBullet(unsigned char p, char reload)
 
         bullet_sprite_animate_add(b, s);
 
-        bullet.energy[b] = -50;
+        bullet.energy[b] = -10;
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
@@ -202,17 +202,19 @@ void bullet_remove(unsigned char b)
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
-    vera_sprite_disable(sprite_offset);
-    sprite_free_offset(sprite_offset);
-    palette16_unuse(sprite_cache.palette_offset[bullet.sprite[b]]);
-    fe_sprite_cache_free(bullet.sprite[b]);
-    bullet.used[b] = 0;
-    bullet.enabled[b] = 0;
-    bullet.sprite[b] = 255;
+    if(bullet.used[b]) {
+        vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
+        vera_sprite_disable(sprite_offset);
+        sprite_free_offset(sprite_offset);
+        palette16_unuse(sprite_cache.palette_offset[bullet.sprite[b]]);
+        fe_sprite_cache_free(bullet.sprite[b]);
+        bullet.used[b] = 0;
+        bullet.enabled[b] = 0;
+        bullet.sprite[b] = 255;
 
-    stage.bullet_count--;
-    bullet_sprite_animate_del(b);
+        stage.bullet_count--;
+        bullet_sprite_animate_del(b);
+    }
 
     bank_pull_bram();
 }
@@ -249,7 +251,7 @@ void bullet_logic()
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate.state[a]));
 				}
                 animate_logic(a);
-				grid_insert(&ht_collision, 3, BYTE0(x>>2), BYTE0(y>>2), b);
+				grid_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_BULLET | b);
             } else {
                 bullet_remove(b);
             }

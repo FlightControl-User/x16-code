@@ -1,4 +1,5 @@
 <map id="enemy_logic" name="enemy_logic">
-<area shape="rect" id="node1" title=" " alt="" coords="136,5,231,31"/>
-<area shape="rect" id="node2" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,5,88,31"/>
+<area shape="rect" id="node1" title=" " alt="" coords="228,5,323,32"/>
+<area shape="rect" id="node2" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,5,180,32"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,32"/>
 </map>

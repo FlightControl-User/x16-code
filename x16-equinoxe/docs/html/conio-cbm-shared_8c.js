@@ -1,0 +1,27 @@
+var conio_cbm_shared_8c =
+[
+    [ "CONIO_BYTES", "conio-cbm-shared_8c.html#ac2754ed1c79fa39958a16822345e7b44", null ],
+    [ "clrscr", "conio-cbm-shared_8c.html#a209453284e1e2ed32261e11e00d53760", null ],
+    [ "cputc", "conio-cbm-shared_8c.html#a5308b55039690f6cc3f500d9d18e409a", null ],
+    [ "cputcxy", "conio-cbm-shared_8c.html#ab781d17acfbe04de590018a5117312c6", null ],
+    [ "cputln", "conio-cbm-shared_8c.html#a4bdb86b4da4001163b7ef9cdad2eb74f", null ],
+    [ "cputs", "conio-cbm-shared_8c.html#aa07942da126bd9b74f9dfd7c369fb2eb", null ],
+    [ "cputsxy", "conio-cbm-shared_8c.html#ad43e579fd92549a34b9adfe2eb871b16", null ],
+    [ "cscroll", "conio-cbm-shared_8c.html#ab2dccac35e06f7a5be2f0fae66b175ee", null ],
+    [ "cursor", "conio-cbm-shared_8c.html#a4bac9e4ae4284f4709389696f0193bfc", null ],
+    [ "gotoxy", "conio-cbm-shared_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789", null ],
+    [ "screensize", "conio-cbm-shared_8c.html#adb5ec073eb4464acf09ee90e723a4dbf", null ],
+    [ "screensizex", "conio-cbm-shared_8c.html#a947eac5bdbd0eb8f19f7099d0327d5ef", null ],
+    [ "screensizey", "conio-cbm-shared_8c.html#aab0205abd08a7e9d231e0e7854ff2ca3", null ],
+    [ "scroll", "conio-cbm-shared_8c.html#aa3940a80b950f8a74e949c034665ad60", null ],
+    [ "textcolor", "conio-cbm-shared_8c.html#adb732454e410f8bc51c0df2eb693a404", null ],
+    [ "wherex", "conio-cbm-shared_8c.html#a37df443085e20aac4771fc30421ee78b", null ],
+    [ "wherey", "conio-cbm-shared_8c.html#a40b3e1942a28cae7613792541a23bdd3", null ],
+    [ "conio_cursor_x", "conio-cbm-shared_8c.html#a6dace7aa4702969746ebd32bc037833b", null ],
+    [ "conio_cursor_y", "conio-cbm-shared_8c.html#a68379acb059378355cb1899afb2a1bea", null ],
+    [ "conio_display_cursor", "conio-cbm-shared_8c.html#adc607cda3d2c91d3aa4cbdea86b9211f", null ],
+    [ "conio_line_color", "conio-cbm-shared_8c.html#a331ba560676c2945775285aa66e8541f", null ],
+    [ "conio_line_text", "conio-cbm-shared_8c.html#ae310ad41fc68cbb0447af377f001fa2d", null ],
+    [ "conio_scroll_enable", "conio-cbm-shared_8c.html#a3a322930ba3e43c81c4e9803bd29a791", null ],
+    [ "conio_textcolor", "conio-cbm-shared_8c.html#ab0db126e7713f31e52c4b96ef4c8341a", null ]
+];

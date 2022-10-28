@@ -1,0 +1,12 @@
+<map id="mul8u" name="mul8u">
+<area shape="rect" id="node1" title="Perform binary multiplication of two unsigned 8&#45;bit chars into a 16&#45;bit unsigned int." alt="" coords="511,81,568,108"/>
+<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#a5ffbb5bc30fb1527693b65f3a031717a" title=" " alt="" coords="376,5,463,32"/>
+<area shape="rect" id="node6" href="$multiply_8h.html#a55b22cc0c3fa026e54962c1b54e571ec" title=" " alt="" coords="391,56,448,83"/>
+<area shape="rect" id="node7" href="$multiply_8h.html#a3817b45fe6e9ac2660d71d2be6e91efa" title=" " alt="" coords="387,107,451,133"/>
+<area shape="rect" id="node8" href="$sine_8h.html#ab4a74cf5766711801a3525876918c0bb" title=" " alt="" coords="379,157,460,184"/>
+<area shape="rect" id="node3" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="233,5,328,32"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="107,5,183,32"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,5,56,32"/>
+<area shape="rect" id="node9" href="$sine_8h.html#a088ebe06fbc32abe654e4493fedbe906" title=" " alt="" coords="254,157,307,184"/>
+<area shape="rect" id="node10" href="$sine_8h.html#a58204da81f2821990a6428847fab8a01" title=" " alt="" coords="104,157,185,184"/>
+</map>

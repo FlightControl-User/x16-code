@@ -1,4 +1,11 @@
 <map id="palette16_use" name="palette16_use">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,108,31"/>
-<area shape="rect" id="node2" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="156,5,265,31"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,119,108,145"/>
+<area shape="rect" id="node2" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="371,119,433,145"/>
+<area shape="rect" id="node5" href="$cx16_8h.html#a9426fda00d3f3934340f79d0c55a5776" title="Copy block of memory from bram to vram. Copies num bytes from the source bram bank/pointer to the des..." alt="" coords="156,43,299,69"/>
+<area shape="rect" id="node8" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="173,144,282,171"/>
+<area shape="rect" id="node9" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="377,169,427,196"/>
+<area shape="rect" id="node3" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="505,119,581,145"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="629,119,736,145"/>
+<area shape="rect" id="node6" href="$cx16_8c.html#a32c7920cd987a1320edf434006d8041a" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="347,56,457,83"/>
+<area shape="rect" id="node7" href="$cx16_8c.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="347,5,457,32"/>
 </map>

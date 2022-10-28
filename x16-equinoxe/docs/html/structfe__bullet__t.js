@@ -1,0 +1,26 @@
+var structfe__bullet__t =
+[
+    [ "angle", "structfe__bullet__t.html#ac53e5faff58468c75e10987ec90c2c18", null ],
+    [ "animate", "structfe__bullet__t.html#ab3a2f72749039a132d7bdfc1fa03f2c2", null ],
+    [ "baseangle", "structfe__bullet__t.html#a78d1b2deead1ac1114d8816fe0d26621", null ],
+    [ "delay", "structfe__bullet__t.html#a6b24ff701bb8fc1b9818e667e1a9e28d", null ],
+    [ "enabled", "structfe__bullet__t.html#a18a040a4f4bfec9d0df4d144013234d5", null ],
+    [ "energy", "structfe__bullet__t.html#ada77e84f9c8979b788c0814c6506540c", null ],
+    [ "flight", "structfe__bullet__t.html#a19e204daf94dc0376f87c60f645b0ae6", null ],
+    [ "move", "structfe__bullet__t.html#a89dbdb1989e194ae9f9884586a6356c7", null ],
+    [ "moved", "structfe__bullet__t.html#a6a9bc5b401ed3bbfcb12ed21d0836ccf", null ],
+    [ "radius", "structfe__bullet__t.html#a2a1eeef82eb482f652749e865e350aff", null ],
+    [ "reload", "structfe__bullet__t.html#a86d6f39f6b0c3094afd0b7533548ebc6", null ],
+    [ "side", "structfe__bullet__t.html#a510e0393a35d709a38f2e48ac315d8f0", null ],
+    [ "speed", "structfe__bullet__t.html#a3a9b14de6cfcdc14d3b755b3cd6462f2", null ],
+    [ "sprite", "structfe__bullet__t.html#abcbb8cc1396148f96901d263289bdfb6", null ],
+    [ "sprite_offset", "structfe__bullet__t.html#aa828ae1901e068b4bb9374c9849e07f7", null ],
+    [ "step", "structfe__bullet__t.html#ab0c3b4ba4c6ea659b45f1e032873b994", null ],
+    [ "tdx", "structfe__bullet__t.html#a0728ecc78cb214dd2d5b562a7fbdb48c", null ],
+    [ "tdy", "structfe__bullet__t.html#a7c0620cea9eda112935ea838642e370f", null ],
+    [ "turn", "structfe__bullet__t.html#a1806fd1e00967216c3130fabcb3ed1e4", null ],
+    [ "tx", "structfe__bullet__t.html#ae7d3b618079773c2143ffc5bd3e74cdf", null ],
+    [ "ty", "structfe__bullet__t.html#a37be1cebe711c32610ffa6c19481088f", null ],
+    [ "type", "structfe__bullet__t.html#ae6d72f84f9096791447eb980c9f38819", null ],
+    [ "used", "structfe__bullet__t.html#a81c9285e21aae4a66163470ddcef3a4a", null ]
+];

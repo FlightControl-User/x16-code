@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['enemy_0',['Enemy',['../test-fp3_8c.html#a2e1d0e19b76eb9fceb6344e01a3f2d83',1,'Enemy():&#160;test-fp3.c'],['../cx16____pwsz1__derefidx__vbuyy__ge__vwsc2__then__la1_8c.html#a28e66f6771d4a7ad2746609317b6667d',1,'Enemy():&#160;cx16__pwsz1_derefidx_vbuyy_ge_vwsc2_then_la1.c']]],
-  ['entity_5ft_1',['entity_t',['../sizeof_8c.html#ad0c3149de5542539dcb5c9251c68fbd2',1,'sizeof.c']]]
+  ['fe_5fsprite_5findex_5ft_4682',['fe_sprite_index_t',['../equinoxe-flightengine-types_8h.html#af97713b8d4dd1b0f5c3889176c1f2b36',1,'equinoxe-flightengine-types.h']]],
+  ['floor_5fbram_5fhandles_5ft_4683',['floor_bram_handles_t',['../equinoxe-floorengine-types_8h.html#af5e9c716bc10e9adc871295db3555f1c',1,'equinoxe-floorengine-types.h']]],
+  ['floor_5fcache_5ft_4684',['floor_cache_t',['../equinoxe-floorengine-types_8h.html#a0d2ea0d61fc91fb13ba7dc28ef9de45c',1,'equinoxe-floorengine-types.h']]]
 ];

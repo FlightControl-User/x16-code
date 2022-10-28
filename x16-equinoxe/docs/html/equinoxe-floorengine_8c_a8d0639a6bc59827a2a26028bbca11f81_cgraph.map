@@ -1,0 +1,17 @@
+<map id="floor_parts_load_bram" name="floor_parts_load_bram">
+<area shape="rect" id="node1" title=" " alt="" coords="5,220,155,247"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="219,93,333,120"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="203,144,349,171"/>
+<area shape="rect" id="node4" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="225,195,327,221"/>
+<area shape="rect" id="node12" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="618,195,669,221"/>
+<area shape="rect" id="node13" href="$string_8h.html#ad590352aea59c25b94dd3398925085f4" title="Concatenates the C string pointed by source into the array pointed by destination,..." alt="" coords="249,296,303,323"/>
+<area shape="rect" id="node15" href="$string_8h.html#a209edee36fc03d0fa66113c3fb224883" title="Copies the C string pointed by source into the array pointed by destination, including the terminatin..." alt="" coords="247,347,305,373"/>
+<area shape="rect" id="node5" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="613,132,674,159"/>
+<area shape="rect" id="node8" href="$cx16_8h.html#a9426fda00d3f3934340f79d0c55a5776" title="Copy block of memory from bram to vram. Copies num bytes from the source bram bank/pointer to the des..." alt="" coords="397,43,540,69"/>
+<area shape="rect" id="node11" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="414,144,523,171"/>
+<area shape="rect" id="node6" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="747,132,823,159"/>
+<area shape="rect" id="node7" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="871,132,977,159"/>
+<area shape="rect" id="node9" href="$cx16_8c.html#a32c7920cd987a1320edf434006d8041a" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="588,5,699,32"/>
+<area shape="rect" id="node10" href="$cx16_8c.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="588,56,699,83"/>
+<area shape="rect" id="node14" href="$string_8c.html#a1b466f2a1e360235424abfb1b426f648" title="Computes the length of the string str up to but not including the terminating null character." alt="" coords="441,296,496,323"/>
+</map>

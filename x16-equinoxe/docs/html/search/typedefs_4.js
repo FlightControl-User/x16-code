@@ -1,27 +1,4 @@
 var searchData=
 [
-  ['heap_5faddress_0',['heap_address',['../cx16-heap_8h.html#adf788b6b721333705c60aa63657c6bbe',1,'cx16-heap.h']]],
-  ['heap_5fbram_5ffb_5fbank_5ft_1',['heap_bram_fb_bank_t',['../cx16-heap-bram-fb_8h.html#a17e78e684f801732f24439b4d739be71',1,'cx16-heap-bram-fb.h']]],
-  ['heap_5fbram_5ffb_5fhandle_5ft_2',['heap_bram_fb_handle_t',['../cx16-heap-bram-fb_8h.html#a71821d570b56681c78d2595fc34997b9',1,'cx16-heap-bram-fb.h']]],
-  ['heap_5fbram_5ffb_5fptr_5ft_3',['heap_bram_fb_ptr_t',['../cx16-heap-bram-fb_8h.html#abedcb76d8af99c299addbf050e399f6c',1,'cx16-heap-bram-fb.h']]],
-  ['heap_5fbram_5ffb_5fsize_5ft_4',['heap_bram_fb_size_t',['../cx16-heap-bram-fb_8h.html#a8316339eb2d5377022515f60932d5e14',1,'cx16-heap-bram-fb.h']]],
-  ['heap_5fbram_5fpacked_5',['heap_bram_packed',['../cx16-heap_8h.html#a7f3dea2d3ca93b23b380c77744f18fa0',1,'cx16-heap.h']]],
-  ['heap_5fcount_6',['heap_count',['../cx16-heap_8h.html#a03a67c4f3a1ae64cdc9b54974faab675',1,'cx16-heap.h']]],
-  ['heap_5findex_7',['heap_index',['../cx16-heap_8h.html#ac4ee471f0f66add0c8c48c88a5f36055',1,'cx16-heap.h']]],
-  ['heap_5findex_5finfo_8',['heap_index_info',['../cx16-heap_8h.html#a7b97ae4206ec8f0fdeb4e1dd9aa304b1',1,'cx16-heap.h']]],
-  ['heap_5findex_5fptr_9',['heap_index_ptr',['../cx16-heap_8h.html#af0620f511b410beba40dfb407e8b3ab2',1,'cx16-heap.h']]],
-  ['heap_5flist_5fptr_10',['heap_list_ptr',['../cx16-heap-bram-fb_8h.html#aff2406b61d5a1f02ae10829c8af4987f',1,'cx16-heap-bram-fb.h']]],
-  ['heap_5foffset_11',['heap_offset',['../cx16-heap_8h.html#a429e810cb6d47aa4975e70e8f31b7bbe',1,'cx16-heap.h']]],
-  ['heap_5fpacked_12',['heap_packed',['../cx16-heap_8h.html#af5b9ba12a6ebfe93010468d69b7573f5',1,'cx16-heap.h']]],
-  ['heap_5fptr_13',['heap_ptr',['../cx16-heap_8h.html#a1fb45efeb18336657f3c31fd4576dbaf',1,'cx16-heap.h']]],
-  ['heap_5fsegment_14',['heap_segment',['../cx16-heap_8h.html#a86c575d293c21b3cb40c4e95ea3eb85a',1,'cx16-heap.h']]],
-  ['heap_5fsize_5flarge_15',['heap_size_large',['../cx16-heap_8h.html#aa37bd601b7ef25d85a41ca1a54cfe35e',1,'cx16-heap.h']]],
-  ['heap_5fvram_5fpacked_16',['heap_vram_packed',['../cx16-heap_8h.html#a747976eee86b967a876b82355df75721',1,'cx16-heap.h']]],
-  ['heap_5fword_17',['heap_word',['../cx16-heap_8h.html#a1bf3ff1f0336742952f1863dc8694535',1,'cx16-heap.h']]],
-  ['ht_5fcount_5ft_18',['ht_count_t',['../ht-typedefs_8h.html#afe566ab050b343cfb8fec68d3ce7a641',1,'ht-typedefs.h']]],
-  ['ht_5fdata_5ft_19',['ht_data_t',['../ht-typedefs_8h.html#a425df49e6fc0e425f453c12b6edcc820',1,'ht-typedefs.h']]],
-  ['ht_5findex_5ft_20',['ht_index_t',['../ht-typedefs_8h.html#adcd0a339c0250b6c597f4eb2a3267dc9',1,'ht-typedefs.h']]],
-  ['ht_5fkey_5ft_21',['ht_key_t',['../ht-typedefs_8h.html#aa0d652119593e00a0f25a2b226c18d92',1,'ht-typedefs.h']]],
-  ['ht_5flist_5ft_22',['ht_list_t',['../ht-typedefs_8h.html#a0c623fd1121ebe1e3eb55020e4c773dd',1,'ht-typedefs.h']]],
-  ['ht_5fsize_5ft_23',['ht_size_t',['../ht-typedefs_8h.html#ae7fc2a13154055e3c0bb0e95581f5f7f',1,'ht-typedefs.h']]]
+  ['palette_5findex_5ft_4690',['palette_index_t',['../equinoxe-palette-types_8h.html#a9021119c6014252e8f83a13b8c4d15f1',1,'equinoxe-palette-types.h']]]
 ];

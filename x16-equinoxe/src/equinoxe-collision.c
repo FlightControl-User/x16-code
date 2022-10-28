@@ -4,8 +4,10 @@
 #include "stdio.h"
 #include <cx16-bitmap.h>
 
-inline ht_key_t grid_key(unsigned char group, unsigned char gx, unsigned char gy) {
-     return ((gy | gx) + group);
+ht_key_t grid_key(unsigned char gx, unsigned char gy)
+{
+    unsigned char key = gy + gx;
+    return key;
     //  return (((unsigned int)(kx + ky))|(unsigned int)group<<4);
 }
 
@@ -27,7 +29,7 @@ inline ht_key_t grid_key(unsigned char group, unsigned char gx, unsigned char gy
  * @param ymin 
  * @param data 
  */
-void grid_insert(ht_item_t* ht, unsigned char group, unsigned char xmin, unsigned char ymin, ht_data_t data) { 
+void grid_insert(ht_item_t* ht, unsigned char xmin, unsigned char ymin, ht_data_t data) { 
 
     // bram_bank_t bram_old = bank_get_bram();
     // bank_set_bram(60);
@@ -43,11 +45,11 @@ void grid_insert(ht_item_t* ht, unsigned char group, unsigned char xmin, unsigne
 
     for(unsigned int gx=xmin; gx<=xmax; gx+=1) {
         for(unsigned int gy=ymin; gy<=ymax; gy+=16) {
-            ht_key_t ht_key = grid_key(group, gx, gy);
+            ht_key_t ht_key = grid_key((unsigned char)gx, (unsigned char)gy);
+            // printf("cell %02x,%02x:%02x(%02x)", gx, gy, ht_key, data);
             ht_insert(ht, ht_key, data);
         }
     }
-
     // bank_set_bram(bram_old);
 }
 

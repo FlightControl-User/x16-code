@@ -1,0 +1,48 @@
+var dir_f9d329e1158f93cef55ce108d8c2268a =
+[
+    [ "equinoxe-animate-types.h", "equinoxe-animate-types_8h.html", "equinoxe-animate-types_8h" ],
+    [ "equinoxe-animate.c", "equinoxe-animate_8c.html", "equinoxe-animate_8c" ],
+    [ "equinoxe-animate.h", "equinoxe-animate_8h.html", "equinoxe-animate_8h" ],
+    [ "equinoxe-bank.h", "equinoxe-bank_8h.html", "equinoxe-bank_8h" ],
+    [ "equinoxe-bullet-types.h", "equinoxe-bullet-types_8h.html", "equinoxe-bullet-types_8h" ],
+    [ "equinoxe-bullet.c", "equinoxe-bullet_8c.html", "equinoxe-bullet_8c" ],
+    [ "equinoxe-bullet.h", "equinoxe-bullet_8h.html", "equinoxe-bullet_8h" ],
+    [ "equinoxe-collision.c", "equinoxe-collision_8c.html", "equinoxe-collision_8c" ],
+    [ "equinoxe-collision.h", "equinoxe-collision_8h.html", "equinoxe-collision_8h" ],
+    [ "equinoxe-defines.h", "equinoxe-defines_8h.html", "equinoxe-defines_8h" ],
+    [ "equinoxe-enemy-types.h", "equinoxe-enemy-types_8h.html", [
+      [ "fe_enemy_t", "structfe__enemy__t.html", "structfe__enemy__t" ]
+    ] ],
+    [ "equinoxe-enemy.c", "equinoxe-enemy_8c.html", "equinoxe-enemy_8c" ],
+    [ "equinoxe-enemy.h", "equinoxe-enemy_8h.html", "equinoxe-enemy_8h" ],
+    [ "equinoxe-fighters.c", "equinoxe-fighters_8c.html", null ],
+    [ "equinoxe-fighters.h", "equinoxe-fighters_8h.html", null ],
+    [ "equinoxe-flightengine-types.h", "equinoxe-flightengine-types_8h.html", "equinoxe-flightengine-types_8h" ],
+    [ "equinoxe-flightengine.c", "equinoxe-flightengine_8c.html", "equinoxe-flightengine_8c" ],
+    [ "equinoxe-flightengine.h", "equinoxe-flightengine_8h.html", "equinoxe-flightengine_8h" ],
+    [ "equinoxe-floorengine-types.h", "equinoxe-floorengine-types_8h.html", "equinoxe-floorengine-types_8h" ],
+    [ "equinoxe-floorengine.c", "equinoxe-floorengine_8c.html", "equinoxe-floorengine_8c" ],
+    [ "equinoxe-floorengine.h", "equinoxe-floorengine_8h.html", "equinoxe-floorengine_8h" ],
+    [ "equinoxe-level-types.h", "equinoxe-level-types_8h.html", "equinoxe-level-types_8h" ],
+    [ "equinoxe-levels.c", "equinoxe-levels_8c.html", null ],
+    [ "equinoxe-levels.h", "equinoxe-levels_8h.html", "equinoxe-levels_8h" ],
+    [ "equinoxe-math.c", "equinoxe-math_8c.html", "equinoxe-math_8c" ],
+    [ "equinoxe-math.h", "equinoxe-math_8h.html", "equinoxe-math_8h" ],
+    [ "equinoxe-palette-types.h", "equinoxe-palette-types_8h.html", "equinoxe-palette-types_8h" ],
+    [ "equinoxe-palette.c", "equinoxe-palette_8c.html", "equinoxe-palette_8c" ],
+    [ "equinoxe-palette.h", "equinoxe-palette_8h.html", "equinoxe-palette_8h" ],
+    [ "equinoxe-petscii.c", "equinoxe-petscii_8c.html", "equinoxe-petscii_8c" ],
+    [ "equinoxe-player.c", "equinoxe-player_8c.html", "equinoxe-player_8c" ],
+    [ "equinoxe-player.h", "equinoxe-player_8h.html", null ],
+    [ "equinoxe-stage-types.h", "equinoxe-stage-types_8h.html", "equinoxe-stage-types_8h" ],
+    [ "equinoxe-stage.c", "equinoxe-stage_8c.html", "equinoxe-stage_8c" ],
+    [ "equinoxe-stage.h", "equinoxe-stage_8h.html", "equinoxe-stage_8h" ],
+    [ "equinoxe-tower-types.h", "equinoxe-tower-types_8h.html", [
+      [ "tower_t", "structtower__t.html", "structtower__t" ]
+    ] ],
+    [ "equinoxe-tower.c", "equinoxe-tower_8c.html", "equinoxe-tower_8c" ],
+    [ "equinoxe-tower.h", "equinoxe-tower_8h.html", "equinoxe-tower_8h" ],
+    [ "equinoxe-types.h", "equinoxe-types_8h.html", "equinoxe-types_8h" ],
+    [ "equinoxe.c", "equinoxe_8c.html", "equinoxe_8c" ],
+    [ "equinoxe.h", "equinoxe_8h.html", "equinoxe_8h" ]
+];

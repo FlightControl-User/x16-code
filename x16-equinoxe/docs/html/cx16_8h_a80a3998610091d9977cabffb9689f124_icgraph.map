@@ -1,0 +1,7 @@
+<map id="memset_vram" name="memset_vram">
+<area shape="rect" id="node1" title="Set block of memory in vram to a value. Sets num bytes to the destination vram bank/offset to the spe..." alt="" coords="387,31,489,57"/>
+<area shape="rect" id="node2" href="$cx16-bitmap_8h.html#a8f458383d871a98b3aff19845329109a" title="Clear all graphics on the bitmap." alt="" coords="209,5,305,32"/>
+<area shape="rect" id="node3" href="$equinoxe-floorengine_8c.html#a82ba5e5ee8466d7c28612c7c2afb4390" title=" " alt="" coords="176,56,339,83"/>
+<area shape="rect" id="node4" href="$equinoxe-stage_8c.html#a7f975c51751f181280c226cc750130ee" title=" " alt="" coords="9,31,125,57"/>
+<area shape="rect" id="node5" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="5,81,128,108"/>
+</map>

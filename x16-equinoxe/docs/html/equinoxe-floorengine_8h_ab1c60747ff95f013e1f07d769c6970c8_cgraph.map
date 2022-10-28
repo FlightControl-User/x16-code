@@ -1,0 +1,9 @@
+<map id="floor_paint" name="floor_paint">
+<area shape="rect" id="node1" title="Paint the segments according a progressing tiling mechanism." alt="" coords="5,81,87,108"/>
+<area shape="rect" id="node2" href="$equinoxe-floorengine_8c.html#a23aed2738dc618ed43f8b573ae09c1b6" title=" " alt="" coords="135,5,253,32"/>
+<area shape="rect" id="node3" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="163,56,225,83"/>
+<area shape="rect" id="node6" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="169,107,219,133"/>
+<area shape="rect" id="node7" href="$stdlib_8h.html#a866c3f5e3e89035c3ba01b22d786d8bc" title="Returns a pseudo&#45;random number in the range of 0 to RAND_MAX (65535)" alt="" coords="171,157,217,184"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="301,56,377,83"/>
+<area shape="rect" id="node5" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="425,56,532,83"/>
+</map>

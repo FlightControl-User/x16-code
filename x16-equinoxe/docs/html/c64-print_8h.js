@@ -1,0 +1,28 @@
+var c64_print_8h =
+[
+    [ "print_char", "c64-print_8h.html#a95a463faeebe05bc853a3a3ffa83c996", null ],
+    [ "print_char_at", "c64-print_8h.html#af2dcaca0bee0431e7713dc0acc29fd13", null ],
+    [ "print_cls", "c64-print_8h.html#abdf4af845c39a0fd7872f98563efea02", null ],
+    [ "print_ln", "c64-print_8h.html#ab585bc531acb24759f2bdc42f2a04297", null ],
+    [ "print_schar", "c64-print_8h.html#a8428d117f0f03c568fb44855b885d1a5", null ],
+    [ "print_schar_at", "c64-print_8h.html#a44021f10814fdb94a8e770f2c046d10b", null ],
+    [ "print_schar_pos", "c64-print_8h.html#adc50e2dfafda8279744fb6d737ee12eb", null ],
+    [ "print_set_screen", "c64-print_8h.html#ae82917de71375c8035b16be6af99a108", null ],
+    [ "print_sint", "c64-print_8h.html#a1b4c76ee4429672ce85232fe5b9a6865", null ],
+    [ "print_sint_decimal", "c64-print_8h.html#a7a2ec9dfd93048f66566e5eafb266111", null ],
+    [ "print_slong", "c64-print_8h.html#a39af98d8c65e1af2d4559991db67ddac", null ],
+    [ "print_str", "c64-print_8h.html#acbdfad44b656d380d425d40d57b8922b", null ],
+    [ "print_str_at", "c64-print_8h.html#a81ac385b6a58687a8a1e036b544d0ada", null ],
+    [ "print_str_lines", "c64-print_8h.html#adf982d1a5c4dbee0e392e3b8a68c8839", null ],
+    [ "print_str_ln", "c64-print_8h.html#a9d7be686be71086e69d1f84ae0afa452", null ],
+    [ "print_uchar", "c64-print_8h.html#a6700301f0968f4eeab0433e2f28fd96b", null ],
+    [ "print_uchar_at", "c64-print_8h.html#a9b7afb2f838d7c12c1d454baefcaba71", null ],
+    [ "print_uchar_decimal", "c64-print_8h.html#a779b306d293c54fb58d11ed47184d904", null ],
+    [ "print_uchar_pos", "c64-print_8h.html#afb57ce89d1d47183bd5987681bf56731", null ],
+    [ "print_uint", "c64-print_8h.html#a73f338a29c1352379d272dda4b95366c", null ],
+    [ "print_uint_at", "c64-print_8h.html#aab61864dcf759bae6e6e26c0ba76e41f", null ],
+    [ "print_uint_decimal", "c64-print_8h.html#aa6fcae4a4669ee2199cdf229a6761bb5", null ],
+    [ "print_ulong", "c64-print_8h.html#a1ed8ba70fca08fbbaf829cfc1199b97f", null ],
+    [ "print_ulong_at", "c64-print_8h.html#a558bc3e357c26bca3b4a3ad3e021e28d", null ],
+    [ "print_ulong_decimal", "c64-print_8h.html#ade8bbd849ddc1858050b1e0ee053f60f", null ]
+];

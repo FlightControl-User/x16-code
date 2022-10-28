@@ -1,0 +1,27 @@
+var cx16_veramem_8h =
+[
+    [ "vera_heap", "structvera__heap.html", "structvera__heap" ],
+    [ "vera_heap_segment", "structvera__heap__segment.html", "structvera__heap__segment" ],
+    [ "vera_heap_address", "cx16-veramem_8h.html#aad835315603cb405fb88df52f1e4630a", null ],
+    [ "vera_heap_base_address_set", "cx16-veramem_8h.html#acc8e0abf37a4c25a469660a768808f92", null ],
+    [ "vera_heap_block_address_get", "cx16-veramem_8h.html#a019bca83fc9f2cb23516c32c538ee3fd", null ],
+    [ "vera_heap_block_address_set", "cx16-veramem_8h.html#a8000836562fad965ef593fb4507aa9e2", null ],
+    [ "vera_heap_block_empty_set", "cx16-veramem_8h.html#a13fcfa02bc98a0f7bcd0939c9d846f2f", null ],
+    [ "vera_heap_block_find", "cx16-veramem_8h.html#ac00d42fd8d7a3ba584531156f916e488", null ],
+    [ "vera_heap_block_free_find", "cx16-veramem_8h.html#abeb1341f3a0ec91232bf9b07c3f7b05d", null ],
+    [ "vera_heap_block_is_empty", "cx16-veramem_8h.html#a6c71bad0936145539710fa92f263e241", null ],
+    [ "vera_heap_block_size_get", "cx16-veramem_8h.html#a74d1cfb98824e0abf7306b39daa40060", null ],
+    [ "vera_heap_block_size_set", "cx16-veramem_8h.html#affe796663affe9059e2473710690da52", null ],
+    [ "vera_heap_ceil_address_set", "cx16-veramem_8h.html#a22632e0e48cb7a522d65067dacb61b16", null ],
+    [ "vera_heap_free", "cx16-veramem_8h.html#a94bc71a48490cb8addfa1845cc3fe1c9", null ],
+    [ "vera_heap_malloc", "cx16-veramem_8h.html#aed52da98b01ebaef751a0b55f7820052", null ],
+    [ "vera_heap_ram_bank_set", "cx16-veramem_8h.html#a5f12c6d274ab44a25be03de907f5fd9b", null ],
+    [ "vera_heap_segment_ceiling", "cx16-veramem_8h.html#a709594355986e8617fe71d6b12674659", null ],
+    [ "vera_heap_segment_init", "cx16-veramem_8h.html#a5d86e483e17ade052cae8c47d2e03889", null ],
+    [ "VERA_HEAP_ADDRESS_16", "cx16-veramem_8h.html#a6923b95d23fe0d46446603823c97569a", null ],
+    [ "VERA_HEAP_DYNAMIC", "cx16-veramem_8h.html#afcb8147baf0c8e610813a657a1e84be0", null ],
+    [ "VERA_HEAP_EMPTY", "cx16-veramem_8h.html#a08fa4e3572657ca6f90828b570b1f993", null ],
+    [ "VERA_HEAP_SIZE_16", "cx16-veramem_8h.html#ac4657965f12add7221f9a1f7fbfdd72a", null ],
+    [ "VERA_HEAP_SIZE_MASK", "cx16-veramem_8h.html#a276a51dc236a12bcb8a836e8e423181d", null ],
+    [ "VERA_HEAP_STATIC", "cx16-veramem_8h.html#a763bbb4285e70ba9a8b360bb4a6d0205", null ]
+];

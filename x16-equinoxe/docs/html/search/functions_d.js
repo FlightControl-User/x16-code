@@ -1,16 +1,4 @@
 var searchData=
 [
-  ['palette16_5falloc_0',['palette16_alloc',['../equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3',1,'palette16_alloc():&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#ae70777c8332eb5298254185bc12723f3',1,'palette16_alloc():&#160;equinoxe-palette.c']]],
-  ['palette16_5ffree_1',['palette16_free',['../equinoxe-palette_8c.html#a5078895d5336c55676e69c8453312098',1,'palette16_free(unsigned int bram_index):&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#a5078895d5336c55676e69c8453312098',1,'palette16_free(unsigned int bram_index):&#160;equinoxe-palette.c']]],
-  ['palette16_5funuse_2',['palette16_unuse',['../equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3',1,'palette16_unuse(unsigned int bram_index):&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#a155db6eba2a03efb3505a772c60766c3',1,'palette16_unuse(unsigned int bram_index):&#160;equinoxe-palette.c']]],
-  ['palette16_5fuse_3',['palette16_use',['../equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270',1,'palette16_use(unsigned int bram_index):&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#adb1daf201921aa52b7247824c5a08270',1,'palette16_use(unsigned int bram_index):&#160;equinoxe-palette.c']]],
-  ['palette64_5fuse_4',['palette64_use',['../equinoxe-palette_8c.html#a4d610a021d2a5edb3653e66b05ec390a',1,'palette64_use(unsigned int bram_index):&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#a4d610a021d2a5edb3653e66b05ec390a',1,'palette64_use(unsigned int bram_index):&#160;equinoxe-palette.c']]],
-  ['palette_5finit_5',['palette_init',['../equinoxe-palette_8c.html#a5b36c137ff103fe02eb72bdb17a7b01b',1,'palette_init(bram_bank_t bram_bank):&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#a5b36c137ff103fe02eb72bdb17a7b01b',1,'palette_init(bram_bank_t bram_bank):&#160;equinoxe-palette.c']]],
-  ['palette_5fload_6',['palette_load',['../equinoxe-palette_8c.html#abbda3630d8f53ee07e4849a9f3ea2db0',1,'palette_load(unsigned char playbook):&#160;equinoxe-palette.c'],['../equinoxe-palette_8h.html#a8df4866136fda2468071ae2faf95ed7b',1,'palette_load(unsigned char level):&#160;equinoxe-palette.c']]],
-  ['petscii_7',['petscii',['../equinoxe-petscii_8c.html#a1f0b9160ad248f4aaf646cb4e2bff14c',1,'petscii():&#160;equinoxe-petscii.c'],['../cx16-vera-sprite-petscii_8c.html#a1f0b9160ad248f4aaf646cb4e2bff14c',1,'petscii():&#160;cx16-vera-sprite-petscii.c']]],
-  ['plot_5fblock_8',['plot_block',['../cx16-heap-fragmentation1_8c.html#ab16485806b5067774321fb1cd15c6b94',1,'cx16-heap-fragmentation1.c']]],
-  ['plot_5fhandle_9',['plot_handle',['../cx16-heap-fragmentation1_8c.html#a036bd8426d20d7fcb7d398b833742e78',1,'cx16-heap-fragmentation1.c']]],
-  ['print_10',['print',['../cx16-struct_01assign_8c.html#a8f43677631e2eb900e08316315ac523b',1,'cx16-struct assign.c']]],
-  ['print_5flist_11',['print_list',['../struct-ptr-36_8c.html#afd652721fa5406222167a778e35f56a1',1,'print_list(struct List *head):&#160;struct-ptr-36.c'],['../struct-ptr-37_8c.html#afd652721fa5406222167a778e35f56a1',1,'print_list(struct List *head):&#160;struct-ptr-37.c'],['../struct-ptr-38_8c.html#a91c9c52cfb58fc9434c8aa45af43fa99',1,'print_list(struct List *head, struct Segment *Segment):&#160;struct-ptr-38.c']]],
-  ['printnames_12',['printnames',['../cx16-function__copy_8c.html#a750dbd550651e7ec915fa66ccdb048df',1,'cx16-function_copy.c']]]
+  ['newline_2863',['newline',['../conio-atarixl_8c.html#ab5159a45ba6da86b4085607bea7569dc',1,'conio-atarixl.c']]]
 ];

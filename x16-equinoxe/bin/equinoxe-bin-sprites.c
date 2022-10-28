@@ -26,7 +26,7 @@ __export char header[] =kickasm {{
 }};
 
 __export char t001[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/floors/towers/tower_gun_01","png",0,12,1,512,32,32,3,0,0,4,2,0,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/floors/towers/tower_gun_01","png",0,12,1,512,32,32,2,0,0,4,2,0,16,0)
     .var pallist = GetPalette3(sprite)
     .var tiledata = MakeTile3(sprite,pallist)
     .var pallistdata = MakePalette3(sprite,pallist)
@@ -237,9 +237,9 @@ __export char b001[] = kickasm {{{
 };}};
 
 __export char b002[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/bullets/b002","png",0,4,1,128,16,16,3,0,0,4,2,0,16,0)
-    .var pallist = GetPalette2(sprite)
-    .var tiledata = MakeTile2(sprite,pallist)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/bullets/b002","png",0,16,1,128,16,16,3,0,0,4,2,0,16,0)
+    .var pallist = GetPalette3(sprite)
+    .var tiledata = MakeTile3(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
     .file [name="B002.BIN", type="bin", segments="b002"]
     .segmentdef b002

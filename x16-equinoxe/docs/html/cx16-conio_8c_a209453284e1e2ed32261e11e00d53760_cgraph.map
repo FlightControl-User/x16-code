@@ -1,0 +1,5 @@
+<map id="clrscr" name="clrscr">
+<area shape="rect" id="node1" title="Currently CX16/C64/PLUS4/VIC20 platforms are supported." alt="" coords="5,31,60,57"/>
+<area shape="rect" id="node2" href="$conio-atarixl_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="112,5,173,32"/>
+<area shape="rect" id="node3" href="$string_8h.html#a1e75227138c7a39467d90485305b1270" title="Copies the character c (an unsigned char) to the first num characters of the object pointed to by the..." alt="" coords="108,56,177,83"/>
+</map>

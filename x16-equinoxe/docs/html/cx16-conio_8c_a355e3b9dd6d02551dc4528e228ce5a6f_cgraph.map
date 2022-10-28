@@ -1,0 +1,6 @@
+<map id="kbhit" name="kbhit">
+<area shape="rect" id="node1" title="Return true if there&#39;s a key waiting, return false if not." alt="" coords="5,31,56,57"/>
+<area shape="rect" id="node2" href="$kernal_8h.html#a7add8f41411085871c122ff70807022e" title="Get a character from keyboard." alt="" coords="104,31,155,57"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#abf1a1016664f417f3e8770c4f0dc21d6" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="203,5,313,32"/>
+<area shape="rect" id="node4" href="$cx16_8h.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="203,56,313,83"/>
+</map>

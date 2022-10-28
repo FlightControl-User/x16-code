@@ -1,0 +1,15 @@
+<map id="player_remove" name="player_remove">
+<area shape="rect" id="node1" title=" " alt="" coords="5,107,111,133"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="175,5,289,32"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="159,56,305,83"/>
+<area shape="rect" id="node4" href="$equinoxe-flightengine_8c.html#a65fe82d3b4c6eb47ca1344b25ba47027" title=" " alt="" coords="161,157,303,184"/>
+<area shape="rect" id="node12" href="$equinoxe-palette_8c.html#a155db6eba2a03efb3505a772c60766c3" title=" " alt="" coords="353,107,471,133"/>
+<area shape="rect" id="node13" href="$equinoxe-flightengine_8c.html#a9c4e9dff93216d3ca1e8ffbaa4957270" title=" " alt="" coords="172,208,292,235"/>
+<area shape="rect" id="node5" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="355,157,469,184"/>
+<area shape="rect" id="node6" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="519,81,581,108"/>
+<area shape="rect" id="node9" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="525,132,575,159"/>
+<area shape="rect" id="node10" href="$conio_8h.html#a37df443085e20aac4771fc30421ee78b" title="Return the X position of the cursor." alt="" coords="519,183,581,209"/>
+<area shape="rect" id="node11" href="$conio_8h.html#a40b3e1942a28cae7613792541a23bdd3" title="Return the Y position of the cursor." alt="" coords="519,233,581,260"/>
+<area shape="rect" id="node7" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="629,81,705,108"/>
+<area shape="rect" id="node8" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="753,81,860,108"/>
+</map>

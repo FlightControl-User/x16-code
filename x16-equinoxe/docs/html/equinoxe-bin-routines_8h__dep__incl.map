@@ -1,9 +1,9 @@
-<map id="cx16&#45;equinoxe/bin/equinoxe&#45;bin&#45;routines.h" name="cx16&#45;equinoxe/bin/equinoxe&#45;bin&#45;routines.h">
-<area shape="rect" id="node1" title=" " alt="" coords="516,5,699,45"/>
-<area shape="rect" id="node2" href="$equinoxe-bin-sprites_8c.html" title=" " alt="" coords="5,101,188,141"/>
-<area shape="rect" id="node3" href="$equinoxe-bin-tiles_8c.html" title=" " alt="" coords="212,101,395,141"/>
-<area shape="rect" id="node4" href="$equinoxe-bin-towers_8c.html" title=" " alt="" coords="419,101,601,141"/>
-<area shape="rect" id="node5" href="$equinoxe-graphics-towers_8c.html" title=" " alt="" coords="625,93,784,148"/>
-<area shape="rect" id="node6" href="$equinoxe-target-sprites_8c.html" title=" " alt="" coords="808,101,999,141"/>
-<area shape="rect" id="node7" href="$equinoxe-target-tiles_8c.html" title=" " alt="" coords="1023,101,1199,141"/>
+<map id="D:/Users/svenv/OneDrive/Documents/GitHub/x16&#45;code/x16&#45;equinoxe/bin/equinoxe&#45;bin&#45;routines.h" name="D:/Users/svenv/OneDrive/Documents/GitHub/x16&#45;code/x16&#45;equinoxe/bin/equinoxe&#45;bin&#45;routines.h">
+<area shape="rect" id="node1" title=" " alt="" coords="485,5,649,76"/>
+<area shape="rect" id="node2" href="$equinoxe-bin-sprites_8c.html" title=" " alt="" coords="5,124,169,195"/>
+<area shape="rect" id="node3" href="$equinoxe-bin-tiles_8c.html" title=" " alt="" coords="193,124,357,195"/>
+<area shape="rect" id="node4" href="$equinoxe-bin-towers_8c.html" title=" " alt="" coords="381,124,545,195"/>
+<area shape="rect" id="node5" href="$equinoxe-graphics-towers_8c.html" title=" " alt="" coords="569,124,776,195"/>
+<area shape="rect" id="node6" href="$equinoxe-target-sprites_8c.html" title=" " alt="" coords="800,124,991,195"/>
+<area shape="rect" id="node7" href="$equinoxe-target-tiles_8c.html" title=" " alt="" coords="1015,124,1203,195"/>
 </map>

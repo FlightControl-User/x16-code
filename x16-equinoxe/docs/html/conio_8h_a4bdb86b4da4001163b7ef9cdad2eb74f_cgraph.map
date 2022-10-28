@@ -1,0 +1,13 @@
+<map id="cputln" name="cputln">
+<area shape="rect" id="node1" title="Move teh cursor to the start of the next line. Scroll the screen if needed." alt="" coords="5,81,63,108"/>
+<area shape="rect" id="node2" href="$kernal_8h.html#a50a1de6b3fb09f65ddb6e3fa52a530ec" title="Output a character to the defined channel." alt="" coords="116,5,220,32"/>
+<area shape="rect" id="node3" href="$kernal_8h.html#ac2ec7063ab39e75e5111653316f1044f" title="Set current cursor position using x and y coordinates." alt="" coords="111,56,225,83"/>
+<area shape="rect" id="node4" href="$conio-cbm-shared_8c.html#ab2dccac35e06f7a5be2f0fae66b175ee" title=" " alt="" coords="138,107,198,133"/>
+<area shape="rect" id="node8" href="$conio-atarixl_8c.html#ab5159a45ba6da86b4085607bea7569dc" title=" " alt="" coords="135,157,201,184"/>
+<area shape="rect" id="node5" href="$conio-cbm-shared_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="281,56,342,83"/>
+<area shape="rect" id="node6" href="$string_8h.html#a144edc3322c38480943628e0ac81aacd" title=" " alt="" coords="275,157,347,184"/>
+<area shape="rect" id="node7" href="$string_8h.html#a1e75227138c7a39467d90485305b1270" title="Copies the character c (an unsigned char) to the first num characters of the object pointed to by the..." alt="" coords="277,107,346,133"/>
+<area shape="rect" id="node9" href="$conio-atarixl_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="281,259,342,285"/>
+<area shape="rect" id="node10" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="273,208,349,235"/>
+<area shape="rect" id="node11" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="397,208,504,235"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="print_schar_at" name="print_schar_at">
+<area shape="rect" id="node1" title="Print a signed char as hex at a specific screen position." alt="" coords="168,5,272,32"/>
+<area shape="rect" id="node2" href="$c64-print_8h.html#adc50e2dfafda8279744fb6d737ee12eb" title=" " alt="" coords="5,5,120,32"/>
+</map>

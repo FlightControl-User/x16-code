@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['vera_5fheap_5fmap_5ft_0',['vera_heap_map_t',['../structvera__heap__map__t.html',1,'']]],
-  ['vera_5fheap_5fsegment_5ft_1',['vera_heap_segment_t',['../structvera__heap__segment__t.html',1,'']]]
+  ['vera_5fheap_2476',['vera_heap',['../structvera__heap.html',1,'']]],
+  ['vera_5fheap_5fsegment_2477',['vera_heap_segment',['../structvera__heap__segment.html',1,'']]],
+  ['vera_5fsprite_2478',['VERA_SPRITE',['../struct_v_e_r_a___s_p_r_i_t_e.html',1,'']]]
 ];

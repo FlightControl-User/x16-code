@@ -1,51 +1,52 @@
-<map id="cx16&#45;equinoxe/src/equinoxe.c" name="cx16&#45;equinoxe/src/equinoxe.c">
-<area shape="rect" id="node1" title=" " alt="" coords="1228,5,1423,31"/>
-<area shape="rect" id="node2" href="$equinoxe-defines_8h.html" title="Defines to control compilation and includes." alt="" coords="947,152,1077,177"/>
-<area shape="rect" id="node4" title=" " alt="" coords="44,79,105,104"/>
-<area shape="rect" id="node5" title=" " alt="" coords="1195,680,1259,705"/>
-<area shape="rect" id="node6" title=" " alt="" coords="180,79,244,104"/>
-<area shape="rect" id="node7" title=" " alt="" coords="268,79,329,104"/>
-<area shape="rect" id="node8" title=" " alt="" coords="354,79,422,104"/>
-<area shape="rect" id="node9" title=" " alt="" coords="447,79,508,104"/>
-<area shape="rect" id="node10" title=" " alt="" coords="532,79,607,104"/>
-<area shape="rect" id="node11" title=" " alt="" coords="631,79,718,104"/>
-<area shape="rect" id="node12" title=" " alt="" coords="742,79,821,104"/>
-<area shape="rect" id="node13" href="$ht_8h.html" title="Hash table, searchable. To store fast and retrieve fast elements from an array." alt="" coords="1742,607,1786,632"/>
-<area shape="rect" id="node15" href="$lru-cache_8h.html" title=" " alt="" coords="989,225,1075,251"/>
-<area shape="rect" id="node16" title=" " alt="" coords="677,680,739,705"/>
-<area shape="rect" id="node17" title=" " alt="" coords="997,79,1093,104"/>
-<area shape="rect" id="node18" href="$cx16-heap-bram-fb_8h.html" title=" " alt="" coords="1950,607,2090,632"/>
-<area shape="rect" id="node20" href="$cx16-veraheap_8h.html" title=" " alt="" coords="746,372,862,397"/>
-<area shape="rect" id="node22" href="$cx16-veralib_8h.html" title="Commander X16 vera library for the kickc compiler. Commander X16 VERA (Versatile Embedded Retro Adapt..." alt="" coords="2165,607,2267,632"/>
-<area shape="rect" id="node24" title=" " alt="" coords="1463,79,1567,104"/>
-<area shape="rect" id="node25" href="$equinoxe-types_8h.html" title=" " alt="" coords="1694,225,1815,251"/>
-<area shape="rect" id="node37" href="$equinoxe_8h.html" title=" " alt="" coords="1283,152,1368,177"/>
-<area shape="rect" id="node38" href="$equinoxe-flightengine_8h.html" title=" " alt="" coords="2249,445,2404,471"/>
-<area shape="rect" id="node39" href="$equinoxe-floorengine_8h.html" title=" " alt="" coords="1743,79,1894,104"/>
-<area shape="rect" id="node40" href="$equinoxe-palette_8h.html" title=" " alt="" coords="1489,225,1617,251"/>
-<area shape="rect" id="node41" href="$equinoxe-stage_8h.html" title=" " alt="" coords="1765,152,1886,177"/>
-<area shape="rect" id="node42" href="$equinoxe-bullet_8h.html" title=" " alt="" coords="2233,152,2353,177"/>
-<area shape="rect" id="node43" href="$equinoxe-fighters_8h.html" title=" " alt="" coords="2172,79,2303,104"/>
-<area shape="rect" id="node44" href="$equinoxe-enemy_8h.html" title=" " alt="" coords="1969,79,2097,104"/>
-<area shape="rect" id="node46" href="$equinoxe-player_8h.html" title=" " alt="" coords="1263,79,1387,104"/>
-<area shape="rect" id="node47" href="$equinoxe-tower_8h.html" title=" " alt="" coords="2055,445,2175,471"/>
-<area shape="rect" id="node48" href="$equinoxe-levels_8h.html" title=" " alt="" coords="1118,79,1239,104"/>
-<area shape="rect" id="node49" href="$equinoxe-petscii_8c.html" title=" " alt="" coords="2530,79,2657,104"/>
-<area shape="rect" id="node3" href="$equinoxe-bank_8h.html" title=" " alt="" coords="988,299,1105,324"/>
-<area shape="rect" id="node14" href="$ht-typedefs_8h.html" title=" " alt="" coords="1715,680,1813,705"/>
-<area shape="rect" id="node19" title=" " alt="" coords="1987,680,2053,705"/>
-<area shape="rect" id="node21" href="$cx16-veraheap-typedefs_8h.html" title=" " alt="" coords="1195,607,1365,632"/>
-<area shape="rect" id="node23" title=" " alt="" coords="2172,680,2260,705"/>
-<area shape="rect" id="node26" href="$equinoxe-palette-types_8h.html" title="Typedefs for palette management." alt="" coords="1181,299,1345,324"/>
-<area shape="rect" id="node27" href="$equinoxe-flightengine-types_8h.html" title=" " alt="" coords="1954,519,2097,559"/>
-<area shape="rect" id="node30" href="$equinoxe-floorengine-types_8h.html" title=" " alt="" coords="1318,519,1458,559"/>
-<area shape="rect" id="node31" href="$equinoxe-tower-types_8h.html" title=" " alt="" coords="1601,299,1757,324"/>
-<area shape="rect" id="node32" href="$equinoxe-enemy-types_8h.html" title=" " alt="" coords="1781,299,1945,324"/>
-<area shape="rect" id="node36" href="$equinoxe-bullet-types_8h.html" title=" " alt="" coords="1421,299,1577,324"/>
-<area shape="rect" id="node28" href="$fp3_8h.html" title=" " alt="" coords="1875,607,1925,632"/>
-<area shape="rect" id="node29" href="$fp3-typedefs_8h.html" title=" " alt="" coords="1849,680,1951,705"/>
-<area shape="rect" id="node33" title=" " alt="" coords="1646,372,1711,397"/>
-<area shape="rect" id="node34" href="$equinoxe-stage-types_8h.html" title=" " alt="" coords="1837,372,1995,397"/>
-<area shape="rect" id="node35" href="$equinoxe-level-types_8h.html" title=" " alt="" coords="1421,445,1571,471"/>
-<area shape="rect" id="node45" href="$equinoxe-collision_8h.html" title=" " alt="" coords="1961,152,2097,177"/>
+<map id="D:/Users/svenv/OneDrive/Documents/GitHub/x16&#45;code/x16&#45;equinoxe/src/equinoxe.c" name="D:/Users/svenv/OneDrive/Documents/GitHub/x16&#45;code/x16&#45;equinoxe/src/equinoxe.c">
+<area shape="rect" id="node1" title=" " alt="" coords="1463,5,1627,76"/>
+<area shape="rect" id="node2" href="$equinoxe-defines_8h.html" title="Defines to control compilation and includes." alt="" coords="125,199,256,225"/>
+<area shape="rect" id="node4" href="$stdio_8h.html" title=" " alt="" coords="1735,124,1796,151"/>
+<area shape="rect" id="node6" href="$printf_8h.html" title=" " alt="" coords="1811,273,1872,300"/>
+<area shape="rect" id="node7" href="$stdlib_8h.html" title=" " alt="" coords="1832,348,1896,375"/>
+<area shape="rect" id="node9" href="$conio_8h.html" title=" " alt="" coords="1735,348,1799,375"/>
+<area shape="rect" id="node11" href="$6502_8h.html" title=" " alt="" coords="1921,124,1983,151"/>
+<area shape="rect" id="node12" href="$kernal_8h.html" title=" " alt="" coords="2007,124,2075,151"/>
+<area shape="rect" id="node13" href="$division_8h.html" title=" " alt="" coords="2100,124,2175,151"/>
+<area shape="rect" id="node14" href="$mos6522_8h.html" title=" " alt="" coords="1533,497,1619,524"/>
+<area shape="rect" id="node15" href="$multiply_8h.html" title=" " alt="" coords="2199,124,2278,151"/>
+<area shape="rect" id="node16" title=" " alt="" coords="1283,661,1327,688"/>
+<area shape="rect" id="node17" title=" " alt="" coords="395,273,482,300"/>
+<area shape="rect" id="node18" href="$cx16_8h.html" title="Type definitions for the CX16 platform." alt="" coords="1481,423,1543,449"/>
+<area shape="rect" id="node20" href="$cx16-conio_8h.html" title=" " alt="" coords="1633,273,1729,300"/>
+<area shape="rect" id="node21" title=" " alt="" coords="429,661,569,688"/>
+<area shape="rect" id="node22" title=" " alt="" coords="2302,124,2418,151"/>
+<area shape="rect" id="node23" title=" " alt="" coords="1061,661,1163,688"/>
+<area shape="rect" id="node24" href="$cx16-mouse_8h.html" title=" " alt="" coords="2443,124,2547,151"/>
+<area shape="rect" id="node25" href="$equinoxe-types_8h.html" title=" " alt="" coords="702,273,823,300"/>
+<area shape="rect" id="node38" href="$equinoxe_8h.html" title=" " alt="" coords="496,199,581,225"/>
+<area shape="rect" id="node39" href="$equinoxe-flightengine_8h.html" title=" " alt="" coords="1063,497,1217,524"/>
+<area shape="rect" id="node40" href="$equinoxe-floorengine_8h.html" title=" " alt="" coords="2571,124,2722,151"/>
+<area shape="rect" id="node41" href="$equinoxe-palette_8h.html" title=" " alt="" coords="1016,273,1144,300"/>
+<area shape="rect" id="node42" href="$equinoxe-stage_8h.html" title=" " alt="" coords="778,199,899,225"/>
+<area shape="rect" id="node43" href="$equinoxe-bullet_8h.html" title=" " alt="" coords="975,199,1095,225"/>
+<area shape="rect" id="node44" href="$equinoxe-fighters_8h.html" title=" " alt="" coords="2747,124,2877,151"/>
+<area shape="rect" id="node45" href="$equinoxe-enemy_8h.html" title=" " alt="" coords="1123,124,1251,151"/>
+<area shape="rect" id="node47" href="$equinoxe-player_8h.html" title=" " alt="" coords="477,124,601,151"/>
+<area shape="rect" id="node48" href="$equinoxe-tower_8h.html" title=" " alt="" coords="557,273,677,300"/>
+<area shape="rect" id="node49" href="$equinoxe-levels_8h.html" title=" " alt="" coords="130,124,251,151"/>
+<area shape="rect" id="node50" href="$equinoxe-petscii_8c.html" title=" " alt="" coords="2902,124,3029,151"/>
+<area shape="rect" id="node3" href="$equinoxe-bank_8h.html" title=" " alt="" coords="93,348,211,375"/>
+<area shape="rect" id="node5" href="$stddef_8h.html" title=" " alt="" coords="1843,497,1911,524"/>
+<area shape="rect" id="node10" href="$sprintf_8h.html" title=" " alt="" coords="1735,199,1803,225"/>
+<area shape="rect" id="node8" href="$string_8h.html" title=" " alt="" coords="1774,423,1839,449"/>
+<area shape="rect" id="node19" href="$cx16-typedefs_8h.html" title=" " alt="" coords="1393,497,1508,524"/>
+<area shape="rect" id="node26" href="$equinoxe-palette-types_8h.html" title="Typedefs for palette management." alt="" coords="989,348,1153,375"/>
+<area shape="rect" id="node27" href="$equinoxe-flightengine-types_8h.html" title=" " alt="" coords="702,572,845,613"/>
+<area shape="rect" id="node31" href="$equinoxe-floorengine-types_8h.html" title=" " alt="" coords="166,572,306,613"/>
+<area shape="rect" id="node32" href="$equinoxe-tower-types_8h.html" title=" " alt="" coords="569,348,725,375"/>
+<area shape="rect" id="node33" href="$equinoxe-enemy-types_8h.html" title=" " alt="" coords="801,348,965,375"/>
+<area shape="rect" id="node36" href="$equinoxe-bullet-types_8h.html" title=" " alt="" coords="337,348,493,375"/>
+<area shape="rect" id="node28" href="$cx16-vera_8h.html" title=" " alt="" coords="949,661,1037,688"/>
+<area shape="rect" id="node29" title=" " alt="" coords="593,661,762,688"/>
+<area shape="rect" id="node30" title=" " alt="" coords="875,661,925,688"/>
+<area shape="rect" id="node34" href="$equinoxe-stage-types_8h.html" title=" " alt="" coords="545,423,703,449"/>
+<area shape="rect" id="node35" href="$equinoxe-level-types_8h.html" title=" " alt="" coords="425,497,575,524"/>
+<area shape="rect" id="node37" href="$equinoxe-animate-types_8h.html" title=" " alt="" coords="351,423,521,449"/>
+<area shape="rect" id="node46" href="$equinoxe-collision_8h.html" title=" " alt="" coords="1119,199,1255,225"/>
 </map>

@@ -1,0 +1,5 @@
+<map id="getin" name="getin">
+<area shape="rect" id="node1" title="Get a character from keyboard." alt="" coords="104,31,155,57"/>
+<area shape="rect" id="node2" href="$cx16-conio_8c.html#a355e3b9dd6d02551dc4528e228ce5a6f" title="Return true if there&#39;s a key waiting, return false if not." alt="" coords="5,5,56,32"/>
+<area shape="rect" id="node3" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,56,56,83"/>
+</map>

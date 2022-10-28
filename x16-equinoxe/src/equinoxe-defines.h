@@ -11,12 +11,12 @@
 
 #include "equinoxe-bank.h"
 
-// #define __CONIO_BSOUT
+#define __CONIO_BSOUT
 
 
-#define __MAIN
-// #define __NOVSYNC
+#define __NOVSYNC
 #define __CPULINES
+#define __LAYER1
 
 #define __PALETTE
 
@@ -24,13 +24,12 @@
 #define __STAGE
 #define __COLLISION
 
-// #define __LAYER1
 
 #define __FLOOR
 #define __TOWER
 #define __PLAYER
 #define __BULLET
-// #define __ENEMY
+#define __ENEMY
 #define __ENGINE
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
@@ -38,9 +37,9 @@
 
 // #define __LRU_CACHE_DEBUG
 
-// #define __VERAHEAP_DUMP
-// #define __VERAHEAP_DEBUG
-// #define __VERAHEAP_COLOR_FREE
+#define __VERAHEAP_DUMP
+#define __VERAHEAP_DEBUG
+#define __VERAHEAP_COLOR_FREE
 
 
 // Show information when generating the floor.
@@ -72,6 +71,7 @@
 
 // Show the collision hash table while the game is evolving.
 // #define __DEBUG_COLLISION
+// #define __DEBUG_COLLISION_HASH
 
 // #define __DEBUG_ENGINE
 

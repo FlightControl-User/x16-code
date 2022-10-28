@@ -1,0 +1,5 @@
+<map id="floor_clear_row" name="floor_clear_row">
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,113,57"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#a9c74b228ad3adc437dbc7f0809df377b" title="Get the old bank of banked ram on the X16 from the stack. Banked ram is the memory location between 0..." alt="" coords="178,5,291,32"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#a828595c81c765d42bc856b218438bce7" title="Push the old bank on the stack and set the active bank of banked ram on the X16. Banked ram is the me..." alt="" coords="161,56,308,83"/>
+</map>

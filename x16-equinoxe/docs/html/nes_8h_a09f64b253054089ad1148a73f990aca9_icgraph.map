@@ -1,0 +1,4 @@
+<map id="disableVideoOutput" name="disableVideoOutput">
+<area shape="rect" id="node1" title="Disable video output. This will cause a black screen and disable vblank." alt="" coords="120,5,255,32"/>
+<area shape="rect" id="node2" href="$nes_8h.html#a1675fb824411d378ac3f43c0008b4ca7" title=" " alt="" coords="5,5,72,32"/>
+</map>

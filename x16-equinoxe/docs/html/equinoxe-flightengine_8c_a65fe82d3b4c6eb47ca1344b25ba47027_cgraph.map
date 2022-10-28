@@ -1,4 +1,10 @@
 <map id="fe_sprite_cache_free" name="fe_sprite_cache_free">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,147,31"/>
-<area shape="rect" id="node2" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="195,5,308,31"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,81,147,108"/>
+<area shape="rect" id="node2" href="$equinoxe-flightengine_8c.html#a624ca18359adcd4b8f3220e299c30487" title=" " alt="" coords="195,81,308,108"/>
+<area shape="rect" id="node3" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="357,5,418,32"/>
+<area shape="rect" id="node6" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="362,56,413,83"/>
+<area shape="rect" id="node7" href="$conio_8h.html#a37df443085e20aac4771fc30421ee78b" title="Return the X position of the cursor." alt="" coords="356,107,419,133"/>
+<area shape="rect" id="node8" href="$conio_8h.html#a40b3e1942a28cae7613792541a23bdd3" title="Return the Y position of the cursor." alt="" coords="356,157,419,184"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="467,5,543,32"/>
+<area shape="rect" id="node5" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="591,5,697,32"/>
 </map>

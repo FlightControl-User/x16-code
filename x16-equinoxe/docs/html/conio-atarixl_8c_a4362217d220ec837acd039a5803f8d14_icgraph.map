@@ -1,0 +1,14 @@
+<map id="convertToScreenCode" name="convertToScreenCode">
+<area shape="rect" id="node1" title=" " alt="" coords="473,107,621,133"/>
+<area shape="rect" id="node2" href="$conio_8h.html#a5308b55039690f6cc3f500d9d18e409a" title="Output one character at the current cursor position. Scroll the screen if needed." alt="" coords="371,107,425,133"/>
+<area shape="rect" id="node3" href="$conio-lines_8h.html#a8f2a5b6b526f42a90e0e649e80674d31" title="Output a horizontal line with the given length starting at the current cursor position." alt="" coords="225,5,281,32"/>
+<area shape="rect" id="node4" href="$conio_8h.html#ab781d17acfbe04de590018a5117312c6" title=" " alt="" coords="219,56,287,83"/>
+<area shape="rect" id="node5" href="$conio_8h.html#aa07942da126bd9b74f9dfd7c369fb2eb" title="Output a NUL&#45;terminated string at the current cursor position." alt="" coords="226,107,281,133"/>
+<area shape="rect" id="node7" href="$conio-lines_8h.html#a046fc44869300e2a0a1b2cb0ce1e90a4" title="Output a vertical line with the given length at the current cursor position." alt="" coords="226,157,281,184"/>
+<area shape="rect" id="node9" href="$equinoxe-flightengine_8c.html#adbbe47e13c66208ab3c1ef1bc0ec7b75" title=" " alt="" coords="184,233,323,260"/>
+<area shape="rect" id="node6" href="$conio_8h.html#ad43e579fd92549a34b9adfe2eb871b16" title=" " alt="" coords="37,107,105,133"/>
+<area shape="rect" id="node8" href="$conio-lines_8h.html#af8db8ccad1c7c140f4b0e4bfa050fddb" title=" " alt="" coords="37,157,105,184"/>
+<area shape="rect" id="node10" href="$equinoxe-stage_8c.html#a5243bec4bdca8b0c4f7573a82eb5f81c" title=" " alt="" coords="5,208,136,235"/>
+<area shape="rect" id="node11" href="$equinoxe-stage_8c.html#a92740df4d4c92b516cf1c3128e984b26" title=" " alt="" coords="7,259,134,285"/>
+<area shape="rect" id="node12" href="$equinoxe-stage_8c.html#af562b7fe730b0f10ab7381ec60f6c3f2" title=" " alt="" coords="9,309,132,336"/>
+</map>

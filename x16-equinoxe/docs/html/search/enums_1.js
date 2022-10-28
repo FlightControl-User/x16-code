@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vera_5finc_5fdec_0',['vera_inc_dec',['../cx16-veralib_8h.html#af9909f7834c5f3108cd393596963dbd8',1,'cx16-veralib.h']]]
+  ['stage_5faction_4701',['STAGE_ACTION',['../equinoxe-level-types_8h.html#ab29aea1f33b20949f4035d192769cc2a',1,'equinoxe-level-types.h']]]
 ];

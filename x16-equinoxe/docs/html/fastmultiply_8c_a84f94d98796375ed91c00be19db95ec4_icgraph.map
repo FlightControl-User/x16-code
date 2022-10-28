@@ -1,0 +1,6 @@
+<map id="mulf8u_prepare" name="mulf8u_prepare">
+<area shape="rect" id="node1" title="Prepare for fast multiply with an unsigned char to a unsigned int result." alt="" coords="272,31,383,57"/>
+<area shape="rect" id="node2" href="$fastmultiply_8h.html#a6d0399988201563b927b8b51d713cf90" title="Prepare for fast multiply with an signed char to a unsigned int result." alt="" coords="113,5,224,32"/>
+<area shape="rect" id="node4" href="$fastmultiply_8h.html#a26ddd282f293c8d79ccb9d35e6f5ccfc" title="Fast multiply two unsigned chars to a unsigned int result." alt="" coords="139,56,199,83"/>
+<area shape="rect" id="node3" href="$fastmultiply_8h.html#af4747fa9e7784efab16dc3fd1a88cfaf" title="Fast multiply two signed chars to a unsigned int result." alt="" coords="5,5,65,32"/>
+</map>

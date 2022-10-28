@@ -9,11 +9,11 @@ $name=$args[3]
 $size=$args[4]
 
 Write-Output ( "equinoxe graphics converter: " )
+Write-Output ( "source = " + $source )
+Write-Output ( "target = " + $target )
 Write-Output ( "mask = " + $mask ) 
 Write-Output ( "name = " + $name ) 
 Write-Output ( "size = " + $size )
-Write-Output ( "source = " + $source )
-Write-Output ( "target = " + $target )
 
 $read = $source + "\" + $mask
 $color = $target + "\" + $name + "_color.gif"

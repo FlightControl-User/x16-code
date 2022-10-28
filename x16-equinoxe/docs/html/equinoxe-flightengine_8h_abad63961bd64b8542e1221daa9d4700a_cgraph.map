@@ -1,12 +1,12 @@
 <map id="fe_sprite_configure" name="fe_sprite_configure">
-<area shape="rect" id="node1" title=" " alt="" coords="5,153,136,179"/>
-<area shape="rect" id="node2" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="198,5,301,31"/>
-<area shape="rect" id="node4" href="$cx16-veralib_8c.html#abf5c8a3bb1cf612e6d87c7df84eb8bc1" title="Set the sprite bits per pixel." alt="" coords="193,55,305,80"/>
-<area shape="rect" id="node6" href="$cx16-veralib_8c.html#a77ec2e3492018d5545cf0dfea55b43b3" title=" " alt="" coords="186,104,313,129"/>
-<area shape="rect" id="node7" href="$cx16-veralib_8c.html#a2297b6d6c5d23c5523f4cfd80730eee0" title=" " alt="" coords="192,153,307,179"/>
-<area shape="rect" id="node8" href="$cx16-veralib_8c.html#a87120f981768e101d15f9d7fe9b2dbb7" title="Set the palette offset of the sprite." alt="" coords="184,203,315,243"/>
-<area shape="rect" id="node9" href="$cx16-veralib_8c.html#af937394917fdb5471a2a1a52f2a5d7f6" title=" " alt="" coords="193,268,305,293"/>
-<area shape="rect" id="node10" href="$cx16-veralib_8c.html#afe9e97b960c4c91c2f7964d0c62bb68d" title=" " alt="" coords="189,317,310,343"/>
-<area shape="rect" id="node3" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="385,5,494,31"/>
-<area shape="rect" id="node5" href="$cx16-veralib_8c.html#a095c166391e410272a1dfddf12aef9ed" title="Configure data port 0 of the vera using bank and offset." alt="" coords="363,174,516,214"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,119,136,145"/>
+<area shape="rect" id="node2" href="$equinoxe-palette_8c.html#adb1daf201921aa52b7247824c5a08270" title=" " alt="" coords="184,119,287,145"/>
+<area shape="rect" id="node3" href="$conio_8h.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="550,119,611,145"/>
+<area shape="rect" id="node6" href="$cx16_8h.html#a9426fda00d3f3934340f79d0c55a5776" title="Copy block of memory from bram to vram. Copies num bytes from the source bram bank/pointer to the des..." alt="" coords="335,43,477,69"/>
+<area shape="rect" id="node9" href="$equinoxe-palette_8c.html#ae70777c8332eb5298254185bc12723f3" title=" " alt="" coords="351,144,461,171"/>
+<area shape="rect" id="node10" href="$printf_8h.html#a63c54f1d737929378b379911b1ca4a45" title=" " alt="" coords="555,169,606,196"/>
+<area shape="rect" id="node4" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="684,119,760,145"/>
+<area shape="rect" id="node5" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="808,119,915,145"/>
+<area shape="rect" id="node7" href="$cx16_8c.html#a32c7920cd987a1320edf434006d8041a" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="525,56,636,83"/>
+<area shape="rect" id="node8" href="$cx16_8c.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="525,5,636,32"/>
 </map>

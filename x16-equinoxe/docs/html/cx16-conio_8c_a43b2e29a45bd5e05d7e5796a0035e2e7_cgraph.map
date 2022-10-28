@@ -1,0 +1,12 @@
+<map id="conio_x16_init" name="conio_x16_init">
+<area shape="rect" id="node1" title="Initializer for conio.h on X16 Commander." alt="" coords="5,132,111,159"/>
+<area shape="rect" id="node2" href="$cx16-conio_8c.html#a98f2b9e6a41212a12a9c5b6cda93a007" title=" " alt="" coords="184,5,248,32"/>
+<area shape="rect" id="node3" href="$kernal_8h.html#ac858db0e2ece310a24aa6efe2e5d04a1" title="Get current x and y cursor position." alt="" coords="159,56,273,83"/>
+<area shape="rect" id="node4" href="$cx16-conio_8c.html#a4bac9e4ae4284f4709389696f0193bfc" title=" " alt="" coords="187,107,245,133"/>
+<area shape="rect" id="node5" href="$cx16-conio_8c.html#a9ef2e230b1a50277b0ba7fc9eeaec789" title="Set the cursor to the specified position." alt="" coords="185,157,247,184"/>
+<area shape="rect" id="node8" href="$cx16-conio_8c.html#ae4e3341162717b0830edd56e0adb1555" title=" " alt="" coords="168,208,264,235"/>
+<area shape="rect" id="node10" href="$cx16-conio_8c.html#ac9ca3e866961544a489cc8e12babba5c" title=" " alt="" coords="180,259,252,285"/>
+<area shape="rect" id="node6" href="$conio-atarixl_8c.html#a55b9c0a71f9aab86d6c59430c7b6271e" title=" " alt="" coords="328,157,404,184"/>
+<area shape="rect" id="node7" href="$conio-atarixl_8c.html#a04260b9ab7cc5cf4017c3ca04856c506" title=" " alt="" coords="459,157,565,184"/>
+<area shape="rect" id="node9" href="$cx16-conio_8c.html#a865168a7464397caa6259296fddde060" title=" " alt="" coords="321,208,411,235"/>
+</map>

@@ -202,45 +202,42 @@ void player_logic() {
             player.tx[p] = MAKELONG((word)(cx16_mouse.x),0);
             player.ty[p] = MAKELONG((word)(cx16_mouse.y),0);
 
-            signed int playerx = (signed int)WORD1(player.tx[p]);
-            signed int playery = (signed int)WORD1(player.ty[p]);
+            volatile signed int playerx = (signed int)WORD1(player.tx[p]);
+            volatile signed int playery = (signed int)WORD1(player.ty[p]);
 
             vera_sprite_offset player_sprite_offset = player.sprite_offset[p];
             vera_sprite_offset engine_sprite_offset = engine.sprite_offset[n];
 
-            if(playerx>-32 && playerx<640-32 && playery>-32 && playery<480-32) {
-#ifdef __COLLISION
-                grid_insert(&ht_collision, 1, BYTE0(playerx>>2), BYTE0(playery>>2), p);
-#endif
+            if(playerx > 640-32) playerx = 640-32;
+            if(playerx < 0) playerx = 0;
+            if(playery > 480-32) playery = 480-32;
+            if(playery < 0) playery = 0;
 
-                unsigned char player_sprite = player.sprite[p];
-                unsigned char engine_sprite = engine.sprite[n];
+            #ifdef __COLLISION
+            grid_insert(&ht_collision, BYTE0((unsigned int)playerx>>2), BYTE0((unsigned int)playery>>2), COLLISION_PLAYER | p);
+            #endif
 
-                if(!player.enabled[p]) {
-                    vera_sprite_zdepth(player_sprite_offset, sprite_cache.zdepth[player_sprite]);
-                    vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
-                    player.enabled[p] = 1;
-                }
+            unsigned char player_sprite = player.sprite[p];
+            unsigned char engine_sprite = engine.sprite[n];
 
-                if(player.wait_animation[p]) {
-                    vera_sprite_set_xy(player_sprite_offset, playerx, playery);
-                } else {
-					vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_image_cache_vram(player_sprite, player.state_animation[p]));
-                }
-#ifdef __ENGINE
-                if(engine.wait_animation[n]) {
-                    vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
-                } else {
-					vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine_sprite, engine.state_animation[n]));
-                }
-#endif
-            } else {
-                if(player.enabled[p]) {
-                    vera_sprite_disable(player_sprite_offset);
-                    vera_sprite_disable(engine_sprite_offset);
-                    player.enabled[p] = 0;
-                }
+            if(!player.enabled[p]) {
+                vera_sprite_zdepth(player_sprite_offset, sprite_cache.zdepth[player_sprite]);
+                vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
+                player.enabled[p] = 1;
             }
+
+            if(player.wait_animation[p]) {
+                vera_sprite_set_xy(player_sprite_offset, playerx, playery);
+            } else {
+                vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_image_cache_vram(player_sprite, player.state_animation[p]));
+            }
+            #ifdef __ENGINE
+            if(engine.wait_animation[n]) {
+                vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
+            } else {
+                vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine_sprite, engine.state_animation[n]));
+            }
+            #endif
         }
     }
 

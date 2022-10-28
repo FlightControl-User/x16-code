@@ -1,8 +1,10 @@
 <map id="enemy_remove" name="enemy_remove">
-<area shape="rect" id="node1" title=" " alt="" coords="501,31,611,56"/>
-<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#a86ce75c7da5956db16c737f8dce1256e" title=" " alt="" coords="338,5,421,31"/>
-<area shape="rect" id="node4" href="$equinoxe-stage_8c.html#a05a7f67bcde7b726bee52a08bacb00c5" title=" " alt="" coords="305,55,453,80"/>
-<area shape="rect" id="node3" href="$equinoxe-stage_8c.html#a88d760682b700ed53c98d109746a3969" title=" " alt="" coords="136,5,257,31"/>
-<area shape="rect" id="node5" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="149,55,244,80"/>
-<area shape="rect" id="node6" href="$equinoxe_8c.html#ac77ffc12980a521a6eb7371b65f1f707" title=" " alt="" coords="5,55,88,80"/>
+<area shape="rect" id="node1" title=" " alt="" coords="769,31,879,57"/>
+<area shape="rect" id="node2" href="$equinoxe-enemy_8c.html#a86ce75c7da5956db16c737f8dce1256e" title=" " alt="" coords="606,5,689,32"/>
+<area shape="rect" id="node7" href="$equinoxe-stage_8c.html#a05a7f67bcde7b726bee52a08bacb00c5" title=" " alt="" coords="573,56,721,83"/>
+<area shape="rect" id="node3" href="$equinoxe-stage_8c.html#a88d760682b700ed53c98d109746a3969" title=" " alt="" coords="404,5,525,32"/>
+<area shape="rect" id="node4" href="$equinoxe_8c.html#a9ea83367cb3a2d7d6a319456f02274af" title="Equinoxe main collision detection routine." alt="" coords="228,5,356,32"/>
+<area shape="rect" id="node5" href="$equinoxe_8c.html#a739e1a59ee85f801b4e9b20327ce27fa" title=" " alt="" coords="104,31,180,57"/>
+<area shape="rect" id="node6" href="$equinoxe_8c.html#acdef7a1fd863a6d3770c1268cb06add3" title=" " alt="" coords="5,31,56,57"/>
+<area shape="rect" id="node8" href="$equinoxe-enemy_8c.html#aa77424519b6305b9df5ffc8e1ca89fb3" title=" " alt="" coords="245,56,339,83"/>
 </map>

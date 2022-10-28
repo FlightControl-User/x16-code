@@ -1,0 +1,28 @@
+var kernal_8h =
+[
+    [ "cbm_k_chkin", "kernal_8h.html#ae98b33a38356dd12394789cf64a11f37", null ],
+    [ "cbm_k_chrin", "kernal_8h.html#a504e268f4221a1e64502b5e565519cc8", null ],
+    [ "cbm_k_chrout", "kernal_8h.html#a50a1de6b3fb09f65ddb6e3fa52a530ec", null ],
+    [ "cbm_k_close", "kernal_8h.html#a8fc3d5ecec72249a1e84fe734b681450", null ],
+    [ "cbm_k_load", "kernal_8h.html#aadb4ac303e4d388cfbb143fb6ff80ea6", null ],
+    [ "cbm_k_macptr", "kernal_8h.html#a968ad60a5e3766f0677385856c25c39b", null ],
+    [ "cbm_k_open", "kernal_8h.html#a9acce25bef7ff2efd32baa755c692041", null ],
+    [ "cbm_k_plot_get", "kernal_8h.html#ac858db0e2ece310a24aa6efe2e5d04a1", null ],
+    [ "cbm_k_plot_set", "kernal_8h.html#ac2ec7063ab39e75e5111653316f1044f", null ],
+    [ "cbm_k_readst", "kernal_8h.html#a54aa775f580856c71b1b88ae7329d11b", null ],
+    [ "cbm_k_setlfs", "kernal_8h.html#abafcfc69c8210b52aedf596dde700851", null ],
+    [ "cbm_k_setnam", "kernal_8h.html#a72a1248a749eb84923bbf641d20bd72e", null ],
+    [ "getin", "kernal_8h.html#a7add8f41411085871c122ff70807022e", null ],
+    [ "CBM_CHKIN", "kernal_8h.html#a790e8865d66952b2a41be03a5eec8876", null ],
+    [ "CBM_CHRIN", "kernal_8h.html#a5152ca5ce53c9f84f67f055aae854e6a", null ],
+    [ "CBM_CHROUT", "kernal_8h.html#a6d866f3cfc196b467b275e1a703f0770", null ],
+    [ "CBM_CLOSE", "kernal_8h.html#ac9bd1e1e2c5145bf5a039dae0f6107f6", null ],
+    [ "CBM_CLRCHN", "kernal_8h.html#a6582596fd22b822594a4df235cd39d5a", null ],
+    [ "CBM_LOAD", "kernal_8h.html#ab2990ebced73354b2cad002f28821d90", null ],
+    [ "CBM_MACPTR", "kernal_8h.html#ab6abcc086b459d9b1246421eb3682aab", null ],
+    [ "CBM_OPEN", "kernal_8h.html#a0fc1e340bef782b6766db8cae413d5ed", null ],
+    [ "CBM_PLOT", "kernal_8h.html#af9ba013e4bf26ef86ac0e39e49d8bf2b", null ],
+    [ "CBM_READST", "kernal_8h.html#a1049cc99dddf6a845625055429d5a544", null ],
+    [ "CBM_SETLFS", "kernal_8h.html#a86d694e8afb9579f3526ce257fa0b6f9", null ],
+    [ "CBM_SETNAM", "kernal_8h.html#a20a95ff55f1d6feaacc8b48bcebe5320", null ]
+];

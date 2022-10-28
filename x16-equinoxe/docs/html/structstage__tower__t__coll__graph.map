@@ -1,8 +1,9 @@
 <map id="stage_tower_t" name="stage_tower_t">
-<area shape="rect" id="node1" title=" " alt="" coords="174,280,277,305"/>
-<area shape="rect" id="node2" href="$structstage__floor__bram__tiles__t.html" title=" " alt="" coords="5,143,168,168"/>
-<area shape="rect" id="node3" href="$structfloor__bram__tiles__t.html" title=" " alt="" coords="94,5,218,31"/>
-<area shape="rect" id="node5" href="$structfloor__parts__t.html" title=" " alt="" coords="175,93,268,119"/>
-<area shape="rect" id="node4" href="$structfloor__t.html" title=" " alt="" coords="197,192,254,217"/>
-<area shape="rect" id="node6" href="$structsprite__bram__t.html" title=" " alt="" coords="279,192,380,217"/>
+<area shape="rect" id="node1" title=" " alt="" coords="186,285,289,312"/>
+<area shape="rect" id="node2" href="$structfloor__t.html" title=" " alt="" coords="31,196,89,223"/>
+<area shape="rect" id="node3" href="$structfloor__parts__t.html" title=" " alt="" coords="5,95,99,121"/>
+<area shape="rect" id="node4" href="$structfloor__bram__tiles__t.html" title=" " alt="" coords="49,5,173,32"/>
+<area shape="rect" id="node7" href="$structstage__floor__bram__tiles__t.html" title=" " alt="" coords="107,145,269,172"/>
+<area shape="rect" id="node5" href="$structstage__bullet__t.html" title=" " alt="" coords="373,196,475,223"/>
+<area shape="rect" id="node6" href="$structsprite__bram__t.html" title=" " alt="" coords="301,95,403,121"/>
 </map>

@@ -1,0 +1,5 @@
+<map id="memcpy_vram_bram" name="memcpy_vram_bram">
+<area shape="rect" id="node1" title="Copy block of memory from bram to vram. Copies num bytes from the source bram bank/pointer to the des..." alt="" coords="5,31,148,57"/>
+<area shape="rect" id="node2" href="$cx16_8c.html#a32c7920cd987a1320edf434006d8041a" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="196,5,307,32"/>
+<area shape="rect" id="node3" href="$cx16_8c.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="196,56,307,83"/>
+</map>

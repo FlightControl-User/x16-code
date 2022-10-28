@@ -1,4 +1,5 @@
 <map id="grid_print" name="grid_print">
-<area shape="rect" id="node1" title=" " alt="" coords="5,5,80,31"/>
-<area shape="rect" id="node2" href="$ht_8c.html#ad0e7e48afe3a4650cf76943d17fde47b" title=" " alt="" coords="128,5,209,31"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,31,80,57"/>
+<area shape="rect" id="node2" href="$cx16_8h.html#abf1a1016664f417f3e8770c4f0dc21d6" title="Get the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="128,5,239,32"/>
+<area shape="rect" id="node3" href="$cx16_8h.html#af7ba45746f163b75e0f1bd4f47f3e56a" title="Set the active bank of banked ram on the X16. Banked ram is the memory location between 0xA000 and 0x..." alt="" coords="128,56,239,83"/>
 </map>
