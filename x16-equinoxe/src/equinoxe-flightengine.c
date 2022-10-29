@@ -63,7 +63,7 @@ fe_sprite_cache_t sprite_cache;
 fe_t fe;  // Flight engine control.
 vera_sprite_offset sprite_offsets[127] = { 0 };
 
-#pragma var_model(zp)
+// #pragma var_model(zp)
 
 void fe_init() {
 }
@@ -152,11 +152,11 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         // We check if the vram heap has sufficient memory available for the size requested.
         // We also check if the lru cache has sufficient elements left to contain the new sprite image.
         bool vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
-        bool lru_cache_not_free = lru_cache_max(&sprite_cache_vram);
+        bool lru_cache_free = lru_cache_max(&sprite_cache_vram);
 
         // Free up the lru_cache and vram memory until the requested size is available!
         // This ensures that vram has sufficient place to allocate the new sprite image. 
-        while(lru_cache_not_free || !vram_has_free) {
+        while(!lru_cache_free || !vram_has_free) {
 
             // If the cache is at it's maximum, before we can add a new element, we must remove the least used image.
             // We search for the least used image in vram.
@@ -176,6 +176,7 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
             // And then to a valid vram handle :-).
             vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
             vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
+            lru_cache_free = lru_cache_max(&sprite_cache_vram);
         }
 
         // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.

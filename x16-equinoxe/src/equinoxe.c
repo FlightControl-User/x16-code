@@ -5,7 +5,7 @@
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(mem, global_mem)
+#pragma var_model(mem, global_mem, local_mem)
 
 // #pragma var_model(mem)
 
@@ -798,7 +798,7 @@ void main() {
         switch(ch) {
             case 'x':
             break;
-            
+
             #ifdef __DEBUG_LRU_CACHE
             case 'l':
             SEI();

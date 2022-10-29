@@ -12,7 +12,7 @@
 #include "equinoxe-bank.h"
 
 #define __CONIO_BSOUT
-#define __LAYER1
+// #define __LAYER1
 // #define __NOVSYNC
 #define __CPULINES
 
@@ -33,11 +33,11 @@
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE
 
-// #define __DEBUG_LRU_CACHE
+#define __DEBUG_LRU_CACHE
 
 // #define __VERAHEAP_DUMP
 // #define __VERAHEAP_DEBUG
-// #define __VERAHEAP_COLOR_FREE
+#define __VERAHEAP_COLOR_FREE
 
 
 // Show information when generating the floor.
@@ -77,4 +77,4 @@
 #define GETIN() while(!getin())
 
 #define __VERAHEAP_SEGMENT
-#define LRU_CACHE_MAX 96
+#define LRU_CACHE_MAX 64

@@ -67,7 +67,7 @@ unsigned char tower_add(
 
     towers.palette[t] = palette16_use(palette_index);
 
-	towers.health[t] = 250;
+	towers.health[t] = 100;
 
     towers.tx[t] = tx;
     towers.ty[t] = ty;

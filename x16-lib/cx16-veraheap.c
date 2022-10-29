@@ -976,7 +976,7 @@ void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char 
  */
 bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_requested)
 {
-    bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
+    bank_push_set_bram(vera_heap_segment.bram_bank);
 
 	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
 	vera_heap_size_packed_t packed_size = vera_heap_alloc_size_get(size_requested);

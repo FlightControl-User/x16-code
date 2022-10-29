@@ -38,19 +38,24 @@ void main() {
 
     clrscr();
 
-    for (unsigned int i = 0; i < 127; i++) {
+    for (unsigned int i = 0; i < 128; i++) {
         lru_cache_insert(&lru_cache, i, (unsigned int)i << 2);
     }
 
-    for (unsigned int j = 0; j < 640*10; j++) {
-        for (unsigned int i = 0; i < 127; i++) {
-            lru_cache_get(&lru_cache, lru_cache_index(&lru_cache, i));
-        }
-    }
+    // for (unsigned int j = 0; j < 1; j++) {
+    //     for (unsigned int i = 0; i < 127; i++) {
+    //         lru_cache_get(&lru_cache, lru_cache_index(&lru_cache, i));
+    //     }
+    // }
 
-    for (unsigned int i = 0; i < 127; i++) {
+    for (unsigned int i = 0; i < 128; i++) {
         lru_cache_delete(&lru_cache, i);
     }
+
+    for (unsigned int i = 0; i < 129; i++) {
+        lru_cache_insert(&lru_cache, i, (unsigned int)i << 2);
+    }
+
 
     display();
 }

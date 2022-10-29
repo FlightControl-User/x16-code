@@ -28,17 +28,13 @@ typedef unsigned int  lru_cache_key_t;
 typedef unsigned int  lru_cache_data_t;
 typedef unsigned char lru_cache_index_t;
 
-__mem unsigned char vram_cache_list_index;
+
 
 typedef struct {
     lru_cache_key_t key[LRU_CACHE_SIZE];   
     lru_cache_data_t data[LRU_CACHE_SIZE];
     lru_cache_index_t prev[LRU_CACHE_SIZE];
     lru_cache_index_t next[LRU_CACHE_SIZE];
-    lru_cache_index_t last;
-    lru_cache_index_t first;
-    lru_cache_index_t count;
-    lru_cache_index_t size;
 } lru_cache_table_t;
 
 
