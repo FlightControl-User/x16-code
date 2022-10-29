@@ -9,7 +9,7 @@
 
 lru_cache_table_t lru_cache;
 
-volatile unsigned char floor_tile_row = 2;
+volatile unsigned char row = 2;
 volatile unsigned char col = 0;
 volatile unsigned char count = 0;
 
@@ -20,9 +20,9 @@ void wait_key() {
 
 void display() {
     count++;
-    floor_tile_row++;
+    row++;
     if(!(count % 16)) {
-        floor_tile_row = 2;
+        row = 2;
         col += 8;
     }
 
@@ -33,7 +33,7 @@ void display() {
 }
 
 void get(unsigned char key) {
-    gotoxy(col, floor_tile_row);
+    gotoxy(col, row);
     printf("get %02x", key);
 
     lru_cache_get(&lru_cache, lru_cache_index(&lru_cache, key));
@@ -42,7 +42,7 @@ void get(unsigned char key) {
 }
 
 void insert(unsigned char key, unsigned int data) {
-    gotoxy(col, floor_tile_row);
+    gotoxy(col, row);
     printf("Add %02x", key, data);
 
     lru_cache_insert(&lru_cache, key, data);
@@ -51,7 +51,7 @@ void insert(unsigned char key, unsigned int data) {
 }
 
 void delete(unsigned char key) {
-    gotoxy(col, floor_tile_row);
+    gotoxy(col, row);
     printf("Del %02x", key);
 
     lru_cache_delete(&lru_cache, key);

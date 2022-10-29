@@ -70,7 +70,6 @@ fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
 fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 
-
 #pragma data_seg(Data)
 
 equinoxe_game_t game = {0, 0, 0, 2, 0};
@@ -103,7 +102,7 @@ void equinoxe_init() {
 
 }
 
-volatile    unsigned char floor_tile_row = 0;
+volatile    unsigned char row = 0;
 volatile    unsigned char floor_tile_column = 0;
 
 
@@ -115,8 +114,8 @@ void equinoxe_scrollfloor() {
     if(!game.screen_vscroll_wait--) {
         game.screen_vscroll_wait = 4;
 
-        floor_tile_row = (game.screen_vscroll-16) / 16;
-        floor_tile_row %= 32;
+        row = (game.screen_vscroll-16) / 16;
+        row %= 32;
 
         // There are 16 scroll iterations as the height of the tiles is 16 pixels.
         // Each segment is 4 tiles on the x axis, so the total amount of tiles are 64 tiles of 16 pixels wide.
@@ -127,10 +126,10 @@ void equinoxe_scrollfloor() {
 
         // We paint from bottom to top. Each paint segment is 64 pixels on the y axis, so we must paint every 4 rows.
         // We paint when the row is the bottom row of the paint segment, so row 3. Row 0 is the top row of the segment.
-        if(floor_tile_row%4==3) {
+        if(row%4==3) {
             #ifdef __TOWER
-                floor_paint(floor_tile_row/4, floor_tile_column);
-                tower_paint(floor_tile_row/4, floor_tile_column);
+                floor_paint(row/4, floor_tile_column);
+                tower_paint(row/4, floor_tile_column);
             #else
                 floor_paint(floor_tile_row/4, floor_tile_column);
             #endif
@@ -140,7 +139,7 @@ void equinoxe_scrollfloor() {
         // we can draw a cell from the painted segment. Note that when floor_tile_row is 0, 1 or 2,
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
-        floor_draw_row(0, stage.floor, floor_tile_row, floor_tile_column);
+        floor_draw_row(0, stage.floor, row, floor_tile_column);
         #ifdef __LAYER1
         floor_draw_row(1, stage.towers, floor_tile_row, floor_tile_column);
         #endif

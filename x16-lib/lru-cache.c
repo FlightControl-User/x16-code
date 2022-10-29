@@ -77,6 +77,7 @@ inline lru_cache_key_t lru_cache_last(lru_cache_table_t *lru_cache) {
 inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache_key_t cache_key) {
     lru_cache_index_t vram_cache_index = lru_cache_hash(cache_key);
 
+    lru_cache_index_t vram_cache_index_start = vram_cache_index;
     while (lru_cache->data[vram_cache_index] != LRU_CACHE_NOTHING) {
         if (lru_cache->key[vram_cache_index] == cache_key)
             return vram_cache_index;
@@ -84,6 +85,10 @@ inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache
         // ++vram_cache_index;
         vram_cache_index = lru_cache_hash2();
         vram_cache_index %= LRU_CACHE_SIZE;
+        if(vram_cache_index == vram_cache_index_start) {
+            // lru_cache->data[vram_cache_index_start] = LRU_CACHE_NOTHING;
+            break;
+        }
     }
 
     return LRU_CACHE_NOTHING;
@@ -91,38 +96,42 @@ inline lru_cache_index_t lru_cache_index(lru_cache_table_t *lru_cache, lru_cache
 
 inline lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {
 
-    lru_cache_data_t data = lru_cache->data[cache_index];
+    if(cache_index != LRU_CACHE_INDEX_NULL) {
+        lru_cache_data_t data = lru_cache->data[cache_index];
 
-    lru_cache_index_t next = lru_cache->next[cache_index];
-    lru_cache_index_t prev = lru_cache->prev[cache_index];
+        lru_cache_index_t next = lru_cache->next[cache_index];
+        lru_cache_index_t prev = lru_cache->prev[cache_index];
 
-    // Delete the node from the list.
-    lru_cache->next[prev] = next;
-    //lru_cache->next[next] = prev;
-    lru_cache->prev[next] = prev;
-    //lru_cache->prev[prev] = next;
+        // Delete the node from the list.
+        lru_cache->next[prev] = next;
+        //lru_cache->next[next] = prev;
+        lru_cache->prev[next] = prev;
+        //lru_cache->prev[prev] = next;
 
-    // Reassign first and last node.
-    if (cache_index == lru_cache_index_first) {
-        lru_cache_index_first = next;
+        // Reassign first and last node.
+        if (cache_index == lru_cache_index_first) {
+            lru_cache_index_first = next;
+        }
+        if (cache_index == lru_cache_index_last) {
+            lru_cache_index_last = prev;
+        }
+
+        // Now insert the node as the first node in the list.
+
+        lru_cache->next[cache_index] = lru_cache_index_first;
+        lru_cache->prev[lru_cache_index_first] = cache_index;
+        lru_cache->next[lru_cache_index_last] = cache_index;
+        lru_cache->prev[cache_index] = lru_cache_index_last;
+
+        // Now the first node in the list is the node referenced!
+        // All other nodes are moved one position down!
+        lru_cache_index_first = cache_index;
+        lru_cache_index_last = lru_cache->prev[cache_index];
+
+        return data;
+    } else {
+        return LRU_CACHE_NOTHING;
     }
-    if (cache_index == lru_cache_index_last) {
-        lru_cache_index_last = prev;
-    }
-
-    // Now insert the node as the first node in the list.
-
-    lru_cache->next[cache_index] = lru_cache_index_first;
-    lru_cache->prev[lru_cache_index_first] = cache_index;
-    lru_cache->next[lru_cache_index_last] = cache_index;
-    lru_cache->prev[cache_index] = lru_cache_index_last;
-
-    // Now the first node in the list is the node referenced!
-    // All other nodes are moved one position down!
-    lru_cache_index_first = cache_index;
-    lru_cache_index_last = lru_cache->prev[cache_index];
-
-    return data;
 }
 
 inline lru_cache_data_t lru_cache_data(lru_cache_table_t *lru_cache, lru_cache_index_t cache_index) {

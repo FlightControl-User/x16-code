@@ -1,4 +1,4 @@
-#pragma var_model(zp)
+#pragma var_model(mem)
 
 #include <stdio.h>
 #include <string.h>
@@ -9,7 +9,7 @@
 
 lru_cache_table_t lru_cache;
 
-volatile unsigned char floor_tile_row = 2;
+volatile unsigned char row = 2;
 volatile unsigned char col = 0;
 volatile unsigned char count = 0;
 
@@ -20,11 +20,10 @@ void wait_key() {
 
 void display() {
     count++;
-    floor_tile_row++;
-    if(!(count % 16)) {
-        floor_tile_row = 2;
-        col += 8;
-    }
+    col = (count / 16)*8;
+    row = (count % 16)+2;
+
+    count = count % 128;
 
     gotoxy(0,20);
         lru_cache_display(&lru_cache);
@@ -33,7 +32,7 @@ void display() {
 }
 
 void get(unsigned char key) {
-    gotoxy(col, floor_tile_row);
+    gotoxy(col, row);
     printf("get %02x", key);
 
     lru_cache_get(&lru_cache, lru_cache_index(&lru_cache, key));
@@ -42,7 +41,7 @@ void get(unsigned char key) {
 }
 
 void insert(unsigned char key, unsigned int data) {
-    gotoxy(col, floor_tile_row);
+    gotoxy(col, row);
     printf("Add %02x", key, data);
 
     lru_cache_insert(&lru_cache, key, data);
@@ -51,7 +50,7 @@ void insert(unsigned char key, unsigned int data) {
 }
 
 void delete(unsigned char key) {
-    gotoxy(col, floor_tile_row);
+    gotoxy(col, row);
     printf("Del %02x", key);
 
     lru_cache_delete(&lru_cache, key);
@@ -65,23 +64,19 @@ void main() {
 
     clrscr();
 
-    for(unsigned int i=0; i<127; i++) {
-        insert(i, (unsigned int)i << 2);
-    }
+    // for(unsigned int i=0; i<127; i++) {
+    //     insert(i, (unsigned int)i << 2);
+    // }
 
-    get(1);
-    get(0);
-    get(2);
+    insert(1,1);
     delete(1);
-    get(2);
-    delete(6);
-    delete(8);
-    delete(20);
-    delete(40);
-    delete(126);
-    delete(127);
-    get(0);
-    get(39);
-    get(41);
+
+    for(unsigned int i=0; i<1024; i++) {
+        unsigned int rnd = rand();
+        insert(rnd, rnd);
+        unsigned int dummy = rand();
+        get(dummy);
+        delete(rnd);
+    }
 }
 

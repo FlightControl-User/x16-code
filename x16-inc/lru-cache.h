@@ -23,6 +23,8 @@
 #define LRU_CACHE_NOTHING 0xFFFF
 #define LRU_CACHE_USED 0xFFFE
 
+#define LRU_CACHE_INDEX_NULL 0xFF
+
 
 typedef unsigned int  lru_cache_key_t;
 typedef unsigned int  lru_cache_data_t;

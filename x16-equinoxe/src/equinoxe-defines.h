@@ -77,4 +77,4 @@
 #define GETIN() while(!getin())
 
 #define __VERAHEAP_SEGMENT
-#define LRU_CACHE_MAX 64
+#define LRU_CACHE_MAX 112
