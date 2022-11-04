@@ -39,7 +39,7 @@ char vera_address_to_bank( unsigned long address ) {
  * @param offset The 16 bit offset of the vera to set.
  * @param inc_dec The vera increment/decrement enum.
  */
-inline void vera_vram_data0_bank_offset(vram_bank_t bank, vram_offset_t offset, enum vera_inc_dec inc_dec) {
+void vera_vram_data0_bank_offset(vram_bank_t bank, vram_offset_t offset, enum vera_inc_dec inc_dec) {
     *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
     *VERA_ADDRX_L = BYTE0(offset);
     *VERA_ADDRX_M = BYTE1(offset);
@@ -53,7 +53,7 @@ inline void vera_vram_data0_bank_offset(vram_bank_t bank, vram_offset_t offset, 
  * @param offset The 16 bit offset of the vera to set.
  * @param inc_dec The vera increment/decrement enum.
  */
-inline void vera_vram_data1_bank_offset(vram_bank_t bank, vram_offset_t offset, enum vera_inc_dec inc_dec) {
+void vera_vram_data1_bank_offset(vram_bank_t bank, vram_offset_t offset, enum vera_inc_dec inc_dec) {
     *VERA_CTRL |= VERA_ADDRSEL;     // Select DATA1
     *VERA_ADDRX_L = BYTE0(offset);
     *VERA_ADDRX_M = BYTE1(offset);
@@ -66,7 +66,7 @@ inline void vera_vram_data1_bank_offset(vram_bank_t bank, vram_offset_t offset, 
  * @param bankaddr The packed address containing the bank and offset, possibly aligned to x bytes in vera memory.
  * @param inc_dec The vera increment/decrement enum.
  */
-inline void vera_vram_data0_address(unsigned long bankaddr, enum vera_inc_dec inc_dec) {
+void vera_vram_data0_address(unsigned long bankaddr, enum vera_inc_dec inc_dec) {
     vera_vram_data0_bank_offset( BYTE2(bankaddr), WORD0(bankaddr), inc_dec );
 }
 
@@ -76,7 +76,7 @@ inline void vera_vram_data0_address(unsigned long bankaddr, enum vera_inc_dec in
  * @param bankaddr The packed address containing the bank and offset, possibly aligned to x bytes in vera memory.
  * @param inc_dec The vera increment/decrement enum.
  */
-inline void vera_vram_data1_address(unsigned long bankaddr, enum vera_inc_dec inc_dec) {
+void vera_vram_data1_address(unsigned long bankaddr, enum vera_inc_dec inc_dec) {
     vera_vram_data1_bank_offset( BYTE2(bankaddr), WORD0(bankaddr), inc_dec );
 }
 
@@ -87,7 +87,7 @@ inline void vera_vram_data1_address(unsigned long bankaddr, enum vera_inc_dec in
  * @brief Disable all scaling of the vera display.
  *
  */
-inline void vera_display_set_scale_none() {
+void vera_display_set_scale_none() {
     *VERA_DC_HSCALE = 128;
     *VERA_DC_VSCALE = 128;
 }
@@ -97,7 +97,7 @@ inline void vera_display_set_scale_none() {
  * The characters and graphics will work at a 320x240 resolution.
  *
  */
-inline void vera_display_set_scale_double() {
+void vera_display_set_scale_double() {
     *VERA_DC_HSCALE = 64;
     *VERA_DC_VSCALE = 64;
 }
@@ -107,7 +107,7 @@ inline void vera_display_set_scale_double() {
  * Never tried this. TODO.
  *
  */
-inline void vera_display_set_scale_triple() {
+void vera_display_set_scale_triple() {
     *VERA_DC_HSCALE = 32;
     *VERA_DC_VSCALE = 32;
 }
@@ -193,7 +193,7 @@ vera_width vera_display_get_width() {
  *
  * @return void
  */
-inline void vera_display_set_border_color(char color) {
+void vera_display_set_border_color(char color) {
 
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_BORDER = color;
@@ -205,7 +205,7 @@ inline void vera_display_set_border_color(char color) {
  *
  * @return void
  */
-inline void vera_display_set_hstart(char start) {
+void vera_display_set_hstart(char start) {
 
     *VERA_CTRL |= VERA_DCSEL;
     *VERA_DC_HSTART = start;
@@ -217,7 +217,7 @@ inline void vera_display_set_hstart(char start) {
  *
  * @return void
  */
-inline void vera_display_set_hstop(char stop) {
+void vera_display_set_hstop(char stop) {
 
     *VERA_CTRL |= VERA_DCSEL;
     *VERA_DC_HSTOP = stop;
@@ -229,7 +229,7 @@ inline void vera_display_set_hstop(char stop) {
  *
  * @return void
  */
-inline void vera_display_set_vstart(char start) {
+void vera_display_set_vstart(char start) {
 
     *VERA_CTRL |= VERA_DCSEL;
     *VERA_DC_VSTART = start;
@@ -241,7 +241,7 @@ inline void vera_display_set_vstart(char start) {
  *
  * @return void
  */
-inline void vera_display_set_vstop(char stop) {
+void vera_display_set_vstop(char stop) {
 
     *VERA_CTRL |= VERA_DCSEL;
     *VERA_DC_VSTOP = stop;
@@ -258,11 +258,11 @@ inline void vera_display_set_vstop(char stop) {
  *
  * @param config Specifies the modes which are specified using T256C / 'Bitmap Mode' / 'Color Depth'.
  */
-inline void vera_layer0_set_config(char config) {
+void vera_layer0_set_config(char config) {
     *VERA_L0_CONFIG = config;
 }
 
-inline void vera_layer1_set_config(char config) {
+void vera_layer1_set_config(char config) {
     *VERA_L1_CONFIG = config;
 }
 
@@ -298,7 +298,7 @@ void vera_layer1_set_text_color_mode(vera_color_mode color_mode) {
 /**
  * @brief Set the configuration of layer 0 to bitmap mode.
  */
-inline void vera_layer0_set_bitmap_mode() {
+void vera_layer0_set_bitmap_mode() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_CONFIG_MODE_BITMAP;
     *VERA_L0_CONFIG |= VERA_LAYER_CONFIG_MODE_BITMAP;
 }
@@ -306,7 +306,7 @@ inline void vera_layer0_set_bitmap_mode() {
 /**
  * @brief Set the configuration of layer 1 to bitmap mode.
  */
-inline void vera_layer1_set_bitmap_mode() {
+void vera_layer1_set_bitmap_mode() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_CONFIG_MODE_BITMAP;
     *VERA_L1_CONFIG |= VERA_LAYER_CONFIG_MODE_BITMAP;
 }
@@ -315,7 +315,7 @@ inline void vera_layer1_set_bitmap_mode() {
 /**
  * @brief Set the configuration of the layer 0 to tilemap mode.
  */
-inline void vera_layer0_set_tilemap_mode() {
+void vera_layer0_set_tilemap_mode() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_CONFIG_MODE_BITMAP;
     *VERA_L0_CONFIG |= VERA_LAYER_CONFIG_MODE_TILE;
 }
@@ -323,7 +323,7 @@ inline void vera_layer0_set_tilemap_mode() {
 /**
  * @brief Set the configuration of the layer 1 to tilemap mode.
  */
-inline void vera_layer1_set_tilemap_mode() {
+void vera_layer1_set_tilemap_mode() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_CONFIG_MODE_BITMAP;
     *VERA_L1_CONFIG |= VERA_LAYER_CONFIG_MODE_TILE;
 }
@@ -332,12 +332,12 @@ inline void vera_layer1_set_tilemap_mode() {
 /**
  * @brief Set the map width of the layer to 32 characters.
  */
-inline void vera_layer0_set_width_32() {
+void vera_layer0_set_width_32() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_WIDTH_32;
 }
 
-inline void vera_layer1_set_width_32() {
+void vera_layer1_set_width_32() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_WIDTH_32;
 }
@@ -345,12 +345,12 @@ inline void vera_layer1_set_width_32() {
 /**
  * @brief Set the map width of the layer to 64 characters.
  */
-inline void vera_layer0_set_width_64() {
+void vera_layer0_set_width_64() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_WIDTH_64;
 }
 
-inline void vera_layer1_set_width_64() {
+void vera_layer1_set_width_64() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_WIDTH_64;
 }
@@ -358,12 +358,12 @@ inline void vera_layer1_set_width_64() {
 /**
  * @brief Set the map width of the layer to 128 characters.
  */
-inline void vera_layer0_set_width_128() {
+void vera_layer0_set_width_128() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_WIDTH_128;
 }
 
-inline void vera_layer1_set_width_128() {
+void vera_layer1_set_width_128() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_WIDTH_128;
 }
@@ -371,12 +371,12 @@ inline void vera_layer1_set_width_128() {
 /**
  * @brief Set the map width of the layer to 256 characters.
  */
-inline void vera_layer0_set_width_256() {
+void vera_layer0_set_width_256() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_WIDTH_256;
 }
 
-inline void vera_layer1_set_width_256() {
+void vera_layer1_set_width_256() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_WIDTH_256;
 }
@@ -384,12 +384,12 @@ inline void vera_layer1_set_width_256() {
 /**
  * @brief Set the map height of the layer to 32 characters.
  */
-inline void vera_layer0_set_height_32() {
+void vera_layer0_set_height_32() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_HEIGHT_32;
 }
 
-inline void vera_layer1_set_height_32() {
+void vera_layer1_set_height_32() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_HEIGHT_32;
 }
@@ -397,12 +397,12 @@ inline void vera_layer1_set_height_32() {
 /**
  * @brief Set the map height of the layer to 64 characters.
  */
-inline void vera_layer0_set_height_64() {
+void vera_layer0_set_height_64() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_HEIGHT_64;
 }
 
-inline void vera_layer1_set_height_64() {
+void vera_layer1_set_height_64() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_HEIGHT_64;
 }
@@ -410,12 +410,12 @@ inline void vera_layer1_set_height_64() {
 /**
  * @brief Set the map height of the layer to 128 characters.
  */
-inline void vera_layer0_set_height_128() {
+void vera_layer0_set_height_128() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_HEIGHT_128;
 }
 
-inline void vera_layer1_set_height_128() {
+void vera_layer1_set_height_128() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_HEIGHT_128;
 }
@@ -426,12 +426,12 @@ inline void vera_layer1_set_height_128() {
 /**
  * @brief Set the map height of the layer to 256 characters.
  */
-inline void vera_layer0_set_height_256() {
+void vera_layer0_set_height_256() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_HEIGHT_256;
 }
 
-inline void vera_layer1_set_height_256() {
+void vera_layer1_set_height_256() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_HEIGHT_256;
 }
@@ -439,7 +439,7 @@ inline void vera_layer1_set_height_256() {
 /**
  * @brief Set the map width of layer 0.
  */
-inline void vera_layer0_set_width(char mapwidth) {
+void vera_layer0_set_width(char mapwidth) {
     *VERA_L0_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L0_CONFIG |= mapwidth;
     char index = (mapwidth>>4);
@@ -448,7 +448,7 @@ inline void vera_layer0_set_width(char mapwidth) {
 /**
  * @brief Set the map width of layer 1.
  */
-inline void vera_layer1_set_width(char mapwidth) {
+void vera_layer1_set_width(char mapwidth) {
     *VERA_L1_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     *VERA_L1_CONFIG |= mapwidth;
 }
@@ -456,7 +456,7 @@ inline void vera_layer1_set_width(char mapwidth) {
 /**
  * @brief Set the map height of layer 0.
  */
-inline void vera_layer0_set_height(char mapheight) {
+void vera_layer0_set_height(char mapheight) {
     *VERA_L0_CONFIG &= ~VERA_LAYER_HEIGHT_MASK; 
     *VERA_L0_CONFIG |= mapheight;
 }
@@ -464,7 +464,7 @@ inline void vera_layer0_set_height(char mapheight) {
 /**
  * @brief Set the map height of layer 1.
  */
-inline void vera_layer1_set_height(char mapheight) {
+void vera_layer1_set_height(char mapheight) {
     *VERA_L1_CONFIG &= ~VERA_LAYER_HEIGHT_MASK;
     *VERA_L1_CONFIG |= mapheight;
 }
@@ -476,11 +476,11 @@ inline void vera_layer1_set_height(char mapheight) {
  *
  * @return vera_width
  */
-inline vera_width vera_layer0_get_width() {
+vera_width vera_layer0_get_width() {
     return VERA_LAYER_WIDTH[ (*VERA_L0_CONFIG & VERA_LAYER_WIDTH_MASK) >> 4];
 }
 
-inline vera_width vera_layer1_get_width() {
+vera_width vera_layer1_get_width() {
     return VERA_LAYER_WIDTH[ (*VERA_L1_CONFIG & VERA_LAYER_WIDTH_MASK) >> 4];
 }
 
@@ -490,11 +490,11 @@ inline vera_width vera_layer1_get_width() {
  *
  * @return vera_height
  */
-inline vera_height vera_layer0_get_height() {
+vera_height vera_layer0_get_height() {
     return VERA_LAYER_HEIGHT[ (*VERA_L0_CONFIG & VERA_LAYER_HEIGHT_MASK) >> 6];
 }
 
-inline vera_height vera_layer1_get_height() {
+vera_height vera_layer1_get_height() {
     return VERA_LAYER_HEIGHT[ (*VERA_L1_CONFIG & VERA_LAYER_HEIGHT_MASK) >> 6];
 }
 
@@ -502,12 +502,12 @@ inline vera_height vera_layer1_get_height() {
 /**
  * @brief Set the color depth of the layer in bit per pixel (BPP) to 1.
  */
-inline void vera_layer0_set_color_depth_1BPP() {
+void vera_layer0_set_color_depth_1BPP() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_COLOR_DEPTH_1BPP;
 }
 
-inline void vera_layer1_set_color_depth_1BPP() {
+void vera_layer1_set_color_depth_1BPP() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_COLOR_DEPTH_1BPP;
 }
@@ -515,12 +515,12 @@ inline void vera_layer1_set_color_depth_1BPP() {
 /**
  * @brief Set the color depth of the layer in bit per pixel (BPP) to 2.
  */
-inline void vera_layer0_set_color_depth_2BPP() {
+void vera_layer0_set_color_depth_2BPP() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_COLOR_DEPTH_2BPP;
 }
 
-inline void vera_layer1_set_color_depth_2BPP() {
+void vera_layer1_set_color_depth_2BPP() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_COLOR_DEPTH_2BPP;
 }
@@ -529,12 +529,12 @@ inline void vera_layer1_set_color_depth_2BPP() {
 /**
  * @brief Set the color depth of the layer in bit per pixel (BPP) to 4.
  */
-inline void vera_layer0_set_color_depth_4BPP() {
+void vera_layer0_set_color_depth_4BPP() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_COLOR_DEPTH_4BPP;
 }
 
-inline void vera_layer1_set_color_depth_4BPP() {
+void vera_layer1_set_color_depth_4BPP() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_COLOR_DEPTH_4BPP;
 }
@@ -543,12 +543,12 @@ inline void vera_layer1_set_color_depth_4BPP() {
 /**
  * @brief Set the color depth of the layer in bit per pixel (BPP) to 8.
  */
-inline void vera_layer0_set_color_depth_8BPP() {
+void vera_layer0_set_color_depth_8BPP() {
     *VERA_L0_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L0_CONFIG |= VERA_LAYER_COLOR_DEPTH_8BPP;
 }
 
-inline void vera_layer1_set_color_depth_8BPP() {
+void vera_layer1_set_color_depth_8BPP() {
     *VERA_L1_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L1_CONFIG |= VERA_LAYER_COLOR_DEPTH_8BPP;
 }
@@ -557,7 +557,7 @@ inline void vera_layer1_set_color_depth_8BPP() {
 /**
  * @brief Set the color depth of layer 0 in bit per pixel (BPP).
  */
-inline void vera_layer0_set_color_depth(char bpp) {
+void vera_layer0_set_color_depth(char bpp) {
     *VERA_L0_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L0_CONFIG |= bpp;
 }
@@ -565,7 +565,7 @@ inline void vera_layer0_set_color_depth(char bpp) {
 /**
  * @brief Set the color depth of layer 1 in bit per pixel (BPP).
  */
-inline void vera_layer1_set_color_depth(char bpp) {
+void vera_layer1_set_color_depth(char bpp) {
     *VERA_L1_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK;
     *VERA_L1_CONFIG |= bpp;
 }
@@ -586,7 +586,7 @@ vera_color_depth vera_layer1_get_color_depth() {
 /**
  * @brief Enable the layer 0 to be displayed on the screen.
  */
-inline void vera_layer0_show() {
+void vera_layer0_show() {
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_VIDEO |= VERA_LAYER0_ENABLE;
 }
@@ -594,7 +594,7 @@ inline void vera_layer0_show() {
 /**
  * @brief Enable the layer 1 to be displayed on the screen.
  */
-inline void vera_layer1_show() {
+void vera_layer1_show() {
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_VIDEO |= VERA_LAYER1_ENABLE;
 }
@@ -603,7 +603,7 @@ inline void vera_layer1_show() {
 /**
  * @brief Hide the layer 0 to be displayed from the screen.
  */
-inline void vera_layer0_hide() {
+void vera_layer0_hide() {
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_VIDEO &= ~VERA_LAYER0_ENABLE;
 }
@@ -611,7 +611,7 @@ inline void vera_layer0_hide() {
 /**
  * @brief Hide the layer 1 to be displayed from the screen.
  */
-inline void vera_layer1_hide() {
+void vera_layer1_hide() {
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_VIDEO &= ~VERA_LAYER1_ENABLE;
 }
@@ -646,7 +646,7 @@ vera_layer_visible vera_layer1_is_visible() {
  * so the resulting address in the VERA VRAM is always aligned to a multiple of 512 bytes.
  *
  */
-inline void vera_layer0_set_mapbase(vera_bank mapbase_bank, vera_offset mapbase_offset) {
+void vera_layer0_set_mapbase(vera_bank mapbase_bank, vera_offset mapbase_offset) {
     *VERA_L0_MAPBASE = (mapbase_bank<<7) | (BYTE1(mapbase_offset)>>1);
 }
 
@@ -658,7 +658,7 @@ inline void vera_layer0_set_mapbase(vera_bank mapbase_bank, vera_offset mapbase_
  * so the resulting address in the VERA VRAM is always aligned to a multiple of 512 bytes.
  *
  */
-inline void vera_layer1_set_mapbase(vera_bank mapbase_bank, vera_offset mapbase_offset) {
+void vera_layer1_set_mapbase(vera_bank mapbase_bank, vera_offset mapbase_offset) {
     *VERA_L1_MAPBASE = (mapbase_bank<<7) | (BYTE1(mapbase_offset)>>1);
 }
 
@@ -668,7 +668,7 @@ inline void vera_layer1_set_mapbase(vera_bank mapbase_bank, vera_offset mapbase_
  *
  * @return vera_bank Bank in vera vram.
  */
-inline vera_bank vera_layer0_get_mapbase_bank() {
+vera_bank vera_layer0_get_mapbase_bank() {
     return (*VERA_L0_MAPBASE)>>7;
 }
 
@@ -678,7 +678,7 @@ inline vera_bank vera_layer0_get_mapbase_bank() {
  *
  * @return vera_bank Bank in vera vram.
  */
-inline vera_bank vera_layer1_get_mapbase_bank() {
+vera_bank vera_layer1_get_mapbase_bank() {
     return (*VERA_L1_MAPBASE)>>7;
 }
 
@@ -688,7 +688,7 @@ inline vera_bank vera_layer1_get_mapbase_bank() {
  *
  * @return vera_offset Offset in vera vram of the specified bank.
  */
-inline vera_map_offset vera_layer0_get_mapbase_offset() {
+vera_map_offset vera_layer0_get_mapbase_offset() {
     return MAKEWORD((*VERA_L0_MAPBASE)<<1,0);
 }
 
@@ -698,7 +698,7 @@ inline vera_map_offset vera_layer0_get_mapbase_offset() {
  *
  * @return vera_offset Offset in vera vram of the specified bank.
  */
-inline vera_map_offset vera_layer1_get_mapbase_offset() {
+vera_map_offset vera_layer1_get_mapbase_offset() {
     return MAKEWORD((*VERA_L1_MAPBASE)<<1,0);
 }
 
@@ -711,7 +711,7 @@ inline vera_map_offset vera_layer1_get_mapbase_offset() {
  * Note that the register only specifies bits 16:11 of the address,
  * so the resulting address in the VERA VRAM is always aligned to a multiple of 2048 bytes!
  */
-inline void vera_layer0_set_tilebase(vera_bank tilebase_bank, vera_offset tilebase_offset) {
+void vera_layer0_set_tilebase(vera_bank tilebase_bank, vera_offset tilebase_offset) {
     *VERA_L0_TILEBASE &= ~VERA_LAYER_TILEBASE_MASK; 
     *VERA_L0_TILEBASE |= ((tilebase_bank << 7) | BYTE1(tilebase_offset)>>1);
 }
@@ -723,7 +723,7 @@ inline void vera_layer0_set_tilebase(vera_bank tilebase_bank, vera_offset tileba
  * Note that the register only specifies bits 16:11 of the address,
  * so the resulting address in the VERA VRAM is always aligned to a multiple of 2048 bytes!
  */
-inline void vera_layer1_set_tilebase(vera_bank tilebase_bank, vera_offset tilebase_offset) {
+void vera_layer1_set_tilebase(vera_bank tilebase_bank, vera_offset tilebase_offset) {
     *VERA_L1_TILEBASE &= ~VERA_LAYER_TILEBASE_MASK; 
     *VERA_L1_TILEBASE |= ((tilebase_bank << 7) | BYTE1(tilebase_offset)>>1);
 }
@@ -799,7 +799,7 @@ vera_tile_offset vera_layer1_get_tilebase() {
  *
  * @param scroll A value between 0 and 4096.
  */
-inline void vera_layer0_set_horizontal_scroll(unsigned int scroll) {
+void vera_layer0_set_horizontal_scroll(unsigned int scroll) {
     *VERA_L0_VSCROLL_L = BYTE0(scroll);
     *VERA_L0_VSCROLL_H = BYTE1(scroll);
 }
@@ -809,7 +809,7 @@ inline void vera_layer0_set_horizontal_scroll(unsigned int scroll) {
  *
  * @param scroll A value between 0 and 4096.
  */
-inline void vera_layer1_set_horizontal_scroll(unsigned int scroll) {
+void vera_layer1_set_horizontal_scroll(unsigned int scroll) {
     *VERA_L1_VSCROLL_L = BYTE0(scroll);
     *VERA_L1_VSCROLL_H = BYTE1(scroll);
 }
@@ -820,7 +820,7 @@ inline void vera_layer1_set_horizontal_scroll(unsigned int scroll) {
  *
  * @param scroll A value between 0 and 4096.
  */
-inline void vera_layer0_set_vertical_scroll(unsigned int scroll) {
+void vera_layer0_set_vertical_scroll(unsigned int scroll) {
     *VERA_L0_VSCROLL_L = BYTE0(scroll);
     *VERA_L0_VSCROLL_H = BYTE1(scroll);
 }
@@ -830,7 +830,7 @@ inline void vera_layer0_set_vertical_scroll(unsigned int scroll) {
  *
  * @param scroll A value between 0 and 4096.
  */
-inline void vera_layer1_set_vertical_scroll(unsigned int scroll) {
+void vera_layer1_set_vertical_scroll(unsigned int scroll) {
     *VERA_L1_VSCROLL_L = BYTE0(scroll);
     *VERA_L1_VSCROLL_H = BYTE1(scroll);
 }
@@ -839,7 +839,7 @@ inline void vera_layer1_set_vertical_scroll(unsigned int scroll) {
 // Get the bit shift value required to skip a whole line fast.
 // - layer: Value of 0 or 1.
 // - return: Rowshift value to calculate fast from a y value to line offset in tile mode.
-inline unsigned char vera_layer0_get_rowshift() {
+unsigned char vera_layer0_get_rowshift() {
     // *VERA_L1_CONFIG &= ~VERA_LAYER_WIDTH_MASK;
     // *VERA_L1_CONFIG |= mapwidth;
     // char index = (mapwidth>>4);
@@ -852,7 +852,7 @@ inline unsigned char vera_layer0_get_rowshift() {
 // Lowest is 32 characters * 2 = shift minimally with 6. Then add the value of with map
 // - layer: Value of 0 or 1.
 // - return: Rowshift value to calculate fast from a y value to line offset in tile mode.
-inline unsigned char vera_layer1_get_rowshift() {
+unsigned char vera_layer1_get_rowshift() {
     return (((*VERA_L1_CONFIG)&VERA_LAYER_WIDTH_MASK)>>4)+6;
     // return vera_layer_rowshift[1];
 }
@@ -860,7 +860,7 @@ inline unsigned char vera_layer1_get_rowshift() {
 // Get the value required to skip a whole line fast.
 // - layer: Value of 0 or 1.
 // - return: Skip value to calculate fast from a y value to line offset in tile mode.
-inline unsigned int vera_layer0_get_rowskip() {
+unsigned int vera_layer0_get_rowskip() {
     return VERA_LAYER_SKIP[((*VERA_L0_CONFIG)&VERA_LAYER_WIDTH_MASK)>>4];
     // return vera_layer_rowskip[0];
 }
@@ -868,7 +868,7 @@ inline unsigned int vera_layer0_get_rowskip() {
 // Get the value required to skip a whole line fast.
 // - layer: Value of 0 or 1.
 // - return: Skip value to calculate fast from a y value to line offset in tile mode.
-inline unsigned int vera_layer1_get_rowskip() {
+unsigned int vera_layer1_get_rowskip() {
     return VERA_LAYER_SKIP[((*VERA_L1_CONFIG)&VERA_LAYER_WIDTH_MASK)>>4];
 }
 
@@ -995,36 +995,36 @@ void vera_layer1_mode_bitmap(char tilebase_bank, unsigned int tilebase_offset, c
 // --- SPRITE FUNCTIONS ---
 
 /// The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control.
-inline vera_sprite_offset vera_sprite_get_offset(vera_sprite_id sprite_id) {
+vera_sprite_offset vera_sprite_get_offset(vera_sprite_id sprite_id) {
     return WORD0(VERA_SPRITE_ATTR)+(((unsigned int)sprite_id) << 3);
 }
 
 /// The sprite structure is 8 bytes line, so we multiply by 8 to get the offset of the sprite control.
-inline vera_sprite_id vera_sprite_get_id(vera_sprite_offset sprite_offset) {
+vera_sprite_id vera_sprite_get_id(vera_sprite_offset sprite_offset) {
     return BYTE0((sprite_offset - WORD0(VERA_SPRITE_ATTR)) >> 3);
 }
 
 /// Obtain the offset of the image, aligned with the sprite control data structure.
-inline vera_sprite_image_offset vera_sprite_get_image_offset(vera_bank bank, vera_offset offset) {
+vera_sprite_image_offset vera_sprite_get_image_offset(vera_bank bank, vera_offset offset) {
     vera_sprite_image_offset sprite_image_offset = offset >> 5;
     sprite_image_offset |= ((unsigned int)bank << 11);
     return sprite_image_offset;
 }
 
 /// Obtain the offset of the image, aligned with the sprite control data structure.
-inline vera_sprite_image_offset vera_sprite_get_vram(vera_bank bank, vera_offset offset) {
+vera_sprite_image_offset vera_sprite_get_vram(vera_bank bank, vera_offset offset) {
     vera_sprite_image_offset sprite_image_offset = offset >> 5;
     sprite_image_offset |= ((unsigned int)bank << 11);
     return sprite_image_offset;
 }
 
-inline void vera_sprite_set_image_offset(vera_sprite_offset sprite_offset, vera_sprite_image_offset sprite_image_offset) {
+void vera_sprite_set_image_offset(vera_sprite_offset sprite_offset, vera_sprite_image_offset sprite_image_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset, vera_inc_1);
     *VERA_DATA0 = BYTE0(sprite_image_offset);
     *VERA_DATA0 = BYTE1(sprite_image_offset);
 }
 
-inline void vera_sprite_address(vera_sprite_offset sprite_offset, unsigned long address) {
+void vera_sprite_address(vera_sprite_offset sprite_offset, unsigned long address) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset, vera_inc_1);
     *VERA_DATA0 = BYTE0(WORD0(address)>>5);
     *VERA_DATA0 = (BYTE1(WORD0(address))>>5)|(BYTE0(WORD1(address))<<3);
@@ -1037,7 +1037,7 @@ inline void vera_sprite_address(vera_sprite_offset sprite_offset, unsigned long 
  * @param bank The bank in vera memory.
  * @param offset The offset in vera memory.
  */
-inline void vera_sprite_bank_offset(vera_sprite_offset sprite_offset, vera_bank bank, vera_offset offset) {
+void vera_sprite_bank_offset(vera_sprite_offset sprite_offset, vera_bank bank, vera_offset offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset, vera_inc_1);
     *VERA_DATA0 = BYTE0((unsigned int)offset>>5);
     *VERA_DATA0 = ((BYTE1((unsigned int)offset))>>5)|(bank<<3);
@@ -1051,7 +1051,7 @@ inline void vera_sprite_bank_offset(vera_sprite_offset sprite_offset, vera_bank 
  * @param x The x coordinate.
  * @param y The y coordinate.
  */
-inline void vera_sprite_set_xy(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
+void vera_sprite_set_xy(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+2, vera_inc_1);
     *VERA_DATA0 = BYTE0(x);
     *VERA_DATA0 = BYTE1(x);
@@ -1083,7 +1083,7 @@ vera_sprite_coordinate vera_sprite_y_get(vera_sprite_offset sprite_offset)
  * @param x The x coordinate.
  * @param y The y coordinate.
  */
-inline void vera_sprite_set_xy_and_image_offset(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y, vera_sprite_image_offset sprite_image_offset) 
+void vera_sprite_set_xy_and_image_offset(vera_sprite_offset sprite_offset, vera_sprite_coordinate x, vera_sprite_coordinate y, vera_sprite_image_offset sprite_image_offset) 
 {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset, vera_inc_1);
     *VERA_DATA0 = BYTE0(sprite_image_offset);
@@ -1101,7 +1101,7 @@ inline void vera_sprite_set_xy_and_image_offset(vera_sprite_offset sprite_offset
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_4bpp(vera_sprite_offset sprite_offset) {
+void vera_sprite_4bpp(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_8BPP;
 }
@@ -1112,7 +1112,7 @@ inline void vera_sprite_4bpp(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_8bpp(vera_sprite_offset sprite_offset) {
+void vera_sprite_8bpp(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 | VERA_SPRITE_8BPP;
 }
@@ -1124,7 +1124,7 @@ inline void vera_sprite_8bpp(vera_sprite_offset sprite_offset) {
  * @param sprite_offset The sprite offset in vera ram.
  * @param bpp Bits per pixel of the sprite graphics color depth, which can be a value of 4 or 8.
  */
-inline void vera_sprite_bpp(vera_sprite_offset sprite_offset, char bpp) {
+void vera_sprite_bpp(vera_sprite_offset sprite_offset, char bpp) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+1, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_8BPP; 
     *VERA_DATA0 |= bpp;
@@ -1141,7 +1141,7 @@ vera_sprite_bpp_t vera_sprite_bpp_get(vera_sprite_offset sprite_offset)
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_hflip_on(vera_sprite_offset sprite_offset) {
+void vera_sprite_hflip_on(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 | VERA_SPRITE_HFLIP;
 }
@@ -1152,7 +1152,7 @@ inline void vera_sprite_hflip_on(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_hflip_off(vera_sprite_offset sprite_offset) {
+void vera_sprite_hflip_off(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HFLIP;
 }
@@ -1170,7 +1170,7 @@ void vera_sprite_hflip(vera_sprite_offset sprite_offset, char hflip) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_vflip_on(vera_sprite_offset sprite_offset) {
+void vera_sprite_vflip_on(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 | VERA_SPRITE_VFLIP;
 }
@@ -1181,7 +1181,7 @@ inline void vera_sprite_vflip_on(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_vflip_off(vera_sprite_offset sprite_offset) {
+void vera_sprite_vflip_off(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_VFLIP;
 }
@@ -1197,7 +1197,7 @@ void vera_sprite_vflip(vera_sprite_offset sprite_offset, char vflip) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_disable(vera_sprite_offset sprite_offset) {
+void vera_sprite_disable(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK;
 }
@@ -1208,7 +1208,7 @@ inline void vera_sprite_disable(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_zdepth_between_background_and_layer0(vera_sprite_offset sprite_offset) {
+void vera_sprite_zdepth_between_background_and_layer0(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0;
 }
@@ -1219,7 +1219,7 @@ inline void vera_sprite_zdepth_between_background_and_layer0(vera_sprite_offset 
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_zdepth_between_layer0_and_layer1(vera_sprite_offset sprite_offset) {
+void vera_sprite_zdepth_between_layer0_and_layer1(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1;
 }
@@ -1230,12 +1230,12 @@ inline void vera_sprite_zdepth_between_layer0_and_layer1(vera_sprite_offset spri
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_zdepth_in_front(vera_sprite_offset sprite_offset) {
+void vera_sprite_zdepth_in_front(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | VERA_SPRITE_ZDEPTH_IN_FRONT;
 }
 
-inline void vera_sprite_zdepth(vera_sprite_offset sprite_offset, unsigned char zdepth) {
+void vera_sprite_zdepth(vera_sprite_offset sprite_offset, unsigned char zdepth) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | zdepth;
 }
@@ -1246,7 +1246,7 @@ inline void vera_sprite_zdepth(vera_sprite_offset sprite_offset, unsigned char z
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_width_8(vera_sprite_offset sprite_offset) {
+void vera_sprite_width_8(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_8;
 }
@@ -1257,7 +1257,7 @@ inline void vera_sprite_width_8(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_width_16(vera_sprite_offset sprite_offset) {
+void vera_sprite_width_16(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_16;
 }
@@ -1268,7 +1268,7 @@ inline void vera_sprite_width_16(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_width_32(vera_sprite_offset sprite_offset) {
+void vera_sprite_width_32(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_32;
 }
@@ -1279,7 +1279,7 @@ inline void vera_sprite_width_32(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_width_64(vera_sprite_offset sprite_offset) {
+void vera_sprite_width_64(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_WIDTH_MASK | VERA_SPRITE_WIDTH_64;
 }
@@ -1469,7 +1469,7 @@ unsigned char vera_sprite_bpp_get_value(vera_sprite_bpp_t bpp)
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_height_8(vera_sprite_offset sprite_offset) {
+void vera_sprite_height_8(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_8;
 }
@@ -1480,7 +1480,7 @@ inline void vera_sprite_height_8(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_height_16(vera_sprite_offset sprite_offset) {
+void vera_sprite_height_16(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_16;
 }
@@ -1491,7 +1491,7 @@ inline void vera_sprite_height_16(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_height_32(vera_sprite_offset sprite_offset) {
+void vera_sprite_height_32(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_32;
 }
@@ -1501,12 +1501,12 @@ inline void vera_sprite_height_32(vera_sprite_offset sprite_offset) {
  *
  * @param sprite_offset The sprite offset in vera ram.
  */
-inline void vera_sprite_height_64(vera_sprite_offset sprite_offset) {
+void vera_sprite_height_64(vera_sprite_offset sprite_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK | VERA_SPRITE_HEIGHT_64;
 }
 
-inline void vera_sprite_height(vera_sprite_offset sprite_offset, char height) {
+void vera_sprite_height(vera_sprite_offset sprite_offset, char height) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_HEIGHT_MASK;
     *VERA_DATA0 |= height;
@@ -1524,7 +1524,7 @@ vera_sprite_height_t vera_sprite_height_get(vera_sprite_offset sprite_offset)
  * @param sprite_offset The sprite offset in vera ram.
  * @param palette_offset The palette offset, a byte between 0 and 15.
  */
-inline void vera_sprite_palette_offset(vera_sprite_offset sprite_offset, vera_palette_offset palette_offset) {
+void vera_sprite_palette_offset(vera_sprite_offset sprite_offset, vera_palette_offset palette_offset) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+7, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_PALETTE_OFFSET_MASK; 
     *VERA_DATA0 |= palette_offset;
@@ -1536,7 +1536,7 @@ inline void vera_sprite_palette_offset(vera_sprite_offset sprite_offset, vera_pa
  * @param sprite_offset The sprite offset in vera ram.
  * @param mask The collision mask, a byte containing 4 bits in the higher tetrade indicating the groups for which collision detection will be performed.
  */
-inline void vera_sprite_set_collision_mask(vera_sprite_offset sprite_offset, vera_collision_mask mask) {
+void vera_sprite_set_collision_mask(vera_sprite_offset sprite_offset, vera_collision_mask mask) {
     vera_vram_data0_bank_offset(BYTE2(VERA_SPRITE_ATTR), sprite_offset+6, vera_inc_0);
     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_COLLISION_MASK;
     *VERA_DATA0 |= mask;
@@ -1550,7 +1550,7 @@ inline void vera_sprite_set_collision_mask(vera_sprite_offset sprite_offset, ver
  * @param sprite_offset The sprite offset in vera ram.
  * @param sprite_attr The sprite attributes contained in a VERA_SPRITE structure.
  */
-inline void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct VERA_SPRITE sprite_attr) {
+void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct VERA_SPRITE sprite_attr) {
     memcpy_vram_ram(1, (unsigned int)sprite_offset, (unsigned char*)&sprite_attr, sizeof(sprite_attr));
 }
 
@@ -1561,7 +1561,7 @@ inline void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct 
  * @param sprite_offset The sprite offset in vera ram.
  * @param sprite_attr A pointer to a VERA_SPRITE structure containing the sprite attributes to be returned.
  */
-inline void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct VERA_SPRITE *sprite_attr) {
+void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct VERA_SPRITE *sprite_attr) {
     memcpy_ram_vram((ram_ptr_t)sprite_attr, 1, sprite_offset, sizeof(struct VERA_SPRITE));
 }
 
@@ -1570,7 +1570,7 @@ inline void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct 
  * @brief Show all sprites.
  *
  */
-inline void vera_sprites_show() {
+void vera_sprites_show() {
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_VIDEO |= VERA_SPRITES_ENABLE;
 }
@@ -1580,7 +1580,7 @@ inline void vera_sprites_show() {
  * @brief Hide all sprites.
  *
  */
-inline void vera_sprites_hide() {
+void vera_sprites_hide() {
     *VERA_CTRL &= ~VERA_DCSEL;
     *VERA_DC_VIDEO &= ~VERA_SPRITES_ENABLE;
 }
@@ -1590,7 +1590,7 @@ inline void vera_sprites_hide() {
  * @brief Switch collision detection on for all sprites.
  *
  */
-inline void vera_sprites_collision_on() {
+void vera_sprites_collision_on() {
     *VERA_IEN |= VERA_SPRITES_COLLISIONS;
 }
 
@@ -1598,7 +1598,7 @@ inline void vera_sprites_collision_on() {
  * @brief Switch collision detection off for all sprites.
  *
  */
-inline void vera_sprites_collision_off() {
+void vera_sprites_collision_off() {
     *VERA_IEN &= ~VERA_SPRITES_COLLISIONS;
 }
 
@@ -1609,7 +1609,7 @@ inline void vera_sprites_collision_off() {
  * @return true collision detection is switched on.
  * @return false collision detection is switched off.
  */
-inline char vera_sprite_is_collision() {
+char vera_sprite_is_collision() {
     return(char)(*VERA_ISR & VERA_SPRITES_COLLISIONS);
 }
 
@@ -1619,7 +1619,7 @@ inline char vera_sprite_is_collision() {
  *
  * @return Groups in collision, which are the upper 4 bits of ISR.
  */
-inline unsigned char vera_sprite_get_collision() {
+unsigned char vera_sprite_get_collision() {
     return(unsigned char)(*VERA_ISR & 0b11110000);
 }
 
@@ -1628,7 +1628,7 @@ inline unsigned char vera_sprite_get_collision() {
  * @brief Clear all collision detection grouping.
  *
  */
-inline void vera_sprite_collision_clear() {
+void vera_sprite_collision_clear() {
     *VERA_ISR &= VERA_SPRITES_COLLISIONS;
 }
 

@@ -4,6 +4,8 @@
 #include "equinoxe-animate.h"
 #include "equinoxe-flightengine.h"
 
+// #pragma var_model(zp)
+
 void animate_init()
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
@@ -28,7 +30,7 @@ unsigned char animate_add()
     return stage.animate_pool;
 }
 
-inline void animate_logic(unsigned char a)
+void animate_logic(unsigned char a)
 {
 
     // bank_push_set_bram(BRAM_FLIGHTENGINE);
@@ -62,3 +64,5 @@ inline void animate_logic(unsigned char a)
     // bank_pull_bram();
 
 }
+
+// #pragma var_model(mem)

@@ -78,31 +78,36 @@ void delete (lru_cache_key_t key)
     display();
 }
 
-void main() {
-
+void main()
+{
     lru_cache_init(&lru_cache);
 
     bgcolor(BROWN);
     textcolor(WHITE);
     clrscr();
+    scroll(0);
 
-    insert(0x0, 0x0);
-    insert(0x80, 0x80);
-    insert(0x100, 0x100);
-    insert(0x1, 0x1);
-    insert(0x200, 0x200);
-    insert(0x2, 0x2);
-    insert(0x82, 0x82);
-    delete(0x0);
-    delete(0x100);
-    delete(0x80);
-    delete(0x1);
-    insert(0x201, 0x201);
-    insert(0x81, 0x81);
-    delete(0x2);
-    delete(0x81);
-    delete(0x201);
-    delete(0x82);
-    delete(0x200);
+    int cache[128];
+
+    char ch = getin();
+    do {
+        if (lru_cache_is_max(&lru_cache)) {
+            lru_cache_key_t last = lru_cache_find_last(&lru_cache);
+            delete(last);
+        } else {
+            lru_cache_key_t key = rand() % 0x100;
+            lru_cache_data_t data = get(key);
+            if (data != LRU_CACHE_NOTHING) {
+                data += 1;
+                if (data < 2) {
+                    set(key, data);
+                } else {
+                    delete(key);
+                }
+            } else {
+                insert(key, 0);
+            }
+        }
+        ch = getin();
+    } while (ch != 'x');
 }
-

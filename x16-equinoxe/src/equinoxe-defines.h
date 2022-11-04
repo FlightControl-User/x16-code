@@ -33,11 +33,11 @@
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE
 
-#define __DEBUG_LRU_CACHE
+// #define __DEBUG_LRU_CACHE
 
 // #define __VERAHEAP_DUMP
 // #define __VERAHEAP_DEBUG
-#define __VERAHEAP_COLOR_FREE
+// #define __VERAHEAP_COLOR_FREE
 
 
 // Show information when generating the floor.

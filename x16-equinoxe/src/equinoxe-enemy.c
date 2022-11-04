@@ -12,6 +12,8 @@
 #include "equinoxe-bullet.h"
 #include <ht.h>
 
+// #pragma var_model(zp)
+
 void enemy_init()
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
@@ -347,4 +349,6 @@ char enemy_checkxor()
     bank_pull_bram();
     return xor;
 }
+
+// #pragma var_model(mem)
 

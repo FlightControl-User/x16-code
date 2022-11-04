@@ -152,15 +152,15 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         // We check if the vram heap has sufficient memory available for the size requested.
         // We also check if the lru cache has sufficient elements left to contain the new sprite image.
         bool vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
-        bool lru_cache_free = lru_cache_max(&sprite_cache_vram);
+        bool lru_cache_max = lru_cache_is_max(&sprite_cache_vram);
 
         // Free up the lru_cache and vram memory until the requested size is available!
         // This ensures that vram has sufficient place to allocate the new sprite image. 
-        while(!lru_cache_free || !vram_has_free) {
+        while(lru_cache_max || !vram_has_free) {
 
             // If the cache is at it's maximum, before we can add a new element, we must remove the least used image.
             // We search for the least used image in vram.
-            lru_cache_key_t vram_last = lru_cache_last(&sprite_cache_vram);
+            lru_cache_key_t vram_last = lru_cache_find_last(&sprite_cache_vram);
 
             // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
             vram_handle = lru_cache_delete(&sprite_cache_vram, vram_last);
@@ -176,7 +176,7 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
             // And then to a valid vram handle :-).
             vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
             vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
-            lru_cache_free = lru_cache_max(&sprite_cache_vram);
+            lru_cache_max = lru_cache_is_max(&sprite_cache_vram);
         }
 
         // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
@@ -376,4 +376,4 @@ void fe_sprite_configure(vera_sprite_offset sprite_offset, fe_sprite_index_t s) 
     vera_sprite_palette_offset(sprite_offset, palette16_use(sprite_cache.palette_offset[s]));
 }
 
-#pragma var_model(mem)
+// #pragma var_model(mem)

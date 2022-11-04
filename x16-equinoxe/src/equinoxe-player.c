@@ -11,7 +11,8 @@
 #include "equinoxe-bullet.h"
 
 
-#ifdef __PLAYER
+
+// #pragma var_model(zp)
 
 void player_init()
 {
@@ -260,5 +261,6 @@ char player_checkxor()
     return xor;
 }
 
+// #pragma var_model(mem)
 
-#endif // __PLAYER
+

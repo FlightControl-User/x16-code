@@ -10,6 +10,7 @@
 #include "equinoxe-tower.h"
 #include "equinoxe-animate.h"
 
+// #pragma var_model(zp)
 
 
 void bullet_init()
@@ -258,3 +259,5 @@ void bullet_logic()
 
     bank_pull_bram();
 }
+
+// #pragma var_model(mem)

@@ -4,6 +4,8 @@
 #include "stdio.h"
 #include <cx16-bitmap.h>
 
+#pragma var_model(zp)
+
 ht_key_t grid_key(unsigned char gx, unsigned char gy)
 {
     unsigned char key = gy + gx;
@@ -53,7 +55,7 @@ void grid_insert(ht_item_t* ht, unsigned char xmin, unsigned char ymin, ht_data_
     // bank_set_bram(bram_old);
 }
 
-inline void grid_print(ht_item_t* ht)
+void grid_print(ht_item_t* ht)
 {
     bram_bank_t bram_old = bank_get_bram();
     bank_set_bram(60);
@@ -61,3 +63,4 @@ inline void grid_print(ht_item_t* ht)
     bank_set_bram(bram_old);
 }
 
+#pragma var_model(mem)

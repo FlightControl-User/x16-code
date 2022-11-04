@@ -5,7 +5,7 @@
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(mem, global_mem, local_mem)
+#pragma var_model(mem, global_mem)
 
 // #pragma var_model(mem)
 
@@ -141,7 +141,7 @@ void equinoxe_scrollfloor() {
         // row 2, 1 or 0 from the paint segment...
         floor_draw_row(0, stage.floor, row, floor_tile_column);
         #ifdef __LAYER1
-        floor_draw_row(1, stage.towers, floor_tile_row, floor_tile_column);
+        floor_draw_row(1, stage.towers, row, floor_tile_column);
         #endif
 
         #ifdef __TOWER

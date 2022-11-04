@@ -29,6 +29,7 @@ floor_layer_t floor_layer[2] = {
 floor_cache_t floor_cache[FLOOR_CACHE_LAYERS*FLOOR_CACHE_ROWS*FLOOR_CACHE_COLUMNS];
 
 
+// #pragma var_model(zp)
 
 void floor_draw_clear(unsigned char layer) 
 {
@@ -414,3 +415,6 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
 
 
 #pragma data_seg(Data)
+
+// #pragma var_model(mem)
+
