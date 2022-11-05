@@ -17,7 +17,7 @@ ht_item_t ht_collision;
 
 #pragma data_seg(Data)
 
-ht_key_t grid_key(unsigned char gx, unsigned char gy);
-void grid_insert(ht_item_t* ht, unsigned char x, unsigned char y, ht_data_t data);
+ht_key_t collision_key(unsigned char gx, unsigned char gy);
+void collision_insert(ht_item_t* ht, unsigned char x, unsigned char y, ht_data_t data);
 
 #endif

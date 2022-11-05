@@ -252,7 +252,7 @@ void tower_logic()
                 unsigned char volatile gx = BYTE0((unsigned)x>>2); 
                 unsigned char volatile gy = BYTE0((unsigned)y>>2); 
                 // printf("tower logic: t=%u, towers gx=%04u, gy=%04u\n", t, gx, gy);
-                grid_insert(&ht_collision, gx, gy, COLLISION_TOWER | t);
+                collision_insert(&ht_collision, gx, gy, COLLISION_TOWER | t);
                 if(towers.anim_state[t] == 3) {
                     #ifdef __BULLET                
                     signed int volatile py = towers.ty[t];

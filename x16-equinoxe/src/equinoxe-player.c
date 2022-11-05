@@ -215,7 +215,7 @@ void player_logic() {
             if(playery < 0) playery = 0;
 
             #ifdef __COLLISION
-            grid_insert(&ht_collision, BYTE0((unsigned int)playerx>>2), BYTE0((unsigned int)playery>>2), COLLISION_PLAYER | p);
+            collision_insert(&ht_collision, BYTE0((unsigned int)playerx>>2), BYTE0((unsigned int)playery>>2), COLLISION_PLAYER | p);
             #endif
 
             unsigned char player_sprite = player.sprite[p];

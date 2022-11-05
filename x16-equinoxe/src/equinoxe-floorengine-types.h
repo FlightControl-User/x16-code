@@ -54,4 +54,9 @@ typedef struct {
 // #define FLOOR_CACHE(layer, row, column) ((char)((char)(layer<<7) | (char)(row<<4) | (char)(column)))
 typedef heap_bram_fb_handle_t floor_bram_handles_t;
 
+typedef struct {
+    unsigned char tile_row;
+    unsigned char tile_column;
+} floor_scroll_t;
+
 #endif

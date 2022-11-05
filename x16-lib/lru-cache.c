@@ -12,9 +12,8 @@
 
 #define LRU_CACHE_MAX 124
 
-#include <cx16.h>
-#include <conio.h>
 #include <lru-cache.h>
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

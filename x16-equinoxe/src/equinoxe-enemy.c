@@ -312,7 +312,7 @@ void enemy_logic() {
 					FireBulletEnemy(e);
 				}
 #endif
-				grid_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_ENEMY | e);
+				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_ENEMY | e);
 			} else {
 				if(enemy.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);

@@ -30,4 +30,5 @@ void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pa
 void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor);
 unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_bram_tiles_t * floor_bram_tile); 
 
+void floor_scroll();
 

@@ -250,7 +250,7 @@ void bullet_logic()
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate.state[a]));
 				}
                 animate_logic(a);
-				grid_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_BULLET | b);
+				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_BULLET | b);
             } else {
                 bullet_remove(b);
             }
