@@ -1,6 +1,7 @@
 #include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
+#include "equinoxe-tower.h"
 #include "stdio.h"
 #include <cx16-bitmap.h>
 

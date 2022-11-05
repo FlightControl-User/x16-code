@@ -6,7 +6,7 @@
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(zp, global_mem)
+#pragma var_model(mem, global_mem)
 
 // #pragma var_model(mem)
 
