@@ -11,9 +11,9 @@
 
 #include "equinoxe-bank.h"
 
-// #define __CONIO_BSOUT
+#define __CONIO_BSOUT
 // #define __LAYER1
-// #define __NOVSYNC
+#define __NOVSYNC
 #define __CPULINES
 
 #define __PALETTE

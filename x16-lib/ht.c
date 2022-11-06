@@ -16,6 +16,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+ht_list_t ht_list;
+
+#pragma data_seg(Data)
+
+__mem volatile unsigned char ht_list_pool;
+
 void ht_init(ht_item_t* ht)
 {
    // heap_segment_define(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!

@@ -3,6 +3,7 @@
 #include <cx16-veralib.h>
 #include <fp3.h>
 #include <ht.h>
+#include <lru-cache.h>
 
 #include "equinoxe-flightengine-types.h"
 
@@ -26,6 +27,7 @@ extern fe_engine_t engine;
 extern fe_enemy_t enemy;
 extern fe_bullet_t bullet;
 extern fe_sprite_cache_t sprite_cache;
+extern lru_cache_table_t sprite_cache_vram;
 
 extern vera_sprite_offset sprite_offsets[127];
 

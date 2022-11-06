@@ -18,26 +18,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-__mem volatile lru_cache_index_t lru_cache_index_last;
-__mem volatile lru_cache_index_t lru_cache_index_first;
-__mem volatile lru_cache_index_t lru_cache_count;
-__mem volatile lru_cache_index_t lru_cache_size;
-
-
 void lru_cache_init(lru_cache_table_t* lru_cache)
 {
     memset(lru_cache, 0xFF, sizeof(lru_cache_table_t));
-    lru_cache_index_first = 0xFF;
-    lru_cache_index_last = 0xFF;
-    lru_cache_count = 0;
-    lru_cache_size = LRU_CACHE_SIZE;
+    lru_cache->first = 0xFF;
+    lru_cache->last = 0xFF;
+    lru_cache->count = 0;
+    lru_cache->size = LRU_CACHE_SIZE;
 }
 
-__mem unsigned char lru_cache_seed;
+// __mem unsigned char lru_cache_seed;
 
 lru_cache_index_t lru_cache_hash(lru_cache_key_t key)
 {
-    return key % LRU_CACHE_SIZE;
+    return (lru_cache_index_t)(key % LRU_CACHE_SIZE);
 }
 
 // inline lru_cache_index_t lru_cache_hash(lru_cache_key_t key) {
@@ -56,12 +50,12 @@ lru_cache_index_t lru_cache_hash(lru_cache_key_t key)
 
 inline bool lru_cache_is_max(lru_cache_table_t* lru_cache)
 {
-    return lru_cache_count >= LRU_CACHE_MAX;
+    return lru_cache->count >= LRU_CACHE_MAX;
 }
 
 lru_cache_key_t lru_cache_find_last(lru_cache_table_t* lru_cache)
 {
-    return lru_cache->key[lru_cache_index_last];
+    return lru_cache->key[lru_cache->last];
 }
 
 lru_cache_index_t lru_cache_find_empty(lru_cache_table_t* lru_cache, lru_cache_index_t index)
@@ -85,7 +79,6 @@ lru_cache_index_t lru_cache_find_duplicate(lru_cache_table_t* lru_cache, lru_cac
 lru_cache_index_t lru_cache_index(lru_cache_table_t* lru_cache, lru_cache_key_t key)
 {
     lru_cache_index_t index = lru_cache_hash(key);
-    lru_cache_index_t vram_cache_index_start = index;
 
     // Search till index == 0xFF, following the links.
     while (index != LRU_CACHE_INDEX_NULL) {
@@ -112,24 +105,24 @@ lru_cache_data_t lru_cache_get(lru_cache_table_t* lru_cache, lru_cache_index_t i
         //lru_cache->prev[prev] = next;
 
         // Reassign first and last node.
-        if (index == lru_cache_index_first) {
-            lru_cache_index_first = next;
+        if (index == lru_cache->first) {
+            lru_cache->first = next;
         }
-        if (index == lru_cache_index_last) {
-            lru_cache_index_last = prev;
+        if (index == lru_cache->last) {
+            lru_cache->last = prev;
         }
 
         // Now insert the node as the first node in the list.
 
-        lru_cache->next[index] = lru_cache_index_first;
-        lru_cache->prev[lru_cache_index_first] = index;
-        lru_cache->next[lru_cache_index_last] = index;
-        lru_cache->prev[index] = lru_cache_index_last;
+        lru_cache->next[index] = lru_cache->first;
+        lru_cache->prev[lru_cache->first] = index;
+        lru_cache->next[lru_cache->last] = index;
+        lru_cache->prev[index] = lru_cache->last;
 
         // Now the first node in the list is the node referenced!
         // All other nodes are moved one position down!
-        lru_cache_index_first = index;
-        lru_cache_index_last = lru_cache->prev[index];
+        lru_cache->first = index;
+        lru_cache->last = lru_cache->prev[index];
 
         return data;
     }
@@ -178,12 +171,12 @@ void lru_cache_move_link(lru_cache_table_t* lru_cache, lru_cache_index_t link, l
     lru_cache->prev[next] = link;
 
     // todo first and last
-    if (lru_cache_index_last == index) {
-        lru_cache_index_last = link;
+    if (lru_cache->last == index) {
+        lru_cache->last = link;
     }
 
-    if (lru_cache_index_first == index) {
-        lru_cache_index_first = link;
+    if (lru_cache->first == index) {
+        lru_cache->first = link;
     }
 
     lru_cache->key[index] = LRU_CACHE_NOTHING;
@@ -245,23 +238,23 @@ lru_cache_index_t lru_cache_insert(lru_cache_table_t* lru_cache, lru_cache_key_t
     lru_cache->data[index] = data;
 
     // And set the lru chain.
-    if (lru_cache_index_first == 0xff) {
-        lru_cache_index_first = index;
+    if (lru_cache->first == 0xff) {
+        lru_cache->first = index;
     }
-    if (lru_cache_index_last == 0xff) {
-        lru_cache_index_last = index;
+    if (lru_cache->last == 0xff) {
+        lru_cache->last = index;
     }
 
     // Now insert the node as the first node in the list.
-    lru_cache->next[index] = lru_cache_index_first;
-    lru_cache->prev[lru_cache_index_first] = index;
+    lru_cache->next[index] = lru_cache->first;
+    lru_cache->prev[lru_cache->first] = index;
 
-    lru_cache->next[lru_cache_index_last] = index;
-    lru_cache->prev[index] = lru_cache_index_last;
+    lru_cache->next[lru_cache->last] = index;
+    lru_cache->prev[index] = lru_cache->last;
 
-    lru_cache_index_first = index;
+    lru_cache->first = index;
 
-    lru_cache_count++;
+    lru_cache->count++;
 
     return index;
 }
@@ -290,18 +283,18 @@ lru_cache_data_t lru_cache_delete(lru_cache_table_t* lru_cache, lru_cache_key_t 
             lru_cache->prev[index] = LRU_CACHE_INDEX_NULL;
             if (lru_cache->next[index] == index) {
                 // Reset first and last node.
-                lru_cache_index_first = 0xff;
-                lru_cache_index_last = 0xff;
+                lru_cache->first = 0xff;
+                lru_cache->last = 0xff;
             } else {
                 // Delete the node from the list.
                 lru_cache->next[prev] = next;
                 lru_cache->prev[next] = prev;
                 // Reassign first and last node.
-                if (index == lru_cache_index_first) {
-                    lru_cache_index_first = next;
+                if (index == lru_cache->first) {
+                    lru_cache->first = next;
                 }
-                if (index == lru_cache_index_last) {
-                    lru_cache_index_last = prev;
+                if (index == lru_cache->last) {
+                    lru_cache->last = prev;
                 }
             }
 
@@ -319,7 +312,7 @@ lru_cache_data_t lru_cache_delete(lru_cache_table_t* lru_cache, lru_cache_key_t 
             }
 
 
-            lru_cache_count--;
+            lru_cache->count--;
 
             return data;
         }
@@ -337,7 +330,7 @@ void lru_cache_display(lru_cache_table_t* lru_cache)
     unsigned char col = 0;
 
     printf("least recently used cache statistics\n");
-    printf("size = %3u, first = %2x, last = %2x, count = %2x\n\n", LRU_CACHE_SIZE, lru_cache_index_first, lru_cache_index_last, lru_cache_count);
+    printf("size = %3u, first = %2x, last = %2x, count = %2x\n\n", LRU_CACHE_SIZE, lru_cache->first, lru_cache->last, lru_cache->count);
 
     printf("least recently used hash table\n\n");
 
@@ -381,12 +374,12 @@ void lru_cache_display(lru_cache_table_t* lru_cache)
 
     printf("least recently used sequence\n");
 
-    lru_cache_index_t index = lru_cache_index_first;
+    lru_cache_index_t index = lru_cache->first;
     lru_cache_index_t count = 0;
     col = 0;
 
-    while (count < lru_cache_size) {
-        if (count < lru_cache_count)
+    while (count < lru_cache->size) {
+        if (count < lru_cache->count)
             printf(" %4x", lru_cache->key[index]);
         else
             printf("    ");

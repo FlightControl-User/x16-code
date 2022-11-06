@@ -2,11 +2,10 @@
 
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
-#pragma target(CX16)
 // #pragma cpu(mos6502)
 
 
-#pragma var_model(mem, global_mem)
+#pragma var_model(zp)
 
 // #pragma var_model(mem)
 

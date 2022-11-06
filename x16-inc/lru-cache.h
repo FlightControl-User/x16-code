@@ -38,6 +38,10 @@ typedef struct {
     lru_cache_index_t prev[LRU_CACHE_SIZE];
     lru_cache_index_t next[LRU_CACHE_SIZE];
     lru_cache_index_t link[LRU_CACHE_SIZE];
+    lru_cache_index_t count;
+    lru_cache_index_t first;
+    lru_cache_index_t last;
+    lru_cache_index_t size;
 } lru_cache_table_t;
 
 

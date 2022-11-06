@@ -12,13 +12,6 @@
 #include "ht-typedefs.h"
 
 
-
-ht_list_t ht_list;
-
-#pragma data_seg(Data)
-
-__mem volatile unsigned char ht_list_pool;
-
 void ht_init(ht_item_t* ht);
 inline ht_index_t ht_hash(ht_key_t key);
 inline ht_index_t ht_hash_next(ht_index_t index);
