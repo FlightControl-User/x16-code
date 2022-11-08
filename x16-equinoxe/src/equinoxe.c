@@ -15,18 +15,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
 #include <6502.h>
-#include <kernal.h>
-#include <printf.h>
 #include <division.h>
 #include <mos6522.h>
 #include <multiply.h>
 
-#include <ht.h>
-#include <lru-cache.h>
 
 #pragma var_model(mem)
+
+#include <kernal.h>
+#include <conio.h>
+#include <printf.h>
+
+#include <ht.h>
+#include <lru-cache.h>
 
 #include <cx16.h>
 #include <cx16-conio.h>
@@ -52,10 +54,7 @@
 #include "equinoxe-tower.h"
 #include "equinoxe-levels.h"
 
-
 #include "equinoxe-petscii.c"
-
-
 
 #pragma data_seg(Heap)
 
@@ -68,7 +67,6 @@ fb_heap_segment_t heap_512; const fb_heap_segment_t* bin512 = &heap_512;
 fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
 fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
 fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
-
 
 #pragma data_seg(Data)
 

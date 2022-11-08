@@ -422,7 +422,7 @@ void floor_scroll()
     if (!game.screen_vscroll_wait--) {
         game.screen_vscroll_wait = 4;
 
-        unsigned char row = (game.screen_vscroll - 16) / 16;
+        unsigned char row = (char)((game.screen_vscroll - 16) / 16);
         row %= 32;
 
         // There are 16 scroll iterations as the height of the tiles is 16 pixels.

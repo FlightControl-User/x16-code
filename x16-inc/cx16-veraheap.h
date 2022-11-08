@@ -33,7 +33,7 @@ unsigned int vera_heap_alloc_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_free_count(vera_heap_segment_index_t s);
 unsigned int vera_heap_idle_count(vera_heap_segment_index_t s);
 
-bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_requested);
+inline bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_requested);
 
 vera_heap_index_t vera_heap_list_remove(vera_heap_segment_index_t s, vera_heap_index_t list, vera_heap_index_t index);
 vera_heap_index_t vera_heap_heap_insert_at(vera_heap_segment_index_t s, vera_heap_index_t heap_index, vera_heap_index_t at, vera_heap_size_packed_t size);

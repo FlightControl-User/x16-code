@@ -132,8 +132,6 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         bool vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required);
         bool lru_cache_max = lru_cache_is_max(&sprite_cache_vram);
 
-        printf("vram_has_free = %u, lru_cache_max = %u", (char)vram_has_free, (char)lru_cache_max);
-        while(!getin());
 
         // Free up the lru_cache and vram memory until the requested size is available!
         // This ensures that vram has sufficient place to allocate the new sprite image. 

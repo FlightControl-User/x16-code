@@ -974,7 +974,7 @@ void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char 
  * @param size_requested The requested size in uint16 format.
  * @return bool indicating if there is free memory or not.
  */
-bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_requested)
+inline bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_requested)
 {
     bank_push_set_bram(vera_heap_segment.bram_bank);
 
@@ -982,7 +982,7 @@ bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t size_r
 	vera_heap_size_packed_t packed_size = vera_heap_alloc_size_get(size_requested);
 
     vera_heap_index_t free_index = vera_heap_find_best_fit(s, packed_size);
-    bool has_free = (free_index != VERAHEAP_NULL);
+    bool has_free = free_index != VERAHEAP_NULL;
 
     bank_pull_bram();
     

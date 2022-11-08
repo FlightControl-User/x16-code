@@ -11,9 +11,9 @@
 
 #include "equinoxe-bank.h"
 
-#define __CONIO_BSOUT
-// #define __LAYER1
-#define __NOVSYNC
+// #define __CONIO_BSOUT
+#define __LAYER1
+// #define __NOVSYNC
 #define __CPULINES
 
 #define __PALETTE
@@ -23,8 +23,8 @@
 #define __COLLISION
 
 
-// #define __FLOOR
-// #define __TOWER
+#define __FLOOR
+#define __TOWER
 #define __PLAYER
 #define __BULLET
 #define __ENEMY

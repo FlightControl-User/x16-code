@@ -139,12 +139,12 @@ void tower_paint(unsigned char row, unsigned char column)
                 bank_push_set_bram(BRAM_LEVELS);
                 stage_tower_t* stage_tower = stage.current_playbook.stage_towers;
                 sprite_bram_t* turret = stage_tower->turret;
-                signed int tx = stage_tower->turret_x;
-                signed int ty = stage_tower->turret_y;
+                signed char tx = stage_tower->turret_x;
+                signed char ty = stage_tower->turret_y;
                 signed char fx = stage_tower->fire_x;
                 signed char fy = stage_tower->fire_y;
                 bank_pull_bram();
-                tower_add(turret, column, row, (signed int)column*64+tx, ty-(signed int)64-(signed int)(game.screen_vscroll % 16), fx, fy, 4, 4);
+                tower_add(turret, column, row, (signed int)column*64+tx, (signed int)ty-(signed int)64-(signed int)(game.screen_vscroll % 16), fx, fy, 4, 4);
             }
         }
     }

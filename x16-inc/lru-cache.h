@@ -50,7 +50,7 @@ void lru_cache_init(lru_cache_table_t* lru_cache);
 lru_cache_index_t lru_cache_hash(lru_cache_key_t key);
 
 lru_cache_key_t lru_cache_find_last(lru_cache_table_t *lru_cache);
-bool lru_cache_is_max(lru_cache_table_t *lru_cache);
+inline bool lru_cache_is_max(lru_cache_table_t *lru_cache);
 
 lru_cache_index_t lru_cache_index(lru_cache_table_t* lru_cache, lru_cache_key_t key);
 lru_cache_data_t lru_cache_get(lru_cache_table_t *lru_cache, lru_cache_index_t index);

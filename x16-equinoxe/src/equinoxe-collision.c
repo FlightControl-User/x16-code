@@ -5,7 +5,7 @@
 #include "stdio.h"
 #include <cx16-bitmap.h>
 
-#pragma var_model(zp)
+// #pragma var_model(zp)
 
 ht_key_t collision_key(unsigned char gx, unsigned char gy)
 {
@@ -368,4 +368,4 @@ void collision_detect()
     bank_pull_bram();
 }
 
-#pragma var_model(mem)
+// #pragma var_model(mem)
