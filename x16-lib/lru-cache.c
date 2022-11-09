@@ -145,7 +145,7 @@ lru_cache_data_t lru_cache_data(lru_cache_table_t* lru_cache, lru_cache_index_t 
 }
 
 
-void lru_cache_move_link(lru_cache_table_t* lru_cache, lru_cache_index_t link, lru_cache_index_t index)
+inline void lru_cache_move_link(lru_cache_table_t* lru_cache, lru_cache_index_t link, lru_cache_index_t index)
 {
     // Here we move the node at the index to the new link, and set the head link to the new link.
 

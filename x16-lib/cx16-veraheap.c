@@ -792,9 +792,6 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
     printf("\n");
 #endif
 
-
-
-
     vera_heap_segment.freeSize[s] += free_size;
     vera_heap_segment.heapSize[s] -= free_size;
 

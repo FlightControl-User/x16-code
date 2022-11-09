@@ -7,10 +7,6 @@
 
 #include "equinoxe-flightengine-types.h"
 
-// #pragma data_seg(sprite_t)
-
-// #pragma data_seg(SpriteControl)
-
 
 const unsigned char FE_PLAYER = 4;
 const unsigned char FE_ENEMY = 64;
@@ -31,8 +27,6 @@ extern lru_cache_table_t sprite_cache_vram;
 
 extern vera_sprite_offset sprite_offsets[127];
 
-
-void fe_init();
 
 fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram);
 void fe_sprite_cache_free(unsigned char s);

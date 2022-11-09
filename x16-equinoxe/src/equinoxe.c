@@ -4,7 +4,6 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 
-
 #pragma var_model(zp)
 
 // #pragma var_model(mem)
@@ -13,22 +12,20 @@
 
 #include "equinoxe-defines.h"
 
+#include <kernal.h>
+#include <6502.h>
+#include <mos6522.h>
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <6502.h>
-#include <division.h>
-#include <mos6522.h>
-#include <multiply.h>
-
-
-#pragma var_model(mem)
-
-#include <kernal.h>
-#include <conio.h>
 #include <printf.h>
+#include <division.h>
+#include <multiply.h>
 
 #include <ht.h>
 #include <lru-cache.h>
+
+#pragma var_model(mem)
 
 #include <cx16.h>
 #include <cx16-conio.h>

@@ -48,7 +48,6 @@ unsigned char enemy_add(unsigned char w)
     enemy.wave[e] = w;
 
     fe_sprite_index_t s = fe_sprite_cache_copy(wave.enemy_sprite[w]);
-
     enemy.sprite[e] = s;
 
 	enemy.side[e] = SIDE_ENEMY;
