@@ -26,6 +26,34 @@ typedef struct {
     fe_sprite_index_t sprite_cache;
 } sprite_bram_t;
 
+typedef struct {
+    unsigned char xmin;
+    unsigned char ymin;
+    unsigned char xmax;
+    unsigned char ymax;
+} aabb_t;
+
+#define SPRITES 32
+typedef struct {
+    char*           file[SPRITES];
+    unsigned char   loaded[SPRITES];
+    unsigned char   count[SPRITES];
+    unsigned int    SpriteSize[SPRITES];
+    unsigned char   Height[SPRITES];
+    unsigned char   Width[SPRITES];
+    unsigned char   Zdepth[SPRITES];
+    unsigned char   Hflip[SPRITES];
+    unsigned char   Vflip[SPRITES];
+    unsigned char   BPP[SPRITES];
+    unsigned char   PaletteOffset[SPRITES]; 
+    unsigned char   reverse[SPRITES];
+    aabb_t          aabb[SPRITES];
+    unsigned int    offset[SPRITES];
+    unsigned char   loop[SPRITES];
+    fe_sprite_index_t sprite_cache[SPRITES];
+} sprite_t;
+typedef unsigned char sprite_index_t;
+
 typedef heap_bram_fb_handle_t sprite_bram_handles_t;
 
 typedef struct {

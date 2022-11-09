@@ -103,7 +103,7 @@ void FireBullet(unsigned char p, char reload)
     bank_pull_bram();
 }
 
-unsigned char bullet_sprite_cache(unsigned char b, sprite_bram_t* sprite)
+unsigned char bullet_sprite_cache(unsigned char b, sprite_index_t sprite)
 {
     fe_sprite_index_t s = fe_sprite_cache_copy(sprite);
     bullet.sprite[b] = s;

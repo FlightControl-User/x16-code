@@ -41,9 +41,6 @@ vera_sprite_offset sprite_offsets[127] = { 0 };
 
 // #pragma var_model(zp)
 
-void fe_init()
-{}
-
 vera_sprite_offset sprite_next_offset()
 {
     while (sprite_offsets[stage.sprite_cache_pool]) {
