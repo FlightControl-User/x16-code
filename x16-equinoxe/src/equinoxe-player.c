@@ -24,7 +24,7 @@ void player_init()
     bank_pull_bram();
 }
 
-void player_add(sprite_bram_t* sprite_player, sprite_bram_t* sprite_engine) 
+void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) 
 {
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);

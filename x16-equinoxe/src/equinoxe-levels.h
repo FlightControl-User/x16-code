@@ -6,28 +6,50 @@
 
 __export volatile sprite_bram_handles_t sprite_bram_handles[512];
 
-__export volatile sprite_bram_t sprite_t001 = { "t001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_n001 = { "n001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0101 = { "e0101", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0102 = { "e0102", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0201 = { "e0201", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0202 = { "e0202", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0301 = { "e0301", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0302 = { "e0302", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0401 = { "e0401", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0501 = { "e0501", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0502 = { "e0502", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0601 = { "e0601", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0602 = { "e0602", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0701 = { "e0701", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0702 = { "e0702", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_e0703 = { "e0703", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
-__export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_t001 = { "t001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_n001 = { "n001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0101 = { "e0101", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0102 = { "e0102", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0201 = { "e0201", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0202 = { "e0202", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0301 = { "e0301", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0302 = { "e0302", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0401 = { "e0401", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0501 = { "e0501", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0502 = { "e0502", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0601 = { "e0601", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0602 = { "e0602", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0701 = { "e0701", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0702 = { "e0702", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_e0703 = { "e0703", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+// __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
 
+
+#define t001 0
+#define p001 1
+#define n001 2
+#define e0101 3
+#define e0102 4
+#define e0201 5
+#define e0202 6
+#define e0301 7
+#define e0302 8
+#define e0401 9
+#define e0501 10
+#define e0502 11
+#define e0601 12
+#define e0602 13
+#define e0701 14
+#define e0702 15
+#define e0703 16
+#define b001 17
+#define b002 18
+#define b003 19
+#define b004 20
 
 __export sprite_t sprites = {
 
@@ -132,29 +154,29 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 
 
 
-__export volatile stage_bullet_t stage_bullet_fireball = { &sprite_b002 };
-__export volatile stage_bullet_t stage_bullet_vertical_laser = { &sprite_b003 };
+__export volatile stage_bullet_t stage_bullet_fireball = { b002 };
+__export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };
 
-__export volatile stage_enemy_t stage_enemy_e0101 = { &sprite_e0101, &sprite_e0101, &stage_bullet_fireball, 8, 0 };
-__export volatile stage_enemy_t stage_enemy_e0102 = { &sprite_e0102, &sprite_e0102, &stage_bullet_fireball, 8, 0 };
-__export volatile stage_enemy_t stage_enemy_e0201 = { &sprite_e0201, &sprite_e0201, &stage_bullet_fireball, 8, 0 };
-__export volatile stage_enemy_t stage_enemy_e0202 = { &sprite_e0202, &sprite_e0202, &stage_bullet_fireball, 8, 0 };
-__export volatile stage_enemy_t stage_enemy_e0301 = { &sprite_e0301, &sprite_e0301, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0302 = { &sprite_e0302, &sprite_e0302, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0401 = { &sprite_e0401, &sprite_e0401, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0501 = { &sprite_e0501, &sprite_e0501, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0502 = { &sprite_e0502, &sprite_e0502, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0601 = { &sprite_e0601, &sprite_e0601, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0602 = { &sprite_e0602, &sprite_e0602, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0701 = { &sprite_e0701, &sprite_e0701, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0702 = { &sprite_e0702, &sprite_e0702, &stage_bullet_fireball, 8, 1 };
-__export volatile stage_enemy_t stage_enemy_e0703 = { &sprite_e0703, &sprite_e0703, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0101 = { e0101, e0101, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0102 = { e0102, e0102, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0201 = { e0201, e0201, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0202 = { e0202, e0202, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0301 = { e0301, e0301, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0302 = { e0302, e0302, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0401 = { e0401, e0401, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0501 = { e0501, e0501, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0502 = { e0502, e0502, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0601 = { e0601, e0601, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0602 = { e0602, e0602, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0701 = { e0701, e0701, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0702 = { e0702, e0702, &stage_bullet_fireball, 8, 1 };
+__export volatile stage_enemy_t stage_enemy_e0703 = { e0703, e0703, &stage_bullet_fireball, 8, 1 };
 
-__export volatile stage_engine_t stage_player_engine = { &sprite_n001 };
+__export volatile stage_engine_t stage_player_engine = { n001 };
 
-__export volatile stage_bullet_t stage_player_bullet = { &sprite_b001 };
+__export volatile stage_bullet_t stage_player_bullet = { b001 };
 
-__export volatile stage_player_t stage_player = { &sprite_p001, &stage_player_engine, &stage_player_bullet };
+__export volatile stage_player_t stage_player = { p001, &stage_player_engine, &stage_player_bullet };
 
 stage_action_move_t     action_move_00                  = { 480+64, 16, 3 };
 stage_action_move_t     action_move_left_480_01         = { 320+160, 32, 3 };
@@ -211,7 +233,7 @@ stage_flightpath_t action_flightpath_006[] = {
 
 __export volatile
 stage_scenario_t stage_level_01[32] = {
-//    ct, sp, &sprite_enemy_xxx, action_flightpath_xxx,                                 xstrt, ystrt, xinc, yinc, ival, wait, prev    
+//    ct, sp, enemy_xxx, action_flightpath_xxx,                                 xstrt, ystrt, xinc, yinc, ival, wait, prev    
     {  8,  1, &stage_enemy_e0501, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
     { 16, 16, &stage_enemy_e0701, action_flightpath_005,                                  704,    96,    0,    0,    4,   20,    0 }, // 1
     { 16, 16, &stage_enemy_e0702, action_flightpath_006,                                  -64,   160,    0,    0,   12,   20,    0 }, // 2
@@ -252,7 +274,7 @@ __export volatile stage_floor_bram_tiles_t stage_tower_bram_tiles_01[] = {
 
 __export volatile
 stage_tower_t stage_towers_01 = {
-    1, stage_tower_bram_tiles_01, &tower_01, &sprite_t001, 
+    1, stage_tower_bram_tiles_01, &tower_01, t001, 
     16, 16, 8, 8,
     &stage_bullet_vertical_laser
 };

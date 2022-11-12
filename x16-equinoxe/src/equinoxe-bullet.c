@@ -85,7 +85,7 @@ void FireBullet(unsigned char p, char reload)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_PLAYER;
 
-        fe_sprite_index_t s = bullet_sprite_cache(b, &sprite_b001);
+        fe_sprite_index_t s = bullet_sprite_cache(b, b001);
         bullet_sprite_offset_set(b, s);
 
 
@@ -134,7 +134,7 @@ void FireBulletEnemy(unsigned char e)
         bullet.side[b] = SIDE_ENEMY;
 
 
-        fe_sprite_index_t s = bullet_sprite_cache(b, &sprite_b002);
+        fe_sprite_index_t s = bullet_sprite_cache(b, b002);
         bullet_sprite_offset_set(b, s);
 
         bullet.tx[b] = MAKELONG(ex, 0);
@@ -172,7 +172,7 @@ void FireBulletTower(unsigned char t)
         bullet.enabled[b] = 0;
         bullet.side[b] = SIDE_ENEMY;
 
-        fe_sprite_index_t s = bullet_sprite_cache(b, &sprite_b003);
+        fe_sprite_index_t s = bullet_sprite_cache(b, b003);
         bullet_sprite_offset_set(b, s);
 
         

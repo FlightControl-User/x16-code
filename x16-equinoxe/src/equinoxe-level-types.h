@@ -7,22 +7,22 @@ typedef struct {
 } stage_file_t;
 
 typedef struct {
-    sprite_bram_t* engine_sprite;
+    sprite_index_t engine_sprite;
 } stage_engine_t;
 
 typedef struct {
-    sprite_bram_t* bullet_sprite;
+    sprite_index_t bullet_sprite;
 } stage_bullet_t;
 
 typedef struct {
-    sprite_bram_t* player_sprite;
+    sprite_index_t player_sprite;
     stage_engine_t* stage_engine;
     stage_bullet_t* stage_bullet; 
 } stage_player_t;
 
 typedef struct {
-    sprite_bram_t* enemy_sprite_flight;
-    sprite_bram_t* enemy_sprite_shoot;
+    sprite_index_t enemy_sprite_flight;
+    sprite_index_t enemy_sprite_shoot;
     stage_bullet_t* stage_bullet; 
     unsigned char animation_speed;
     unsigned char animation_reverse;
@@ -85,7 +85,7 @@ typedef struct {
     unsigned char tower_file_count;
     stage_floor_bram_tiles_t* tower_bram_tiles;
     floor_t* towers;
-    sprite_bram_t* turret;
+    sprite_index_t turret;
     signed char turret_x; ///< x pixels to be added to position the turret on the tower.
     signed char turret_y; ///< y pixels to be added to position the turret on the tower.
     signed char fire_x; ///< x pixels to be added for the fire position of the bullets on the tower.

@@ -8,7 +8,7 @@
 typedef struct {
     unsigned char enemy_count[WAVES]; // Temporary that holds the total amount of enemies in a scenario.
     unsigned char enemy_spawn[WAVES]; // Temporary that holds the amount of enemies that can be spawned at the same time.
-    sprite_bram_t* enemy_sprite[WAVES]; // Temporary that holds the sprite of the enemy to be spawned.
+    sprite_index_t enemy_sprite[WAVES]; // Temporary that holds the sprite of the enemy to be spawned.
     stage_flightpath_t* enemy_flightpath[WAVES]; // Temporary that holds the flight path of the enemy to be followed.
     signed int x[WAVES];
     signed int y[WAVES];

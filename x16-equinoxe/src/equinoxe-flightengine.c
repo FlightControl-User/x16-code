@@ -67,15 +67,15 @@ void fe_sprite_debug()
     char x = wherex();
     char y = wherey();
 
-#ifdef __INCLUDE_PRINT
     printf("pool %2x", fe.sprite_cache_pool);
-#endif
+    gotoxy(0, 3);
+    printf("ca bram used file           offs size wi he");
 
     for (unsigned int c = 0; c < FE_CACHE; c++) {
         gotoxy(0, (char)c + 4);
-#ifdef __INCLUDE_PRINT
-        printf("%02x %04p %02x %16s %4u %4u", c, sprite_cache.sprite_bram[c], sprite_cache.used[c], &sprite_cache.file[c * 16], sprite_cache.offset[c], sprite_cache.size[c]);
-#endif
+        printf("%02x %04p %02x %16s %4u %4u %02x %02x", c, sprite_cache.sprite_bram[c], sprite_cache.used[c], 
+        &sprite_cache.file[c * 16], sprite_cache.offset[c], sprite_cache.size[c], sprite_cache.width[c], sprite_cache.height[c]
+        );
     }
 
     gotoxy(x, y);
@@ -177,18 +177,18 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 }
 
 // todo, need to detach vram allocation from cache management.
-fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
+fe_sprite_index_t fe_sprite_cache_copy(sprite_index_t sprite_index)
 {
 
     bank_push_set_bram(BRAM_SPRITE_CONTROL);
 
-    unsigned int c = sprite_bram->sprite_cache;
-    sprite_bram_t* cache_bram = (sprite_bram_t*)sprite_cache.sprite_bram[c];
+    unsigned char c = sprites.sprite_cache[sprite_index];
+    sprite_index_t cache_bram = (sprite_index_t)sprite_cache.sprite_bram[c];
 
     // If it is a new cache entry (never seen the sprite before)
     // or it is an existing cache entry but it is unused and the bram points to a different sprite,
     // Allocate, otherwise reuse the existing sprite.
-    if (cache_bram != sprite_bram) {
+    if (cache_bram != sprite_index) {
         if (sprite_cache.used[c]) {
             while (sprite_cache.used[fe.sprite_cache_pool]) {
                 fe.sprite_cache_pool = (fe.sprite_cache_pool + 1) % FE_CACHE;
@@ -196,30 +196,29 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_bram_t* sprite_bram)
             c = fe.sprite_cache_pool;
         }
 
-        unsigned int co = c * FE_CACHE;
+        unsigned char co = c * FE_CACHE;
 
-        sprite_bram->sprite_cache = c;
-        sprite_cache.sprite_bram[c] = sprite_bram;
+        sprites.sprite_cache[sprite_index] = c;
+        sprite_cache.sprite_bram[c] = sprite_index;
 
-        sprite_cache.count[c] = sprite_bram->count;
-        sprite_cache.offset[c] = sprite_bram->offset;
-        sprite_cache.size[c] = sprite_bram->SpriteSize;
-        sprite_cache.zdepth[c] = sprite_bram->Zdepth;
-        sprite_cache.bpp[c] = sprite_bram->BPP;
-        sprite_cache.height[c] = sprite_bram->Height;
-        sprite_cache.width[c] = sprite_bram->Width;
-        sprite_cache.hflip[c] = sprite_bram->Hflip;
-        sprite_cache.vflip[c] = sprite_bram->Vflip;
-        sprite_cache.reverse[c] = sprite_bram->reverse;
-        sprite_cache.palette_offset[c] = sprite_bram->PaletteOffset;
-        sprite_cache.loop[c] = sprite_bram->loop;
-        memcpy(&sprite_cache.file[co], sprite_bram->file, 16);
+        sprite_cache.count[c] = sprites.count[sprite_index];
+        sprite_cache.offset[c] = sprites.offset[sprite_index];
+        sprite_cache.size[c] = sprites.SpriteSize[sprite_index];
+        sprite_cache.zdepth[c] = sprites.Zdepth[sprite_index];
+        sprite_cache.bpp[c] = sprites.BPP[sprite_index];
+        sprite_cache.height[c] = sprites.Height[sprite_index];
+        sprite_cache.width[c] = sprites.Width[sprite_index];
+        sprite_cache.hflip[c] = sprites.Hflip[sprite_index];
+        sprite_cache.vflip[c] = sprites.Vflip[sprite_index];
+        sprite_cache.reverse[c] = sprites.reverse[sprite_index];
+        sprite_cache.palette_offset[c] = sprites.PaletteOffset[sprite_index];
+        sprite_cache.loop[c] = sprites.loop[sprite_index];
+        strcpy(&sprite_cache.file[co], sprites.file[sprite_index]);
 
-        sprite_cache.aabb[co] = sprite_bram->aabb[0];
-        sprite_cache.aabb[co + 1] = sprite_bram->aabb[1];
-        sprite_cache.aabb[co + 2] = sprite_bram->aabb[2];
-        sprite_cache.aabb[co + 3] = sprite_bram->aabb[3];
-
+        sprite_cache.aabb[co] = sprites.aabb[sprite_index].xmin;
+        sprite_cache.aabb[co + 1] = sprites.aabb[sprite_index].ymin;
+        sprite_cache.aabb[co + 2] = sprites.aabb[sprite_index].xmax;
+        sprite_cache.aabb[co + 3] = sprites.aabb[sprite_index].ymax;
     }
 
     sprite_cache.used[c]++;
@@ -236,37 +235,37 @@ void fe_sprite_cache_free(fe_sprite_index_t fe_sprite_index)
 #endif
 }
 
-void sprite_map_header(sprite_file_header_t* sprite_file_header, sprite_bram_t* sprite)
+void sprite_map_header(sprite_file_header_t* sprite_file_header, sprite_index_t sprite)
 {
-    sprite->count = sprite_file_header->count;
-    sprite->SpriteSize = sprite_file_header->size;
-    sprite->Width = vera_sprite_width_get_bitmap(sprite_file_header->width);
-    sprite->Height = vera_sprite_height_get_bitmap(sprite_file_header->height);
-    sprite->Zdepth = vera_sprite_zdepth_get_bitmap(sprite_file_header->zdepth);
-    sprite->Hflip = vera_sprite_hflip_get_bitmap(sprite_file_header->hflip);
-    sprite->Vflip = vera_sprite_vflip_get_bitmap(sprite_file_header->vflip);
-    sprite->BPP = vera_sprite_bpp_get_bitmap(sprite_file_header->bpp);
-    sprite->reverse = sprite_file_header->reverse;
-    sprite->aabb[0] = sprite_file_header->collision;
-    sprite->aabb[1] = sprite_file_header->collision;
-    sprite->aabb[2] = sprite_file_header->width - sprite_file_header->collision;
-    sprite->aabb[3] = sprite_file_header->height - sprite_file_header->collision;
-    sprite->PaletteOffset = sprite_file_header->palette_offset;
-    sprite->loop = sprite_file_header->loop;
-    sprite->sprite_cache = 0;
+    sprites.count[sprite] = sprite_file_header->count;
+    sprites.SpriteSize[sprite] = sprite_file_header->size;
+    sprites.Width[sprite] = vera_sprite_width_get_bitmap(sprite_file_header->width);
+    sprites.Height[sprite] = vera_sprite_height_get_bitmap(sprite_file_header->height);
+    sprites.Zdepth[sprite] = vera_sprite_zdepth_get_bitmap(sprite_file_header->zdepth);
+    sprites.Hflip[sprite] = vera_sprite_hflip_get_bitmap(sprite_file_header->hflip);
+    sprites.Vflip[sprite] = vera_sprite_vflip_get_bitmap(sprite_file_header->vflip);
+    sprites.BPP[sprite] = vera_sprite_bpp_get_bitmap(sprite_file_header->bpp);
+    sprites.reverse[sprite] = sprite_file_header->reverse;
+    sprites.aabb[sprite].xmin = sprite_file_header->collision;
+    sprites.aabb[sprite].ymin = sprite_file_header->collision;
+    sprites.aabb[sprite].xmax = sprite_file_header->width - sprite_file_header->collision;
+    sprites.aabb[sprite].ymax = sprite_file_header->height - sprite_file_header->collision;
+    sprites.PaletteOffset[sprite] = sprite_file_header->palette_offset;
+    sprites.loop[sprite] = sprite_file_header->loop;
+    sprites.sprite_cache[sprite] = 255;
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
-unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offset)
+unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprite_offset)
 {
 
     bank_push_set_bram(BRAM_SPRITE_CONTROL);
 
 
-    if (!sprite->loaded) {
+    if (!sprites.loaded[sprite_index]) {
 
         char filename[16];
-        strcpy(filename, sprite->file);
+        strcpy(filename, sprites.file[sprite_index]);
         strcat(filename, ".bin");
 
 #ifdef __DEBUG_LOAD
@@ -282,7 +281,7 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
             sprite_file_header_t sprite_file_header;
 
             // Read the header of the file into the sprite_file_header structure.
-            unsigned int read = fgets((char*)&sprite_file_header, 16, fp);
+            unsigned int read = fgets((char*)&sprite_file_header, sizeof(sprite_file_header_t), fp);
 
             if (!read) {
 #ifdef __INCLUDE_PRINT
@@ -293,23 +292,24 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
 
             } else {
 
-                sprite_map_header(&sprite_file_header, sprite);
+                sprite_map_header(&sprite_file_header, sprite_index);
 
-#ifdef __DEBUG_LOAD
-                printf("%2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x %2x: ",
-                    sprite->count, sprite->SpriteSize, sprite->Width, sprite->Height, sprite->BPP, sprite->Hflip, sprite->Vflip,
-                    sprite->aabb[0], sprite->aabb[1], sprite->aabb[2], sprite->aabb[3], sprite->loop, sprite->reverse);
-#endif
 
-                unsigned int sprite_size = sprite->SpriteSize;
+                unsigned int sprite_size = sprites.SpriteSize[sprite_index];
 
                 unsigned int total_loaded = 0;
 
                 // Set palette offset of sprites
-                sprite->PaletteOffset = sprite->PaletteOffset + stage.palette;
+                sprites.PaletteOffset[sprite_index] = sprites.PaletteOffset[sprite_index] + stage.palette;
 
-                sprite->offset = sprite_offset;
-                for (unsigned char s = 0; s < sprite->count; s++) {
+                sprites.offset[sprite_index] = sprite_offset;
+
+#ifdef __DEBUG_LOAD
+                printf("%02x %04x %2x %4x %2x %2x %2x %2x %2x %2x %2x %2x %2x %2x: ",
+                    sprite_index, sprites.offset[sprite_index], sprites.count[sprite_index], sprites.SpriteSize[sprite_index], sprites.Width[sprite_index], sprites.Height[sprite_index], sprites.BPP[sprite_index], sprites.Hflip[sprite_index], sprites.Vflip[sprite_index],
+                    sprites.aabb[sprite_index].xmin, sprites.aabb[sprite_index].ymin, sprites.aabb[sprite_index].xmax, sprites.aabb[sprite_index].ymax, sprites.loop[sprite_index], sprites.reverse[sprite_index]);
+#endif
+                for (unsigned char s = 0; s < sprites.count[sprite_index]; s++) {
                     heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite_size);
 #ifdef __DEBUG_LOAD
                     cputc('.');
@@ -326,16 +326,16 @@ unsigned int fe_sprite_bram_load(sprite_bram_t* sprite, unsigned int sprite_offs
 #endif
                     } else {
                         sprite_bram_handles[sprite_offset] = handle_bram;
-                        total_loaded += sprite->SpriteSize;
+                        total_loaded += sprites.SpriteSize[sprite_index];
                         sprite_offset++;
                     }
                 }
                 if (fclose(fp)) {
 #ifdef __INCLUDE_PRINT
-                    if (status) printf("error closing file %s\n", sprite->file);
+                    if (status) printf("error closing file %s\n", sprites.file);
 #endif
                 } else {
-                    sprite->loaded = 1;
+                    sprites.loaded[sprite_index] = 1;
                 }
             }
         }

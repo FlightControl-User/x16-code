@@ -69,6 +69,9 @@ typedef struct {
     unsigned char reverse;
     unsigned char palette_offset;
     unsigned char loop;
+    unsigned char dummy1;
+    unsigned char dummy2;
+    unsigned char dummy3;
 } sprite_file_header_t;
 
 
@@ -81,7 +84,7 @@ typedef struct {
 
 typedef struct {
     unsigned char used[16];
-    void* sprite_bram[16]; // TODO: I need to get rid of this ...
+    sprite_index_t sprite_bram[16]; // TODO: I need to get rid of this ...
     unsigned char count[16];
     unsigned int offset[16];
     unsigned int size[16];

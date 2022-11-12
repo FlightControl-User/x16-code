@@ -26,7 +26,7 @@ tower_t towers;
 
 
 unsigned char tower_add( 
-    sprite_bram_t* turret, 
+    sprite_index_t turret, 
     unsigned char x, 
     unsigned char y,
     signed int tx,
@@ -138,7 +138,7 @@ void tower_paint(unsigned char row, unsigned char column)
                 floor_cache[cache_tower] = 1;
                 bank_push_set_bram(BRAM_LEVELS);
                 stage_tower_t* stage_tower = stage.current_playbook.stage_towers;
-                sprite_bram_t* turret = stage_tower->turret;
+                sprite_index_t turret = stage_tower->turret;
                 signed char tx = stage_tower->turret_x;
                 signed char ty = stage_tower->turret_y;
                 signed char fx = stage_tower->fire_x;

@@ -10,7 +10,7 @@ void tower_logic();
 void tower_animate();
 unsigned char tower_remove(unsigned char t);
 unsigned char tower_add( 
-    sprite_bram_t* turret, 
+    sprite_index_t turret, 
     unsigned char x, 
     unsigned char y,
     signed int tx,

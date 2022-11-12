@@ -50,7 +50,7 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
 
     // #ifdef __DEBUG_STAGE
     //     gotoxy(0, (unsigned char)scenario+1);
-    //     sprite_bram_t* sprite_enemy = stage_enemy->enemy_sprite_flight;
+    //     sprite_index_t sprite_enemy = stage_enemy->enemy_sprite_flight;
     //     printf("%3u %3u %3x %4u %4u %3u", scenario, wave.enemy_count[ew], wave.enemy_spawn[ew], wave.interval[ew], wave.wait[ew], wave.prev[ew]);
     // #endif
 
@@ -60,16 +60,16 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
 void stage_load_player(stage_player_t* stage_player)
 {
     // Loading the player sprites in bram.
-    sprite_bram_t* player_sprite = stage_player->player_sprite;
+    sprite_index_t player_sprite = stage_player->player_sprite;
         
     stage.sprite_offset = fe_sprite_bram_load(player_sprite, stage.sprite_offset);
         
     stage_engine_t* stage_engine = stage_player->stage_engine;
-    sprite_bram_t* engine_sprite = stage_engine->engine_sprite;
+    sprite_index_t engine_sprite = stage_engine->engine_sprite;
     stage.sprite_offset = fe_sprite_bram_load(engine_sprite, stage.sprite_offset);
 
     stage_bullet_t* stage_bullet = stage_player->stage_bullet;
-    sprite_bram_t* bullet_sprite = stage_bullet->bullet_sprite;
+    sprite_index_t bullet_sprite = stage_bullet->bullet_sprite;
     stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset);
 }
 
@@ -77,16 +77,16 @@ void stage_load_player(stage_player_t* stage_player)
 void stage_load_enemy(stage_enemy_t* stage_enemy)
 {
     // Loading the enemy sprites in bram.
-    sprite_bram_t* enemy_sprite = stage_enemy->enemy_sprite_flight;
+    sprite_index_t enemy_sprite = stage_enemy->enemy_sprite_flight;
     
     stage.sprite_offset = fe_sprite_bram_load(enemy_sprite, stage.sprite_offset);
         
     stage_bullet_t* stage_bullet = stage_enemy->stage_bullet;
-    sprite_bram_t* bullet_sprite = stage_bullet->bullet_sprite;
+    sprite_index_t bullet_sprite = stage_bullet->bullet_sprite;
     stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset);
         
         // stage_engine_t* stage_engine = &stage_enemy->stage_engine;
-        // sprite_bram_t* engine_sprite = stage_engine->engine_sprite;
+        // sprite_index_t engine_sprite = stage_engine->engine_sprite;
         // if(!engine_sprite->loaded) {
         //     stage.sprite_offset = fe_sprite_bram_load(engine_sprite, stage.sprite_offset);
         // }
@@ -127,7 +127,7 @@ void stage_load_tower(stage_tower_t* stage_tower)
 
     stage_floor_bram_tiles_t* tower_bram_tiles = stage_tower->tower_bram_tiles;
     floor_t* towers = stage_tower->towers;
-    sprite_bram_t* tower_sprite = stage_tower->turret;
+    sprite_index_t tower_sprite = stage_tower->turret;
 
     floor_part_memset_vram(0, towers, 0); // Set the transparency tile for the towers.
 
@@ -145,7 +145,7 @@ void stage_load_tower(stage_tower_t* stage_tower)
     stage.sprite_offset = fe_sprite_bram_load(tower_sprite, stage.sprite_offset);
 
     stage_bullet_t* stage_bullet = stage_tower->stage_bullet;
-    sprite_bram_t* bullet_sprite = stage_bullet->bullet_sprite;
+    sprite_index_t bullet_sprite = stage_bullet->bullet_sprite;
     stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset);
 
     stage.towers = towers;
@@ -228,7 +228,7 @@ static void stage_reset(void)
 
     stage.lives = 10;
     stage.scenarios = stage.current_playbook.scenario_count; // bug?
-    stage.sprite_cache_pool = 1;
+    stage.sprite_cache_pool = 0;
 
     stage_load(); // Load the artefacts of the stage.
 
