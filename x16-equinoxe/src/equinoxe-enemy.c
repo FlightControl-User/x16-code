@@ -200,7 +200,7 @@ void enemy_logic() {
 			if(!enemy.flight[e]) {
                 stage_flightpath_t* flightpath = enemy.flightpath[e];
                 unsigned char action = enemy.action[e];
-                bank_push_bram(); bank_set_bram(BRAM_LEVELS);
+                bank_push_bram(); bank_set_bram(BRAM_STAGE);
                 stage_flightpath_t flightnode = flightpath[action];
                 unsigned char type = flightnode.type;
                 unsigned char next = flightnode.next;
@@ -210,7 +210,7 @@ void enemy_logic() {
 
 				case STAGE_ACTION_MOVE: {
 
-                    bank_push_bram(); bank_set_bram(BRAM_LEVELS);
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
                     stage_action_move_t* action_move = (stage_action_move_t*)flightnode.action;
                     unsigned int flight = action_move->flight;
                     signed char turn = action_move->turn;
@@ -225,7 +225,7 @@ void enemy_logic() {
 
 				case STAGE_ACTION_TURN: {
 
-                    bank_push_bram(); bank_set_bram(BRAM_LEVELS);
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
                     stage_action_turn_t* action_turn = (stage_action_turn_t*)flightnode.action;
                     signed char turn = action_turn->turn;
                     unsigned char radius = action_turn->radius;
@@ -240,7 +240,7 @@ void enemy_logic() {
 
 				case STAGE_ACTION_END: {
 
-                    bank_push_bram(); bank_set_bram(BRAM_LEVELS);
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
                     stage_action_end_t* action_end = (stage_action_end_t*)flightnode.action;
                     // printf(", end e=%03u    ", action_end->explode );
                     bank_pull_bram();

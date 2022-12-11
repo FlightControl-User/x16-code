@@ -5,7 +5,7 @@
     #pragma var_model(mem)
 #endif
 
-#pragma data_seg(levels)
+#pragma data_seg(stage)
 
 #include "equinoxe-levels.h"
 

@@ -7,6 +7,11 @@
 
 // #pragma var_model(zp)
 
+#pragma data_seg(hash)
+ht_item_t ht_collision;
+
+#pragma data_seg(Data)
+
 ht_key_t collision_key(unsigned char gx, unsigned char gy)
 {
     unsigned char key = gy + gx;

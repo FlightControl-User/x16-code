@@ -12,12 +12,15 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-palette.h"
 #include "equinoxe-tower.h"
+#include "equinoxe-levels.h"
 
 #pragma data_seg(Data)
 
 stage_t stage;
 stage_wave_t wave;
 
+#pragma code_seg(stage)
+#pragma bank(ram, 3)
 
 
 void stage_copy(unsigned char ew, unsigned int scenario) {
@@ -95,7 +98,7 @@ void stage_load_enemy(stage_enemy_t* stage_enemy)
 
 void stage_load_floor(stage_floor_t* stage_floor)
 {
-    bank_push_set_bram(BRAM_LEVELS); // stage data
+    bank_push_set_bram(BRAM_STAGE); // stage data
 
     // Loading the floor in bram.
 
@@ -121,7 +124,7 @@ void stage_load_floor(stage_floor_t* stage_floor)
 
 void stage_load_tower(stage_tower_t* stage_tower)
 {
-    bank_push_set_bram(BRAM_LEVELS); // stage data
+    bank_push_set_bram(BRAM_STAGE); // stage data
 
     // Loading the floor in bram.
 
@@ -163,7 +166,7 @@ stage_tower_t* stage_tower_get()
 
 static void stage_load(void)
 {
-    bank_push_set_bram(BRAM_LEVELS); // stage data
+    bank_push_set_bram(BRAM_STAGE); // stage data
 
     stage_playbook_t* stage_playbooks = stage.script.playbook;
     stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
@@ -203,7 +206,7 @@ static void stage_load(void)
 
 static void stage_reset(void)
 {
-    bank_push_set_bram(BRAM_LEVELS); // stage_scenario is at BRAM_LEVELS
+    bank_push_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
 
     enemy_init();
 
@@ -224,7 +227,9 @@ static void stage_reset(void)
 
     stage.script.playbooks = 1;
     stage.script.playbook = stage_playbook;
-    stage.current_playbook = stage_playbook[stage.playbook];
+
+    // stage.current_playbook = stage_playbook[stage.playbook];
+    memcpy(&stage.current_playbook, &stage_playbook[stage.playbook], sizeof(stage_playbook_t));
 
     stage.lives = 10;
     stage.scenarios = stage.current_playbook.scenario_count; // bug?
@@ -275,9 +280,9 @@ void stage_logic()
     if(stage.playbook < stage.script.playbooks) {
         
         if(!(game.tickstage & 0x03)) {
-            // #ifdef __DEBUG_STAGE
-            // printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
-            // #endif
+            #ifdef __DEBUG_STAGE
+            printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
+            #endif
             
             for(unsigned char w=0; w<8; w++) {
                 if(wave.used[w]) {
@@ -296,7 +301,7 @@ void stage_logic()
                        wave.wait[w]--;
                     }
                 }
-#ifdef __WAVE_DEBUG
+#ifdef __DEBUG_WAVE
                 gotoxy(0,30+w);
                 printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w]);
 #endif
@@ -308,7 +313,7 @@ void stage_logic()
                 if(wave.finished[w]) {
 
                     // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
-                    bank_push_set_bram(BRAM_LEVELS); // stage_scenario is at BRAM_LEVELS
+                    bank_push_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
 
                     unsigned int new_scenario = wave.scenario[w];
                     unsigned int wave_scenario = wave.scenario[w];
@@ -335,7 +340,7 @@ void stage_logic()
             if(stage.scenario >= stage.scenarios) {
                 if(stage.playbook < stage.script.playbooks) {
                     stage.playbook++;
-                    bank_push_bram(); bank_set_bram(BRAM_LEVELS);
+                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
                     stage_playbook_t* stage_playbook = stage.script.playbook;
                     stage.current_playbook = stage_playbook[stage.playbook];
                     stage.scenarios = stage.current_playbook.scenario_count;
@@ -351,7 +356,7 @@ void stage_logic()
         stage.respawn--;
         if(!stage.respawn) {
 #ifdef __PLAYER
-            bank_push_set_bram(BRAM_LEVELS);
+            bank_push_set_bram(BRAM_STAGE);
             stage_playbook_t* stage_playbooks = stage.script.playbook;
             stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
             stage_player_t* stage_player = stage_playbook->stage_player;
@@ -365,6 +370,7 @@ void stage_logic()
     
 }
 
+
 void stage_display()
 {
     gotoxy(0,0);
@@ -372,3 +378,9 @@ void stage_display()
     printf("count bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_count, stage.enemy_count, stage.tower_count, stage.player_count);
     printf("pool  bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_pool, stage.enemy_pool, stage.tower_pool, stage.player_pool);
 }
+
+#pragma data_seg(Data)
+#pragma code_seg(Code)
+
+#pragma nobank(dummy)
+

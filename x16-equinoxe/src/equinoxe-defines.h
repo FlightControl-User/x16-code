@@ -62,7 +62,7 @@
 // #define __DEBUG_PALETTE
 
 // Show a table with the wave cache information evolving.
-// #define __WAVE_DEBUG
+// #define __DEBUG_WAVE
 
 // Show stage information when the scenario changes and is active.
 // #define __DEBUG_STAGE

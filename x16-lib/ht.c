@@ -16,9 +16,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-ht_list_t ht_list;
 
-#pragma data_seg(Data)
+ht_list_t ht_list;
 
 __mem volatile unsigned char ht_list_pool;
 

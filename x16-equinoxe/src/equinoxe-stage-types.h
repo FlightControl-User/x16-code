@@ -27,6 +27,8 @@ typedef struct {
 
 #define STAGES 32
 typedef struct {
+    stage_playbook_t current_playbook;
+
     heap_bram_fb_handle_t fighter_list;
     heap_bram_fb_handle_t fighter_tail;
     heap_bram_fb_handle_t bullet_tail;
@@ -45,7 +47,6 @@ typedef struct {
     unsigned int ew; // Wave indicator which administers the start and delta positions of each enemy new spawn.
 
     unsigned int playbook;
-    stage_playbook_t current_playbook;
     unsigned int scenario;
     unsigned int scenarios; // Total amount of scenarios in current playbook.
 

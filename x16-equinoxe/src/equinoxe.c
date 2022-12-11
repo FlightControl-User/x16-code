@@ -85,12 +85,13 @@ void equinoxe_init() {
 
     unsigned bytes = 0;
 
-	memset(&stage, 0, sizeof(stage_t));
     animate_init();
     
-    bytes = fload_bram(1, 8, 2, "levels.bin", BRAM_LEVELS, (bram_ptr_t) 0xA000);
+    bytes = fload_bram(1, 8, 2, "stage.bin", BRAM_STAGE, (bram_ptr_t)0xA000);
     bytes = fload_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
     bytes = fload_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+
+	memset(&stage, 0, sizeof(stage_t));
 
     // Initialize the cache in vram for the sprite animations.
     lru_cache_init(&sprite_cache_vram);
@@ -322,8 +323,6 @@ void main() {
     clrscr();
     #endif
 
-    ht_init(&ht_collision);
-
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
     heap_segment_base(heap_bram_blocked, BRAM_HEAP_BRAM_BLOCKED, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
     heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);
@@ -340,6 +339,7 @@ void main() {
 
     equinoxe_init();
 
+    ht_init(&ht_collision);
 
 
 #if defined(__FLIGHT) || defined(__FLOOR)
@@ -459,11 +459,11 @@ void main() {
             ht_display(&ht_collision);
         #endif
 
-        #ifdef __DEBUG_STAGE
-            SEI();
-            stage_display();
-            CLI();
-        #endif
+        // #ifdef __DEBUG_STAGE
+        //     SEI();
+        //     stage_display();
+        //     CLI();
+        // #endif
 
         SEI();
         ch=getin();

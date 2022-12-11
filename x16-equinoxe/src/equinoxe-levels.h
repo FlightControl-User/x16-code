@@ -150,9 +150,7 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 };
 
 
-#pragma data_seg(levels)
-
-
+#pragma data_seg(stage)
 
 __export volatile stage_bullet_t stage_bullet_fireball = { b002 };
 __export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };
