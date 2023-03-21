@@ -6,6 +6,7 @@
 
 #pragma var_model(zp)
 
+
 // #pragma var_model(mem)
 
 #define __MAIN
@@ -87,9 +88,9 @@ void equinoxe_init() {
 
     animate_init();
     
-    bytes = fload_bram(1, 8, 2, "stage.bin", BRAM_STAGE, (bram_ptr_t)0xA000);
-    bytes = fload_bram(1, 8, 2, "sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
-    bytes = fload_bram(1, 8, 2, "floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+    bytes = fload_bram("stage.bin", BRAM_STAGE, (bram_ptr_t)0xA000);
+    bytes = fload_bram("sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
+    bytes = fload_bram("floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
 
 	memset(&stage, 0, sizeof(stage_t));
 

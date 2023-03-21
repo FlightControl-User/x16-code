@@ -14,7 +14,7 @@ void main() {
 
     clrscr();
     // Set the charset to lower case.
-    cbm_x_charset(3, (char *)0);
+    cx16_k_screen_set_charset(3, (char *)0);
 
     char text[256];
 

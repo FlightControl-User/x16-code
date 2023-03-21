@@ -355,7 +355,7 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
         printf("\n%10s : ", filename);
 #endif
 
-        FILE* fp = fopen(1, 8, 2, filename);
+        FILE* fp = fopen(filename,"r");
         if (fp) {
 
             // Set palette offset of sprites

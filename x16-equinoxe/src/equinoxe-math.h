@@ -3,15 +3,15 @@
 // #pragma data_seg(Math)
 
 signed int math_sin[64] = kickasm {{
-.fillword 64, 128*sin(toRadians(i*360/64))
+	.fillword 64, 128*sin(toRadians(i*360/64))
 }};
 
 signed int math_cos[64] = kickasm {{
-.fillword 64, 128*cos(toRadians(i*360/64))
+	.fillword 64, 128*cos(toRadians(i*360/64))
 }};
 
 __align(0x0100) unsigned char logtab[] = kickasm {{
-.fill $100, (log(i)/log(2))*32
+	.fill $100, (log(i)/log(2))*32
 }};
 
 __align(0x0100) unsigned char atantab[] = kickasm {{
@@ -20,6 +20,18 @@ __align(0x0100) unsigned char atantab[] = kickasm {{
 	}
 //    .fill $100, i
 }};
+
+__align(0x100)  unsigned char octant_adjust[] = kickasm {{	
+	.byte %00001111		// x+,y+,|x|>|y|
+	.byte %00000000		// x+,y+,|x|<|y|
+	.byte %00110000		// x+,y-,|x|>|y|
+	.byte %00111111		// x+,y-,|x|<|y|
+	.byte %00010000		// x-,y+,|x|>|y|
+	.byte %00011111		// x-,y+,|x|<|y|
+	.byte %00101111		// x-,y-,|x|>|y|
+	.byte %00100000		// x-,y-,|x|<|y|
+}};
+
 
 
 FP math_vecx(unsigned char angle, char speed);

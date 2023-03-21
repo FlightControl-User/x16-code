@@ -14,7 +14,7 @@
 #include <kernal.h>
 #include <stdlib.h>
 #include <cx16-vera.h>
-#include <cx16-file.h>
+#include <stdio.h>
 
 
 /**
@@ -30,14 +30,14 @@
  *  - 0x0000: Something is wrong! Kernal Error Code (https://commodore.ca/manuals/pdfs/commodore_error_messages.pdf)
  *  - other: OK! The last pointer between 0xA000 and 0xBFFF is returned. Note that the last pointer is indicating the first free byte.
  */
-unsigned int fload_bram(char channel, char device, char secondary, char* filename, bram_bank_t dbank, bram_ptr_t dptr) 
+unsigned int fload_bram(char* filename, bram_bank_t dbank, bram_ptr_t dptr) 
 {
 
     bram_bank_t bank = bank_get_bram();
     bank_set_bram(dbank);
 
     unsigned int read = 0;
-    FILE* fp = fopen(channel, device, secondary, filename);
+    FILE* fp = fopen(filename,"r");
     if(fp) {
         read = fgets(dptr, 0, fp);
         if(read) {

@@ -16,5 +16,6 @@
 
 #include <cx16.h>
 #include <mos6522.h>
+#include <stdio.h>
 
-unsigned int fload_bram(char channel, char device, char secondary, char* filename, bram_bank_t dbank, bram_ptr_t dptr);
+unsigned int fload_bram(char* filename, bram_bank_t dbank, bram_ptr_t dptr);

@@ -272,7 +272,7 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
         printf("\n%10s : ", filename);
 #endif
 
-        FILE* fp = fopen(1, 8, 2, filename);
+        FILE* fp = fopen(filename,"r");
         if (!fp) {
 #ifdef __INCLUDE_PRINT
             if (status) printf("error opening file %s\n", filename);

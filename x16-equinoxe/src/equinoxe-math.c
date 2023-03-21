@@ -52,11 +52,10 @@ inline FP math_vecy(unsigned char angle, char speed) {
 }
 
 
-unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2)
+inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2)
 {
-    __address($FB) unsigned char octant = 0;
-
-    unsigned char angle = 0;
+    unsigned char octant;
+    unsigned char angle;
 
     asm {
 
@@ -91,25 +90,9 @@ unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, u
 		lda atantab,x
 		eor octant_adjust,y
         sta angle
-		jmp !+
-
-	octant_adjust:	
-		.byte %00001111		// x+,y+,|x|>|y|
-		.byte %00000000		// x+,y+,|x|<|y|
-		.byte %00110000		// x+,y-,|x|>|y|
-		.byte %00111111		// x+,y-,|x|<|y|
-		.byte %00010000		// x-,y+,|x|>|y|
-		.byte %00011111		// x-,y+,|x|<|y|
-		.byte %00101111		// x-,y-,|x|>|y|
-		.byte %00100000		// x-,y-,|x|<|y|
-
-	!: 	nop
-	 
     }
 
     return angle;
-
-
 }
 
 // Get the absolute value of an 8-bit unsigned number treated as a signed number.

@@ -20,11 +20,11 @@
 
 #define __FLIGHT
 #define __STAGE
-// #define __COLLISION
+#define __COLLISION
 
 
-// #define __FLOOR
-// #define __TOWER
+#define __FLOOR
+#define __TOWER
 #define __PLAYER
 #define __BULLET
 #define __ENEMY

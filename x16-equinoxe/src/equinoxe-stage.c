@@ -117,7 +117,7 @@ void stage_load_floor(stage_floor_t* stage_floor)
         floor_part_memcpy_vram_bram(part, floor);
     }
 
-    stage.floor = stage_floor->floor;
+    stage.floor = floor;
 
     bank_pull_bram();
 }
