@@ -19,8 +19,8 @@
 stage_t stage;
 stage_wave_t wave;
 
-#pragma code_seg(stage)
-#pragma bank(ram, 3)
+// #pragma code_seg(stage)
+// #pragma bank(ram, 3)
 
 
 void stage_copy(unsigned char ew, unsigned int scenario) {

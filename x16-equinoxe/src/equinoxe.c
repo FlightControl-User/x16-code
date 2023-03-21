@@ -95,8 +95,8 @@ void equinoxe_init() {
 
     // Initialize the cache in vram for the sprite animations.
     lru_cache_init(&sprite_cache_vram);
-
 }
+
 
 
 
@@ -191,7 +191,6 @@ void irq_vsync() {
         bullet_logic();
     #endif
 
-
     #ifdef __ENEMY
         #ifdef __CPULINES
             vera_display_set_border_color(PINK);
@@ -205,8 +204,6 @@ void irq_vsync() {
         #endif
         tower_logic();
     #endif
-
-
 
     #ifdef __CPULINES
         vera_display_set_border_color(GREY);
@@ -226,7 +223,6 @@ void irq_vsync() {
     #ifdef __BULLET
         // bullets_resource();
     #endif
-
 
     #ifdef __PLAYER
         // player_resource();

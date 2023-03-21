@@ -17,18 +17,4 @@
 #include <cx16.h>
 #include <mos6522.h>
 
-typedef struct {
-    char filename[16];
-    char channel;
-    char device;
-    char secondary;
-    char status;
-} FILE;
-
-FILE __files[4];
-__mem volatile unsigned char __filecount = 0;
-
-FILE* fopen(char channel, char device, char secondary, char*filename);
-unsigned int fgets(char* ptr, unsigned int size, FILE* fp);
-int fclose(FILE* fp); 
 unsigned int fload_bram(char channel, char device, char secondary, char* filename, bram_bank_t dbank, bram_ptr_t dptr);
