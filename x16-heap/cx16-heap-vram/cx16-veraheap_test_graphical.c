@@ -37,7 +37,7 @@ void main() {
     //     gotoxy(x,y++);
     //     printf("%u %c", i, i);
     // }
-    // while(!getin());
+    // while(!kbhit());
     
     // clrscr();
 
@@ -94,7 +94,7 @@ void main() {
             } else {
                 gotoxy(10, 33);
                 printf("overflow!");
-                while(!getin());
+                while(!kbhit());
                 gotoxy(10, 33);
                 printf("         ");
             } 
@@ -129,6 +129,6 @@ void main() {
                 x=0;
             }
         }
-        while(!getin());
+        while(!kbhit());
     }
 }

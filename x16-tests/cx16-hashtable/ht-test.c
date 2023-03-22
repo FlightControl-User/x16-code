@@ -18,7 +18,7 @@ void main()
    clrscr();
 
    volatile char i = 0;
-   volatile char ch = getin();
+   volatile char ch = kbhit();
    do {
       ht_key_t key = i;
       ht_data_t data = i;
@@ -26,6 +26,6 @@ void main()
       gotoxy(0, 0);
       ht_display(&ht);
       i++;
-      while(!(ch = getin()));
+      while(!(ch = kbhit()));
    } while (ch != 'x');
 }

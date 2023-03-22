@@ -26,22 +26,22 @@ void main() {
     bgcolor(BLACK);
     gotoxy(0,4);
     printf("4");
-    while(!getin());
+    while(!kbhit());
 
     for(char i=0;i<10;i++) {
         insertdown(1);
-        while(!getin());
+        while(!kbhit());
     }
 
     textcolor(WHITE);
     bgcolor(BLACK);
     gotoxy(0,20);
     printf("20");
-    while(!getin());
+    while(!kbhit());
 
     for(char i=0;i<10;i++) {
         insertup(1);
-        while(!getin());
+        while(!kbhit());
     }
 
 }

@@ -212,6 +212,7 @@ kickasm {{
         .eval bitmap.count = round((bitmap.count / bitmap.skip))
         .print "count = " + bitmap.count + "size = " + bitmap.size + ", width = " + bitmap.width + ", height = " + bitmap.height + ", bpp = " + bitmap.bpp
         .var image = bitmap.tile + "_" + bitmap.width + "x" + bitmap.height + "." + bitmap.ext
+        .print image
         .var pic = LoadPicture(image)
         .var xoff = bitmap.width * bitmap.start
         .var yoff = 0

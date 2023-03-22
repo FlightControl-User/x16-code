@@ -88,7 +88,7 @@ inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned cha
 		tay
 
 		lda atantab,x
-		eor octant_adjust,y
+		eor adjust_octant,y
         sta angle
     }
 

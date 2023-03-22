@@ -52,7 +52,7 @@ void main() {
         printf( "\n0. exit.\n");
 
         while(menu==0) {
-            menu = getin();
+            menu = kbhit();
         }
 
         textcolor(WHITE);
@@ -206,7 +206,7 @@ void tile_16_x_16_8BPP_256_color() {
 
     vera_layer_show(0);
 
-    while(!getin());
+    while(!kbhit());
 
     vera_tile_area(0, 0, 0, 0, 40, 30, 0, 0, 0);
 
@@ -223,7 +223,7 @@ void tile_16_x_16_8BPP_256_color() {
         row += 2;
     }
 
-    while(!getin());
+    while(!kbhit());
 }
 
 
@@ -306,7 +306,7 @@ void tile_8_x_8_8BPP_256_color() {
     printf("each offset aligns to multiples of 16 colors in the palette!.\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 
@@ -518,7 +518,7 @@ void tile_16_x_16_4BPP_16_color() {
     printf("each offset aligns to multiples of 16 colors in the palette!.\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 
@@ -632,7 +632,7 @@ void tile_8_x_8_4BPP_16_color() {
     printf("each offset aligns to multiples of 16 colors in the palette!.\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 
@@ -714,7 +714,7 @@ void tile_16_x_16_2BPP_4_color() {
     printf("can be used per offset!\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 void tile_8_x_8_2BPP_4_color() {
@@ -777,7 +777,7 @@ void tile_8_x_8_2BPP_4_color() {
     printf("can be used per offset!\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 
@@ -807,7 +807,7 @@ void text_8_x_8_1BPP_256_color() {
     printf("however, the first color will always be transparent (black).\n");
     printf("in this mode, the background color cannot be set and is always transparent.\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 void text_8_x_8_1BPP_16_color() {
@@ -841,7 +841,7 @@ void text_8_x_8_1BPP_16_color() {
     printf("however, the first color will always be transparent (black).\n");
     printf("in this mode, the background color cannot be set and is always transparent.\n");
 
-    while(!getin());
+    while(!kbhit());
 }
 
 
@@ -870,7 +870,7 @@ void bitmap_320_x_240_1BPP() {
     textcolor(YELLOW);
     printf("press a key ...");
 
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(modr16u(rand(),320,0), modr16u(rand(),320,0), modr16u(rand(),200,0), modr16u(rand(),200,0), rand()&1);
     };
 
@@ -887,7 +887,7 @@ void bitmap_320_x_240_1BPP() {
 
     word x = 0;
     byte color = 0;
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(x, x, 0, 199, color);
         color++;
         if(color>1) color=0;
@@ -922,7 +922,7 @@ void bitmap_640_x_480_1BPP() {
     textcolor(YELLOW);
     printf("press a key ...");
 
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(modr16u(rand(),639,0), modr16u(rand(),639,0), modr16u(rand(),399,0), modr16u(rand(),399,0), rand()&1);
     };
 
@@ -939,7 +939,7 @@ void bitmap_640_x_480_1BPP() {
 
     word x = 0;
     byte color = 0;
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(x, x, 0, 399, color);
         color++;
         if(color>1) color=0;
@@ -972,7 +972,7 @@ void bitmap_320_x_240_2BPP() {
     textcolor(YELLOW);
     printf("press a key ...");
 
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(modr16u(rand(),320,0), modr16u(rand(),320,0), modr16u(rand(),200,0), modr16u(rand(),200,0), rand()&3);
     };
 
@@ -989,7 +989,7 @@ void bitmap_320_x_240_2BPP() {
 
     word x = 0;
     byte color = 0;
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(x, x, 0, 199, color);
         color++;
         if(color>3) color=0;
@@ -1022,7 +1022,7 @@ void bitmap_640_x_480_2BPP() {
     textcolor(YELLOW);
     printf("press a key ...");
 
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(modr16u(rand(),639,0), modr16u(rand(),639,0), modr16u(rand(),399,0), modr16u(rand(),399,0), rand()&3);
     };
 
@@ -1039,7 +1039,7 @@ void bitmap_640_x_480_2BPP() {
 
     word x = 0;
     byte color = 0;
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(x, x, 0, 399, color);
         color++;
         if(color>3) color=0;
@@ -1072,7 +1072,7 @@ void bitmap_320_x_240_4BPP() {
     textcolor(YELLOW);
     printf("press a key ...");
 
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(modr16u(rand(),320,0), modr16u(rand(),320,0), modr16u(rand(),200,0), modr16u(rand(),200,0), rand()&15);
     };
 
@@ -1089,7 +1089,7 @@ void bitmap_320_x_240_4BPP() {
 
     word x = 0;
     byte color = 0;
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(x, x, 0, 199, color);
         color++;
         if(color>15) color=0;
@@ -1122,7 +1122,7 @@ void bitmap_320_x_240_8BPP() {
     textcolor(YELLOW);
     printf("press a key ...");
 
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(modr16u(rand(),320,0), modr16u(rand(),320,0), modr16u(rand(),200,0), modr16u(rand(),200,0), rand()&255);
     };
 
@@ -1139,7 +1139,7 @@ void bitmap_320_x_240_8BPP() {
 
     word x = 0;
     byte color = 0;
-    while(!getin()) {
+    while(!kbhit()) {
         bitmap_line(x, x, 0, 199, color);
         color++;
         x++;

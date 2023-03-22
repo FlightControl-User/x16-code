@@ -23,7 +23,7 @@ void main() {
     printf("\n%x", s1h1);
     vera_heap_dump(s1,40,4);
     gotoxy(0,59);
-    while(!getin());
+    while(!kbhit());
 
     clrscr();
     printf("SE02 - Allocate handle s2h1, 1024 bytes in segment 2\n\n");
@@ -33,7 +33,7 @@ void main() {
     printf("\n%x", s2h1);
     vera_heap_dump(s2,40,4);
     gotoxy(0,59);
-    while(!getin());
+    while(!kbhit());
 
     clrscr();
     vera_heap_dump(s1,0,4);
@@ -53,7 +53,7 @@ void main() {
     printf("\n%x", s1h1);
     vera_heap_dump(s1,40,4);
     gotoxy(0,59);
-    while(!getin());
+    while(!kbhit());
 
     clrscr();
     vera_heap_dump(s2,0,4);
@@ -73,7 +73,7 @@ void main() {
     printf("\n%x", s2h1);
     vera_heap_dump(s2,40,4);
     gotoxy(0,59);
-    while(!getin());
+    while(!kbhit());
 
 
 }

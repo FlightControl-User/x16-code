@@ -21,7 +21,7 @@ void main() {
 	heap_handle heap_handles[2048] = {0};
 
 	printf("Allocate and Free heap blocks in random order.\n");
-	while(!getin()) {
+	while(!kbhit()) {
 		unsigned int i = modr16u(rand(),c,0);
 		heap_handle indexHeap = heap_handles[i];
 		if(indexHeap) {
@@ -43,7 +43,7 @@ void main() {
 		// printf("list = %x", s->heapList);
 		heap_dump(s1);
 
-		while(!getin());
+		while(!kbhit());
 	}
 
 	printf("\nDone.\n");

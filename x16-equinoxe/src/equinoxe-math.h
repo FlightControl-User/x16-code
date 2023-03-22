@@ -21,7 +21,7 @@ __align(0x0100) unsigned char atantab[] = kickasm {{
 //    .fill $100, i
 }};
 
-__align(0x100)  unsigned char octant_adjust[] = kickasm {{	
+__align(0x100)  unsigned char adjust_octant[] = kickasm {{	
 	.byte %00001111		// x+,y+,|x|>|y|
 	.byte %00000000		// x+,y+,|x|<|y|
 	.byte %00110000		// x+,y-,|x|>|y|

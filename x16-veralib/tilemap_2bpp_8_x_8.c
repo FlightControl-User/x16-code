@@ -70,5 +70,5 @@ void main() {
     printf("can be used per offset!\n");
     printf("however, the first color will always be transparent (black).\n");
 
-    while(!getin());
+    while(!kbhit());
 }

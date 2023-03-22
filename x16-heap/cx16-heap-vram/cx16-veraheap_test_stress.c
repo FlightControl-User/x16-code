@@ -20,7 +20,7 @@ void main() {
     unsigned int sizes[4] = { 256, 512, 1024, 2048 };
     unsigned char color[4] = { LIGHT_GREY, GREY, DARK_GREY, BLACK };
 
-    while(!getin()) {
+    while(!kbhit()) {
 
         clrscr();
 
@@ -52,7 +52,7 @@ void main() {
         printf("After Dump");
         vera_heap_dump(s2, 40, 2);
 
-        while(!getin());
+        while(!kbhit());
     }
 
 }

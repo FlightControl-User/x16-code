@@ -734,7 +734,7 @@ vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t 
 #endif
 
 #ifdef __VERAHEAP_WAIT
-    while(!getin());
+    while(!kbhit());
 #endif
 
 	bank_pull_bram();
@@ -800,7 +800,7 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
 #endif
 
 #ifdef __VERAHEAP_WAIT
-    while(!getin());
+    while(!kbhit());
 #endif
 
     bank_pull_bram();

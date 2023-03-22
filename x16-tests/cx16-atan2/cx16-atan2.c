@@ -95,7 +95,7 @@ void main() {
 
     cx16_mouse_config(0x01, 80, 60);
 
-	while(!getin()) {
+	while(!kbhit()) {
 
 		char cx16_mouse_status = cx16_mouse_get();
 		gotoxy(10,10);

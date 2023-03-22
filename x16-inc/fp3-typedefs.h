@@ -13,7 +13,7 @@ typedef struct {
     signed int hi;
 } FP3HI;
 
-typedef union {
+typedef struct {
     FP3FI fp3fi;
     FP3LO fp3lo;
     FP3HI fp3hi;

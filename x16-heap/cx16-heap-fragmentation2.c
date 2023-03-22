@@ -27,7 +27,7 @@ void main() {
 	unsigned int c = 1024;
 	heap_handle heap_handles[2048] = {0};
 
-	while(!getin()) {
+	while(!kbhit()) {
 		unsigned int i = modr16u(rand(),c,0);
 		heap_handle indexHeap = heap_handles[i];
 		if(indexHeap) {
@@ -44,13 +44,13 @@ void main() {
 		}
 		gotoxy(0,18);
 		heap_dump_stats(s1);
-		// while(!getin());
+		// while(!kbhit());
 	}
 
 	gotoxy(0,23);
 	printf("done.\n", c);
 
-	while(!getin());
+	while(!kbhit());
 
 	for(word i=0; i<c; i++) {
 		heap_handle indexHeap = heap_handles[i];

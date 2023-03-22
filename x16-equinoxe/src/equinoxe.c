@@ -345,10 +345,10 @@ void main() {
 
 #ifdef __DEBUG_HEAP_BRAM
     heap_print(heap_bram_blocked);
-    while(!getin());
+    while(!kbhit());
 #endif
 
-    while(!getin());
+    while(!kbhit());
 
 #ifdef __CPULINES
     // Set border to measure scan lines
@@ -386,7 +386,7 @@ void main() {
 
 #ifdef __DEBUG_HEAP_BRAM
     heap_print(heap_bram_blocked);
-    while(!getin());
+    while(!kbhit());
 #endif
 
     floor_draw_clear(0);
@@ -424,7 +424,7 @@ void main() {
 
     vera_sprites_show();
 
-    __mem unsigned char ch = getin();
+    __mem unsigned char ch = kbhit();
     while (ch != 'x') {
         #ifdef __NOVSYNC
             irq_vsync();
@@ -463,7 +463,7 @@ void main() {
         // #endif
 
         SEI();
-        ch=getin();
+        ch=kbhit();
         CLI();
     }; 
 

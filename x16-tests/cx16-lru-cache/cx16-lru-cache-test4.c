@@ -16,7 +16,7 @@ volatile unsigned char count = 0;
 
 void wait_key()
 {
-    while (!getin())
+    while (!kbhit())
         ;
 }
 
@@ -89,7 +89,7 @@ void main()
 
     int cache[128];
 
-    char ch = getin();
+    char ch = kbhit();
     do {
         if (lru_cache_is_max(&lru_cache)) {
             lru_cache_key_t last = lru_cache_find_last(&lru_cache);
@@ -108,6 +108,6 @@ void main()
                 insert(key, 0);
             }
         }
-        ch = getin();
+        ch = kbhit();
     } while (ch != 'x');
 }

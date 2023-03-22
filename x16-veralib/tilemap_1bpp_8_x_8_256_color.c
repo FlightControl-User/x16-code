@@ -54,7 +54,7 @@ void main() {
 
     vera_layer1_show();
 
-    while(!getin());
+    while(!kbhit());
 
     vera_layers_reset();
     textcolor(WHITE);

@@ -25,7 +25,7 @@ signed char sx[4] = {1, 1, -1, -1};
 signed char sy[4] = {1, -1, -1, 1};
 
 
-void vecx(FP* fp3, char angle, char speed) {
+void vecx(FP3* fp3, char angle, char speed) {
 
     // angle = angle % 64;
     // char i = angle % 32;
@@ -67,10 +67,10 @@ void vecx(FP* fp3, char angle, char speed) {
     }
 
     printf(", fp3.i=%6i, fp3.f=%4i", fp3->i, fp3->f);
-    // while(!getin());
+    // while(!kbhit());
 }
 
-void vecy(FP* fp3, char angle, char speed) {
+void vecy(FP3* fp3, char angle, char speed) {
 
     // angle = angle % 64;
     // char i = (angle) % 32;

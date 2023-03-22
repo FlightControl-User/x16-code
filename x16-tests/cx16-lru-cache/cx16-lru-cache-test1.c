@@ -16,7 +16,7 @@ volatile unsigned char count = 0;
 
 void wait_key()
 {
-    while (!getin())
+    while (!kbhit())
         ;
 }
 

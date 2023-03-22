@@ -10,7 +10,7 @@ lru_cache_table_t lru_ht;
 
 void key() {
 	printf("print any key ...\n");
-	while(!getin());
+	while(!kbhit());
 }
 
 

@@ -24,7 +24,7 @@ __export char header[] =kickasm {{
 
 
 __export char FLOOR_01[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,20,1,16,16,4,16,0)
+    .var tile = Tile("D:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,20,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -35,7 +35,7 @@ __export char FLOOR_01[] = kickasm {{{
 };}};
 
 __export char FLOOR_02[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_metal","png",1,1,1,16,16,4,16,0)
+    .var tile = Tile("D:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_metal","png",1,1,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -46,7 +46,7 @@ __export char FLOOR_02[] = kickasm {{{
 };}};
 
 __export char FLOOR_03[] = kickasm {{{
-    .var tile = Tile("cx16-equinoxe/graphics/floors/8bit/floor_red_metal","png",1,1,1,16,16,4,16,0)
+    .var tile = Tile("D:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_red_metal","png",1,1,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)

@@ -1,4 +1,4 @@
-#define __DEBUG_FILE
+// #define __DEBUG_FILE
 
 #include <conio.h>
 #include <cx16.h>
@@ -58,6 +58,6 @@ void main() {
 
     printf("err = %i, error = %s\n", errno, strerror(0));
 
-    while (!getin())
+    while (!kbhit())
         ;
 }

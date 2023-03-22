@@ -12,7 +12,7 @@ unsigned char bank = 2;
 
 void wait_key() {
     printf("print any key ...\n");
-    while (!getin());
+    while (!kbhit());
 }
 
 void init(unsigned char value) {

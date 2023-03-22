@@ -74,7 +74,7 @@
 // #define __DEBUG_ENGINE
 
 
-#define GETIN() while(!getin())
+#define GETIN() while(!kbhit())
 
 #define __VERAHEAP_SEGMENT
 #define LRU_CACHE_MAX 112

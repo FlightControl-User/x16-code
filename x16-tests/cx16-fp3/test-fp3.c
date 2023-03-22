@@ -176,7 +176,7 @@ void LogicEnemies(int f, Enemy* enemy) {
     printf(", move=%u\n", enemy->move);
     printf("tx=%06i, ty=%06i, tdx= %06i, tdy=%06i", enemy->tx.i, enemy->ty.i, enemy->tdx.f, enemy->tdy.f);
 
-    while(!getin());
+    while(!kbhit());
 
     if (enemy->reload > 0) {
         enemy->reload--;

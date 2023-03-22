@@ -15,7 +15,7 @@ volatile unsigned char count = 0;
 
 void wait_key() {
     printf("print any key ...\n");
-    while (!getin())
+    while (!kbhit())
         ;
 }
 

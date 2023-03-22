@@ -12,7 +12,7 @@ heap_size_packed heap_sizes[256] = {8, 16, 8, 8, 8, 8, 16, 8};
 
 void key() {
 	printf("print any key ...\n");
-	while(!getin());
+	while(!kbhit());
 }
 
 void handles() {
