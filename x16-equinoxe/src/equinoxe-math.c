@@ -54,7 +54,7 @@ inline FP math_vecy(unsigned char angle, char speed) {
 
 inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2)
 {
-    unsigned char octant;
+    unsigned char octant_temp;
     unsigned char angle;
 
     asm {
@@ -65,7 +65,7 @@ inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned cha
 		eor #$ff
     !:
 		tax
-		rol octant
+		rol octant_temp
 
 		lda x1
 		sbc x2
@@ -73,7 +73,7 @@ inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned cha
 		eor #$ff
     !:
 		tay
-		rol octant
+		rol octant_temp
 
 		lda logtab,x
 		sbc logtab,y
@@ -82,7 +82,7 @@ inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned cha
     !:
 		tax
 
-		lda octant
+		lda octant_temp
 		rol
 		and #%111
 		tay

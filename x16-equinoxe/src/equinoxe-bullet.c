@@ -1,3 +1,4 @@
+#include <cx16.h>
 #include <cx16-mouse.h>
 #include "equinoxe-types.h"
 #include "equinoxe.h"
@@ -75,6 +76,12 @@ void FireBullet(unsigned char p, char reload)
         unsigned int x = (unsigned int)cx16_mouse.x;
         unsigned int y = (unsigned int)cx16_mouse.y;
 
+        unsigned int px = (unsigned int)cx16_mouse.x;
+        unsigned int py = (unsigned int)cx16_mouse.y;
+        unsigned int tx = px;
+        unsigned int ty = 0;
+
+
         if(player.firegun[p])
             x += (signed char)16;
 
@@ -91,8 +98,15 @@ void FireBullet(unsigned char p, char reload)
 
         bullet.tx[b] = MAKELONG(x, 0);
         bullet.ty[b] = MAKELONG(y, 0);
-        bullet.tdx[b] = MAKELONG(0, 0);
-        bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
+
+        unsigned char angle = math_atan2(BYTE0(px>>2), BYTE0(tx>>2), BYTE0(py>>2), BYTE0(ty>>2));
+
+        bullet.tdx[b] = math_vecx(angle-16, 3);
+        bullet.tdy[b] = math_vecy(angle-16, 3); 
+
+
+        // bullet.tdx[b] = MAKELONG(0, 0);
+        // bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
 
         bullet_sprite_animate_add(b, s);
 

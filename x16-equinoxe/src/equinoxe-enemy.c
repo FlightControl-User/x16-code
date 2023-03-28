@@ -20,13 +20,15 @@ void enemy_init()
     
     memset(&enemy, 0, sizeof(fe_enemy_t));
 
-    enemy.cs1 = 255;
-    enemy.cs2 = 255;
-    enemy.cs3 = 255;
-    enemy.cs4 = 255;
-
     bank_pull_bram();
 }
+
+// #pragma code_seg(stage)
+// #pragma data_seg(stage)
+
+// #ifdef __BANKING
+// #pragma bank(ram, 3)
+// #endif
 
 
 unsigned char enemy_add(unsigned char w) 
@@ -120,6 +122,9 @@ unsigned char enemy_remove(unsigned char e)
     return ret;
 }
 
+
+
+
 unsigned char enemy_hit(unsigned char e, unsigned char b) 
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
@@ -134,6 +139,10 @@ unsigned char enemy_hit(unsigned char e, unsigned char b)
     return 0;
 }
 
+// #pragma data_seg(Data)
+// #pragma code_seg(Code)
+
+// #pragma nobank(dummy)
 
 void enemy_move( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed)
 {
@@ -274,6 +283,17 @@ void enemy_logic() {
 
 			enemy.tx[e] += enemy.tdx[e];
 			enemy.ty[e] += enemy.tdy[e];
+
+            FP const *tx = &enemy.tx[e];
+
+            asm{
+                lda e
+                asl
+                asl
+                tay
+                lda tx,y
+            }
+
 
 			// enemy.tdx[e] = tdx;
 			// enemy.tdy[e] = tdy;

@@ -23,12 +23,14 @@
 #define __COLLISION
 
 
-#define __FLOOR
-#define __TOWER
+// #define __FLOOR
+// #define __TOWER
 #define __PLAYER
 #define __BULLET
 #define __ENEMY
 #define __ENGINE
+
+#define __BANKING
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE

@@ -10,17 +10,14 @@
 
 typedef struct {
 
-    char cs1;
     FP tx[64]; // 256
     FP ty[64]; // 512
     FP tdx[64]; // 768
     FP tdy[64]; // 1024
 
 
-    char cs2;
     unsigned char used[64]; // 1088
 
-    char cs3;
     unsigned char type[64]; // 1152
     unsigned char side[64]; // 1216
 
@@ -42,7 +39,6 @@ typedef struct {
     unsigned char reload[64]; // 1984
     signed char health[64]; // 2048
 
-    char cs4;
     vera_sprite_offset sprite_offset[64]; // 2176
 
     unsigned char wait_animation[64]; // 2240

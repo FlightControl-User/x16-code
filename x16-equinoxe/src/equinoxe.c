@@ -6,9 +6,6 @@
 
 #pragma var_model(zp)
 
-
-// #pragma var_model(mem)
-
 #define __MAIN
 
 #include "equinoxe-defines.h"

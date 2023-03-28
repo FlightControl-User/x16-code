@@ -137,12 +137,12 @@ void tower_paint(unsigned char row, unsigned char column)
             if( stage.tower_count < TOWERS_TOTAL) {
                 floor_cache[cache_tower] = 1;
                 bank_push_set_bram(BRAM_STAGE);
-                stage_tower_t* stage_tower = stage.current_playbook.stage_towers;
-                sprite_index_t turret = stage_tower->turret;
-                signed char tx = stage_tower->turret_x;
-                signed char ty = stage_tower->turret_y;
-                signed char fx = stage_tower->fire_x;
-                signed char fy = stage_tower->fire_y;
+                stage_tower_t* st = stage.current_playbook.stage_towers;
+                sprite_index_t turret = st->turret;
+                signed char tx = st->turret_x;
+                signed char ty = st->turret_y;
+                signed char fx = st->fire_x;
+                signed char fy = st->fire_y;
                 bank_pull_bram();
                 tower_add(turret, column, row, (signed int)column*64+tx, (signed int)ty-(signed int)64-(signed int)(game.screen_vscroll % 16), fx, fy, 4, 4);
             }
