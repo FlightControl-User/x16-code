@@ -10,15 +10,28 @@
 #include "equinoxe-levels.h"
 #include "equinoxe-tower.h"
 #include "equinoxe-animate.h"
+#include "equinoxe-palette.h"
 
-// #pragma var_model(zp)
+// #pragma var_model(mem)
 
+#ifdef __BANKING
+#pragma code_seg(SEGM_ENGINE_BULLETS)
+#pragma data_seg(SEGM_ENGINE_BULLETS)
+#pragma bank(ram,BRAM_ENGINE_BULLETS)
+#endif
+
+fe_bullet_t bullet; // This memory area is banked and must always be reached by local routines in the same bank for efficiency!
 
 void bullet_init()
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
     memset(&bullet, 0, sizeof(fe_bullet_t));
-    bank_pull_bram();
+}
+
+unsigned char bullet_sprite_cache(unsigned char b, sprite_index_t sprite)
+{
+    fe_sprite_index_t s = fe_sprite_cache_copy(sprite);
+    bullet.sprite[b] = s;
+    return s;
 }
 
 
@@ -59,10 +72,8 @@ void bullet_sprite_animate_del(unsigned char b)
     stage.animate_count--;
 }
 
-void FireBullet(unsigned char p, char reload)
+void bullet_player_fire(unsigned int x, unsigned int y)
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     if(stage.bullet_count<FE_BULLET) {
 
         stage.bullet_count++;
@@ -73,20 +84,6 @@ void FireBullet(unsigned char p, char reload)
             b = (b+1)%FE_BULLET;
         }
 
-        unsigned int x = (unsigned int)cx16_mouse.x;
-        unsigned int y = (unsigned int)cx16_mouse.y;
-
-        unsigned int px = (unsigned int)cx16_mouse.x;
-        unsigned int py = (unsigned int)cx16_mouse.y;
-        unsigned int tx = px;
-        unsigned int ty = 0;
-
-
-        if(player.firegun[p])
-            x += (signed char)16;
-
-        player.reload[p] = reload;
-        player.firegun[p] = player.firegun[p]^1;
 
         bullet.used[b] = 1;
         bullet.enabled[b] = 0;
@@ -99,14 +96,13 @@ void FireBullet(unsigned char p, char reload)
         bullet.tx[b] = MAKELONG(x, 0);
         bullet.ty[b] = MAKELONG(y, 0);
 
-        unsigned char angle = math_atan2(BYTE0(px>>2), BYTE0(tx>>2), BYTE0(py>>2), BYTE0(ty>>2));
+        // unsigned char angle = math_atan2(BYTE0(px>>2), BYTE0(tx>>2), BYTE0(py>>2), BYTE0(ty>>2));
 
-        bullet.tdx[b] = math_vecx(angle-16, 3);
-        bullet.tdy[b] = math_vecy(angle-16, 3); 
+        // bullet.tdx[b] = math_vecx(angle-16, 3);
+        // bullet.tdy[b] = math_vecy(angle-16, 3); 
 
-
-        // bullet.tdx[b] = MAKELONG(0, 0);
-        // bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
+        bullet.tdx[b] = MAKELONG(0, 0);
+        bullet.tdy[b] = MAKELONG(0xFFF8, 0x0000);
 
         bullet_sprite_animate_add(b, s);
 
@@ -114,20 +110,10 @@ void FireBullet(unsigned char p, char reload)
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
-    bank_pull_bram();
 }
 
-unsigned char bullet_sprite_cache(unsigned char b, sprite_index_t sprite)
+void bullet_enemy_fire(unsigned int x, unsigned int y)
 {
-    fe_sprite_index_t s = fe_sprite_cache_copy(sprite);
-    bullet.sprite[b] = s;
-    return s;
-}
-
-void FireBulletEnemy(unsigned char e)
-{
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     if(stage.bullet_count<FE_BULLET) {
 
         stage.bullet_count++;
@@ -138,8 +124,8 @@ void FireBulletEnemy(unsigned char e)
             b = (b+1)%FE_BULLET;
         }
 
-        unsigned int ex = (unsigned int)WORD1(enemy.tx[e]);
-        unsigned int ey = (unsigned int)WORD1(enemy.ty[e]);
+        unsigned int ex = x;
+        unsigned int ey = y;
         unsigned int px = (unsigned int)cx16_mouse.x;
         unsigned int py = (unsigned int)cx16_mouse.y;
 
@@ -165,13 +151,10 @@ void FireBulletEnemy(unsigned char e)
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
-    bank_pull_bram();
 }
 
 void FireBulletTower(unsigned char t)
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     if(stage.bullet_count<FE_BULLET) {
 
         stage.bullet_count++;
@@ -209,14 +192,11 @@ void FireBulletTower(unsigned char t)
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
-    bank_pull_bram();
 }
 
 
 void bullet_remove(unsigned char b) 
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     if(bullet.used[b]) {
         vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
         vera_sprite_disable(sprite_offset);
@@ -230,15 +210,15 @@ void bullet_remove(unsigned char b)
         stage.bullet_count--;
         bullet_sprite_animate_del(b);
     }
-
-    bank_pull_bram();
 }
 
+signed char bullet_energy_get(unsigned char b) {
+    signed char energy = bullet.energy[b];
+    return energy;
+}
 
 void bullet_logic()
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     for(unsigned char b=0; b<FE_BULLET; b++) {
 
         if(bullet.used[b]) {
@@ -270,8 +250,22 @@ void bullet_logic()
             }
         }
     }
+}
 
+// Unbanked functions
+
+#pragma code_seg(Code)
+#pragma data_seg(Data)
+#pragma nobank(dummy)
+
+
+inline void bullet_bank() {
+    bank_push_set_bram(BRAM_ENGINE_BULLETS);
+}
+
+inline void bullet_unbank() {
     bank_pull_bram();
 }
+
 
 // #pragma var_model(mem)

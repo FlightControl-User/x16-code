@@ -315,7 +315,7 @@ void heap_free(heap_structure_t* self, heap_bram_fb_handle_t handle) {
 
 void heap_print(heap_structure_t* self) 
 {
-    printf("$size  used maxi free $base     $ceil     $pool     $free\n");
+    printf("\n$size  used maxi free $base     $ceil     $pool     $free\n");
     for(char s=0; s<self->segments;s++) {
         fb_heap_segment_t* segment = self->segment[s];
         uint16_t blocks_free = segment->blocks_in_use_max;

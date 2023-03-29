@@ -69,6 +69,14 @@ equinoxe_game_t game = {0, 0, 0, 2, 0};
 
 void equinoxe_init() {
 
+    // Load all banks with data and code!
+
+    unsigned bytes = 0;
+    bytes = fload_bram("stage.bin", BRAM_STAGE, (bram_ptr_t)0xA000);
+    bytes = fload_bram("bullets.bin", BRAM_ENGINE_BULLETS, (bram_ptr_t)0xA000);
+    bytes = fload_bram("sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
+    bytes = fload_bram("floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+
 #ifdef __PLAYER
     player_init();
 #endif
@@ -81,13 +89,7 @@ void equinoxe_init() {
     bullet_init();
 #endif
 
-    unsigned bytes = 0;
-
     animate_init();
-    
-    bytes = fload_bram("stage.bin", BRAM_STAGE, (bram_ptr_t)0xA000);
-    bytes = fload_bram("sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
-    bytes = fload_bram("floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
 
 	memset(&stage, 0, sizeof(stage_t));
 
@@ -305,6 +307,8 @@ void irq_vsync() {
 
 void main() {
 
+    cx16_k_screen_set_charset(3, (char *)0);
+
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
 
@@ -317,14 +321,15 @@ void main() {
     clrscr();
     #endif
 
+
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
     heap_segment_base(heap_bram_blocked, BRAM_HEAP_BRAM_BLOCKED, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
-    heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);
-    heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);
-    heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);
-    heap_segment_define(heap_bram_blocked, bin512, 512, 256, 512*(256));
-    heap_segment_define(heap_bram_blocked, bin1024, 1024, 64, 1024*64);
-    heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);
+    heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);         // 10 - 01 - 0x02000 = 64 * 128
+    heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);        // 11 - 01 - 0x02000 = 128 * 64
+    heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);        // 12 - 02 - 0x04000 = 256 * 64
+    heap_segment_define(heap_bram_blocked, bin512, 512, 256, 512*(256));    // 14 - 10 - 0x20000 = 512 * 256
+    heap_segment_define(heap_bram_blocked, bin1024, 1024, 32, 1024*32);     // 24 - 04 - 0x08000 = 1024 * 32
+    heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);     // 28 - 18 - 0x28000 = 2048 * 96 => 40
     
     vera_heap_bram_bank_init(BRAM_VERAHEAP);
 

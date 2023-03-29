@@ -155,7 +155,7 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 __export volatile stage_bullet_t stage_bullet_fireball = { b002 };
 __export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };
 
-__export volatile stage_enemy_t stage_enemy_e0101 = { e0101, e0101, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0101 = { e0301, e0301, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0102 = { e0102, e0102, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0201 = { e0201, e0201, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0202 = { e0202, e0202, &stage_bullet_fireball, 8, 0 };

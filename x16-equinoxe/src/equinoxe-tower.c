@@ -12,6 +12,7 @@
 #include "equinoxe-types.h"
 #include "equinoxe.h"
 #include "equinoxe-stage.h"
+#include "equinoxe-bullet.h"
 // #include "equinoxe-palette.h"
 #include "equinoxe-floorengine.h"
 #include "equinoxe-flightengine.h"
@@ -112,7 +113,7 @@ unsigned char tower_hit(unsigned char t, unsigned char b)
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    towers.health[t] += bullet.energy[b];
+    towers.health[t] += bullet_energy_get(b);
     if(towers.health[t] <= 0) {
         bank_pull_bram();
         return tower_remove(t);

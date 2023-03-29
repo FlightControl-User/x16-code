@@ -1,5 +1,7 @@
 // #define __DEBUG_FILE
 
+#pragma var_model(mem)
+
 #include <conio.h>
 #include <cx16.h>
 #include <stdio.h>

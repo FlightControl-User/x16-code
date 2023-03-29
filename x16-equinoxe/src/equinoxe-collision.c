@@ -1,9 +1,12 @@
+// #include <cx16-bitmap.h>
+#include "stdio.h"
 #include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-tower.h"
-#include "stdio.h"
-#include <cx16-bitmap.h>
+#include "equinoxe-bullet.h"
+#include "equinoxe-stage.h"
+#include "equinoxe-player.h"
 
 // #pragma var_model(zp)
 
@@ -176,10 +179,12 @@ void collision_detect()
 
                     switch (outer_type) {
                     case COLLISION_BULLET:
+                        bullet_bank();
                         outer_side = bullet.side[outer];
                         outer_x = (unsigned int)WORD1(bullet.tx[outer]);
                         outer_y = (unsigned int)WORD1(bullet.ty[outer]);
                         outer_c = bullet.sprite[outer]; // Which sprite is it in the cache...
+                        bullet_unbank();
                         break;
                     case COLLISION_PLAYER:
                         outer_side = SIDE_PLAYER;
@@ -220,10 +225,12 @@ void collision_detect()
 
                         switch (inner_type) {
                         case COLLISION_BULLET:
+                            bullet_bank();
                             inner_side = bullet.side[inner];
                             inner_x = (unsigned int)WORD1(bullet.tx[inner]);
                             inner_y = (unsigned int)WORD1(bullet.ty[inner]);
                             inner_c = bullet.sprite[inner]; // Which sprite is it in the cache...
+                            bullet_unbank();
                             break;
                         case COLLISION_PLAYER:
                             inner_side = SIDE_PLAYER;
@@ -300,8 +307,8 @@ void collision_detect()
 #ifdef __DEBUG_COLLISION
                                             printf("bullet %u", inner);
 #endif
-                                            bullet_remove(inner);
-                                            stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                           stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                           bullet_remove(inner);
                                         }
                                         if (inner_type == COLLISION_PLAYER) {
 #ifdef __DEBUG_COLLISION
@@ -335,8 +342,9 @@ void collision_detect()
 #ifdef __DEBUG_COLLISION
                                             printf("enemy %u", inner);
 #endif
-                                            bullet_remove(outer);
+                                            // Remove first the enemy, then the bullet, because the bullet contains the energe of impact.
                                             stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                            bullet_remove(outer);
                                         }
                                         if (inner_type == COLLISION_TOWER) {
 #ifdef __DEBUG_COLLISION

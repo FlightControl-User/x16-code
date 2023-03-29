@@ -24,9 +24,6 @@ fe_player_t player;
 #pragma data_seg(SpriteControlEngine)
 fe_engine_t engine;
 
-#pragma data_seg(SpriteControlBullets)
-fe_bullet_t bullet;
-
 #pragma data_seg(sprite_animate_control)
 sprite_animate_t animate;
 

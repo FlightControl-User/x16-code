@@ -21,7 +21,6 @@ extern fe_t fe; // used for storing the positions of the control blocks pools.
 extern fe_player_t player;
 extern fe_engine_t engine;
 extern fe_enemy_t enemy;
-extern fe_bullet_t bullet;
 extern fe_sprite_cache_t sprite_cache;
 extern lru_cache_table_t sprite_cache_vram;
 

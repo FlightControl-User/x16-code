@@ -6,13 +6,19 @@
 
 
 void bullet_init();
-void FireBullet(unsigned char p, char reload);
+void bullet_player_fire(unsigned int x, unsigned int y);
 
-void FireBulletEnemy(unsigned char e);
+void bullet_enemy_fire(unsigned int x, unsigned int y);
 void FireBulletTower(unsigned char t);
 
 void bullet_remove(unsigned char b); 
 
 void bullet_logic();
+
+// Unbanked functions
+
+signed char bullet_energy_get(unsigned char b);
+void bullet_bank();
+void bullet_unbank();
 
 #endif

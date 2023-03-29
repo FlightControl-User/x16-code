@@ -99,7 +99,7 @@ void player_remove(unsigned char p, unsigned char b)
 
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    player.health[p] += bullet.energy[b];
+    player.health[p] += bullet_energy_get(b);
 
     if(player.health[p] <= 0) {
 
@@ -187,9 +187,15 @@ void player_logic() {
             engine.wait_animation[n]--;
             
 #ifdef __BULLET
-            if (cx16_mouse.status == 1 && player.reload[p] <= 0)
-            {
-                FireBullet(p, 8);
+            if (cx16_mouse.status == 1 && player.reload[p] <= 0) {
+                unsigned int x = WORD1(player.tx[p]);
+                unsigned int y = WORD1(player.ty[p]);        
+                if(player.firegun[p]) {
+                    x += (signed char)16;
+                }
+                player.firegun[p] = player.firegun[p]^1;
+                player.reload[p] = 8;
+                bullet_player_fire(x, y);
             }
 #endif
 

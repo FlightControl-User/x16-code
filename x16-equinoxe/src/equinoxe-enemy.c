@@ -5,6 +5,7 @@
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
+#include "equinoxe-bullet.h"
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-fighters.h"
@@ -91,8 +92,6 @@ unsigned char enemy_add(unsigned char w)
 	
 	stage.enemy_pool = (e+1)%FE_ENEMY;
 
-    // stage.enemy_xor = enemy_checkxor();
-
     enemy_animate();
 
     bank_pull_bram();
@@ -129,7 +128,8 @@ unsigned char enemy_hit(unsigned char e, unsigned char b)
 {
     bank_push_set_bram(BRAM_FLIGHTENGINE);
 
-    enemy.health[e] += bullet.energy[b];
+
+    enemy.health[e] += bullet_energy_get(b); // unbanked to BRAM_ENGINE_BULLET
     if(enemy.health[e] <= 0) {
         bank_pull_bram();
         return enemy_remove(e);
@@ -328,7 +328,7 @@ void enemy_logic() {
 #ifdef __BULLET                
 				unsigned int r = rand();
 				if(r>=65300) {
-					FireBulletEnemy(e);
+					bullet_enemy_fire((unsigned int)x, (unsigned int)y);
 				}
 #endif
 				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_ENEMY | e);
