@@ -23,7 +23,7 @@
 #define __COLLISION
 
 
-// #define __FLOOR
+#define __FLOOR
 // #define __TOWER
 #define __PLAYER
 #define __BULLET
@@ -49,10 +49,10 @@
 // #define __DEBUG_HEAP_BRAM_BLOCKED
 
 // Show the table before the game starts, with the loaded objects in the heap!
-#define __DEBUG_HEAP_BRAM
+// #define __DEBUG_HEAP_BRAM
 
 // Shows info while loading the game assets.
-#define __DEBUG_LOAD
+// #define __DEBUG_LOAD
 
 // Shows detailed debug info when loading the files.
 // #define __DEBUG_FILE

@@ -193,10 +193,12 @@ void collision_detect()
                         outer_c = player.sprite[outer]; // Which sprite is it in the cache...
                         break;
                     case COLLISION_ENEMY:
+                        enemy_bank();
                         outer_side = SIDE_ENEMY;
                         outer_x = (unsigned int)WORD1(enemy.tx[outer]);
                         outer_y = (unsigned int)WORD1(enemy.ty[outer]);
                         outer_c = enemy.sprite[outer]; // Which sprite is it in the cache...
+                        enemy_unbank();
                         break;
                     case COLLISION_TOWER:
                         outer_side = towers.side[outer];
@@ -239,10 +241,12 @@ void collision_detect()
                             inner_c = player.sprite[inner]; // Which sprite is it in the cache...
                             break;
                         case COLLISION_ENEMY:
+                            enemy_bank();
                             inner_side = SIDE_ENEMY;
                             inner_x = (unsigned int)WORD1(enemy.tx[inner]);
                             inner_y = (unsigned int)WORD1(enemy.ty[inner]);
                             inner_c = enemy.sprite[inner]; // Which sprite is it in the cache...
+                            enemy_unbank();
                             break;
                         case COLLISION_TOWER:
                             inner_side = towers.side[inner];
@@ -307,14 +311,14 @@ void collision_detect()
 #ifdef __DEBUG_COLLISION
                                             printf("bullet %u", inner);
 #endif
-                                           stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                           stage_enemy_hit(outer, inner);
                                            bullet_remove(inner);
                                         }
                                         if (inner_type == COLLISION_PLAYER) {
 #ifdef __DEBUG_COLLISION
                                             printf("player %u", inner);
 #endif
-                                            stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                            stage_enemy_hit(outer, inner);
                                             player_remove(inner, outer);
                                         }
                                         break;
@@ -342,8 +346,8 @@ void collision_detect()
 #ifdef __DEBUG_COLLISION
                                             printf("enemy %u", inner);
 #endif
-                                            // Remove first the enemy, then the bullet, because the bullet contains the energe of impact.
-                                            stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                            // Remove first the enemy, then the bullet, because the bullet contains the energy of impact.
+                                            stage_enemy_hit(outer, inner);
                                             bullet_remove(outer);
                                         }
                                         if (inner_type == COLLISION_TOWER) {
@@ -363,7 +367,7 @@ void collision_detect()
 #ifdef __DEBUG_COLLISION
                                             printf("bullet %u", inner);
 #endif
-                                            stage_enemy_hit(enemy.wave[outer], outer, inner);
+                                            stage_enemy_hit(outer, inner);
                                             player_remove(inner, outer);
                                         }
                                         break;

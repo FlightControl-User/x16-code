@@ -9,8 +9,14 @@ extern fe_enemy_t enemy;
 void enemy_init();
 unsigned char enemy_add(unsigned char w); 
 unsigned char enemy_hit(unsigned char e, unsigned char b);
-unsigned char enemy_remove(unsigned char e);
+void enemy_remove(unsigned char e);
 
 void enemy_logic();
 void enemy_animate();
+
+unsigned char enemy_get_wave(unsigned char e);
+
+inline void enemy_bank();
+inline void enemy_unbank();
+
 

@@ -137,7 +137,7 @@ void tower_paint(unsigned char row, unsigned char column)
         if( rnd <= 255 ) {
             if( stage.tower_count < TOWERS_TOTAL) {
                 floor_cache[cache_tower] = 1;
-                bank_push_set_bram(BRAM_STAGE);
+                bank_push_set_bram(BRAM_ENGINE_STAGES);
                 stage_tower_t* st = stage.current_playbook.stage_towers;
                 sprite_index_t turret = st->turret;
                 signed char tx = st->turret_x;

@@ -150,12 +150,12 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 };
 
 
-#pragma data_seg(stage)
+#pragma data_seg(SEGM_ENGINE_STAGES)
 
 __export volatile stage_bullet_t stage_bullet_fireball = { b002 };
 __export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };
 
-__export volatile stage_enemy_t stage_enemy_e0101 = { e0301, e0301, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0101 = { e0101, e0101, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0102 = { e0102, e0102, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0201 = { e0201, e0201, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0202 = { e0202, e0202, &stage_bullet_fireball, 8, 0 };
@@ -176,63 +176,70 @@ __export volatile stage_bullet_t stage_player_bullet = { b001 };
 
 __export volatile stage_player_t stage_player = { p001, &stage_player_engine, &stage_player_bullet };
 
-stage_action_move_t     action_move_00                  = { 480+64, 16, 3 };
-stage_action_move_t     action_move_left_480_01         = { 320+160, 32, 3 };
-stage_action_move_t     action_move_02                  = { 80, 0, 3 };
-stage_action_move_t     action_move_right_480_03        = { 320+160, 0, 3 };
-stage_action_move_t     action_move_04                  = { 768, 32, 4 };
-stage_action_move_t     action_move_05                  = { 768, 32, 2 };
-stage_action_move_t     action_move_06                  = { 768, 0, 2 };
+// const stage_action_move_t     action_move_00                  = { 480+64, 16, 3 };
+// const stage_action_move_t     action_move_left_480_01         = { 320+160, 32, 3 };
+// const stage_action_move_t     action_move_02                  = { 80, 0, 3 };
+// const stage_action_move_t     action_move_right_480_03        = { 320+160, 0, 3 };
+// const stage_action_move_t     action_move_04                  = { 768, 32, 4 };
+// const stage_action_move_t     action_move_05                  = { 768, 32, 2 };
+// const stage_action_move_t     action_move_06                  = { 768, 0, 2 };
 
-stage_action_turn_t     action_turn_00                  = { -24, 4, 3 };
-stage_action_turn_t     action_turn_01                  = { 24, 4, 3 };
-stage_action_turn_t     action_turn_02                  = { 32, 2, 2 };
+// const stage_action_turn_t     action_turn_00                  = { -24, 4, 3 };
+// const stage_action_turn_t     action_turn_01                  = { 24, 4, 3 };
+// const stage_action_turn_t     action_turn_02                  = { 32, 2, 2 };
 
-stage_action_end_t      action_end                      = { 0 };
+// const stage_action_end_t      action_end                      = { 0 };
 
-__export volatile
-stage_flightpath_t action_flightpath_001[] = {
-    { &action_move_00,    STAGE_ACTION_MOVE,        1 },
-    { &action_end,        STAGE_ACTION_END,         0 }
+#define  action_move_00                 { 480+64, 16, 3 }
+#define  action_move_left_480_01        { 320+160, 32, 3 }
+#define  action_move_02                 { 80, 0, 3 }
+#define  action_move_right_480_03       { 320+160, 0, 3 }
+#define  action_move_04                 { 768, 32, 4 }
+#define  action_move_05                 { 768, 32, 2 }
+#define  action_move_06                 { 768, 0, 2 }
+
+#define  action_turn_00                 { -24, 4, 3 }
+#define  action_turn_01                 { 24, 4, 3 }
+#define  action_turn_02                 { 32, 2, 2 }
+
+#define  action_end                     { 0 }
+
+const stage_flightpath_t action_flightpath_001[] = {
+    { { .move = action_move_00 },    STAGE_ACTION_MOVE,        1 },
+    { { .end = action_end },        STAGE_ACTION_END,         0 }
 };
 
-__export volatile
-stage_flightpath_t action_flightpath_left_circle_002[] = {
-    { &action_move_left_480_01,    STAGE_ACTION_MOVE,        1 },
-    { &action_turn_00,    STAGE_ACTION_TURN,        2 },
-    { &action_move_02,    STAGE_ACTION_MOVE,        1 }
+const stage_flightpath_t action_flightpath_left_circle_002[] = {
+    { { .move = action_move_left_480_01 },    STAGE_ACTION_MOVE,        1 },
+    { { .turn = action_turn_00 },    STAGE_ACTION_TURN,        2 },
+    { { .move = action_move_02 },    STAGE_ACTION_MOVE,        1 }
 };
 
-__export volatile
-stage_flightpath_t action_flightpath_right_circle_003[] = {
-    { &action_move_right_480_03,    STAGE_ACTION_MOVE,        1 },
-    { &action_turn_01,    STAGE_ACTION_TURN,        2 },
-    { &action_move_02,    STAGE_ACTION_MOVE,        1 }
+const stage_flightpath_t action_flightpath_right_circle_003[] = {
+    { { .move = action_move_right_480_03 },    STAGE_ACTION_MOVE,        1 },
+    { { .turn = action_turn_01 },    STAGE_ACTION_TURN,        2 },
+    { { .move = action_move_02 },    STAGE_ACTION_MOVE,        1 }
 };
 
-__export volatile
-stage_flightpath_t action_flightpath_004[] = {
-    { &action_move_04,    STAGE_ACTION_MOVE,        1 },
-    { &action_end,        STAGE_ACTION_END,         0 },
+const stage_flightpath_t action_flightpath_004[] = {
+    { { .move = action_move_04 },    STAGE_ACTION_MOVE,        1 },
+    { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
 
-__export volatile
-stage_flightpath_t action_flightpath_005[] = {
-    { &action_move_05,    STAGE_ACTION_MOVE,        1 },
-    { &action_end,        STAGE_ACTION_END,         0 },
+const stage_flightpath_t action_flightpath_005[] = {
+    { { .move = action_move_05 },    STAGE_ACTION_MOVE,        1 },
+    { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
-__export volatile
-stage_flightpath_t action_flightpath_006[] = {
-    { &action_move_06,    STAGE_ACTION_MOVE,        1 },
-    { &action_end,        STAGE_ACTION_END,         0 },
+const stage_flightpath_t action_flightpath_006[] = {
+    { { .move = { 768, 0, 2 } },    STAGE_ACTION_MOVE,        1 },
+    { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
-__export volatile
-stage_scenario_t stage_level_01[32] = {
+const stage_scenario_t stage_level_01[32] = {
 //    ct, sp, enemy_xxx, action_flightpath_xxx,                                 xstrt, ystrt, xinc, yinc, ival, wait, prev    
-    {  8,  1, &stage_enemy_e0501, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
+    {  8,  1, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
     { 16, 16, &stage_enemy_e0701, action_flightpath_005,                                  704,    96,    0,    0,    4,   20,    0 }, // 1
     { 16, 16, &stage_enemy_e0702, action_flightpath_006,                                  -64,   160,    0,    0,   12,   20,    0 }, // 2
     { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,    32,    0,    0,   14,   20,    2 }, // 3

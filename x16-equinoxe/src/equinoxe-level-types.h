@@ -47,10 +47,11 @@ typedef struct {
 typedef union {
     stage_action_move_t move;
     stage_action_turn_t turn;
+    stage_action_end_t end;
 } stage_action_t;
 
 typedef struct {
-    void* action;
+    stage_action_t action;
     unsigned char type;
     unsigned char next;
 } stage_flightpath_t;

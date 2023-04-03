@@ -13,30 +13,21 @@
 #include "equinoxe-bullet.h"
 #include <ht.h>
 
-// #pragma var_model(zp)
+#ifdef __BANKING
+#pragma code_seg(SEGM_ENGINE_ENEMIES)
+#pragma data_seg(SEGM_ENGINE_ENEMIES)
+#pragma bank(ram,BRAM_ENGINE_ENEMIES)
+#endif
+
+fe_enemy_t enemy; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
 
 void enemy_init()
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-    
     memset(&enemy, 0, sizeof(fe_enemy_t));
-
-    bank_pull_bram();
 }
-
-// #pragma code_seg(stage)
-// #pragma data_seg(stage)
-
-// #ifdef __BANKING
-// #pragma bank(ram, 3)
-// #endif
-
 
 unsigned char enemy_add(unsigned char w) 
 {
-
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     stage.enemy_count++;
 
 	unsigned char e = stage.enemy_pool;
@@ -94,55 +85,36 @@ unsigned char enemy_add(unsigned char w)
 
     enemy_animate();
 
-    bank_pull_bram();
     unsigned char ret = 1;
     return ret;
 }
 
-unsigned char enemy_remove(unsigned char e) 
+void enemy_remove(unsigned char e) 
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
     if(enemy.used[e]) {
+		// gotoxy(0, e);
+		// printf("%02u -     ", e);
+        enemy.used[e] = 0;
+        enemy.enabled[e] = 0;
         vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
         sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
         palette16_unuse(sprite_cache.palette_offset[enemy.sprite[e]]);
         fe_sprite_cache_free(enemy.sprite[e]);
-        enemy.used[e] = 0;
-        enemy.enabled[e] = 0;
 
-        stage.enemy_count--;
     }
-
-    bank_pull_bram();
-
-    unsigned char ret = 1;
-    return ret;
 }
-
-
 
 
 unsigned char enemy_hit(unsigned char e, unsigned char b) 
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-
-
     enemy.health[e] += bullet_energy_get(b); // unbanked to BRAM_ENGINE_BULLET
     if(enemy.health[e] <= 0) {
-        bank_pull_bram();
-        return enemy_remove(e);
+		return 1;
     }
 
-    bank_pull_bram();
     return 0;
 }
-
-// #pragma data_seg(Data)
-// #pragma code_seg(Code)
-
-// #pragma nobank(dummy)
 
 void enemy_move( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed)
 {
@@ -165,8 +137,6 @@ void enemy_arc( unsigned char e, unsigned char turn, unsigned char radius, unsig
 }
 
 void enemy_animate() {
-
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
@@ -194,69 +164,63 @@ void enemy_animate() {
 			enemy.wait_animation[e]--;
         }
     }
-
-    bank_pull_bram();
 }
 
 void enemy_logic() {
-
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
 
 	for(unsigned char e=0; e<FE_ENEMY; e++) {
 
 		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
 
 			if(!enemy.flight[e]) {
-                stage_flightpath_t* flightpath = enemy.flightpath[e];
-                unsigned char action = enemy.action[e];
-                bank_push_bram(); bank_set_bram(BRAM_STAGE);
-                stage_flightpath_t flightnode = flightpath[action];
-                unsigned char type = flightnode.type;
-                unsigned char next = flightnode.next;
-                bank_pull_bram();
+
+				// gotoxy(0, e);
+				// printf("%02u - used", e);
+
+				stage_flightpath_t* enemy_flightpath = enemy.flightpath[e];
+				unsigned char enemy_action = enemy.action[e];
+                stage_action_t* action = stage_get_flightpath_action(enemy_flightpath, enemy_action);
+                unsigned char type = stage_get_flightpath_type(enemy_flightpath, enemy_action);
+                unsigned char next = stage_get_flightpath_next(enemy_flightpath, enemy_action);
+
+				// printf("efp=%p, ac=%03u, ty=%03u, ne=%03u - ", enemy_flightpath, enemy_action, type, next );
+
+				unsigned int flight = 0;
+				signed char turn = 0;
+				unsigned char speed = 0;
+				unsigned char radius = 0;
 
 				switch(type) {
 
-				case STAGE_ACTION_MOVE: {
-
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
-                    stage_action_move_t* action_move = (stage_action_move_t*)flightnode.action;
-                    unsigned int flight = action_move->flight;
-                    signed char turn = action_move->turn;
-                    unsigned char speed = action_move->speed;
-                    // printf(", move f=%03u, t=%03u, s=%03u", action_move->flight, (unsigned char)action_move->turn, action_move->speed );
-                    bank_pull_bram();
+				case STAGE_ACTION_MOVE:
+                    flight = stage_get_flightpath_action_move_flight(action);
+                    turn = stage_get_flightpath_action_move_turn(action);
+                    speed = stage_get_flightpath_action_move_speed(action);
+                    // printf("move f=%03u, t=%03d, s=%03u, a=%03u - ", flight, turn, speed, next );
 
 					enemy_move(e, flight, (unsigned char)turn, speed);
                     enemy.action[e] = next;
 					break;
-                    }
 
-				case STAGE_ACTION_TURN: {
-
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
-                    stage_action_turn_t* action_turn = (stage_action_turn_t*)flightnode.action;
-                    signed char turn = action_turn->turn;
-                    unsigned char radius = action_turn->radius;
-                    unsigned char speed = action_turn->speed;
-                    // printf(", move t=%03u, r=%03u, s=%03u    ", (unsigned char)action_turn->turn, action_turn->radius, action_turn->speed );
-                    bank_pull_bram();
+				case STAGE_ACTION_TURN:
+                    turn = stage_get_flightpath_action_turn_turn(action);
+                    radius = stage_get_flightpath_action_turn_radius(action);
+                    speed = stage_get_flightpath_action_turn_speed(action);
+                    // printf("turn t=%03d, r=%03u, s=%03u, a=%03u - ", turn, radius, speed, next );
 
 					enemy_arc( e, (unsigned char)turn, radius, speed);
                     enemy.action[e] = next;
 					break;
-                    }
+        
 
-				case STAGE_ACTION_END: {
+				case STAGE_ACTION_END:
 
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
-                    stage_action_end_t* action_end = (stage_action_end_t*)flightnode.action;
-                    // printf(", end e=%03u    ", action_end->explode );
-                    bank_pull_bram();
+                    // printf("end.");
 
-                    stage_enemy_remove(enemy.wave[e], e);
+
+                    stage_enemy_remove(e);
 					break;
-                    }
+                    
 				}
 			} else {
 				enemy.flight[e]--;
@@ -340,34 +304,22 @@ void enemy_logic() {
 			}
 		}
 	}
-
-    // stage.enemy_xor = enemy_checkxor();
-
-    // if(enemy.cs1 != 255)
-    //     printf("error checksum cs1!");
-    // if(enemy.cs2 != 255)
-    //     printf("error checksum cs2!");
-    // if(enemy.cs3 != 255)
-    //     printf("error checksum cs3!");
-    // if(enemy.cs4 != 255)
-    //     printf("error checksum cs4!");
-
-    bank_pull_bram();
 }
 
-char enemy_checkxor()
-{
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-    unsigned char xor = 0;
-    unsigned char* p = (char*)&enemy;
-    unsigned int s = sizeof(fe_enemy_t);
-    for(unsigned int i=0; i<s; i++) {
-        xor ^= (unsigned char)*p;
-        p++;
-    }
-    bank_pull_bram();
-    return xor;
+unsigned char enemy_get_wave(unsigned char e) {
+	return enemy.wave[e];
 }
 
-// #pragma var_model(mem)
+#pragma code_seg(Code)
+#pragma data_seg(Data)
+#pragma nobank(dummy)
+
+
+inline void enemy_bank() {
+    bank_push_set_bram(BRAM_ENGINE_ENEMIES);
+}
+
+inline void enemy_unbank() {
+    bank_pull_bram();
+}
 

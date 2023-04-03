@@ -20,7 +20,7 @@
 #pragma bank(ram,BRAM_ENGINE_BULLETS)
 #endif
 
-fe_bullet_t bullet; // This memory area is banked and must always be reached by local routines in the same bank for efficiency!
+fe_bullet_t bullet; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
 
 void bullet_init()
 {
@@ -207,8 +207,8 @@ void bullet_remove(unsigned char b)
         bullet.enabled[b] = 0;
         bullet.sprite[b] = 255;
 
-        stage.bullet_count--;
         bullet_sprite_animate_del(b);
+        stage.bullet_count--;
     }
 }
 

@@ -1,6 +1,7 @@
 .file                               [name="%O", type="prg", segments="Program"]
-.file                               [name="STAGE.BIN", type="bin", segments="stage"]
+.file                               [name="STAGES.BIN", type="bin", segments="segm_engine_stages"]
 .file                               [name="BULLETS.BIN", type="bin", segments="segm_engine_bullets"]
+.file                               [name="ENEMIES.BIN", type="bin", segments="segm_engine_enemies"]
 .file                               [name="SPRITES.BIN", type="bin", segments="spritecontrol"]
 .file                               [name="FLOORS.BIN", type="bin", segments="floorcontrol"]
 .segmentdef Program                 [segments="Basic, Code, Data, Heap, fe_sprite_cache"]
@@ -16,15 +17,13 @@
 
 .segmentdef Palette                 [start=$A000, min=$A000, max=$BFFF, align=$100]
 
-.segmentdef SpriteControlEnemies    [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef SpriteControlPlayer     [startAfter="SpriteControlEnemies", min=$A000, max=$BFFF, align=$100]
+.segmentdef SpriteControlPlayer     [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef SpriteControlEngine     [startAfter="SpriteControlPlayer", min=$A000, max=$BFFF, align=$100]
 .segmentdef TileControlTowers       [startAfter="SpriteControlEngine", min=$A000, max=$BFFF, align=$100]
-.segmentdef sprite_animate_control  [startAfter="TileControlTowers", min=$A000, max=$BFFF, align=$100]
 
-.segmentdef stage                   [start=$A000, min=$A000, max=$BFFF, align=$100]
-
+.segmentdef segm_engine_stages      [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef segm_engine_bullets     [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef segm_engine_enemies     [start=$A000, min=$A000, max=$BFFF, align=$100]
 
 .segmentdef floorcontrol            [start=$A000, min=$A000, max=$BF00, align=$100]
 
@@ -35,7 +34,8 @@
 .segment Code
 .segment floorcontrol
 .segment spritecontrol
-.segment stage
+.segment segm_engine_stages
 .segment segm_engine_bullets
+.segment segm_engine_enemies
 .segment Data
 .segment Code

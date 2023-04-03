@@ -15,16 +15,13 @@
 #pragma data_seg(Data)
 lru_cache_table_t sprite_cache_vram;
 
-#pragma data_seg(SpriteControlEnemies)
-fe_enemy_t enemy;
-
 #pragma data_seg(SpriteControlPlayer)
 fe_player_t player;
 
 #pragma data_seg(SpriteControlEngine)
 fe_engine_t engine;
 
-#pragma data_seg(sprite_animate_control)
+#pragma data_seg(Data)
 sprite_animate_t animate;
 
 

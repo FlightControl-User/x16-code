@@ -70,12 +70,12 @@ equinoxe_game_t game = {0, 0, 0, 2, 0};
 void equinoxe_init() {
 
     // Load all banks with data and code!
-
     unsigned bytes = 0;
-    bytes = fload_bram("stage.bin", BRAM_STAGE, (bram_ptr_t)0xA000);
-    bytes = fload_bram("bullets.bin", BRAM_ENGINE_BULLETS, (bram_ptr_t)0xA000);
+    bytes = fload_bram("stages.bin", BRAM_ENGINE_STAGES, (bram_ptr_t)0xA000);
     bytes = fload_bram("sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
     bytes = fload_bram("floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+    bytes = fload_bram("bullets.bin", BRAM_ENGINE_BULLETS, (bram_ptr_t)0xA000);
+    bytes = fload_bram("enemies.bin", BRAM_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
 
 #ifdef __PLAYER
     player_init();
@@ -281,10 +281,7 @@ void irq_vsync() {
         printf(", max %u", stack_diff_max);
 
         gotoxy(0,57);
-        printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.sprite_player, stage.player_count, stage.sprite_bullet, stage.bullet_count, stage.sprite_enemy, stage.enemy_count);
-
-        gotoxy(0,56);
-        printf("enemy xor %x size %05u", stage.enemy_xor, sizeof(fe_enemy_t));
+        printf("player %2x, %2x bullet %2x, %2x enemy %2x, %2x ", stage.player_pool, stage.player_count, stage.bullet_pool, stage.bullet_count, stage.enemy_pool, stage.enemy_count);
 
         gotoxy(x,y);
         }

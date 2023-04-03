@@ -20,11 +20,10 @@ stage_t stage;
 stage_wave_t wave;
 
 
-#pragma code_seg(stage)
-#pragma data_seg(stage)
-
 #ifdef __BANKING
-#pragma bank(ram, 3)
+#pragma code_seg(SEGM_ENGINE_STAGES)
+#pragma data_seg(SEGM_ENGINE_STAGES)
+#pragma bank(ram,BRAM_ENGINE_STAGES)
 #endif
 
 void stage_copy(unsigned char ew, unsigned int scenario) {
@@ -102,8 +101,6 @@ void stage_load_enemy(stage_enemy_t* stage_enemy)
 
 void stage_load_floor(stage_floor_t* stage_floor)
 {
-    bank_push_set_bram(BRAM_STAGE); // stage data
-
     // Loading the floor in bram.
 
     stage_floor_bram_tiles_t* floor_bram_tiles = stage_floor->floor_bram_tiles;
@@ -122,13 +119,10 @@ void stage_load_floor(stage_floor_t* stage_floor)
     }
 
     stage.floor = floor;
-
-    bank_pull_bram();
 }
 
 void stage_load_tower(stage_tower_t* stage_tower)
 {
-    bank_push_set_bram(BRAM_STAGE); // stage data
 
     // Loading the floor in bram.
 
@@ -157,7 +151,6 @@ void stage_load_tower(stage_tower_t* stage_tower)
 
     stage.towers = towers;
 
-    bank_pull_bram();
 }
 
 stage_tower_t* stage_tower_get()
@@ -170,8 +163,6 @@ stage_tower_t* stage_tower_get()
 
 static void stage_load(void)
 {
-    bank_push_set_bram(BRAM_STAGE); // stage data
-
     stage_playbook_t* stage_playbooks = stage.script.playbook;
     stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
     stage_scenario_t* stage_scenarios = stage_playbook->scenarios;
@@ -203,15 +194,11 @@ static void stage_load(void)
         stage_load_enemy(stage_scenario->stage_enemy);
     }
 #endif
-
-    bank_pull_bram();
 }
 
 
 static void stage_reset(void)
 {
-    bank_push_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
-
     enemy_init();
 
 #ifdef __PALETTE
@@ -249,8 +236,6 @@ static void stage_reset(void)
     stage_engine_t* stage_engine = stage_player->stage_engine;
 	player_add(stage_player->player_sprite, stage_engine->engine_sprite);
 #endif
-
-    bank_pull_bram();
 }
 
 
@@ -266,17 +251,24 @@ void stage_enemy_add(unsigned char w)
 }
 
 
-void stage_enemy_remove(unsigned char w, unsigned char e)
+void stage_enemy_remove(unsigned char e)
 {
-    unsigned char enemies = enemy_remove(e);
-    wave.enemy_spawn[w] += enemies;
+    unsigned char w = enemy_get_wave(e);
+    enemy_remove(e);
+    wave.enemy_spawn[w] += 1;
+    stage.enemy_count--;
 }
 
 
-void stage_enemy_hit(unsigned char w, unsigned char e, unsigned char b)
+void stage_enemy_hit(unsigned char e, unsigned char b)
 {
-    unsigned char enemies = enemy_hit(e, b);
-    wave.enemy_spawn[w] += enemies;
+    unsigned char w = enemy_get_wave(e);
+    unsigned char hit = enemy_hit(e, b);
+    if(hit) {
+        enemy_remove(e);
+        wave.enemy_spawn[w] += 1;
+        stage.enemy_count--;
+    }
 }
 
 void stage_logic()
@@ -317,8 +309,6 @@ void stage_logic()
                 if(wave.finished[w]) {
 
                     // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
-                    bank_push_set_bram(BRAM_STAGE); // stage_scenario is at BRAM_STAGE
-
                     unsigned int new_scenario = wave.scenario[w];
                     unsigned int wave_scenario = wave.scenario[w];
                     // TODO find solution for this loop, maybe with pointers?
@@ -336,7 +326,6 @@ void stage_logic()
                         }
                         new_scenario++;
                     }
-                    bank_pull_bram();
                     wave.finished[w] = 0;
                 }
             }
@@ -344,13 +333,10 @@ void stage_logic()
             if(stage.scenario >= stage.scenarios) {
                 if(stage.playbook < stage.script.playbooks) {
                     stage.playbook++;
-                    bank_push_bram(); bank_set_bram(BRAM_STAGE);
                     stage_playbook_t* stage_playbook = stage.script.playbook;
                     stage.current_playbook = stage_playbook[stage.playbook];
                     stage.scenarios = stage.current_playbook.scenario_count;
                     stage.scenario = 0;
-
-                    bank_pull_bram();
                 }
             }
         }
@@ -360,19 +346,59 @@ void stage_logic()
         stage.respawn--;
         if(!stage.respawn) {
 #ifdef __PLAYER
-            bank_push_set_bram(BRAM_STAGE);
             stage_playbook_t* stage_playbooks = stage.script.playbook;
             stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
             stage_player_t* stage_player = stage_playbook->stage_player;
             stage_engine_t* stage_engine = stage_player->stage_engine;
             player_add(stage_player->player_sprite, stage_engine->engine_sprite);
-            bank_pull_bram();
 #endif
         }
     }
 
     
 }
+
+stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action) {
+    stage_action_t* flightpath_action = &flightpath[action].action;
+    return flightpath_action;
+}
+
+unsigned char stage_get_flightpath_type(stage_flightpath_t* flightpath, unsigned char action) {
+    unsigned char type = flightpath[action].type;
+    return type;
+}
+
+unsigned char stage_get_flightpath_next(stage_flightpath_t* flightpath, unsigned char action) {
+    unsigned char next = flightpath[action].next;
+    return next;
+}
+
+
+unsigned int stage_get_flightpath_action_move_flight(stage_action_t* action_move) {
+    return ((stage_action_move_t*)action_move)->flight;
+}
+
+signed char stage_get_flightpath_action_move_turn(stage_action_t* action_move) {
+    return ((stage_action_move_t*)action_move)->turn;
+}
+
+unsigned char stage_get_flightpath_action_move_speed(stage_action_t* action_move) {
+    return ((stage_action_move_t*)action_move)->speed;
+}
+
+
+signed char stage_get_flightpath_action_turn_turn(volatile stage_action_t* action_turn) {
+    return ((stage_action_turn_t*)action_turn)->turn;
+}
+
+unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_turn) {
+    return ((stage_action_turn_t*)action_turn)->radius;
+}
+
+unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
+    return ((stage_action_turn_t*)action_turn)->speed;
+}
+
 
 
 void stage_display()
