@@ -16,7 +16,7 @@
 #ifdef __BANKING
 #pragma code_seg(SEGM_ENGINE_ENEMIES)
 #pragma data_seg(SEGM_ENGINE_ENEMIES)
-#pragma bank(ram,BRAM_ENGINE_ENEMIES)
+#pragma bank(cx16_ram,BRAM_ENGINE_ENEMIES)
 #endif
 
 fe_enemy_t enemy; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
@@ -312,7 +312,7 @@ unsigned char enemy_get_wave(unsigned char e) {
 
 #pragma code_seg(Code)
 #pragma data_seg(Data)
-#pragma nobank(dummy)
+#pragma nobank
 
 
 inline void enemy_bank() {

@@ -23,7 +23,7 @@ stage_wave_t wave;
 #ifdef __BANKING
 #pragma code_seg(SEGM_ENGINE_STAGES)
 #pragma data_seg(SEGM_ENGINE_STAGES)
-#pragma bank(ram,BRAM_ENGINE_STAGES)
+#pragma bank(cx16_ram,BRAM_ENGINE_STAGES)
 #endif
 
 void stage_copy(unsigned char ew, unsigned int scenario) {
@@ -277,7 +277,7 @@ void stage_logic()
         
         if(!(game.tickstage & 0x03)) {
             #ifdef __DEBUG_STAGE
-            printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
+            printf("stage ba=%03u, pb=%03u, sc=%03u", bank_get_bram(), stage.playbook, stage.scenario);
             #endif
             
             for(unsigned char w=0; w<8; w++) {
@@ -298,7 +298,7 @@ void stage_logic()
                     }
                 }
 #ifdef __DEBUG_WAVE
-                gotoxy(0,30+w);
+                gotoxy(0,50+w);
                 printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w]);
 #endif
             }
@@ -412,5 +412,6 @@ void stage_display()
 #pragma data_seg(Data)
 #pragma code_seg(Code)
 
-#pragma nobank(dummy)
+#pragma nobank
+
 

@@ -34,7 +34,7 @@ floor_scroll_t floor_pos;
 
 void floor_draw_clear(unsigned char layer)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     unsigned char palette = 0;
     unsigned char Offset = 0;
@@ -52,7 +52,7 @@ void floor_draw_clear(unsigned char layer)
 
 void floor_clear_row(unsigned char layer, floor_t* floor, unsigned char x, unsigned char y)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     unsigned int row = (word)y << 2;
     unsigned int column = (word)x;
@@ -87,7 +87,7 @@ void floor_clear_row(unsigned char layer, floor_t* floor, unsigned char x, unsig
 
 void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsigned char column)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     floor_parts_t* floor_parts = floor->floor_parts; // todo to pass this as the parameter!
 
@@ -110,7 +110,7 @@ void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsi
         unsigned char segment2 = floor->slab[(unsigned char)segment + s]; // todo i need to create a new variable because the optimizer deletes the old!
         segment2 = segment2 << 2;
         for (unsigned char c = 0;c < 2;c++) {
-            unsigned char tile = floor->composition[segment2 + c + r]; // BRAM_FLOOR_CONTROL
+            unsigned char tile = floor->composition[segment2 + c + r]; // BRAM_ENGINE_FLOOR
             unsigned int offset = floor_parts->floor_tile_offset[tile];
             unsigned char palette = floor_parts->palette[tile];
             palette = palette << 4;
@@ -220,7 +220,7 @@ void floor_paint(unsigned char row, unsigned char column)
 
 void floor_paint_background(unsigned char layer, floor_t* floor)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     unsigned char cache;
 
@@ -246,7 +246,7 @@ void floor_paint_background(unsigned char layer, floor_t* floor)
 
 void floor_draw_background(unsigned char layer, floor_t* floor)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     unsigned char row_draw = 32;
     do {
@@ -295,7 +295,7 @@ vera_heap_handle_t floor_part_alloc_vram(unsigned char part, floor_parts_t* floo
 
 void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pattern)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     floor_parts_t* floor_parts = floor->floor_parts;
 
@@ -313,7 +313,7 @@ void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pa
 
 void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     floor_parts_t* floor_parts = floor->floor_parts;
 
@@ -335,7 +335,7 @@ void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
 // Load the floor tiles into bram using the bram heap manager.
 unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_bram_tiles_t* floor_bram_tile)
 {
-    bank_push_set_bram(BRAM_FLOOR_CONTROL);
+    bank_push_set_bram(BRAM_ENGINE_FLOOR);
 
     // printf("load:floor = %p\n", floor);
 
@@ -459,7 +459,7 @@ void floor_scroll()
 
         // Now we set the vertical scroll to the required scroll position.
         vera_layer0_set_vertical_scroll(game.screen_vscroll);
-#ifdef __LAYER1
+#ifdef __TOWER
         vera_layer1_set_vertical_scroll(game.screen_vscroll);
 #endif
         game.screen_vscroll--;

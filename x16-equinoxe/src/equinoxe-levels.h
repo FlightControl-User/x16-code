@@ -62,7 +62,7 @@ __export sprite_t sprites = {
     }, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
 };
 
-#pragma data_seg(floorcontrol)
+#pragma data_seg(SEGM_ENGINE_FLOOR)
 
 // FLOOR
 
