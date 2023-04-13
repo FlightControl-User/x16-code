@@ -23,32 +23,32 @@ stage_wave_t wave;
 #ifdef __BANKING
 #pragma code_seg(SEGM_ENGINE_STAGES)
 #pragma data_seg(SEGM_ENGINE_STAGES)
-#pragma bank(ram,BRAM_ENGINE_STAGES)
+#pragma bank(cx16_ram,BRAM_ENGINE_STAGES)
 #endif
 
 void stage_copy(unsigned char ew, unsigned int scenario) {
-    stage_playbook_t* stage_playbooks = stage.script.playbook;
-    stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
-    stage_scenario_t* stage_scenarios = stage_playbook->scenarios;
-    stage_scenario_t* stage_scenario = &stage_scenarios[scenario];
+    stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;
+    stage_playbook_t* stage_playbook_b = &stage_playbooks_b[stage.playbook_current];
+    stage_scenario_t* stage_scenarios_b = stage_playbook_b->scenarios_b;
+    stage_scenario_t* stage_scenario_b = &stage_scenarios_b[scenario];
 
-    wave.dx[ew] = stage_scenarios[scenario].dx;
-    wave.dy[ew] = stage_scenarios[scenario].dy;
-    wave.enemy_count[ew] = stage_scenarios[scenario].enemy_count;
+    wave.dx[ew] = stage_scenarios_b[scenario].dx;
+    wave.dy[ew] = stage_scenarios_b[scenario].dy;
+    wave.enemy_count[ew] = stage_scenarios_b[scenario].enemy_count;
 
-    wave.enemy_flightpath[ew] = stage_scenarios[scenario].enemy_flightpath;
-    wave.enemy_spawn[ew] = stage_scenarios[scenario].enemy_spawn;
+    wave.enemy_flightpath[ew] = stage_scenarios_b[scenario].enemy_flightpath;
+    wave.enemy_spawn[ew] = stage_scenarios_b[scenario].enemy_spawn;
 
-    stage_enemy_t* stage_enemy = stage_scenarios[scenario].stage_enemy;
+    stage_enemy_t* stage_enemy = stage_scenarios_b[scenario].stage_enemy;
     wave.animation_speed[ew] = stage_enemy->animation_speed;
     wave.animation_reverse[ew] = stage_enemy->animation_reverse;
 
     wave.enemy_sprite[ew] = stage_enemy->enemy_sprite_flight;
-    wave.interval[ew] = stage_scenarios[scenario].interval;
-    wave.prev[ew] = stage_scenarios[scenario].prev;
-    wave.wait[ew] = stage_scenarios[scenario].wait;
-    wave.x[ew] = stage_scenarios[scenario].x;
-    wave.y[ew] = stage_scenarios[scenario].y;
+    wave.interval[ew] = stage_scenarios_b[scenario].interval;
+    wave.prev[ew] = stage_scenarios_b[scenario].prev;
+    wave.wait[ew] = stage_scenarios_b[scenario].wait;
+    wave.x[ew] = stage_scenarios_b[scenario].x;
+    wave.y[ew] = stage_scenarios_b[scenario].y;
     wave.used[ew] = 1;
     wave.finished[ew] = 0;
     wave.scenario[ew] = scenario;
@@ -155,21 +155,21 @@ void stage_load_tower(stage_tower_t* stage_tower)
 
 stage_tower_t* stage_tower_get()
 {
-    stage_playbook_t* stage_playbooks = stage.script.playbook;
-    stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
-    stage_tower_t* stage_towers = stage_playbook->stage_towers;
+    stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;
+    stage_playbook_t* stage_playbook_b = &stage_playbooks_b[stage.playbook_current];
+    stage_tower_t* stage_towers = stage_playbook_b->stage_towers;
     return stage_towers;
 }
 
 static void stage_load(void)
 {
-    stage_playbook_t* stage_playbooks = stage.script.playbook;
-    stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
-    stage_scenario_t* stage_scenarios = stage_playbook->scenarios;
-    unsigned int stage_scenario_count = stage_playbook->scenario_count;
+    stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;
+    stage_playbook_t* stage_playbook_b = &stage_playbooks_b[stage.playbook_current];
+    stage_scenario_t* stage_scenarios_b = stage_playbook_b->scenarios_b;
+    unsigned int stage_scenario_total = stage_playbook_b->scenario_total_b;
 
 #ifdef __FLOOR
-    stage_load_floor(stage_playbook->stage_floor);
+    stage_load_floor(stage_playbook_b->stage_floor);
 #endif
 
 
@@ -183,14 +183,14 @@ static void stage_load(void)
 
 
 #ifdef __PLAYER
-    stage_load_player(stage_playbook->stage_player);
+    stage_load_player(stage_playbook_b->stage_player);
 #endif
 
 
 #if defined(__ENEMY)
     // Loading the enemy sprites in bram.
-    for(unsigned int scenario = 0; scenario < stage_scenario_count; scenario++) {
-        stage_scenario_t* stage_scenario = &stage_scenarios[scenario];
+    for(unsigned int scenario = 0; scenario < stage_scenario_total; scenario++) {
+        stage_scenario_t* stage_scenario = &stage_scenarios_b[scenario];
         stage_load_enemy(stage_scenario->stage_enemy);
     }
 #endif
@@ -203,7 +203,7 @@ static void stage_reset(void)
 
 #ifdef __PALETTE
     palette_init(BRAM_PALETTE);
-    palette_load(stage.playbook); // Todo, what is this level thing ... All palettes to be loaded.
+    palette_load(stage.playbook_current); // Todo, what is this level thing ... All palettes to be loaded.
 #endif
 
 #ifdef __PLAYER
@@ -216,23 +216,23 @@ static void stage_reset(void)
 
 	memset(&stage, 0, sizeof(stage_t));
 
-    stage.script.playbooks = 1;
-    stage.script.playbook = stage_playbook;
+    stage.script_b.playbook_total_b = 1;
+    stage.script_b.playbooks_b = stage_playbooks_b;
 
     // stage.current_playbook = stage_playbook[stage.playbook];
-    memcpy(&stage.current_playbook, &stage_playbook[stage.playbook], sizeof(stage_playbook_t));
+    memcpy(&stage.current_playbook, &stage_playbooks_b[stage.playbook_current], sizeof(stage_playbook_t));
 
     stage.lives = 10;
-    stage.scenarios = stage.current_playbook.scenario_count; // bug?
+    stage.scenario_total = stage.current_playbook.scenario_total_b; // bug?
     stage.sprite_cache_pool = 0;
 
     stage_load(); // Load the artefacts of the stage.
 
-    stage_copy(stage.ew, stage.scenario); // Copy the stage.scenario into the stage wave cache.
+    stage_copy(stage.ew, stage.scenario_current); // Copy the stage.scenario into the stage wave cache.
 
 #ifdef __PLAYER
     // Add the player to the stage.
-    stage_player_t* stage_player = stage_playbook->stage_player;
+    stage_player_t* stage_player = stage_playbooks_b->stage_player;
     stage_engine_t* stage_engine = stage_player->stage_engine;
 	player_add(stage_player->player_sprite, stage_engine->engine_sprite);
 #endif
@@ -273,13 +273,14 @@ void stage_enemy_hit(unsigned char e, unsigned char b)
 
 void stage_logic()
 {
-    if(stage.playbook < stage.script.playbooks) {
+    if(stage.playbook_current < stage.script_b.playbook_total_b) {
         
         if(!(game.tickstage & 0x03)) {
-            #ifdef __DEBUG_STAGE
-            printf("stage playbook=%03u, scenario=%03u", stage.playbook, stage.scenario);
-            #endif
-            
+#ifdef __DEBUG_STAGE
+            gotoxy(40,0);
+            printf("stage ba=%03u, pb=%03u, sc=%03u", bank_get_bram(), stage.playbook_current, stage.scenario_current);
+#endif
+            // BREAKPOINT
             for(unsigned char w=0; w<8; w++) {
                 if(wave.used[w]) {
                     if(!wave.wait[w]) {
@@ -298,7 +299,7 @@ void stage_logic()
                     }
                 }
 #ifdef __DEBUG_WAVE
-                gotoxy(0,30+w);
+                gotoxy(0,50+w);
                 printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w]);
 #endif
             }
@@ -312,11 +313,11 @@ void stage_logic()
                     unsigned int new_scenario = wave.scenario[w];
                     unsigned int wave_scenario = wave.scenario[w];
                     // TODO find solution for this loop, maybe with pointers?
-                    while(new_scenario < stage.scenarios) {
-                        stage_playbook_t* stage_playbook = stage.script.playbook;
-                        stage_scenario_t* stage_scenarios = stage_playbook[stage.playbook].scenarios;
+                    while(new_scenario < stage.scenario_total) {
+                        stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;
+                        stage_scenario_t* stage_scenarios_b = stage_playbooks_b[stage.playbook_current].scenarios_b;
 
-                        unsigned int prev = stage_scenarios[new_scenario].prev;
+                        unsigned int prev = stage_scenarios_b[new_scenario].prev;
 
                         if(prev == wave_scenario) {
                             // We create new waves from the scenarios that are dependent on the finished one.
@@ -330,13 +331,13 @@ void stage_logic()
                 }
             }
 
-            if(stage.scenario >= stage.scenarios) {
-                if(stage.playbook < stage.script.playbooks) {
-                    stage.playbook++;
-                    stage_playbook_t* stage_playbook = stage.script.playbook;
-                    stage.current_playbook = stage_playbook[stage.playbook];
-                    stage.scenarios = stage.current_playbook.scenario_count;
-                    stage.scenario = 0;
+            if(stage.scenario_current >= stage.scenario_total) {
+                if(stage.playbook_current < stage.script_b.playbook_total_b) {
+                    stage.playbook_current++;
+                    stage_playbook_t* stage_playbook = stage.script_b.playbooks_b;
+                    stage.current_playbook = stage_playbook[stage.playbook_current];
+                    stage.scenario_total = stage.current_playbook.scenario_total_b;
+                    stage.scenario_current = 0;
                 }
             }
         }
@@ -346,8 +347,8 @@ void stage_logic()
         stage.respawn--;
         if(!stage.respawn) {
 #ifdef __PLAYER
-            stage_playbook_t* stage_playbooks = stage.script.playbook;
-            stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook];
+            stage_playbook_t* stage_playbooks = stage.script_b.playbooks_b;
+            stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook_current];
             stage_player_t* stage_player = stage_playbook->stage_player;
             stage_engine_t* stage_engine = stage_player->stage_engine;
             player_add(stage_player->player_sprite, stage_engine->engine_sprite);
@@ -412,5 +413,6 @@ void stage_display()
 #pragma data_seg(Data)
 #pragma code_seg(Code)
 
-#pragma nobank(dummy)
+#pragma nobank
+
 

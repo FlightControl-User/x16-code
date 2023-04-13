@@ -95,8 +95,8 @@ typedef struct {
 } stage_tower_t;
 
 typedef struct {
-    unsigned char scenario_count;
-    stage_scenario_t* scenarios;
+    unsigned char scenario_total_b;
+    stage_scenario_t* scenarios_b;
     stage_player_t* stage_player;
     stage_floor_t* stage_floor;
     unsigned char tower_count;
@@ -104,8 +104,8 @@ typedef struct {
 
 } stage_playbook_t;
 typedef struct {
-    unsigned char playbooks;
-    stage_playbook_t* playbook;
+    unsigned char playbook_total_b;
+    stage_playbook_t* playbooks_b;
 } stage_script_t;
 
 enum STAGE_ACTION {

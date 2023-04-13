@@ -62,7 +62,7 @@ __export sprite_t sprites = {
     }, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
 };
 
-#pragma data_seg(floorcontrol)
+#pragma data_seg(SEGM_ENGINE_FLOOR)
 
 // FLOOR
 
@@ -237,7 +237,7 @@ const stage_flightpath_t action_flightpath_006[] = {
     { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
-const stage_scenario_t stage_level_01[32] = {
+const stage_scenario_t stage_scenario_01_b[32] = {
 //    ct, sp, enemy_xxx, action_flightpath_xxx,                                 xstrt, ystrt, xinc, yinc, ival, wait, prev    
     {  8,  1, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
     { 16, 16, &stage_enemy_e0701, action_flightpath_005,                                  704,    96,    0,    0,    4,   20,    0 }, // 1
@@ -288,13 +288,13 @@ stage_tower_t stage_towers_01 = {
 
 // This models the playbook of all the different levels in the game.
 // The embedded level field in the playbook is a pointer to a level composition.
-__export volatile stage_playbook_t stage_playbook[] = {
-    { 19, stage_level_01, &stage_player, &stage_floor_01, 1, &stage_towers_01 }
+__export volatile stage_playbook_t stage_playbooks_b[] = {
+    { 19, stage_scenario_01_b, &stage_player, &stage_floor_01, 1, &stage_towers_01 }
 };
 
 __export volatile
-stage_script_t stage_script = {
-    1, stage_playbook
+stage_script_t stage_script_b = {
+    1, stage_playbooks_b
 };
 
 #pragma data_seg(Data)

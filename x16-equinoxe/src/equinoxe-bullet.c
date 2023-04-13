@@ -17,7 +17,7 @@
 #ifdef __BANKING
 #pragma code_seg(SEGM_ENGINE_BULLETS)
 #pragma data_seg(SEGM_ENGINE_BULLETS)
-#pragma bank(ram,BRAM_ENGINE_BULLETS)
+#pragma bank(cx16_ram,BRAM_ENGINE_BULLETS)
 #endif
 
 fe_bullet_t bullet; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
@@ -256,7 +256,7 @@ void bullet_logic()
 
 #pragma code_seg(Code)
 #pragma data_seg(Data)
-#pragma nobank(dummy)
+#pragma nobank
 
 
 inline void bullet_bank() {

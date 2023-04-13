@@ -67,13 +67,15 @@ fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 equinoxe_game_t game = {0, 0, 0, 2, 0};
 
+#pragma nobank
+
 void equinoxe_init() {
 
     // Load all banks with data and code!
     unsigned bytes = 0;
     bytes = fload_bram("stages.bin", BRAM_ENGINE_STAGES, (bram_ptr_t)0xA000);
     bytes = fload_bram("sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
-    bytes = fload_bram("floors.bin", BRAM_FLOOR_CONTROL, (bram_ptr_t)0xA000);
+    bytes = fload_bram("floors.bin", BRAM_ENGINE_FLOOR, (bram_ptr_t)0xA000);
     bytes = fload_bram("bullets.bin", BRAM_ENGINE_BULLETS, (bram_ptr_t)0xA000);
     bytes = fload_bram("enemies.bin", BRAM_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
 

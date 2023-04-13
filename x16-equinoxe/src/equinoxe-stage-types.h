@@ -42,13 +42,13 @@ typedef struct {
     unsigned char enemy_count;
     unsigned char tower_count;
 
-    stage_script_t script;
+    stage_script_t script_b;
 
     unsigned int ew; // Wave indicator which administers the start and delta positions of each enemy new spawn.
 
-    unsigned int playbook;
-    unsigned int scenario;
-    unsigned int scenarios; // Total amount of scenarios in current playbook.
+    unsigned int playbook_current;
+    unsigned int scenario_current;
+    unsigned int scenario_total; // Total amount of scenarios in current playbook.
 
     stage_floor_t stage_floor;
 

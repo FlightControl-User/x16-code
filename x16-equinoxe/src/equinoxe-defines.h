@@ -12,7 +12,7 @@
 #include "equinoxe-bank.h"
 
 // #define __CONIO_BSOUT
-#define __LAYER1
+// #define __LAYER1
 // #define __NOVSYNC
 #define __CPULINES
 
@@ -80,3 +80,5 @@
 
 #define __VERAHEAP_SEGMENT
 #define LRU_CACHE_MAX 112
+
+#define BREAKPOINT   {asm{.byte $db}}
