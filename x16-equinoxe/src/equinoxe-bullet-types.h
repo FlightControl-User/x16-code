@@ -36,5 +36,3 @@ typedef struct {
     fe_sprite_index_t sprite[32];
 
 } fe_bullet_t;
-
-extern fe_bullet_t bullet;

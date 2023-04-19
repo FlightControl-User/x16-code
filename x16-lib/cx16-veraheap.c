@@ -9,22 +9,25 @@
  * 
  */
 
-#include <stdio.h>
-#include <string.h>
 #include <cx16.h>
-#include <cx16-veralib.h>
 
 #include <cx16-veraheap.h>
 
 
 
-#ifdef __VERAHEAP_SEGMENT
-#pragma data_seg(VeraHeap)
+#ifdef BRAM_VERA_HEAP
+#pragma data_seg(BramVeraHeap)
 #endif
 vera_heap_map_t  vera_heap_index; // The heap index is located in BRAM.
 
+
+
+#ifdef DATA_VERA_HEAP
+#pragma data_seg(DATA_VERA_HEAP)
+#else
 #pragma data_seg(Data)
-vera_heap_segment_t vera_heap_segment; // The segment managmeent is in main memory.
+#endif
+vera_heap_segment_t vera_heap_segment; // The segment management is in main memory.
 
 __mem unsigned char veraheap_dx = 0;
 __mem unsigned char veraheap_dy = 0;
@@ -45,7 +48,7 @@ vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, v
 }
 
 
-inline vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index)
+vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
     vram_bank_t vram_bank = vera_heap_index.data1[index] >> 5;
@@ -54,7 +57,7 @@ inline vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_hea
 }
 
 
-inline vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index)
+vram_offset_t vera_heap_data_get_offset(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     bank_push_bram(); bank_set_bram(vera_heap_segment.bram_bank);
     vram_offset_t vram_offset = (vram_offset_t)vera_heap_get_data_packed(s, index) << 3;

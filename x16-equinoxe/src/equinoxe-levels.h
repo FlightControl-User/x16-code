@@ -2,7 +2,7 @@
 #include "equinoxe-level-types.h"
 #include "equinoxe-defines.h"
 
-#pragma data_seg(spritecontrol)
+#pragma data_seg(DATA_ENGINE_SPRITES)
 
 __export volatile sprite_bram_handles_t sprite_bram_handles[512];
 
@@ -62,7 +62,7 @@ __export sprite_t sprites = {
     }, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
 };
 
-#pragma data_seg(SEGM_ENGINE_FLOOR)
+#pragma data_seg(DATA_ENGINE_FLOOR)
 
 // FLOOR
 
@@ -150,7 +150,7 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 };
 
 
-#pragma data_seg(SEGM_ENGINE_STAGES)
+#pragma data_seg(DATA_ENGINE_STAGES)
 
 __export volatile stage_bullet_t stage_bullet_fireball = { b002 };
 __export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };

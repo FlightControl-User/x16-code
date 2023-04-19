@@ -1,5 +1,5 @@
 //.file                               [name="%O", type="prg", segments="Program"]
-.file                               [name="STAGES.BIN", type="bin", segments="segm_engine_stages"]
+.file                               [name="STAGES.BIN", type="bin", segments="CodeEngineStages"]
 .file                               [name="SPRITES.BIN", type="bin", segments="spritecontrol"]
 .file                               [name="FLOORS.BIN", type="bin", segments="floorcontrol"]
 //.segmentdef Program                 [segments="Basic, Code, Data"]
@@ -13,7 +13,7 @@
 :BasicUpstart(%E)
 .segment Code
 .segment Data
-.segment segm_engine_stages
+.segment CodeEngineStages
 .segment spritecontrol
 .segment floorcontrol
 .segment Data

@@ -64,10 +64,10 @@
 // #define __DEBUG_PALETTE
 
 // Show a table with the wave cache information evolving.
-#define __DEBUG_WAVE
+// #define __DEBUG_WAVE
 
 // Show stage information when the scenario changes and is active.
-#define __DEBUG_STAGE
+// #define __DEBUG_STAGE
 
 // Show the collision hash table while the game is evolving.
 // #define __DEBUG_COLLISION
@@ -75,10 +75,5 @@
 
 // #define __DEBUG_ENGINE
 
-
-#define GETIN() while(!kbhit())
-
-#define __VERAHEAP_SEGMENT
-#define LRU_CACHE_MAX 112
 
 #define BREAKPOINT   {asm{.byte $db}}

@@ -1,7 +1,4 @@
 #include "equinoxe.h"
-
-#ifdef __PLAYER
-
 #include "equinoxe-types.h"
 
 extern fe_player_t player;
@@ -12,4 +9,3 @@ void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine);
 void player_remove(unsigned char p, unsigned char b);
 void player_logic();
 
-#endif

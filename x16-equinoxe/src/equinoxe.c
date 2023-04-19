@@ -4,7 +4,7 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 
-#pragma var_model(zp)
+#pragma var_model(mem)
 
 #define __MAIN
 
@@ -21,14 +21,14 @@
 #include <multiply.h>
 
 #include <ht.h>
-#include <lru-cache.h>
+#include <lru-cache-lib.h>
 
 #pragma var_model(mem)
 
 #include <cx16.h>
 #include <cx16-conio.h>
 #include <cx16-heap-bram-fb.h>
-#include <cx16-veraheap.h>
+#include <cx16-veraheap-lib.h>
 #include <cx16-veralib.h>
 #include <cx16-mouse.h>
 
@@ -73,21 +73,22 @@ void equinoxe_init() {
 
     // Load all banks with data and code!
     unsigned bytes = 0;
-    bytes = fload_bram("stages.bin", BRAM_ENGINE_STAGES, (bram_ptr_t)0xA000);
-    bytes = fload_bram("sprites.bin", BRAM_SPRITE_CONTROL, (bram_ptr_t)0xA000);
-    bytes = fload_bram("floors.bin", BRAM_ENGINE_FLOOR, (bram_ptr_t)0xA000);
-    bytes = fload_bram("bullets.bin", BRAM_ENGINE_BULLETS, (bram_ptr_t)0xA000);
-    bytes = fload_bram("enemies.bin", BRAM_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("stages.bin", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("sprites.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("floors.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
+    // bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
 
 #ifdef __PLAYER
     player_init();
 #endif
 
 #ifdef __ENEMY
+    bytes = fload_bram("enemies.bin", BANK_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
     enemy_init();
 #endif
 
 #ifdef __BULLET
+    bytes = fload_bram("bullets.bin", BANK_ENGINE_BULLETS, (bram_ptr_t)0xA000);
     bullet_init();
 #endif
 
@@ -96,7 +97,7 @@ void equinoxe_init() {
 	memset(&stage, 0, sizeof(stage_t));
 
     // Initialize the cache in vram for the sprite animations.
-    lru_cache_init(&sprite_cache_vram);
+    lru_cache_init();
 }
 
 
@@ -168,11 +169,12 @@ void irq_vsync() {
 #endif
 
 
-    // cx16_mouse_scan();
+    // cx16_mouse_scan(); 
     cx16_mouse_get();
 
 #ifdef __STAGE
-    if(!(game.ticksync & 0x01)) {
+    unsigned char tickupdate = game.ticksync & 0x01;
+    if(!tickupdate) {
         stage_logic();
         game.tickstage++;
     }
@@ -322,7 +324,7 @@ void main() {
 
 
     // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(heap_bram_blocked, BRAM_HEAP_BRAM_BLOCKED, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
+    heap_segment_base(heap_bram_blocked, BANK_HEAP_BRAM, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
     heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);         // 10 - 01 - 0x02000 = 64 * 128
     heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);        // 11 - 01 - 0x02000 = 128 * 64
     heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);        // 12 - 02 - 0x04000 = 256 * 64
@@ -330,7 +332,7 @@ void main() {
     heap_segment_define(heap_bram_blocked, bin1024, 1024, 32, 1024*32);     // 24 - 04 - 0x08000 = 1024 * 32
     heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);     // 28 - 18 - 0x28000 = 2048 * 96 => 40
     
-    vera_heap_bram_bank_init(BRAM_VERAHEAP);
+    vera_heap_bram_bank_init(BANK_VERA_HEAP);
 
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
@@ -439,7 +441,7 @@ void main() {
             case 'l':
             SEI();
             gotoxy(0, 30);
-            lru_cache_display(&sprite_cache_vram);
+            lru_cache_display();
             CLI();
             break;
             #endif
@@ -473,3 +475,14 @@ void main() {
 
 }
 
+__export char VERAHEAP_ASM[] = kickasm(resource "veraheap.asm") {{
+    #import "veraheap.asm" 
+}};
+
+__export char LRU_CACHE_ASM[] = kickasm(resource "lru-cache.asm") {{
+    #import "lru-cache.asm" 
+}};
+
+__export char ANIMATE[] = kickasm(resource "equinoxe-animate.asm") {{
+    #import "equinoxe-animate.asm" 
+}};

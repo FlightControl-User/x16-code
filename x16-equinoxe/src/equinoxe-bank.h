@@ -10,26 +10,52 @@
     // PETSCII                          01:B000 - 01:F800     
 
 
-//      BRAM ID                     BANK
-//      --------------------------------
-#define BRAM_VERAHEAP               0x01
-#define BRAM_FLIGHTENGINE           0x02
-#define BRAM_ENGINE_TOWERS          0x02
-#define BRAM_ENGINE_STAGES          0x03
-#define BRAM_SPRITE_CONTROL         0x04
-#define BRAM_ENGINE_FLOOR           0x05
-#define BRAM_PALETTE                0x06
-#define BRAM_ENGINE_BULLETS         0x07
-#define BRAM_ENGINE_ENEMIES         0x08
-#define BRAM_HEAP_BRAM_BLOCKED      0x0F
+// Main memory layout
+// ------------------
 
-
-//      SEGMENTS                    LINKER ID
-//      --------------------------- ---------------------
-#define SEGM_ENGINE_STAGES          segm_engine_stages
-#define SEGM_ENGINE_ENEMIES         segm_engine_enemies
-#define SEGM_ENGINE_BULLETS         segm_engine_bullets
-#define SEGM_ENGINE_FLOOR           segm_engine_floor
+//      SEGMENTS                     LINKER SEGMENT ID      BANK  START   END     PURPOSE
+//      ---------------------------  ---------------------  ----  ------  ------  -------
+//   
+//           SPRITE_CACHE                                   0x00  0x9000  0x9F00  Contains the sprite cache to blazingly fast track sprite movements.
+#define DATA_SPRITE_CACHE            DataSpriteCache
+//
+//           VERA_HEAP                                                       0xA000  0xBFFF  Contains the dynamic heap data of the objects in the vera.                                                         
+#define BANK_VERA_HEAP                                      0x01
+#define DATA_VERA_HEAP               CodeVeraHeap
+#define CODE_VERA_HEAP               CodeVeraHeap
+#define BRAM_VERA_HEAP               BramVeraHeap
+//
+//           FLIGHT_ENGINE                                                   0xA000  0xBFFF  Flight engine.                                                         
+#define BANK_ENGINE_FLIGHT                                  0x02
+#define BANK_ENGINE_TOWERS                                  0x02
+#define CODE_ENGINE_FLIGHT           CodeEngineFlight
+#define DATA_ENGINE_FLIGHT           DataEngineFlight
+//
+#define BANK_ENGINE_STAGES                                  0x03
+#define SEGM_ENGINE_STAGES           CodeEngineStages
+#define DATA_ENGINE_STAGES           DataEngineStages
+//
+#define BANK_ENGINE_SPRITES                                 0x04
+#define DATA_ENGINE_SPRITES          DataEngineSprites
+//
+#define BANK_ENGINE_FLOOR                                   0x05
+#define CODE_ENGINE_FLOOR            CodeEngineFloor
+#define DATA_ENGINE_FLOOR            DataEngineFloor
+//
+#define BANK_PALETTE                                        0x06
+//
+#define BANK_ENGINE_BULLETS                                 0x07
+#define CODE_ENGINE_BULLETS          CodeEngineBullets
+//
+#define BANK_ENGINE_ENEMIES                                 0x08
+#define CODE_ENGINE_ENEMIES          CodeEngineEnemies
+#define DATA_ENGINE_ENEMIES          DataEngineEnemies
+//
+#define BANK_ENGINE_PLAYERS                                 0x02
+#define CODE_ENGINE_PLAYERS          CodeEnginePlayers
+#define DATA_ENGINE_PLAYERS          DataEnginePlayers
+//
+#define BANK_HEAP_BRAM                              0x0F
 
 
 // todo to move into vera memory addressing define

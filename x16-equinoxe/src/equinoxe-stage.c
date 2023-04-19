@@ -14,16 +14,16 @@
 #include "equinoxe-tower.h"
 #include "equinoxe-levels.h"
 
-#pragma data_seg(Data)
+#pragma data_seg(DATA_ENGINE_STAGES)
 
-stage_t stage;
-stage_wave_t wave;
+volatile stage_wave_t wave;
+volatile stage_t stage;
 
 
 #ifdef __BANKING
 #pragma code_seg(SEGM_ENGINE_STAGES)
 #pragma data_seg(SEGM_ENGINE_STAGES)
-#pragma bank(cx16_ram,BRAM_ENGINE_STAGES)
+#pragma bank(cx16_ram,BANK_ENGINE_STAGES)
 #endif
 
 void stage_copy(unsigned char ew, unsigned int scenario) {
@@ -199,10 +199,8 @@ static void stage_load(void)
 
 static void stage_reset(void)
 {
-    enemy_init();
-
 #ifdef __PALETTE
-    palette_init(BRAM_PALETTE);
+    palette_init(BANK_PALETTE);
     palette_load(stage.playbook_current); // Todo, what is this level thing ... All palettes to be loaded.
 #endif
 
@@ -213,6 +211,11 @@ static void stage_reset(void)
 #ifdef __BULLET
     bullet_init();
 #endif
+
+#ifdef __ENEMY
+    enemy_init();
+#endif
+
 
 	memset(&stage, 0, sizeof(stage_t));
 

@@ -6,7 +6,7 @@
 
 #include <stdlib.h>
 #include <cx16.h>
-#include <cx16-veraheap.h>
+#include <cx16-veraheap-lib.h>
 #include <conio.h>
 #include <cx16-conio.h>
 

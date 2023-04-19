@@ -143,7 +143,7 @@ void collision_print(ht_item_t* ht)
 void collision_detect()
 {
 
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
 #ifdef __DEBUG_COLLISION
 #ifndef __CONIO_BSOUT

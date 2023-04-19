@@ -11,12 +11,11 @@
 #include "equinoxe-bullet.h"
 
 
-
 // #pragma var_model(zp)
 
 void player_init()
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
     memset(&player, 0, sizeof(fe_player_t));
     memset(&engine, 0, sizeof(fe_engine_t));
@@ -27,7 +26,7 @@ void player_init()
 void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) 
 {
 
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
     stage.player_count++;
 
@@ -97,7 +96,7 @@ void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine)
 void player_remove(unsigned char p, unsigned char b) 
 {
 
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
     player.health[p] += bullet_energy_get(b);
 
@@ -133,7 +132,7 @@ void player_remove(unsigned char p, unsigned char b)
 
 void player_logic() {
 
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
     for(char p=0; p<FE_PLAYER; p++) {
 
@@ -253,19 +252,6 @@ void player_logic() {
     bank_pull_bram();
 }
 
-char player_checkxor()
-{
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
-    unsigned char xor = 0;
-    unsigned char* p = (char*)&player;
-    unsigned int s = sizeof(fe_player_t);
-    for(unsigned int i=0; i<s; i++) {
-        xor ^= (unsigned char)*p;
-        p++;
-    }
-    bank_pull_bram();
-    return xor;
-}
 
 // #pragma var_model(mem)
 

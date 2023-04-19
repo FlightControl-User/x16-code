@@ -13,13 +13,16 @@
 #include "equinoxe-bullet.h"
 #include <ht.h>
 
+
+#pragma data_seg(DATA_ENGINE_ENEMIES)
+fe_enemy_t enemy; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
+
 #ifdef __BANKING
-#pragma code_seg(SEGM_ENGINE_ENEMIES)
-#pragma data_seg(SEGM_ENGINE_ENEMIES)
-#pragma bank(cx16_ram,BRAM_ENGINE_ENEMIES)
+#pragma code_seg(CODE_ENGINE_ENEMIES)
+#pragma data_seg(CODE_ENGINE_ENEMIES)
+#pragma bank(cx16_ram,BANK_ENGINE_ENEMIES)
 #endif
 
-fe_enemy_t enemy; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
 
 void enemy_init()
 {
@@ -248,16 +251,6 @@ void enemy_logic() {
 			enemy.tx[e] += enemy.tdx[e];
 			enemy.ty[e] += enemy.tdy[e];
 
-            FP const *tx = &enemy.tx[e];
-
-            asm{
-                lda e
-                asl
-                asl
-                tay
-                lda tx,y
-            }
-
 
 			// enemy.tdx[e] = tdx;
 			// enemy.tdy[e] = tdy;
@@ -281,6 +274,10 @@ void enemy_logic() {
 			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[enemy.sprite[e]]);
 					enemy.enabled[e] = 1;
 				}
+
+			// gotoxy(0, e);
+			// printf("%02u - wait=%u", e, enemy.wait_animation[e]);
+
 
 				if(enemy.wait_animation[e]) {
 					vera_sprite_set_xy(sprite_offset, x, y);
@@ -316,7 +313,7 @@ unsigned char enemy_get_wave(unsigned char e) {
 
 
 inline void enemy_bank() {
-    bank_push_set_bram(BRAM_ENGINE_ENEMIES);
+    bank_push_set_bram(BANK_ENGINE_ENEMIES);
 }
 
 inline void enemy_unbank() {

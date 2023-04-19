@@ -15,6 +15,7 @@
 #include "equinoxe-tower-types.h"
 #include "equinoxe-enemy-types.h"
 #include "equinoxe-bullet-types.h"
+#include "equinoxe-stage-types.h"
 
 
 // Side constants to determine the coalition.

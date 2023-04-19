@@ -1,11 +1,15 @@
-#pragma var_model(zp)
-#pragma target(C128)
+#pragma link("lru-cache-test.ld")
+#pragma var_model(mem)
 
-#include <c128.h>
+#pragma zp_reserve(0x00..0x32, 0x80..0xA8)
+
+
 #include <stdio.h>
 #include <string.h>
+#include <cx16.h>
 #include <conio.h>
-#include <lru-cache.h>
+#include <cx16-conio.h>
+#include <lru-cache-lib.h>
 #include <division.h>
 
 volatile unsigned char row = 0;
@@ -18,6 +22,8 @@ void wait_key()
         ;
 }
 
+
+
 void display()
 {
     count++;
@@ -26,8 +32,7 @@ void display()
 
     count = count % 32;
 
-    gotoxy(0, 9);
-    lru_cache_display();
+    lru_cache_display(0, 9);
 
     wait_key();
 }
@@ -76,36 +81,37 @@ void delete (lru_cache_key_t key)
     display();
 }
 
-void main()
-{
+void main() {
+    
+    kickasm {{
+        jsr lru_cache.__start 
+    }}
     lru_cache_init();
 
     bgcolor(BROWN);
     textcolor(WHITE);
     clrscr();
-    scroll(0);
 
-    int cache[128];
-
-    char ch = kbhit();
-    do {
-        if (lru_cache_is_max()) {
-            lru_cache_key_t last = lru_cache_find_last();
-            delete(last);
-        } else {
-            lru_cache_key_t key = rand() % 0x100;
-            lru_cache_data_t data = get(key);
-            if (data != LRU_CACHE_NOTHING) {
-                data += 1;
-                if (data < 2) {
-                    set(key, data);
-                } else {
-                    delete(key);
-                }
-            } else {
-                insert(key, 0);
-            }
-        }
-        ch = kbhit();
-    } while (ch != 'x');
+    insert(0x0, 0x0);
+    insert(0x80, 0x80);
+    insert(0x100, 0x100);
+    insert(0x1, 0x1);
+    insert(0x200, 0x200);
+    insert(0x2, 0x2);
+    insert(0x82, 0x82);
+    delete(0x0);
+    delete(0x100);
+    delete(0x80);
+    delete(0x1);
+    insert(0x201, 0x201);
+    insert(0x81, 0x81);
+    delete(0x2);
+    delete(0x81);
+    delete(0x201);
+    delete(0x82);
+    delete(0x200);
 }
+
+__export char LRU_CACHE[] = kickasm(resource "lru-cache.asm") {{
+    #import "lru-cache.asm"
+}};

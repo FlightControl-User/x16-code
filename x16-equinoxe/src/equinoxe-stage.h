@@ -1,7 +1,7 @@
 #include "equinoxe-types.h"
 
-extern stage_t stage;
-extern stage_wave_t wave;
+volatile extern stage_t stage;
+volatile extern stage_wave_t wave;
 
 
 stage_tower_t* stage_tower_get();

@@ -9,18 +9,18 @@
 #include "equinoxe-stage.h"
 #include "equinoxe-levels.h"
 #include "equinoxe-tower.h"
-#include "equinoxe-animate.h"
+#include "equinoxe-animate-lib.h"
 #include "equinoxe-palette.h"
 
 // #pragma var_model(mem)
 
-#ifdef __BANKING
-#pragma code_seg(SEGM_ENGINE_BULLETS)
-#pragma data_seg(SEGM_ENGINE_BULLETS)
-#pragma bank(cx16_ram,BRAM_ENGINE_BULLETS)
-#endif
-
 fe_bullet_t bullet; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
+
+#ifdef __BANKING
+#pragma code_seg(CODE_ENGINE_BULLETS)
+#pragma data_seg(CODE_ENGINE_BULLETS)
+#pragma bank(cx16_ram,BANK_ENGINE_BULLETS)
+#endif
 
 void bullet_init()
 {
@@ -45,22 +45,8 @@ void bullet_sprite_offset_set(unsigned char b, unsigned char s)
 
 unsigned char bullet_sprite_animate_add(unsigned char b, unsigned char s)
 {
-    unsigned char a = animate_add();
+    unsigned char a = animate_add(sprite_cache.count[s], sprite_cache.loop[s], 0, 1, sprite_cache.reverse[s]);
     bullet.animate[b] = a;
-
-    animate.used[a] = 1;
-    animate.wait[a] = 0;
-    animate.speed[a] = 0;
-    animate.state[a] = 0;
-    animate.reverse[a] = sprite_cache.reverse[s];
-    animate.loop[a] = sprite_cache.loop[s];
-    animate.count[a] = sprite_cache.count[s];
-    if(animate.count[a]>1)
-        animate.direction[a] = 1;
-    else
-        animate.direction[a] = 0;
-
-    // printf("b=%3u, a=%3u", b, a);
 
     return a;
 }
@@ -68,8 +54,7 @@ unsigned char bullet_sprite_animate_add(unsigned char b, unsigned char s)
 void bullet_sprite_animate_del(unsigned char b)
 {
     unsigned char a = bullet.animate[b];
-    animate.used[a] = 0;
-    stage.animate_count--;
+    animate_del(a);
 }
 
 void bullet_player_fire(unsigned int x, unsigned int y)
@@ -237,13 +222,13 @@ void bullet_logic()
                     bullet.enabled[b] = 1;
                 }
                 unsigned char volatile a = bullet.animate[b];
-				if(animate.wait[a]) {
+				if(animate_is_waiting(a)) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
 					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate.state[a]));
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate_get_state(a)));
 				}
-                animate_logic(a);
+                // animate_logic(a);
 				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_BULLET | b);
             } else {
                 bullet_remove(b);
@@ -260,7 +245,7 @@ void bullet_logic()
 
 
 inline void bullet_bank() {
-    bank_push_set_bram(BRAM_ENGINE_BULLETS);
+    bank_push_set_bram(BANK_ENGINE_BULLETS);
 }
 
 inline void bullet_unbank() {

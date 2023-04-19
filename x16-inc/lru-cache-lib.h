@@ -26,11 +26,10 @@
 #define LRU_CACHE_INDEX_NULL 0xFF
 
 
+
 typedef unsigned int  lru_cache_key_t;
 typedef unsigned int  lru_cache_data_t;
 typedef unsigned char lru_cache_index_t;
-
-
 
 typedef struct {
     lru_cache_key_t key[LRU_CACHE_SIZE];   
@@ -44,21 +43,19 @@ typedef struct {
     lru_cache_index_t size;
 } lru_cache_table_t;
 
+extern __stackcall __library(lru_cache) void lru_cache_init();
 
-void lru_cache_init();
+// lru_cache_index_t lru_cache_hash(lru_cache_key_t key);
 
-lru_cache_index_t lru_cache_hash(lru_cache_key_t key);
+extern __stackcall __library(lru_cache) lru_cache_key_t lru_cache_find_last();
+extern __stackcall __library(lru_cache) bool lru_cache_is_max();
 
-lru_cache_key_t lru_cache_find_last();
-inline bool lru_cache_is_max();
+extern __stackcall __library(lru_cache) lru_cache_index_t lru_cache_index(lru_cache_key_t key);
+extern __stackcall __library(lru_cache) lru_cache_data_t lru_cache_get(lru_cache_index_t index);
+extern __stackcall __library(lru_cache) lru_cache_data_t lru_cache_set(lru_cache_index_t index, lru_cache_data_t data);
+extern __stackcall __library(lru_cache) lru_cache_data_t lru_cache_data(lru_cache_index_t index);
 
-lru_cache_index_t lru_cache_index(lru_cache_key_t key);
-lru_cache_data_t lru_cache_get(lru_cache_index_t index);
-lru_cache_data_t lru_cache_set(lru_cache_index_t index, lru_cache_data_t data);
-lru_cache_data_t lru_cache_data(lru_cache_index_t index);
+extern __stackcall __library(lru_cache) lru_cache_index_t lru_cache_insert(lru_cache_key_t key, lru_cache_data_t data);
+extern __stackcall __library(lru_cache) lru_cache_data_t lru_cache_delete(lru_cache_key_t key);
 
-lru_cache_index_t lru_cache_insert(lru_cache_key_t key, lru_cache_data_t data);
-lru_cache_data_t lru_cache_delete(lru_cache_key_t key);
-
-void lru_cache_display(char x, char y);
-
+extern __stackcall __library(lru_cache) void lru_cache_display(char x, char y);

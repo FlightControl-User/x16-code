@@ -20,7 +20,7 @@
 
 #include "equinoxe-tower.h"
 
-#pragma data_seg(TileControlTowers)
+#pragma data_seg(CodeEngineTowers)
 tower_t towers;
 
 #pragma data_seg(Data)
@@ -38,7 +38,7 @@ unsigned char tower_add(
     unsigned char palette_index ) 
 {
 
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BANK_ENGINE_TOWERS);
 
 	unsigned char t = stage.tower_pool;
 
@@ -87,7 +87,7 @@ unsigned char tower_add(
 
 unsigned char tower_remove(unsigned char t)
 {
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BANK_ENGINE_TOWERS);
 
     if(towers.used[t]) {
         vera_sprite_offset sprite_offset = towers.sprite_offset[t];
@@ -111,7 +111,7 @@ unsigned char tower_remove(unsigned char t)
 
 unsigned char tower_hit(unsigned char t, unsigned char b) 
 {
-    bank_push_set_bram(BRAM_FLIGHTENGINE);
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
     towers.health[t] += bullet_energy_get(b);
     if(towers.health[t] <= 0) {
@@ -125,7 +125,7 @@ unsigned char tower_hit(unsigned char t, unsigned char b)
 
 void tower_paint(unsigned char row, unsigned char column) 
 {
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BANK_ENGINE_TOWERS);
     unsigned char cache;
 
     unsigned char rnd = BYTE0(rand());
@@ -137,7 +137,7 @@ void tower_paint(unsigned char row, unsigned char column)
         if( rnd <= 255 ) {
             if( stage.tower_count < TOWERS_TOTAL) {
                 floor_cache[cache_tower] = 1;
-                bank_push_set_bram(BRAM_ENGINE_STAGES);
+                bank_push_set_bram(BANK_ENGINE_STAGES);
                 stage_tower_t* st = stage.current_playbook.stage_towers;
                 sprite_index_t turret = st->turret;
                 signed char tx = st->turret_x;
@@ -156,7 +156,7 @@ void tower_paint(unsigned char row, unsigned char column)
 void tower_animate()
 {
 
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BANK_ENGINE_TOWERS);
 
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
         if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {	
@@ -220,7 +220,7 @@ void tower_animate()
 
 void tower_move()
 {
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BANK_ENGINE_TOWERS);
 
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
@@ -237,7 +237,7 @@ void tower_move()
 void tower_logic() 
 {
 
-    bank_push_set_bram(BRAM_ENGINE_TOWERS);
+    bank_push_set_bram(BANK_ENGINE_TOWERS);
 
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
 

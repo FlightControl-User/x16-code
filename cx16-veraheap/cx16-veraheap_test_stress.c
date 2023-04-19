@@ -1,13 +1,24 @@
-// #pragma var_model(mem) 
+#pragma var_model(mem) 
 
-#define __VERAHEAP_DEBUG
+#pragma link("veraheap-test.ld")
 
-#include <stdlib.h>
 #include <cx16.h>
-#include <cx16-veraheap.h>
+#include <conio.h>
+#include <stdlib.h>
+#include <printf.h>
+
+#pragma zp_reserve(0x00..0x2f, 0x80..0xA8)
+
+
+
+#include <cx16-veraheap-lib.h>
 
 
 void main() {
+
+    kickasm {{
+        jsr veraheap.__start
+    }}
 
     vera_heap_bram_bank_init(1);
 
@@ -54,5 +65,9 @@ void main() {
 
         while(!kbhit());
     }
+
+__export char VERA_HEAP[] = kickasm(resource "veraheap-debug.asm") {{
+    #import "veraheap-debug.asm" 
+}};
 
 }

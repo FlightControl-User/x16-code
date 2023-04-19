@@ -77,7 +77,7 @@ void palette_load(unsigned char playbook)
 
     unsigned int palette = 0;
 
-    unsigned int floor_palette_loaded = fload_bram(palette_files[playbook].file_palette_floor, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned int floor_palette_loaded = fload_bram(palette_files[playbook].file_palette_floor, BANK_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
     
     unsigned char floor_palettes = floor_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
@@ -85,7 +85,7 @@ void palette_load(unsigned char playbook)
     #endif
     palette = palette + floor_palettes;
 
-    unsigned char tower_palette_loaded = fload_bram(palette_files[playbook].file_palette_tower, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned char tower_palette_loaded = fload_bram(palette_files[playbook].file_palette_tower, BANK_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
     
     unsigned char tower_palettes = tower_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
@@ -93,7 +93,7 @@ void palette_load(unsigned char playbook)
     #endif
     palette = palette + tower_palettes;
 
-    unsigned char sprite_palette_loaded = fload_bram(palette_files[playbook].file_palette_sprites, BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
+    unsigned char sprite_palette_loaded = fload_bram(palette_files[playbook].file_palette_sprites, BANK_PALETTE, (bram_ptr_t)&palette_bram.palette_16[palette]);
 
     unsigned char sprite_palettes = sprite_palette_loaded / 32;
     #ifdef __DEBUG_LOAD
@@ -134,7 +134,7 @@ unsigned int palette16_use(unsigned int bram_index)
             if(palette.vram_index.bram_index[vram_index])
                 palette.bram_index.vram_index[palette.vram_index.bram_index[vram_index]] = 0;
             palette.vram_index.bram_index[vram_index] = bram_index;
-            memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[vram_index], BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_16[bram_index], 32);
+            memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[vram_index], BANK_PALETTE, (bram_ptr_t)&palette_bram.palette_16[bram_index], 32);
             palette.bram_index.vram_index[bram_index] = vram_index;
         }
     }
@@ -159,7 +159,7 @@ void palette16_unuse(unsigned int bram_index)
 
 void palette64_use(unsigned int bram_index)
 {
-    memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[1], BRAM_PALETTE, (bram_ptr_t)&palette_bram.palette_64[bram_index], 32*4);
+    memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram_index.offset[1], BANK_PALETTE, (bram_ptr_t)&palette_bram.palette_64[bram_index], 32*4);
 }
 
 void palette16_free(unsigned int bram_index)
