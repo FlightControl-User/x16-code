@@ -4,7 +4,6 @@
 *.prg
 *.sym
 *.klog
-*.asm
 *.dbg
 ./*.iml
 .vscode/c_cpp_properties.json
