@@ -1,8 +1,6 @@
 #pragma link("lru-cache-test.ld")
 #pragma var_model(mem)
 
-#pragma zp_reserve(0x00..0x32, 0x80..0xA8)
-
 
 #include <stdio.h>
 #include <string.h>

@@ -2,9 +2,7 @@
 #include "equinoxe-level-types.h"
 #include "equinoxe-defines.h"
 
-#pragma data_seg(DATA_ENGINE_SPRITES)
-
-__export volatile sprite_bram_handles_t sprite_bram_handles[512];
+#pragma data_seg(BRAM_ENGINE_FLIGHT)
 
 // __export volatile sprite_bram_t sprite_t001 = { "t001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
 // __export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
@@ -62,7 +60,9 @@ __export sprite_t sprites = {
     }, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
 };
 
-#pragma data_seg(DATA_ENGINE_FLOOR)
+__export volatile sprite_bram_handles_t sprite_bram_handles[512];
+
+#pragma data_seg(BRAM_ENGINE_FLOOR)
 
 // FLOOR
 
@@ -150,7 +150,7 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 };
 
 
-#pragma data_seg(DATA_ENGINE_STAGES)
+#pragma data_seg(BRAM_ENGINE_STAGES)
 
 __export volatile stage_bullet_t stage_bullet_fireball = { b002 };
 __export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };

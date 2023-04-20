@@ -10,7 +10,7 @@
 #include "equinoxe-levels.h"
 #include "equinoxe-tower.h"
 #include "equinoxe-animate-lib.h"
-#include "equinoxe-palette.h"
+#include "equinoxe-palette-lib.h"
 
 // #pragma var_model(mem)
 
@@ -186,7 +186,7 @@ void bullet_remove(unsigned char b)
         vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
         vera_sprite_disable(sprite_offset);
         sprite_free_offset(sprite_offset);
-        palette16_unuse(sprite_cache.palette_offset[bullet.sprite[b]]);
+        palette_unuse_vram(sprite_cache.palette_offset[bullet.sprite[b]]);
         fe_sprite_cache_free(bullet.sprite[b]);
         bullet.used[b] = 0;
         bullet.enabled[b] = 0;
@@ -228,7 +228,7 @@ void bullet_logic()
 					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)bullet.sprite[b]*16+bullet.state_animation[b]]);
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate_get_state(a)));
 				}
-                // animate_logic(a);
+                animate_logic(a);
 				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_BULLET | b);
             } else {
                 bullet_remove(b);

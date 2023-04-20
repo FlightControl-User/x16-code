@@ -23,7 +23,8 @@ typedef struct {
 } palette_bram_t;
 
 typedef struct {
-    unsigned char vram_index[64];
+    unsigned char vram_index[64];       // Indicates if the palette is allocated in vram.
+    unsigned char used[64];             // Indicates if this is a free slot to load a palette in bram.
 } palette_bram_index_t;
 
 // Manage used and free palette offsets for dynamic palette loading and switching in vram from bram palette data.
@@ -47,7 +48,10 @@ typedef struct {
 typedef unsigned char palette_index_t;
 typedef struct {
     bram_bank_t bram_bank;
-    palette_index_t index;
-    palette_vram_index_t vram_index;
-    palette_bram_index_t bram_index;
+    palette_index_t pool;
+    palette_index_t vram_index;
+    palette_vram_index_t vram;
+    palette_bram_index_t bram;
 } palette_t;
+
+typedef palette_16_t* palette_ptr_t;

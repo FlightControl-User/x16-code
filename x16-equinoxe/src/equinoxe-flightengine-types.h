@@ -67,11 +67,11 @@ typedef struct {
     unsigned char bpp;
     unsigned char collision;
     unsigned char reverse;
-    unsigned char palette_offset;
     unsigned char loop;
     unsigned char dummy1;
     unsigned char dummy2;
     unsigned char dummy3;
+    unsigned char dummy4;
 } sprite_file_header_t;
 
 

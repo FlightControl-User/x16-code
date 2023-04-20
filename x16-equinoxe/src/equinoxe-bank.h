@@ -30,19 +30,24 @@
 #define BANK_ENGINE_TOWERS                                  0x02
 #define CODE_ENGINE_FLIGHT           CodeEngineFlight
 #define DATA_ENGINE_FLIGHT           DataEngineFlight
+#define BRAM_ENGINE_FLIGHT           BramEngineFlight
 //
 #define BANK_ENGINE_STAGES                                  0x03
-#define SEGM_ENGINE_STAGES           CodeEngineStages
+#define CODE_ENGINE_STAGES           CodeEngineStages
 #define DATA_ENGINE_STAGES           DataEngineStages
+#define BRAM_ENGINE_STAGES           BramEngineStages
 //
 #define BANK_ENGINE_SPRITES                                 0x04
-#define DATA_ENGINE_SPRITES          DataEngineSprites
 //
 #define BANK_ENGINE_FLOOR                                   0x05
 #define CODE_ENGINE_FLOOR            CodeEngineFloor
 #define DATA_ENGINE_FLOOR            DataEngineFloor
+#define BRAM_ENGINE_FLOOR            BramEngineFloor
 //
-#define BANK_PALETTE                                        0x06
+#define BANK_ENGINE_PALETTE                                 0x06
+#define CODE_ENGINE_PALETTE          CodeEnginePalette
+#define DATA_ENGINE_PALETTE          DataEnginePalette
+#define BRAM_ENGINE_PALETTE          BramEnginePalette
 //
 #define BANK_ENGINE_BULLETS                                 0x07
 #define CODE_ENGINE_BULLETS          CodeEngineBullets
@@ -55,7 +60,7 @@
 #define CODE_ENGINE_PLAYERS          CodeEnginePlayers
 #define DATA_ENGINE_PLAYERS          DataEnginePlayers
 //
-#define BANK_HEAP_BRAM                              0x0F
+#define BANK_HEAP_BRAM                                      0x0F
 
 
 // todo to move into vera memory addressing define

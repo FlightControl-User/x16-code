@@ -10,7 +10,7 @@
 #include "equinoxe-player.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-stage.h"
-#include "equinoxe-palette.h"
+#include "equinoxe-palette-lib.h"
 #include "equinoxe-tower.h"
 #include "equinoxe-levels.h"
 
@@ -21,8 +21,8 @@ volatile stage_t stage;
 
 
 #ifdef __BANKING
-#pragma code_seg(SEGM_ENGINE_STAGES)
-#pragma data_seg(SEGM_ENGINE_STAGES)
+#pragma code_seg(CODE_ENGINE_STAGES)
+#pragma data_seg(DATA_ENGINE_STAGES)
 #pragma bank(cx16_ram,BANK_ENGINE_STAGES)
 #endif
 
@@ -32,9 +32,10 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
     stage_scenario_t* stage_scenarios_b = stage_playbook_b->scenarios_b;
     stage_scenario_t* stage_scenario_b = &stage_scenarios_b[scenario];
 
+    wave.enemy_count[ew] = stage_scenario_b->enemy_count;
+
     wave.dx[ew] = stage_scenarios_b[scenario].dx;
     wave.dy[ew] = stage_scenarios_b[scenario].dy;
-    wave.enemy_count[ew] = stage_scenarios_b[scenario].enemy_count;
 
     wave.enemy_flightpath[ew] = stage_scenarios_b[scenario].enemy_flightpath;
     wave.enemy_spawn[ew] = stage_scenarios_b[scenario].enemy_spawn;
@@ -109,12 +110,13 @@ void stage_load_floor(stage_floor_t* stage_floor)
     floor_part_memset_vram(0, floor, 0);
 
     unsigned char part=1;
+    unsigned char parts_count = 0;
     for(unsigned char f=0; f<stage_floor->floor_file_count; f++) {
         floor_bram_tiles_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
-        part = floor_parts_load_bram(part, floor, floor_bram);
+        parts_count += floor_parts_load_bram(&part, floor, floor_bram);
     }
 
-    for(unsigned char part=1; part<=floor->parts_count; part++) {
+    for(unsigned char part=1; part<=parts_count; part++) {
         floor_part_memcpy_vram_bram(part, floor);
     }
 
@@ -134,12 +136,13 @@ void stage_load_tower(stage_tower_t* stage_tower)
 
     // Now count from 1!
     unsigned char part=1;
+    unsigned char parts_count = 0;
     for(unsigned char t=0; t<stage_tower->tower_file_count; t++) {
         floor_bram_tiles_t* tower_bram = tower_bram_tiles[t].floor_bram_tile;
-        part = floor_parts_load_bram(part, towers, tower_bram);
+        parts_count += floor_parts_load_bram(&part, towers, tower_bram);
     }
 
-    for(unsigned char part=1; part<=towers->parts_count; part++) {
+    for(unsigned char part=1; part<=parts_count; part++) {
         floor_part_memcpy_vram_bram(part, towers);
     }
 
@@ -200,8 +203,7 @@ static void stage_load(void)
 static void stage_reset(void)
 {
 #ifdef __PALETTE
-    palette_init(BANK_PALETTE);
-    palette_load(stage.playbook_current); // Todo, what is this level thing ... All palettes to be loaded.
+    palette_init(BANK_ENGINE_PALETTE);
 #endif
 
 #ifdef __PLAYER
@@ -242,9 +244,9 @@ static void stage_reset(void)
 }
 
 
-void stage_enemy_add(unsigned char w)
+void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 {
-    unsigned char enemies = enemy_add(w);
+    unsigned char enemies = enemy_add(w, enemy_sprite);
 
     wave.x[w] += wave.dx[w];
     wave.y[w] += wave.dy[w];
@@ -276,21 +278,20 @@ void stage_enemy_hit(unsigned char e, unsigned char b)
 
 void stage_logic()
 {
+
     if(stage.playbook_current < stage.script_b.playbook_total_b) {
         
         if(!(game.tickstage & 0x03)) {
 #ifdef __DEBUG_STAGE
-            gotoxy(40,0);
-            printf("stage ba=%03u, pb=%03u, sc=%03u", bank_get_bram(), stage.playbook_current, stage.scenario_current);
 #endif
             // BREAKPOINT
-            for(unsigned char w=0; w<8; w++) {
+            for(__mem unsigned char w=0; w<8; w++) {
                 if(wave.used[w]) {
                     if(!wave.wait[w]) {
                         if(wave.enemy_count[w]) {
                             if(wave.enemy_spawn[w]) {
                                 #ifdef __ENEMY
-                                stage_enemy_add(w);
+                                stage_enemy_add(w, wave.enemy_sprite[w]);
                                 #endif
                             }
                         } else {
@@ -302,8 +303,8 @@ void stage_logic()
                     }
                 }
 #ifdef __DEBUG_WAVE
-                gotoxy(0,50+w);
-                printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w]);
+                // gotoxy(0,50+w);
+                // printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w]);
 #endif
             }
 
@@ -313,8 +314,8 @@ void stage_logic()
                 if(wave.finished[w]) {
 
                     // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
-                    unsigned int new_scenario = wave.scenario[w];
-                    unsigned int wave_scenario = wave.scenario[w];
+                    __mem unsigned int new_scenario = wave.scenario[w];
+                    __mem unsigned int wave_scenario = wave.scenario[w];
                     // TODO find solution for this loop, maybe with pointers?
                     while(new_scenario < stage.scenario_total) {
                         stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;

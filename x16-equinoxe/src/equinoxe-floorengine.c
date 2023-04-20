@@ -19,7 +19,10 @@
 #include "equinoxe.h"
 #include "equinoxe-floorengine.h"
 #include "equinoxe-stage.h"
-#include "equinoxe-palette.h"
+#include "equinoxe-palette-lib.h"
+
+#pragma data_seg(DATA_ENGINE_FLOOR)
+#pragma code_seg(CODE_ENGINE_FLOOR)
 
 floor_layer_t floor_layer[2] = {
     { FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM },
@@ -310,9 +313,9 @@ void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pa
     vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_TILES, vram_handle);
     memset_vram(vram_bank, vram_offset, pattern, FLOOR_TILE_SIZE);
 
-    bank_pull_bram();
-
     floor->parts_count++;
+
+    bank_pull_bram();
 
 }
 
@@ -338,7 +341,7 @@ void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
 
 
 // Load the floor tiles into bram using the bram heap manager.
-unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_bram_tiles_t* floor_bram_tile)
+unsigned char floor_parts_load_bram(unsigned char* part, floor_t* floor, floor_bram_tiles_t* floor_bram_tile)
 {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
@@ -363,8 +366,14 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
         FILE* fp = fopen(filename,"r");
         if (fp) {
 
-            // Set palette offset of sprites
-            floor_bram_tile->palette = stage.palette;
+            // The palette data, which we load and index using the palette library.
+            palette_index_t palette_index = palette_alloc_bram();
+            palette_ptr_t palette_ptr = palette_ptr_bram(palette_index);
+            unsigned char palette_size = 0;
+            floor_bram_tile->palette = palette_index;
+            bank_push_set_bram(BANK_ENGINE_PALETTE);
+            unsigned int read = fgets((char*)palette_ptr, 32, fp);
+            bank_pull_bram();
 
             unsigned int count = floor_bram_tile->count;
             unsigned int size = floor_bram_tile->floor_tile_size;
@@ -385,18 +394,17 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
                     break;
 #endif
                 } else {
-                    floor_parts->bram_handles[part] = handle_bram;
-                    floor_parts->floor_tile[part] = floor_bram_tile;
+                    floor_parts->bram_handles[*part] = handle_bram;
+                    floor_parts->floor_tile[*part] = floor_bram_tile;
 
                     // Assign the palette to the floor part, this is used when painting the floor.
                     // The palettes are automatically painted.
-                    floor_parts->palette[part] = palette16_use(stage.palette);
+                    floor_parts->palette[*part] = palette_use_vram(palette_index);
 
-                    part++;
+                    (*part)++;
                 }
             }
 
-            stage.palette++;
 
             if (fclose(fp)) {
 #ifdef __INCLUDE_PRINT
@@ -414,9 +422,7 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
 
     bank_pull_bram();
 
-    floor->parts_count = part - 1;
-
-    return part;
+    return *part - 1;
 }
 
 void floor_scroll()
@@ -473,6 +479,5 @@ void floor_scroll()
 
 
 #pragma data_seg(Data)
-
-// #pragma var_model(mem)
+#pragma data_seg(Code)
 

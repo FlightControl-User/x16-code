@@ -16,7 +16,7 @@ typedef struct {
     unsigned int floor_tile_offset[FLOOR_PARTS];
     vera_heap_handle_t vram_handles[FLOOR_PARTS];
     heap_bram_fb_handle_t bram_handles[FLOOR_PARTS];
-    unsigned char palette[FLOOR_PARTS];
+    palette_index_t palette[FLOOR_PARTS];
 } floor_parts_t;
 
 #define FLOOR_SEGMENTS 4

@@ -13,7 +13,7 @@
 #include "equinoxe.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-bullet.h"
-// #include "equinoxe-palette.h"
+// #include "equinoxe-palette-lib.h"
 #include "equinoxe-floorengine.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
@@ -66,7 +66,7 @@ unsigned char tower_add(
 	towers.anim_wait[t] = anim_speed;
 	towers.anim_speed[t] = anim_speed;
 
-    towers.palette[t] = palette16_use(palette_index);
+    towers.palette[t] = palette_use_vram(palette_index);
 
 	towers.health[t] = 100;
 
@@ -93,7 +93,7 @@ unsigned char tower_remove(unsigned char t)
         vera_sprite_offset sprite_offset = towers.sprite_offset[t];
         vera_sprite_disable(sprite_offset);
         sprite_free_offset(sprite_offset);
-        palette16_unuse(sprite_cache.palette_offset[towers.sprite[t]]);
+        palette_unuse_vram(sprite_cache.palette_offset[towers.sprite[t]]);
         fe_sprite_cache_free(towers.sprite[t]);
 
         towers.used[t] = 0;

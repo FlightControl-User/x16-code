@@ -69,6 +69,9 @@
 // Show stage information when the scenario changes and is active.
 // #define __DEBUG_STAGE
 
+// Show lru cache information when the objects are flying.
+// #define __DEBUG_LRU_CACHE
+
 // Show the collision hash table while the game is evolving.
 // #define __DEBUG_COLLISION
 // #define __DEBUG_COLLISION_HASH

@@ -6,6 +6,8 @@
 
 #pragma var_model(mem)
 
+#pragma zp_reserve(0x00..0x30, 0x80..0xA8)
+
 #define __MAIN
 
 #include "equinoxe-defines.h"
@@ -32,6 +34,7 @@
 #include <cx16-veralib.h>
 #include <cx16-mouse.h>
 
+
 #include "equinoxe-types.h"
 #include "equinoxe.h"
 #include "equinoxe-flightengine.h"
@@ -40,7 +43,7 @@
 #include "equinoxe-floorengine.h"
 #endif
 
-#include "equinoxe-palette.h"
+#include "equinoxe-palette-lib.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-bullet.h"
 #include "equinoxe-fighters.h"
@@ -50,6 +53,8 @@
 #include "equinoxe-levels.h"
 
 #include "equinoxe-petscii.c"
+
+
 
 #pragma data_seg(Heap)
 
@@ -74,8 +79,8 @@ void equinoxe_init() {
     // Load all banks with data and code!
     unsigned bytes = 0;
     bytes = fload_bram("stages.bin", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000);
-    bytes = fload_bram("sprites.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
-    bytes = fload_bram("floors.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
+    bytes = fload_bram("bramflight1.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("bramfloor1.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
     // bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
 
 #ifdef __PLAYER
@@ -351,8 +356,6 @@ void main() {
     while(!kbhit());
 #endif
 
-    while(!kbhit());
-
 #ifdef __CPULINES
     // Set border to measure scan lines
     vera_display_set_hstart(1);
@@ -410,6 +413,8 @@ void main() {
 #endif
 
     scroll(0);
+
+    while(!kbhit());
 
 
 #ifndef __NOVSYNC
@@ -483,6 +488,10 @@ __export char LRU_CACHE_ASM[] = kickasm(resource "lru-cache.asm") {{
     #import "lru-cache.asm" 
 }};
 
-__export char ANIMATE[] = kickasm(resource "equinoxe-animate.asm") {{
-    #import "equinoxe-animate.asm" 
+__export char ANIMATE[] = kickasm(resource "animate.asm") {{
+    #import "animate.asm" 
+}};
+
+__export char PALETTE[] = kickasm(resource "palette.asm") {{
+    #import "palette.asm" 
 }};

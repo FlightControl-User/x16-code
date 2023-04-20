@@ -29,8 +29,9 @@ void enemy_init()
     memset(&enemy, 0, sizeof(fe_enemy_t));
 }
 
-unsigned char enemy_add(unsigned char w) 
+unsigned char enemy_add(unsigned char w, sprite_index_t enemy_sprite) 
 {
+
     stage.enemy_count++;
 
 	unsigned char e = stage.enemy_pool;
@@ -44,7 +45,7 @@ unsigned char enemy_add(unsigned char w)
 
     enemy.wave[e] = w;
 
-    fe_sprite_index_t s = fe_sprite_cache_copy(wave.enemy_sprite[w]);
+    fe_sprite_index_t s = fe_sprite_cache_copy(enemy_sprite);
     enemy.sprite[e] = s;
 
 	enemy.side[e] = SIDE_ENEMY;
@@ -102,7 +103,7 @@ void enemy_remove(unsigned char e)
         vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
         sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(sprite_cache.palette_offset[enemy.sprite[e]]);
+        palette_unuse_vram(sprite_cache.palette_offset[enemy.sprite[e]]);
         fe_sprite_cache_free(enemy.sprite[e]);
 
     }

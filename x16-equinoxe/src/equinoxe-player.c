@@ -10,8 +10,11 @@
 #include "equinoxe-player.h"
 #include "equinoxe-bullet.h"
 
+#pragma data_seg(DATA_ENGINE_PLAYERS)
+fe_player_t player;
+fe_engine_t engine;
 
-// #pragma var_model(zp)
+#pragma data_seg(CODE_ENGINE_PLAYERS)
 
 void player_init()
 {
@@ -105,7 +108,7 @@ void player_remove(unsigned char p, unsigned char b)
         vera_sprite_offset sprite_offset = player.sprite_offset[p];
         sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(sprite_cache.palette_offset[player.sprite[p]]);
+        palette_unuse_vram(sprite_cache.palette_offset[player.sprite[p]]);
         fe_sprite_cache_free(player.sprite[p]);
         player.used[p] = 0;
         player.enabled[p] = 0;
@@ -114,7 +117,7 @@ void player_remove(unsigned char p, unsigned char b)
         sprite_offset = engine.sprite_offset[n];
         sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
-        palette16_unuse(sprite_cache.palette_offset[engine.sprite[n]]);
+        palette_unuse_vram(sprite_cache.palette_offset[engine.sprite[n]]);
         fe_sprite_cache_free(engine.sprite[n]);
         engine.used[n] = 0;
 
@@ -252,6 +255,8 @@ void player_logic() {
     bank_pull_bram();
 }
 
+#pragma data_seg(Data)
+#pragma data_seg(Code)
 
 // #pragma var_model(mem)
 

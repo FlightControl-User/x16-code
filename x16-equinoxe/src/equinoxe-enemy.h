@@ -7,7 +7,7 @@
 extern fe_enemy_t enemy;
 
 void enemy_init();
-unsigned char enemy_add(unsigned char w); 
+unsigned char enemy_add(unsigned char w, sprite_index_t enemy_sprite); 
 unsigned char enemy_hit(unsigned char e, unsigned char b);
 void enemy_remove(unsigned char e);
 
