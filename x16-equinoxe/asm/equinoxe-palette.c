@@ -46,8 +46,10 @@
 #include <cx16-vera.h>
 #include "../src/equinoxe-palette-types.h"
 
+#pragma zp_reserve(0x00..0xFF, 0x80..0xA8)
+
 #pragma data_seg(BramEnginePalette)
-palette_bram_t palette_bram; // List of palettes in bram bank 63! Dynamically loaded!
+palette_bram_t palette_bram; // List of palettes in bram! Dynamically loaded!
 
 #pragma data_seg(DataEnginePalette)
 palette_t palette;
@@ -56,8 +58,9 @@ void palette_init(bram_bank_t bram_bank)
 {
     palette.bram_bank = bram_bank;
 
-    for(unsigned int i=0; i<16; i++) {
-        palette.vram.offset[i] = (vram_offset_t)(VERA_PALETTE_PTR+(i*32));
+    // Doubled to save zeropage...
+    for(unsigned char i=0; i<16; i++) {
+        palette.vram.offset[i] = (vram_offset_t)(VERA_PALETTE_PTR+((unsigned int)i*32));
         palette.vram.used[i] = 0;
     }
     palette.vram.used[0] = 1;
@@ -72,7 +75,8 @@ void palette_init(bram_bank_t bram_bank)
  * @return palette_ptr_t The address in bram. Note that the bank must be properly set to use the data behind the pointer.
  */
 palette_ptr_t palette_ptr_bram(palette_index_t palette_index) {
-    return &palette_bram.palette_16[(unsigned int)palette_index]; 
+
+    return (palette_ptr_t)&palette_bram.palette_16[(unsigned int)palette_index];
 }
 
 palette_index_t palette_alloc_bram()
@@ -121,7 +125,7 @@ palette_index_t palette_use_vram(palette_index_t palette_index)
             if(palette.vram.bram_index[vram_index])
                 palette.bram.vram_index[palette.vram.bram_index[vram_index]] = 0;
             palette.vram.bram_index[vram_index] = palette_index;
-            memcpy_vram_bram(VERA_PALETTE_BANK, palette.vram.offset[vram_index], palette.bram_bank, (bram_ptr_t)palette_ptr_bram(palette_index), 32);
+            memcpy_vram_bram_fast(VERA_PALETTE_BANK, palette.vram.offset[vram_index], palette.bram_bank, (bram_ptr_t)palette_ptr_bram(palette_index), 32);
             palette.bram.vram_index[palette_index] = vram_index;
         }
     }

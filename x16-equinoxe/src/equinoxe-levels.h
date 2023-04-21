@@ -30,7 +30,7 @@
 #define t001 0
 #define p001 1
 #define n001 2
-#define e0101 3
+#define e0701 3
 #define e0102 4
 #define e0201 5
 #define e0202 6
@@ -41,7 +41,7 @@
 #define e0502 11
 #define e0601 12
 #define e0602 13
-#define e0701 14
+#define e0101 14
 #define e0702 15
 #define e0703 16
 #define b001 17
@@ -51,10 +51,10 @@
 
 __export sprite_t sprites = {
 
-    {   "t001",  "p001",  "n001",  "e0101", 
+    {   "t001",  "p001",  "n001",  "e0701", 
         "e0102", "e0201", "e0202", "e0301", 
         "e0302", "e0401", "e0501", "e0502", 
-        "e0601", "e0602", "e0701", "e0702", 
+        "e0601", "e0602", "e0101", "e0702", 
         "e0703", "b001", "b002", "b003",
         "b004" 
     }, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
@@ -155,7 +155,7 @@ tile_weight_t TileWeightDB[TILE_WEIGHTS] = {
 __export volatile stage_bullet_t stage_bullet_fireball = { b002 };
 __export volatile stage_bullet_t stage_bullet_vertical_laser = { b003 };
 
-__export volatile stage_enemy_t stage_enemy_e0101 = { e0101, e0101, &stage_bullet_fireball, 8, 0 };
+__export volatile stage_enemy_t stage_enemy_e0101 = { e0701, e0701, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0102 = { e0102, e0102, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0201 = { e0201, e0201, &stage_bullet_fireball, 8, 0 };
 __export volatile stage_enemy_t stage_enemy_e0202 = { e0202, e0202, &stage_bullet_fireball, 8, 0 };

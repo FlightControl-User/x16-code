@@ -202,6 +202,8 @@ static void stage_load(void)
 
 static void stage_reset(void)
 {
+
+BREAKPOINT
 #ifdef __PALETTE
     palette_init(BANK_ENGINE_PALETTE);
 #endif

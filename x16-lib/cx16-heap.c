@@ -17,11 +17,11 @@
 
 struct HEAP_SEGMENT heap_segments[16];
 
-inline heap_bram_packed  cx16_bram_pack(cx16_bank bank, cx16_ptr ptr);
-inline cx16_vram_packed  cx16_vram_pack(cx16_bank bank, cx16_offset offset);
-inline cx16_bank         cx16_bram_unpack_bank(cx16_bram_packed bram_packed);
+inline heap_bram_packed  cx16_bram_pack(bram_bank_t bank, cx16_ptr ptr);
+inline cx16_vram_packed  cx16_vram_pack(bram_bank_t bank, cx16_offset offset);
+inline bram_bank_t         cx16_bram_unpack_bank(cx16_bram_packed bram_packed);
 inline cx16_ptr          cx16_bram_unpack_ptr(cx16_bram_packed bram_packed);
-inline cx16_bank         cx16_vram_unpack_bank(cx16_vram_packed vram_packed);
+inline bram_bank_t         cx16_vram_unpack_bank(cx16_vram_packed vram_packed);
 inline cx16_offset       cx16_vram_unpack_offset(cx16_vram_packed vram_packed);
 
 
@@ -158,7 +158,7 @@ inline void vera_heap_data_packed_set(vera_heap_handle_t heapIndex, vera_heap_ha
 */
 vera_heap_handle_t heap_data_get(vera_heap_handle_t heapIndex) {
 
-	cx16_bank old_bank = cx16_bram_bank_get();
+	bram_bank_t old_bank = cx16_bram_bank_get();
 	vera_heap_handle_t data_handle = vera_heap_data_packed_get(heapIndex);
 	cx16_bram_bank_set(old_bank);
 	return data_handle;
@@ -171,7 +171,7 @@ vera_heap_handle_t heap_data_get(vera_heap_handle_t heapIndex) {
 */
 fb_heap_bank_t heap_data_bank(vera_heap_handle_t handle) {
 
-	cx16_bank old_bank = cx16_bram_bank_get();
+	bram_bank_t old_bank = cx16_bram_bank_get();
 	// printf("handle = %x\n", handle);
 	vera_heap_handle_t data_handle = vera_heap_data_packed_get(handle);
 	heap_index_info header_info = vera_heap_get(handle)->size;

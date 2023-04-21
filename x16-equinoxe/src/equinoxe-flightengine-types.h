@@ -1,9 +1,9 @@
-#include <cx16-heap-bram-fb.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include "cx16-veraheap-typedefs.h"
 #include <fp3.h>
 #include <ht.h>
+#include <cx16-bramheap-typedefs.h>
 
 typedef unsigned char fe_sprite_index_t;
 
@@ -54,7 +54,7 @@ typedef struct {
 } sprite_t;
 typedef unsigned char sprite_index_t;
 
-typedef heap_bram_fb_handle_t sprite_bram_handles_t;
+typedef bram_heap_handle_t sprite_bram_handles_t;
 
 typedef struct {
     unsigned char count;

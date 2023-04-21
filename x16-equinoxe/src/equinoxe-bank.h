@@ -19,7 +19,7 @@
 //           SPRITE_CACHE                                   0x00  0x9000  0x9F00  Contains the sprite cache to blazingly fast track sprite movements.
 #define DATA_SPRITE_CACHE            DataSpriteCache
 //
-//           VERA_HEAP                                                       0xA000  0xBFFF  Contains the dynamic heap data of the objects in the vera.                                                         
+//           VERA_HEAP                                                       0xA000  0xBFFF  Contains the index of the dynamic heap data of the objects in the vera.                                                         
 #define BANK_VERA_HEAP                                      0x01
 #define DATA_VERA_HEAP               CodeVeraHeap
 #define CODE_VERA_HEAP               CodeVeraHeap

@@ -13,7 +13,7 @@
 #include <division.h>
 #include <mos6522.h>
 #include <multiply.h>
-#include <cx16-heap-bram-fb.h>
+#include <cx16-bramheap-lib.h>
 
 #include "equinoxe-types.h"
 #include "equinoxe.h"
@@ -329,9 +329,9 @@ void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
     vram_bank_t   vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_TILES, floor_parts->vram_handles[part]);
     vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_TILES, floor_parts->vram_handles[part]);
 
-    heap_bram_fb_handle_t bram_handle = floor_parts->bram_handles[part];
-    bram_bank_t   bram_bank = heap_bram_fb_bank_get(bram_handle);
-    bram_ptr_t    bram_ptr = heap_bram_fb_ptr_get(bram_handle);
+    bram_heap_handle_t bram_handle = floor_parts->bram_handles[part];
+    bram_bank_t   bram_bank = bram_heap_data_get_bank(1, bram_handle);
+    bram_ptr_t    bram_ptr = bram_heap_data_get_offset(1, bram_handle);
 
     memcpy_vram_bram(vram_bank, vram_offset, bram_bank, bram_ptr, FLOOR_TILE_SIZE);
 
@@ -382,9 +382,10 @@ unsigned char floor_parts_load_bram(unsigned char* part, floor_t* floor, floor_b
 #ifdef __DEBUG_LOAD
                 printf(".");
 #endif
-                heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, size);
-                bram_bank_t bram_bank = heap_bram_fb_bank_get(handle_bram);
-                bram_ptr_t bram_ptr = heap_bram_fb_ptr_get(handle_bram);
+                bram_heap_handle_t handle_bram = bram_heap_alloc(1, size);
+                bram_bank_t bram_bank = bram_heap_data_get_bank(1, handle_bram);
+                bram_ptr_t bram_ptr = bram_heap_data_get_offset(1, handle_bram);
+
                 bank_push_set_bram(bram_bank);
                 unsigned int read = fgets(bram_ptr, size, fp);
                 bank_pull_bram();

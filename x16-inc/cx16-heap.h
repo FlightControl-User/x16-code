@@ -91,8 +91,8 @@ struct HEAP_INDEX {
 typedef struct HEAP_INDEX heap_index;
 typedef struct HEAP_INDEX* heap_index_ptr;
 
-inline heap_bram_packed  heap_bram_pack(cx16_bank bank, cx16_ptr ptr);
-inline heap_vram_packed  heap_vram_pack(cx16_bank bank, cx16_offset offset);
+inline heap_bram_packed  heap_bram_pack(bram_bank_t bank, cx16_ptr ptr);
+inline heap_vram_packed  heap_vram_pack(bram_bank_t bank, cx16_offset offset);
 inline fb_heap_bank_t         heap_bram_unpack_bank(cx16_bram_packed bram_packed);
 inline heap_ptr          heap_bram_unpack_ptr(cx16_bram_packed bram_packed);
 inline fb_heap_bank_t         heap_vram_unpack_bank(cx16_vram_packed vram_packed);

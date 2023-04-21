@@ -7,6 +7,7 @@
 //.file                             [name="PLAYERS.BIN", type="bin", segments="CodeEnginePlayers"]
 .segmentdef Program                 [segments="Basic, Code, Data" + 
                                      ", Heap" + 
+                                     ", CodeBramHeap" +
                                      ", CodeVeraHeap" +
                                      ", CodeLruCache" + 
                                      ", CodeEnginePlayers" +
@@ -14,6 +15,8 @@
                                      ", CodeEngineFlight" +
                                      ", CodeEngineFloor" +
                                      ", CodeEnginePalette" +
+                                     ", DataBramHeap" +
+//                                     ", DataVeraHeap" +
                                      ", DataEngineStages" +
                                      ", DataEnginePlayers" +
                                      ", DataEngineEnemies" +
@@ -25,16 +28,19 @@
                                      ]
 .segmentdef Basic                   [start=$0801]
 .segmentdef Code                    [start=%P]
-.segmentdef CodeVeraHeap            [startAfter="Code"] 
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
 .segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
 .segmentdef CodeEnginePlayers       [startAfter="CodeLruCache"] 
 .segmentdef CodeEngineAnimate       [startAfter="CodeEnginePlayers"] 
 .segmentdef CodeEngineFloor         [startAfter="CodeEngineAnimate"] 
 .segmentdef CodeEngineFlight        [startAfter="CodeEngineFloor"] 
 .segmentdef CodeEnginePalette       [startAfter="CodeEngineFlight"] 
+
 .segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
 .segmentdef Heap                    [startAfter="Data", align=$100]
-.segmentdef DataEngineFloor         [startAfter="Heap"] 
+.segmentdef DataBramHeap            [startAfter="Heap"] 
+.segmentdef DataEngineFloor         [startAfter="DataBramHeap"] 
 //.segmentdef BramEngineFloor       [startAfter="DataEngineFloor"] 
 .segmentdef DataEngineFlight        [startAfter="DataEngineFloor"] 
 .segmentdef DataEnginePalette       [startAfter="DataEngineFlight"] 
@@ -46,6 +52,7 @@
 
 .segmentdef hash                    [start=$0400, min=$0400, max=$07FF, align=$100]
 
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]

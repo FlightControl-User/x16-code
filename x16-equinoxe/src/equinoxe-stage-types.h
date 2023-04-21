@@ -1,4 +1,4 @@
-#include <cx16-heap-bram-fb.h>
+#include <cx16-bramheap-typedefs.h>
 #include <cx16-veralib.h>
 
 #include "equinoxe-level-types.h"
@@ -29,10 +29,10 @@ typedef struct {
 typedef struct {
     stage_playbook_t current_playbook;
 
-    heap_bram_fb_handle_t fighter_list;
-    heap_bram_fb_handle_t fighter_tail;
-    heap_bram_fb_handle_t bullet_tail;
-    heap_bram_fb_handle_t bullet_list;
+    bram_heap_handle_t fighter_list;
+    bram_heap_handle_t fighter_tail;
+    bram_heap_handle_t bullet_tail;
+    bram_heap_handle_t bullet_list;
 
     vera_sprite_id sprite_pool; // Keep track of the last sprite allocated.
     unsigned char  sprite_count;

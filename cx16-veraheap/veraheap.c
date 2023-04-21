@@ -1,5 +1,5 @@
 
-#pragma link("veraheap-bin.ld")
+#pragma link("veraheap.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
@@ -9,6 +9,8 @@
 #include <printf.h>
 
 #include "veraheap-bin.h"
+
+#pragma zp_reserve(0x00..0xFF, 0x80..0xA8)
 
 #define BRAM_VERA_HEAP BramVeraHeap
 #define DATA_VERA_HEAP CodeVeraHeap

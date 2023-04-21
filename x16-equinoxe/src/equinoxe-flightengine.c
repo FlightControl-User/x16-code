@@ -9,6 +9,7 @@
 #include "equinoxe-animate-lib.h"
 #include <cx16-file.h>
 #include <cx16-veraheap-lib.h>
+#include <cx16-bramheap-lib.h>
 
 
 
@@ -164,11 +165,13 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
         // We retrieve the image from BRAM from the sprite_control bank.
         // TODO: what if there are more sprite control data than that can fit into one CX16 bank?
         bank_push_set_bram(BANK_ENGINE_SPRITES);
-        heap_bram_fb_handle_t handle_bram = sprite_bram_handles[image_index];
+        sprite_bram_handles_t handle_bram = sprite_bram_handles[image_index];
         bank_pull_bram();
 
-
-        memcpy_vram_bram(vram_bank, vram_offset, heap_bram_fb_bank_get(handle_bram), (bram_ptr_t)heap_bram_fb_ptr_get(handle_bram), sprite_cache.size[fe_sprite_index]);
+        bram_bank_t sprite_bank = bram_heap_data_get_bank(1, handle_bram);
+        bram_ptr_t  sprite_ptr = bram_heap_data_get_offset(1, handle_bram);
+        unsigned int sprite_size = sprite_cache.size[fe_sprite_index];
+        memcpy_vram_bram(vram_bank, vram_offset, sprite_bank, sprite_ptr, sprite_size);
 
         sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
         lru_cache_insert(image_index, vram_handle);
@@ -301,6 +304,7 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
 
                 sprite_map_header(&sprite_file_header, sprite_index);
 
+                // BREAKPOINT
                 // The palette data, which we load and index using the palette library.
                 palette_index_t palette_index = palette_alloc_bram();
                 palette_ptr_t palette_ptr = palette_ptr_bram(palette_index);
@@ -319,13 +323,18 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
                     sprites.aabb[sprite_index].xmin, sprites.aabb[sprite_index].ymin, sprites.aabb[sprite_index].xmax, sprites.aabb[sprite_index].ymax, sprites.loop[sprite_index], sprites.reverse[sprite_index]);
 #endif
                 for (unsigned char s = 0; s < sprites.count[sprite_index]; s++) {
-                    heap_bram_fb_handle_t handle_bram = heap_alloc(heap_bram_blocked, sprite_size);
+                    bram_heap_handle_t handle_bram = bram_heap_alloc(1, sprite_size);
 #ifdef __DEBUG_LOAD
                     cputc('.');
 #endif
-                    bank_push_set_bram(heap_bram_fb_bank_get(handle_bram));
-                    unsigned int read = fgets(heap_bram_fb_ptr_get(handle_bram), sprite_size, fp);
+      
+                    bram_bank_t sprite_bank = bram_heap_data_get_bank(1, handle_bram);
+                    bram_ptr_t  sprite_ptr = bram_heap_data_get_offset(1, handle_bram);
+                    bank_push_set_bram(sprite_bank);
+                    unsigned int read = fgets(sprite_ptr, sprite_size, fp);
                     bank_pull_bram();
+
+      
                     if (!read) {
 #ifdef __INCLUDE_PRINT
                         if (!read) {

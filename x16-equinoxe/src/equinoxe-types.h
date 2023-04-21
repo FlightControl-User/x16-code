@@ -4,10 +4,12 @@
 // #include <cx16-typedefs.h>
 // #include <ht-typedefs.h>
 // #include <fp3-typedefs.h>
-// #include <cx16-heap-bram-fb.h>
+// #include <cx16-bramheap-lib.h>
 // #include <cx16-veralib.h>
 // #include <cx16-veraheap-typedefs.h>
 
+#include "cx16-bramheap-typedefs.h"
+#include "cx16-veraheap-typedefs.h"
 #include "equinoxe-bank.h"
 #include "equinoxe-palette-types.h"
 #include "equinoxe-flightengine-types.h"

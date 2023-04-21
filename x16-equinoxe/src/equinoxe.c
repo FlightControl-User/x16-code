@@ -29,7 +29,8 @@
 
 #include <cx16.h>
 #include <cx16-conio.h>
-#include <cx16-heap-bram-fb.h>
+// #include <cx16-bramheap-lib.h>
+#include <cx16-bramheap-lib.h>
 #include <cx16-veraheap-lib.h>
 #include <cx16-veralib.h>
 #include <cx16-mouse.h>
@@ -58,15 +59,15 @@
 
 #pragma data_seg(Heap)
 
-heap_structure_t heap; const heap_structure_t* heap_bram_blocked = &heap;
+// heap_structure_t heap; const heap_structure_t* heap_bram_blocked = &heap;
 
-fb_heap_segment_t heap_64; const fb_heap_segment_t* bin64 = &heap_64;
-fb_heap_segment_t heap_128; const fb_heap_segment_t* bin128 = &heap_128;
-fb_heap_segment_t heap_256; const fb_heap_segment_t* bin256 = &heap_256;
-fb_heap_segment_t heap_512; const fb_heap_segment_t* bin512 = &heap_512;
-fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
-fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
-fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
+// fb_heap_segment_t heap_64; const fb_heap_segment_t* bin64 = &heap_64;
+// fb_heap_segment_t heap_128; const fb_heap_segment_t* bin128 = &heap_128;
+// fb_heap_segment_t heap_256; const fb_heap_segment_t* bin256 = &heap_256;
+// fb_heap_segment_t heap_512; const fb_heap_segment_t* bin512 = &heap_512;
+// fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
+// fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
+// fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
 
 #pragma data_seg(Data)
 
@@ -313,6 +314,12 @@ void irq_vsync() {
 
 void main() {
 
+/*
+    {kickasm {{
+        jsr bramheap.__start
+    }}}
+*/
+
     cx16_k_screen_set_charset(3, (char *)0);
 
     // We are going to use only the kernal on the X16.
@@ -328,17 +335,23 @@ void main() {
     #endif
 
 
-    // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-    heap_segment_base(heap_bram_blocked, BANK_HEAP_BRAM, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
-    heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);         // 10 - 01 - 0x02000 = 64 * 128
-    heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);        // 11 - 01 - 0x02000 = 128 * 64
-    heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);        // 12 - 02 - 0x04000 = 256 * 64
-    heap_segment_define(heap_bram_blocked, bin512, 512, 256, 512*(256));    // 14 - 10 - 0x20000 = 512 * 256
-    heap_segment_define(heap_bram_blocked, bin1024, 1024, 32, 1024*32);     // 24 - 04 - 0x08000 = 1024 * 32
-    heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);     // 28 - 18 - 0x28000 = 2048 * 96 => 40
-    
-    vera_heap_bram_bank_init(BANK_VERA_HEAP);
+    // We initialize the Commander X16 BRAM heap manager. This manages dynamically the memory space in banked ram as a real heap.
+    bram_heap_bram_bank_init(BANK_HEAP_BRAM);
+    // BREAKPOINT
+    bram_heap_segment_init(1, 0x10, (bram_ptr_t)0xA000, 0x39, (bram_ptr_t)0xA000);
 
+    // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
+
+    // heap_segment_base(heap_bram_blocked, BANK_HEAP_BRAM, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
+    // heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);         // 10 - 01 - 0x02000 = 64 * 128
+    // heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);        // 11 - 01 - 0x02000 = 128 * 64
+    // heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);        // 12 - 02 - 0x04000 = 256 * 64
+    // heap_segment_define(heap_bram_blocked, bin512, 512, 256, 512*(256));    // 14 - 10 - 0x20000 = 512 * 256
+    // heap_segment_define(heap_bram_blocked, bin1024, 1024, 32, 1024*32);     // 24 - 04 - 0x08000 = 1024 * 32
+    // heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);     // 28 - 18 - 0x28000 = 2048 * 96 => 40
+
+    // We intialize the Commander X16 VERA heap manager. This manages dynamically the memory space in vera ram as a real heap.
+    vera_heap_bram_bank_init(BANK_VERA_HEAP);
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
 
@@ -482,6 +495,10 @@ void main() {
 
 __export char VERAHEAP_ASM[] = kickasm(resource "veraheap.asm") {{
     #import "veraheap.asm" 
+}};
+
+__export char BRAMHEAP_ASM[] = kickasm(resource "bramheap.asm") {{
+    #import "bramheap.asm" 
 }};
 
 __export char LRU_CACHE_ASM[] = kickasm(resource "lru-cache.asm") {{
