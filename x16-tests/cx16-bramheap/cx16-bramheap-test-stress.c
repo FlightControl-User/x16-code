@@ -1,6 +1,6 @@
 #pragma var_model(mem) 
 
-#pragma link("bramheap-test.ld")
+#pragma link("cx16-bramheap-test.ld")
 
 #include <cx16.h>
 #include <conio.h>
@@ -10,7 +10,7 @@
 
 #pragma zp_reserve(0x00..0x40, 0x80..0xA8)
 
-// #define __LIBRARY_INCLUDE
+#define __LIBRARY_INCLUDE
 
 #ifdef __LIBRARY_INCLUDE
 #include <cx16-bramheap-lib.h>
@@ -19,6 +19,7 @@
 #endif
 
 void main() {
+
 
 #ifdef __LIBRARY_INCLUDE
     {kickasm {{
@@ -77,8 +78,9 @@ void main() {
     }
 
 #ifdef __LIBRARY_INCLUDE
-{__export char BRAM_HEAP[] = kickasm(resource "bramheap-debug.asm") {{
-    #import "bramheap-debug.asm" 
+{__export char BRAMHEAP[] = kickasm(resource "../../target/cx16-bramheap/bramheap.asm") {{
+    #define __bramheap__
+    #import "bramheap.asm" 
 }};}
 #endif
 

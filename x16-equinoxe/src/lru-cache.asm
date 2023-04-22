@@ -1,5 +1,5 @@
 
-.namespace lru_cache {
+
   // Global Constants & labels
   .const SIZEOF_UNSIGNED_INT = 2
   .const SIZEOF_CHAR = 1
@@ -1501,4 +1501,3 @@ lru_cache_find_empty: {
 .segment CodeLruCache
   funcs: .word lru_cache_init, lru_cache_index, lru_cache_get, lru_cache_set, lru_cache_data, lru_cache_is_max, lru_cache_find_last, lru_cache_delete, lru_cache_insert
   lru_cache: .fill SIZEOF_STRUCT___0, 0
-}

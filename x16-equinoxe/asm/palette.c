@@ -1,6 +1,7 @@
 #pragma link("palette.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
+#pragma library(palette)
 
 #pragma code_seg(CodeEnginePalette)
 #pragma data_seg(DataEnginePalette)

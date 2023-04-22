@@ -1,4 +1,5 @@
-.namespace animate {
+
+
   // Global Constants & labels
   .const STACK_BASE = $103
   .const isr_vsync = $314
@@ -586,4 +587,3 @@ main: {
 .segment Data
   funcs: .word animate_init, animate_add, animate_logic, animate_is_waiting, animate_get_state, animate_del
   animate: .fill SIZEOF_STRUCT___54, 0
-}

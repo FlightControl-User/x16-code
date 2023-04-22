@@ -493,22 +493,27 @@ void main() {
 
 }
 
-__export char VERAHEAP_ASM[] = kickasm(resource "veraheap.asm") {{
-    #import "veraheap.asm" 
+__export char VERAHEAP[] = kickasm(resource "../../target/cx16-veraheap/veraheap.asm") {{
+    #define __veraheap__
+    #import "veraheap.asm"
 }};
 
-__export char BRAMHEAP_ASM[] = kickasm(resource "bramheap.asm") {{
+__export char BRAMHEAP[] = kickasm(resource "../../target/cx16-bramheap/bramheap.asm") {{
+    #define __bramheap__
     #import "bramheap.asm" 
 }};
 
-__export char LRU_CACHE_ASM[] = kickasm(resource "lru-cache.asm") {{
-    #import "lru-cache.asm" 
+__export char LRU_CACHE[] = kickasm(resource "../../target/cx16-lru-cache/lru-cache.asm") {{
+    #define __lru_cache__
+    #import "lru-cache.asm"
 }};
 
-__export char ANIMATE[] = kickasm(resource "animate.asm") {{
-    #import "animate.asm" 
+__export char ANIMATE[] = kickasm(resource "../../target/x16-equinoxe/asm/animate.asm") {{
+    #define __animate__
+    #import "animate.asm"
 }};
 
-__export char PALETTE[] = kickasm(resource "palette.asm") {{
-    #import "palette.asm" 
+__export char PALETTE[] = kickasm(resource "../../target/x16-equinoxe/asm/palette.asm") {{
+    #define __palette__
+    #import "palette.asm"
 }};

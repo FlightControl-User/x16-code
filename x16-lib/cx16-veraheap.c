@@ -22,11 +22,7 @@ vera_heap_map_t  vera_heap_index; // The heap index is located in BRAM.
 
 
 
-#ifdef DATA_VERA_HEAP
-#pragma data_seg(DATA_VERA_HEAP)
-#else
-#pragma data_seg(Data)
-#endif
+#pragma data_seg(DataVeraHeap)
 vera_heap_segment_t vera_heap_segment; // The segment management is in main memory.
 
 __mem unsigned char veraheap_dx = 0;

@@ -1,14 +1,11 @@
-#pragma link("lru-cache-bin.ld")
+#pragma link("lru-cache.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
-
-//#include <cx16.h>
-#include "lru-cache-bin.h"
+#pragma library(lru_cache)
 
 #pragma code_seg(CodeLruCache)
 #pragma data_seg(CodeLruCache)
 #include <lru-cache.h>
-
 
 __export volatile void* funcs[] = {
     &lru_cache_init,

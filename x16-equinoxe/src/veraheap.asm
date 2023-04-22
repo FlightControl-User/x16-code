@@ -1,4 +1,4 @@
-.namespace veraheap {
+
   // Global Constants & labels
 .const STACK_BASE = $103
 .const isr_vsync = $314
@@ -3101,4 +3101,3 @@ vera_heap_heap_insert_at: {
   vera_heap_index: .fill SIZEOF_STRUCT___1, 0
 .segment CodeVeraHeap
   vera_heap_segment: .fill SIZEOF_STRUCT___2, 0
-}

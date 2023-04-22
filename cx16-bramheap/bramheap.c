@@ -1,10 +1,10 @@
-
 #pragma link("bramheap.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
 #pragma zp_reserve(0x00..0xFF, 0x80..0xA8)
 
+#pragma library(bramheap)
 
 #include <cx16.h>
 #include <conio.h>
@@ -41,9 +41,3 @@ __export volatile void* funcs[] = {
 
 #pragma code_seg(Code)
 #pragma data_seg(Data)
-
-
-void main() {
-
-}
-
