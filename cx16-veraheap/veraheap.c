@@ -1,14 +1,11 @@
-
 #pragma link("veraheap.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
-
+#pragma library(veraheap)
 
 #include <cx16.h>
 #include <conio.h>
 #include <printf.h>
-
-#include "veraheap-bin.h"
 
 #pragma zp_reserve(0x00..0xFF, 0x80..0xA8)
 
@@ -20,7 +17,7 @@
 // #define __VERAHEAP_WAIT
 
 #pragma code_seg(CodeVeraHeap)
-#pragma data_seg(CodeVeraHeap)
+#pragma data_seg(DataVeraHeap)
 
 #include <cx16-veraheap.h>
 
@@ -37,9 +34,4 @@ __export volatile void* funcs[] = {
 
 #pragma code_seg(Code)
 #pragma data_seg(Data)
-
-
-void main() {
-
-}
 

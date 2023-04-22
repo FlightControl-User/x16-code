@@ -1,4 +1,4 @@
-.namespace bramheap {
+
   // Global Constants & labels
   .const STACK_BASE = $103
   .const isr_vsync = $314
@@ -2800,4 +2800,3 @@ bram_heap_heap_insert_at: {
   bram_heap_index: .fill SIZEOF_STRUCT___1, 0
 .segment DataBramHeap
   bram_heap_segment: .fill SIZEOF_STRUCT___2, 0
-}

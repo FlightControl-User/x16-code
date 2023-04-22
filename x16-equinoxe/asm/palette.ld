@@ -1,5 +1,6 @@
-.file                               [name="%O", type="prg", segments="Program"]
-.segmentdef Program                 [segments="Basic, Code, Data"]
+
+#if __palette__
+#else
 .segmentdef Basic                   [start=$0801]
 .segmentdef Code                    [start=%P]
 .segmentdef CodeEnginePalette       [startAfter="Code"]
@@ -9,6 +10,4 @@
 
 .segment Basic
 :BasicUpstart(%E)
-.segment CodeEnginePalette
-.segment Data
-.segment Code
+#endif

@@ -6,7 +6,6 @@
 .file                               [name="BRAMFLOOR1.BIN", type="bin", segments="BramEngineFloor"]
 //.file                             [name="PLAYERS.BIN", type="bin", segments="CodeEnginePlayers"]
 .segmentdef Program                 [segments="Basic, Code, Data" + 
-                                     ", Heap" + 
                                      ", CodeBramHeap" +
                                      ", CodeVeraHeap" +
                                      ", CodeLruCache" + 
@@ -16,7 +15,7 @@
                                      ", CodeEngineFloor" +
                                      ", CodeEnginePalette" +
                                      ", DataBramHeap" +
-//                                     ", DataVeraHeap" +
+                                     ", DataVeraHeap" +
                                      ", DataEngineStages" +
                                      ", DataEnginePlayers" +
                                      ", DataEngineEnemies" +
@@ -38,9 +37,9 @@
 .segmentdef CodeEnginePalette       [startAfter="CodeEngineFlight"] 
 
 .segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
-.segmentdef Heap                    [startAfter="Data", align=$100]
-.segmentdef DataBramHeap            [startAfter="Heap"] 
-.segmentdef DataEngineFloor         [startAfter="DataBramHeap"] 
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineFloor         [startAfter="DataVeraHeap"] 
 //.segmentdef BramEngineFloor       [startAfter="DataEngineFloor"] 
 .segmentdef DataEngineFlight        [startAfter="DataEngineFloor"] 
 .segmentdef DataEnginePalette       [startAfter="DataEngineFlight"] 

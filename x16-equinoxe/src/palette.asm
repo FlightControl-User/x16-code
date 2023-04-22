@@ -1,4 +1,4 @@
-.namespace palette {
+
   // Global Constants & labels
   .const VERA_INC_1 = $10
   .const VERA_ADDRSEL = 1
@@ -587,4 +587,3 @@ palette_alloc_vram: {
   palette_bram: .fill SIZEOF_STRUCT___2, 0
 .segment DataEnginePalette
   palette: .fill SIZEOF_STRUCT___6, 0
-}

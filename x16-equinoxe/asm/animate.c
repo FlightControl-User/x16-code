@@ -1,13 +1,11 @@
-#pragma link("equinoxe-animate.ld")
+#pragma link("animate.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
-
-//#include <cx16.h>
+#pragma library(animate)
 
 #pragma code_seg(CodeEngineAnimate)
 #pragma data_seg(CodeEngineAnimate)
 #include "equinoxe-animate.h"
-
 
 __export volatile void* funcs[] = {
     &animate_init,
@@ -21,8 +19,4 @@ __export volatile void* funcs[] = {
 
 #pragma code_seg(Code)
 #pragma data_seg(Data)
-
-
-void main() {
-}
 
