@@ -9,6 +9,9 @@ typedef struct {
     FP tdx[32];
     FP tdy[32];
 
+    unsigned char cx[32];
+    unsigned char cy[32];
+
     unsigned char used[32];
 
     unsigned char type[32];

@@ -13,6 +13,9 @@ typedef struct {
     signed char fx[8];
     signed char fy[8]; 
 
+    unsigned char cx[8];
+    unsigned char cy[8];
+
     unsigned char state[8];
 
     fe_sprite_index_t sprite[8]; ///< the gun turret

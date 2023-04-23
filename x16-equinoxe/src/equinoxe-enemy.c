@@ -252,6 +252,9 @@ void enemy_logic() {
 			enemy.tx[e] += enemy.tdx[e];
 			enemy.ty[e] += enemy.tdy[e];
 
+            enemy.cx[e] = BYTE0(WORD1(enemy.tx[e]) >> 2);
+            enemy.cy[e] = BYTE0(WORD1(enemy.ty[e]) >> 2);
+
 
 			// enemy.tdx[e] = tdx;
 			// enemy.tdy[e] = tdy;
@@ -293,7 +296,7 @@ void enemy_logic() {
 					bullet_enemy_fire((unsigned int)x, (unsigned int)y);
 				}
 #endif
-				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_ENEMY | e);
+				collision_insert(&ht_collision, enemy.cx[e], enemy.cy[e], COLLISION_ENEMY | e);
 			} else {
 				if(enemy.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);

@@ -493,6 +493,7 @@ void main() {
 
 }
 
+#ifndef __INTELLISENSE__
 __export char VERAHEAP[] = kickasm(resource "../../target/cx16-veraheap/veraheap.asm") {{
     #define __veraheap__
     #import "veraheap.asm"
@@ -517,3 +518,4 @@ __export char PALETTE[] = kickasm(resource "../../target/x16-equinoxe/asm/palett
     #define __palette__
     #import "palette.asm"
 }};
+#endif

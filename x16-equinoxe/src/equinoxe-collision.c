@@ -151,6 +151,7 @@ void collision_detect()
 #endif
 #endif
 
+    BREAKPOINT
     for (unsigned char gy=0; gy<((480+64)>>2); gy+=(64>>2)) {
 
         for (unsigned char gx=0; gx < ((640+64)>>(2+4)); gx+=(64>>(2+4))) {
@@ -172,47 +173,46 @@ void collision_detect()
                     unsigned char outer_type = outer & COLLISION_MASK;
                     outer = outer & ~COLLISION_MASK;
 
-                    unsigned int outer_x, outer_y;
-                    unsigned int outer_min_x, outer_min_y, outer_max_x, outer_max_y;
+                    unsigned char outer_x, outer_y;
+                    unsigned char outer_min_x, outer_min_y, outer_max_x, outer_max_y;
                     unsigned char outer_side;
-                    unsigned char outer_c, outer_co;
+                    unsigned char outer_c;
 
                     switch (outer_type) {
                     case COLLISION_BULLET:
                         bullet_bank();
                         outer_side = bullet.side[outer];
-                        outer_x = (unsigned int)WORD1(bullet.tx[outer]);
-                        outer_y = (unsigned int)WORD1(bullet.ty[outer]);
+                        outer_x = bullet.cx[outer];
+                        outer_y = bullet.cy[outer];
                         outer_c = bullet.sprite[outer]; // Which sprite is it in the cache...
                         bullet_unbank();
                         break;
                     case COLLISION_PLAYER:
                         outer_side = SIDE_PLAYER;
-                        outer_x = (unsigned int)WORD1(player.tx[outer]);
-                        outer_y = (unsigned int)WORD1(player.ty[outer]);
+                        outer_x = player.cx[outer];
+                        outer_y = player.cy[outer];
                         outer_c = player.sprite[outer]; // Which sprite is it in the cache...
                         break;
                     case COLLISION_ENEMY:
                         enemy_bank();
                         outer_side = SIDE_ENEMY;
-                        outer_x = (unsigned int)WORD1(enemy.tx[outer]);
-                        outer_y = (unsigned int)WORD1(enemy.ty[outer]);
+                        outer_x = enemy.cx[outer];
+                        outer_y = enemy.cy[outer];
                         outer_c = enemy.sprite[outer]; // Which sprite is it in the cache...
                         enemy_unbank();
                         break;
                     case COLLISION_TOWER:
                         outer_side = towers.side[outer];
-                        outer_x = (unsigned int)towers.tx[outer];
-                        outer_y = (unsigned int)towers.ty[outer];
+                        outer_x = towers.cx[outer];
+                        outer_y = towers.cy[outer];
                         outer_c = towers.sprite[outer]; // Which sprite is it in the cache...
                         break;
                     }
 
-                    outer_co = outer_c * 16;
-                    outer_min_x = outer_x + sprite_cache.aabb[outer_co];
-                    outer_min_y = outer_y + sprite_cache.aabb[outer_co + 1];
-                    outer_max_x = outer_x + sprite_cache.aabb[outer_co + 2];
-                    outer_max_y = outer_y + sprite_cache.aabb[outer_co + 3];
+                    outer_min_x = outer_x + sprite_cache.xmin[outer_c];
+                    outer_min_y = outer_y + sprite_cache.ymin[outer_c];
+                    outer_max_x = outer_x + sprite_cache.xmax[outer_c];
+                    outer_max_y = outer_y + sprite_cache.ymax[outer_c];
 
                     while (ht_index_inner) {
 
@@ -220,47 +220,46 @@ void collision_detect()
                         unsigned char inner_type = inner & COLLISION_MASK;
                         inner = inner & ~COLLISION_MASK;
 
-                        unsigned int inner_x, inner_y;
-                        unsigned int inner_min_x, inner_min_y, inner_max_x, inner_max_y;
+                        unsigned char inner_x, inner_y;
+                        unsigned char inner_min_x, inner_min_y, inner_max_x, inner_max_y;
                         unsigned char inner_side;
-                        unsigned char inner_c, inner_co;
+                        unsigned char inner_c;
 
                         switch (inner_type) {
                         case COLLISION_BULLET:
                             bullet_bank();
                             inner_side = bullet.side[inner];
-                            inner_x = (unsigned int)WORD1(bullet.tx[inner]);
-                            inner_y = (unsigned int)WORD1(bullet.ty[inner]);
+                            inner_x = bullet.cx[inner];
+                            inner_y = bullet.cy[inner];
                             inner_c = bullet.sprite[inner]; // Which sprite is it in the cache...
                             bullet_unbank();
                             break;
                         case COLLISION_PLAYER:
                             inner_side = SIDE_PLAYER;
-                            inner_x = (unsigned int)WORD1(player.tx[inner]);
-                            inner_y = (unsigned int)WORD1(player.ty[inner]);
+                            inner_x = player.cx[inner];
+                            inner_y = player.cy[inner];
                             inner_c = player.sprite[inner]; // Which sprite is it in the cache...
                             break;
                         case COLLISION_ENEMY:
                             enemy_bank();
                             inner_side = SIDE_ENEMY;
-                            inner_x = (unsigned int)WORD1(enemy.tx[inner]);
-                            inner_y = (unsigned int)WORD1(enemy.ty[inner]);
+                            inner_x = enemy.cx[inner];
+                            inner_y = enemy.cy[inner];
                             inner_c = enemy.sprite[inner]; // Which sprite is it in the cache...
                             enemy_unbank();
                             break;
                         case COLLISION_TOWER:
                             inner_side = towers.side[inner];
-                            inner_x = (unsigned int)towers.tx[inner];
-                            inner_y = (unsigned int)towers.ty[inner];
+                            inner_x = towers.cx[inner];
+                            inner_y = towers.cy[inner];
                             inner_c = towers.sprite[inner]; // Which sprite is it in the cache...
                             break;
                         }
 
-                        inner_co = inner_c * 16;
-                        inner_min_x = inner_x + sprite_cache.aabb[inner_co];
-                        inner_min_y = inner_y + sprite_cache.aabb[inner_co + 1];
-                        inner_max_x = inner_x + sprite_cache.aabb[inner_co + 2];
-                        inner_max_y = inner_y + sprite_cache.aabb[inner_co + 3];
+                        inner_min_x = inner_x + sprite_cache.xmin[inner_c];
+                        inner_min_y = inner_y + sprite_cache.ymin[inner_c];
+                        inner_max_x = inner_x + sprite_cache.xmax[inner_c];
+                        inner_max_y = inner_y + sprite_cache.ymax[inner_c];
 
                         // Now comes the collision test!
 

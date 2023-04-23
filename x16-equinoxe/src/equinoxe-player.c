@@ -211,6 +211,10 @@ void player_logic() {
             player.tx[p] = MAKELONG((word)(cx16_mouse.x),0);
             player.ty[p] = MAKELONG((word)(cx16_mouse.y),0);
 
+            player.cx[p] = BYTE0(WORD1(player.tx[p]) >> 2);
+            player.cy[p] = BYTE0(WORD1(player.ty[p]) >> 2);
+
+
             volatile signed int playerx = (signed int)WORD1(player.tx[p]);
             volatile signed int playery = (signed int)WORD1(player.ty[p]);
 
@@ -223,7 +227,7 @@ void player_logic() {
             if(playery < 0) playery = 0;
 
             #ifdef __COLLISION
-            collision_insert(&ht_collision, BYTE0((unsigned int)playerx>>2), BYTE0((unsigned int)playery>>2), COLLISION_PLAYER | p);
+            collision_insert(&ht_collision, player.cx[p], player.cy[p], COLLISION_PLAYER | p);
             #endif
 
             unsigned char player_sprite = player.sprite[p];

@@ -242,6 +242,10 @@ void tower_logic()
 	for(unsigned char t=0; t<TOWERS_TOTAL; t++) {
 
 		if(towers.used[t] && towers.side[t] == SIDE_ENEMY) {
+
+            towers.cx[t] = BYTE0(towers.tx[t] >> 2);
+            towers.cy[t] = BYTE0(towers.ty[t] >> 2);
+
             signed int volatile y = towers.ty[t];
             signed int volatile x = towers.tx[t];
             if(y > 32*16) {
@@ -250,10 +254,8 @@ void tower_logic()
                 vera_sprite_offset sprite_offset = towers.sprite_offset[t];
                 vera_sprite_zdepth_in_front(sprite_offset);
                 vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
-                unsigned char volatile gx = BYTE0((unsigned)x>>2); 
-                unsigned char volatile gy = BYTE0((unsigned)y>>2); 
                 // printf("tower logic: t=%u, towers gx=%04u, gy=%04u\n", t, gx, gy);
-                collision_insert(&ht_collision, gx, gy, COLLISION_TOWER | t);
+                collision_insert(&ht_collision, towers.cx[t], towers.cy[t], COLLISION_TOWER | t);
                 if(towers.anim_state[t] == 3) {
                     #ifdef __BULLET                
                     signed int volatile py = towers.ty[t];

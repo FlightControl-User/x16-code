@@ -212,8 +212,12 @@ void bullet_logic()
             bullet.tx[b] += bullet.tdx[b];
             bullet.ty[b] += bullet.tdy[b];
 
+            bullet.cx[b] = BYTE0(WORD1(bullet.tx[b]) >> 2);
+            bullet.cy[b] = BYTE0(WORD1(bullet.ty[b]) >> 2);
+
             volatile signed int x = (signed int)WORD1(bullet.tx[b]);
             volatile signed int y = (signed int)WORD1(bullet.ty[b]);
+
 
 
             if(y>-32 && x>-32 && x<640 && y<480) {
@@ -229,7 +233,7 @@ void bullet_logic()
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate_get_state(a)));
 				}
                 animate_logic(a);
-				collision_insert(&ht_collision, BYTE0(x>>2), BYTE0(y>>2), COLLISION_BULLET | b);
+				collision_insert(&ht_collision, bullet.cx[b], bullet.cy[b], COLLISION_BULLET | b);
             } else {
                 bullet_remove(b);
             }

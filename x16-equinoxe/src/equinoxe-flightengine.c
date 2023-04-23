@@ -225,10 +225,10 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_index_t sprite_index)
         sprite_cache.loop[c] = sprites.loop[sprite_index];
         strcpy(&sprite_cache.file[co], sprites.file[sprite_index]);
 
-        sprite_cache.aabb[co] = sprites.aabb[sprite_index].xmin;
-        sprite_cache.aabb[co + 1] = sprites.aabb[sprite_index].ymin;
-        sprite_cache.aabb[co + 2] = sprites.aabb[sprite_index].xmax;
-        sprite_cache.aabb[co + 3] = sprites.aabb[sprite_index].ymax;
+        sprite_cache.xmin[c] = sprites.aabb[sprite_index].xmin >> 2;
+        sprite_cache.ymin[c] = sprites.aabb[sprite_index].ymin >> 2;
+        sprite_cache.xmax[c] = sprites.aabb[sprite_index].xmax >> 2;
+        sprite_cache.ymax[c] = sprites.aabb[sprite_index].ymax >> 2;
     }
 
     sprite_cache.used[c]++;

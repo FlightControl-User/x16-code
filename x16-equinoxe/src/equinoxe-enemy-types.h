@@ -22,6 +22,9 @@ typedef struct {
     FP tdx[64]; // 768
     FP tdy[64]; // 1024
 
+    unsigned char cx[64];
+    unsigned char cy[64];
+
     unsigned char move[64]; // 1280
     unsigned char moved[64]; // 1344
     unsigned char enabled[64]; // 1408

@@ -22,7 +22,6 @@
 #define __STAGE
 #define __COLLISION
 
-
 #define __FLOOR
 // #define __TOWER
 #define __PLAYER

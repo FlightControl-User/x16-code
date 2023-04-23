@@ -99,7 +99,11 @@ typedef struct {
     unsigned char loop[16];
     unsigned char palette_offset[16];
     unsigned char file[16*16];
-    unsigned char aabb[16*4];
+    unsigned char xmin[16];
+    unsigned char ymin[16];
+    unsigned char xmax[16];
+    unsigned char ymax[16];
+
 } fe_sprite_cache_t;
 
 
@@ -110,6 +114,9 @@ typedef struct {
     FP ty[4];
     FP tdx[4];
     FP tdy[4];
+
+    unsigned char cx[4];
+    unsigned char cy[4];
 
     unsigned char used[4];
 

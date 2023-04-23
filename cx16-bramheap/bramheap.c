@@ -1,10 +1,8 @@
 #pragma link("bramheap.ld")
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
-
-#pragma zp_reserve(0x00..0xFF, 0x80..0xA8)
-
 #pragma library(bramheap)
+#pragma zp_reserve(0x00..0xFF, 0x80..0xA8)
 
 #include <cx16.h>
 #include <conio.h>
@@ -13,7 +11,7 @@
 //#include "cx16-bramheap-lib.h"
 
 #define BRAM_BRAM_HEAP BramBramHeap
-#define DATA_BRAM_HEAP CodeBramHeap
+#define DATA_BRAM_HEAP DataBramHeap
 
 // #define __BRAM_HEAP_DEBUG
 // #define __BRAM_HEAP_DUMP
