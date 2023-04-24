@@ -15,8 +15,16 @@ const unsigned char FE_ENGINE = 4;
 const unsigned char FE_CACHE = 16;
 
 
+#define FLIGHT_PLAYER   (0x01)
+#define FLIGHT_ENEMY    (0x02)
+#define FLIGHT_TOWER    (0x04)
+#define FLIGHT_BULLET   (0x08)
+#define FLIGHT_MASK     (0x0F)
+
 
 extern fe_t fe; // used for storing the positions of the control blocks pools.
+
+extern flight_t flight;
 
 extern fe_player_t player;
 extern fe_engine_t engine;
@@ -25,6 +33,9 @@ extern fe_sprite_cache_t sprite_cache;
 // extern lru_cache_table_t sprite_cache_vram;
 
 extern vera_sprite_offset sprite_offsets[127];
+
+flight_index_t flight_add();
+void flight_remove(flight_index_t f);
 
 
 fe_sprite_index_t fe_sprite_cache_copy(sprite_index_t sprite_bram);

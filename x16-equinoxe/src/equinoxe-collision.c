@@ -1,27 +1,34 @@
 // #include <cx16-bitmap.h>
-#include "stdio.h"
-#include "equinoxe-types.h"
-#include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
-#include "equinoxe-tower.h"
 #include "equinoxe-bullet.h"
-#include "equinoxe-stage.h"
+#include "equinoxe-flightengine.h"
 #include "equinoxe-player.h"
+#include "equinoxe-stage.h"
+#include "equinoxe-tower.h"
+#include "equinoxe-enemy.h"
+#include "equinoxe-types.h"
+#include "equinoxe.h"
+#include "stdio.h"
 
-// #pragma var_model(zp)
+#pragma var_model(zp)
 
-#pragma data_seg(hash)
-ht_item_t ht_collision;
+#pragma data_seg(Hash)
+ht_item_t collision_hash;
+collision_quadrant_t collision_quadrant;
 
 #pragma data_seg(Data)
+#pragma code_seg(Code)
 
-ht_key_t collision_key(unsigned char gx, unsigned char gy)
-{
+void collision_init() {
+    ht_init(&collision_hash);
+    memset_fast((char *)&collision_quadrant, 0, 0); // 256 initializations of the quadrant cell array.
+}
+
+ht_key_t collision_key(unsigned char gx, unsigned char gy) {
     unsigned char key = gy + gx;
     return key;
     //  return (((unsigned int)(kx + ky))|(unsigned int)group<<4);
 }
-
 
 /**
  * @brief Add a new coordinate to the spacial grid.
@@ -40,8 +47,7 @@ ht_key_t collision_key(unsigned char gx, unsigned char gy)
  * @param ymin
  * @param data
  */
-void collision_insert(ht_item_t* ht, unsigned char xmin, unsigned char ymin, ht_data_t data)
-{
+void collision_insert(unsigned char xmin, unsigned char ymin, ht_data_t data) {
 
     // bram_bank_t bram_old = bank_get_bram();
     // bank_set_bram(60);
@@ -62,18 +68,78 @@ void collision_insert(ht_item_t* ht, unsigned char xmin, unsigned char ymin, ht_
         for (unsigned char gy = ymin; gy <= ymax; gy += 16) {
             ht_key_t ht_key = collision_key((unsigned char)gx, (unsigned char)gy);
             // printf("cell %02x,%02x:%02x(%02x)", gx, gy, ht_key, data);
-            ht_insert(ht, ht_key, data);
+            ht_insert(&collision_hash, ht_key, data);
+            collision_quadrant.cell[gy + gx] += 1;
         }
     }
     // bank_set_bram(bram_old);
 }
 
-void collision_print(ht_item_t* ht)
-{
-    bram_bank_t bram_old = bank_get_bram();
-    bank_set_bram(60);
-    ht_display(ht);
-    bank_set_bram(bram_old);
+inline unsigned char collision_count(unsigned char gx, unsigned char gy) { return collision_quadrant.cell[gx + gy]; }
+
+inline void collision_debug() {
+    gotoxy(0, 0);
+    printf("hash root = %04p, ", &collision_hash);
+    printf("hash list = %04p, ", &ht_list);
+    printf("hash quadrant = %04p \n", &collision_quadrant);
+
+    ht_display(&collision_hash);
+}
+
+unsigned char collision_data(unsigned char collision, collision_decision_t *collision_decision) {
+
+    // We only execute the outer calculations if there is an inner grid part, otherwise we just skip anyway.
+    // This is done to make the collision detection as short as possible.
+    unsigned char type = collision & COLLISION_MASK;
+    collision = collision & ~COLLISION_MASK;
+
+    unsigned char x, y = 0;
+    unsigned char side = 0;
+    unsigned char s = 0;
+
+    switch (type) {
+    case COLLISION_BULLET:
+        bullet_bank();
+        side = bullet.side[collision];
+        x = bullet.cx[collision];
+        y = bullet.cy[collision];
+        s = bullet.sprite[collision]; // Which sprite is it in the cache...
+        bullet_unbank();
+        break;
+    case COLLISION_PLAYER:
+        side = SIDE_PLAYER;
+        x = flight.cx[collision];
+        y = flight.cy[collision];
+        s = flight.sprite[collision]; // Which sprite is it in the cache...
+        break;
+    case COLLISION_ENEMY:
+        enemy_bank();
+        side = SIDE_ENEMY;
+        x = enemy.cx[collision];
+        y = enemy.cy[collision];
+        s = enemy.sprite[collision]; // Which sprite is it in the cache...
+        enemy_unbank();
+        break;
+    case COLLISION_TOWER:
+        side = towers.side[collision];
+        x = towers.cx[collision];
+        y = towers.cy[collision];
+        s = towers.sprite[collision]; // Which sprite is it in the cache...
+        break;
+    }
+
+    collision_decision->collision = collision;
+    collision_decision->s = s;
+    collision_decision->x = x;
+    collision_decision->y = y;
+    collision_decision->side = side;
+    collision_decision->type = type;
+    collision_decision->min_x = x + sprite_cache.xmin[s];
+    collision_decision->min_y = y + sprite_cache.ymin[s];
+    collision_decision->max_x = x + sprite_cache.xmax[s];
+    collision_decision->max_y = y + sprite_cache.ymax[s];
+
+    return collision;
 }
 
 /**
@@ -140,8 +206,7 @@ void collision_print(ht_item_t* ht)
  *
  *
  */
-void collision_detect()
-{
+void collision_detect() {
 
     bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
@@ -151,237 +216,166 @@ void collision_detect()
 #endif
 #endif
 
-    BREAKPOINT
-    for (unsigned char gy=0; gy<((480+64)>>2); gy+=(64>>2)) {
+    // The collision key needs the gx and gy so that the key can be calculated using a simple addition.
+    // We walk each row on the grid on the y-asis using the gy variable. There are in total 8 rows (480+64)/64.
+    // However, we ensure that gy contains the sum of all the cells of each row considered,
+    // so gy is incremented with a precision of 16, assuming that each row contains 16 cells.
+    for (unsigned char gy = 0; gy < ((480 + 64) >> 2); gy += (64 >> 2)) {
 
-        for (unsigned char gx=0; gx < ((640+64)>>(2+4)); gx+=(64>>(2+4))) {
+        // we walk each column on the row using the gx variable. Each row has 11 (640+64)/64 cells, (to deal with border collisions too).
+        // We consider gx to be incremented for each cell in the column/row combination, so gx is incremented by 1!
+        for (unsigned char gx = 0; gx < ((640 + 64) >> (2 + 4)); gx += (64 >> (2 + 4))) {
 
-            ht_key_t ht_key_outer = collision_key(gx, gy);
-            ht_index_t ht_index_outer = ht_get(&ht_collision, ht_key_outer);
+            // Now that we have a collision, we need to check for each object in the cell the collision rules to each other.
+            // Since we have the spacial hash, where each collision in the hash is a list,
+            // we can easily walk the the collision list in an n(+m) x m mode, comparing each collision and its rules.
 
-            while (ht_index_outer) {
+            if (collision_count(gx, gy)) {
 
+                ht_key_t ht_key_outer = collision_key(gx, gy);
+                ht_index_t ht_index_outer = ht_get(&collision_hash, ht_key_outer);
 
-                ht_index_t ht_index_inner = ht_get_next(ht_index_outer);
+                while (ht_index_outer) {
 
-                // We only execute the outer calculations if there is an inner grid part, otherwise we just skip anyway.
-                // This is done to make the collision detection as short as possible.
-                if (ht_index_inner) {
+                    ht_index_t ht_index_inner = ht_get_next(ht_index_outer);
 
-                    unsigned char outer = (unsigned char)ht_get_data(ht_index_outer);
+                    // We only execute the outer calculations if there is an inner grid part, otherwise we just skip anyway.
+                    // This is done to make the collision detection as short as possible.
+                    if (ht_index_inner) {
 
-                    unsigned char outer_type = outer & COLLISION_MASK;
-                    outer = outer & ~COLLISION_MASK;
+                        collision_decision_t collision_outer;
 
-                    unsigned char outer_x, outer_y;
-                    unsigned char outer_min_x, outer_min_y, outer_max_x, outer_max_y;
-                    unsigned char outer_side;
-                    unsigned char outer_c;
+                        unsigned char outer = (unsigned char)ht_get_data(ht_index_outer);
+                        outer = collision_data(outer, &collision_outer);
 
-                    switch (outer_type) {
-                    case COLLISION_BULLET:
-                        bullet_bank();
-                        outer_side = bullet.side[outer];
-                        outer_x = bullet.cx[outer];
-                        outer_y = bullet.cy[outer];
-                        outer_c = bullet.sprite[outer]; // Which sprite is it in the cache...
-                        bullet_unbank();
-                        break;
-                    case COLLISION_PLAYER:
-                        outer_side = SIDE_PLAYER;
-                        outer_x = player.cx[outer];
-                        outer_y = player.cy[outer];
-                        outer_c = player.sprite[outer]; // Which sprite is it in the cache...
-                        break;
-                    case COLLISION_ENEMY:
-                        enemy_bank();
-                        outer_side = SIDE_ENEMY;
-                        outer_x = enemy.cx[outer];
-                        outer_y = enemy.cy[outer];
-                        outer_c = enemy.sprite[outer]; // Which sprite is it in the cache...
-                        enemy_unbank();
-                        break;
-                    case COLLISION_TOWER:
-                        outer_side = towers.side[outer];
-                        outer_x = towers.cx[outer];
-                        outer_y = towers.cy[outer];
-                        outer_c = towers.sprite[outer]; // Which sprite is it in the cache...
-                        break;
-                    }
+                        while (ht_index_inner) {
 
-                    outer_min_x = outer_x + sprite_cache.xmin[outer_c];
-                    outer_min_y = outer_y + sprite_cache.ymin[outer_c];
-                    outer_max_x = outer_x + sprite_cache.xmax[outer_c];
-                    outer_max_y = outer_y + sprite_cache.ymax[outer_c];
+                            collision_decision_t collision_inner;
 
-                    while (ht_index_inner) {
+                            unsigned char inner = (unsigned char)ht_get_data(ht_index_inner);
+                            inner = collision_data(inner, &collision_inner);
 
-                        unsigned char inner = (unsigned char)ht_get_data(ht_index_inner);
-                        unsigned char inner_type = inner & COLLISION_MASK;
-                        inner = inner & ~COLLISION_MASK;
-
-                        unsigned char inner_x, inner_y;
-                        unsigned char inner_min_x, inner_min_y, inner_max_x, inner_max_y;
-                        unsigned char inner_side;
-                        unsigned char inner_c;
-
-                        switch (inner_type) {
-                        case COLLISION_BULLET:
-                            bullet_bank();
-                            inner_side = bullet.side[inner];
-                            inner_x = bullet.cx[inner];
-                            inner_y = bullet.cy[inner];
-                            inner_c = bullet.sprite[inner]; // Which sprite is it in the cache...
-                            bullet_unbank();
-                            break;
-                        case COLLISION_PLAYER:
-                            inner_side = SIDE_PLAYER;
-                            inner_x = player.cx[inner];
-                            inner_y = player.cy[inner];
-                            inner_c = player.sprite[inner]; // Which sprite is it in the cache...
-                            break;
-                        case COLLISION_ENEMY:
-                            enemy_bank();
-                            inner_side = SIDE_ENEMY;
-                            inner_x = enemy.cx[inner];
-                            inner_y = enemy.cy[inner];
-                            inner_c = enemy.sprite[inner]; // Which sprite is it in the cache...
-                            enemy_unbank();
-                            break;
-                        case COLLISION_TOWER:
-                            inner_side = towers.side[inner];
-                            inner_x = towers.cx[inner];
-                            inner_y = towers.cy[inner];
-                            inner_c = towers.sprite[inner]; // Which sprite is it in the cache...
-                            break;
-                        }
-
-                        inner_min_x = inner_x + sprite_cache.xmin[inner_c];
-                        inner_min_y = inner_y + sprite_cache.ymin[inner_c];
-                        inner_max_x = inner_x + sprite_cache.xmax[inner_c];
-                        inner_max_y = inner_y + sprite_cache.ymax[inner_c];
-
-                        // Now comes the collision test!
+                            // Now comes the collision test!
 
 #ifdef __DEBUG_COLLISION
-                        printf("inner_x=%04u, inner_y=%04u\n", inner_x, inner_y);
-                        printf("outer_x=%04u, outer_y=%04u\n", outer_x, outer_y);
-                        printf("os=%u, is=%u, ", outer_side, inner_side);
-                        printf("outer_type=%02x, inner_type=%02x\n", outer_type, inner_type);
+                            printf("\ngx=%03u, gy=%03u, inner=%03u, outer=%03u\n", gx, gy, inner, outer);
+                            printf("\nos=%u, ot=%02x, ox=%04u, oy=%04u\n", collision_outer.side, collision_outer.type, collision_outer.x, collision_outer.y);
+                            printf("is=%u, it=%02x, ix=%04u, iy=%04u\n", collision_inner.side, collision_inner.type, collision_inner.x, collision_inner.y);
 #endif
 
-                        if (outer_side != inner_side) {
+                            if (collision_outer.side != collision_inner.side) {
 
-#ifdef __DEBUG_COLLISION
-                            printf("outer_min_x=%04x, inner_min_x=%04x \n", outer_min_x, inner_min_x);
-                            printf("outer_min_y=%04x, inner_min_y=%04x \n", outer_min_y, inner_min_y);
-                            printf("outer_max_x=%04x, inner_max_x=%04x \n", outer_max_x, inner_max_x);
-                            printf("outer_max_y=%04x, inner_max_y=%04x \n", outer_max_y, inner_max_y);
-#endif
-
-                            if (inner_min_x > outer_max_x ||
-                                inner_min_y > outer_max_y ||
-                                inner_max_x < outer_min_x ||
-                                inner_max_y < outer_min_y) {
-                                // no collision
-                            } else {
-
-                                // Collision happened
-                                if (outer_side == SIDE_ENEMY) {
-                                    switch (outer_type) {
-                                    case COLLISION_BULLET:
-#ifdef __DEBUG_COLLISION
-                                        printf(", bullet %u -> ", outer);
-#endif
-                                        if (inner_type == COLLISION_PLAYER) {
-#ifdef __DEBUG_COLLISION
-                                            printf("player %u", inner);
-#endif
-                                            bullet_remove(outer);
-                                            player_remove(inner, outer);
-                                        }
-                                        break;
-
-                                    case COLLISION_ENEMY:
-#ifdef __DEBUG_COLLISION
-                                        printf(", enemy %u -> ", outer);
-#endif
-                                        if (inner_type == COLLISION_BULLET) {
-#ifdef __DEBUG_COLLISION
-                                            printf("bullet %u", inner);
-#endif
-                                           stage_enemy_hit(outer, inner);
-                                           bullet_remove(inner);
-                                        }
-                                        if (inner_type == COLLISION_PLAYER) {
-#ifdef __DEBUG_COLLISION
-                                            printf("player %u", inner);
-#endif
-                                            stage_enemy_hit(outer, inner);
-                                            player_remove(inner, outer);
-                                        }
-                                        break;
-                                    case COLLISION_TOWER:
-#ifdef __DEBUG_COLLISION
-                                        printf(", tower %u -> ", outer);
-#endif
-                                        if (inner_type == COLLISION_BULLET) {
-#ifdef __DEBUG_COLLISION
-                                            printf("bullet %u", inner);
-#endif
-                                            bullet_remove(inner);
-                                            tower_hit(outer, inner);
-                                        }
-                                        break;
-                                    }
+                                if (collision_inner.min_x > collision_outer.max_x || collision_inner.min_y > collision_outer.max_y ||
+                                    collision_inner.max_x < collision_outer.min_x || collision_inner.max_y < collision_outer.min_y) {
+                                    // no collision
                                 } else {
-                                    // Friendly
-                                    switch (outer_type) {
-                                    case COLLISION_BULLET:
-#ifdef __DEBUG_COLLISION
-                                        printf(", bullet %u -> ", outer);
-#endif
-                                        if (inner_type == COLLISION_ENEMY) {
-#ifdef __DEBUG_COLLISION
-                                            printf("enemy %u", inner);
-#endif
-                                            // Remove first the enemy, then the bullet, because the bullet contains the energy of impact.
-                                            stage_enemy_hit(outer, inner);
-                                            bullet_remove(outer);
-                                        }
-                                        if (inner_type == COLLISION_TOWER) {
-#ifdef __DEBUG_COLLISION
-                                            printf("tower %u", inner);
-#endif
-                                            bullet_remove(outer);
-                                            tower_hit(inner, outer);
-                                        }
-                                        break;
 
-                                    case COLLISION_PLAYER:
 #ifdef __DEBUG_COLLISION
-                                        printf(", enemy %u -> ", outer);
+                                    printf("outer_min_x=%04x, inner_min_x=%04x \n", collision_outer.min_x, collision_inner.min_x);
+                                    printf("outer_min_y=%04x, inner_min_y=%04x \n", collision_outer.min_y, collision_inner.min_y);
+                                    printf("outer_max_x=%04x, inner_max_x=%04x \n", collision_outer.max_x, collision_inner.max_x);
+                                    printf("outer_max_y=%04x, inner_max_y=%04x \n", collision_outer.max_y, collision_inner.max_y);
 #endif
-                                        if (inner_type == COLLISION_ENEMY) {
+                                    // Collision happened
+
+                                    if (collision_outer.side == SIDE_ENEMY) {
+                                        switch (collision_outer.type) {
+                                        case COLLISION_BULLET:
 #ifdef __DEBUG_COLLISION
-                                            printf("bullet %u", inner);
+                                            printf(", bullet %u -> ", outer);
 #endif
-                                            stage_enemy_hit(outer, inner);
-                                            player_remove(inner, outer);
+                                            if (collision_inner.type == COLLISION_PLAYER) {
+#ifdef __DEBUG_COLLISION
+                                                printf("player %u\n", inner);
+#endif
+                                                if(!bullet_has_collided(outer)) bullet_remove(outer);
+                                                if(!player_has_collided(inner)) player_hit(inner, bullet_impact(outer));
+                                            }
+                                            break;
+
+                                        case COLLISION_ENEMY:
+#ifdef __DEBUG_COLLISION
+                                            printf(", enemy %u -> ", outer);
+#endif
+                                            if (collision_inner.type == COLLISION_BULLET) {
+#ifdef __DEBUG_COLLISION
+                                                printf("bullet %u\n", inner);
+#endif
+                                                if(!enemy_has_collided(outer)) stage_enemy_hit(outer, bullet_impact(inner));
+                                                if(!bullet_has_collided(inner)) bullet_remove(inner);
+                                            }
+                                            if (collision_inner.type == COLLISION_PLAYER) {
+#ifdef __DEBUG_COLLISION
+                                                printf("player %u\n", inner);
+#endif
+                                                
+                                                if(!enemy_has_collided(outer)) stage_enemy_hit(outer, player_impact(inner));
+                                                if(!player_has_collided(inner)) player_hit(inner, enemy_impact(outer));
+                                            }
+                                            break;
+                                        case COLLISION_TOWER:
+#ifdef __DEBUG_COLLISION
+                                            printf(", tower %u -> ", outer);
+#endif
+                                            if (collision_inner.type == COLLISION_BULLET) {
+#ifdef __DEBUG_COLLISION
+                                                printf("bullet %u\n", inner);
+#endif
+                                                if(!bullet_has_collided(inner)) bullet_remove(inner);
+                                                // tower_hit(outer, inner);
+                                            }
+                                            break;
                                         }
-                                        break;
+                                    } else {
+                                        // Friendly
+                                        switch (collision_outer.type) {
+                                        case COLLISION_BULLET:
+#ifdef __DEBUG_COLLISION
+                                            printf(", bullet %u -> ", outer);
+#endif
+                                            if (collision_inner.type == COLLISION_ENEMY) {
+#ifdef __DEBUG_COLLISION
+                                                printf("enemy %u\n", inner);
+#endif
+                                                // Remove first the enemy, then the bullet, because the bullet contains the energy of impact.
+                                                if(!enemy_has_collided(inner)) stage_enemy_hit(inner, bullet_impact(outer));
+                                                if(!bullet_has_collided(outer)) bullet_remove(outer);
+                                            }
+                                            if (collision_inner.type == COLLISION_TOWER) {
+#ifdef __DEBUG_COLLISION
+                                                printf("tower %u\n", inner);
+#endif
+                                                if(!bullet_has_collided(outer)) bullet_remove(outer);
+                                                // tower_hit(inner, outer);
+                                            }
+                                            break;
+
+                                        case COLLISION_PLAYER:
+#ifdef __DEBUG_COLLISION
+                                            printf(", player %u -> ", outer);
+#endif
+                                            if (collision_inner.type == COLLISION_ENEMY) {
+#ifdef __DEBUG_COLLISION
+                                                printf("enemy %u\n", inner);
+#endif
+                                                
+                                                if(!enemy_has_collided(inner)) stage_enemy_hit(inner, player_impact(outer));
+                                                if(!player_has_collided(outer)) player_hit(outer, enemy_impact(inner));
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
                             }
+                            ht_index_inner = ht_get_next(ht_index_inner);
                         }
-                        ht_index_inner = ht_get_next(ht_index_inner);
                     }
+                    ht_index_outer = ht_get_next(ht_index_outer);
                 }
-                ht_index_outer = ht_get_next(ht_index_outer);
             }
         }
     }
     bank_pull_bram();
 }
 
-// #pragma var_model(mem)
+#pragma var_model(mem)

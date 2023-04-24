@@ -19,12 +19,45 @@
 fe_sprite_cache_t sprite_cache;
 
 #pragma data_seg(DATA_ENGINE_FLIGHT)
+flight_t flight;
+
 fe_t fe;  // Flight engine control.
 vera_sprite_offset sprite_offsets[127] = { 0 };
 
 #pragma data_seg(CODE_ENGINE_FLIGHT)
 
 // #pragma var_model(zp)
+
+flight_index_t flight_add(flight_type_t type) {
+
+    unsigned char f = flight.index;
+    while (flight.used[f]) {
+        f = (f + 1) % 128;
+    }
+    flight.index = f;
+
+    flight.type = type;
+    
+    flight.used[f] = 1;
+    flight.enabled[f] = 0;
+
+
+    return f;
+}
+
+void flight_remove(flight_index_t f) {
+
+    if (flight.used[f]) {
+        vera_sprite_offset sprite_offset = flight.sprite_offset[f];
+        sprite_free_offset(sprite_offset);
+        vera_sprite_disable(sprite_offset);
+        palette_unuse_vram(sprite_cache.palette_offset[flight.sprite[f]]);
+        fe_sprite_cache_free(flight.sprite[f]);
+        flight.used[p] = 0;
+        flight.enabled[p] = 0;
+        flight.collided[p] = 1;
+    }
+}
 
 vera_sprite_offset sprite_next_offset()
 {

@@ -69,6 +69,7 @@ unsigned char enemy_add(unsigned char w, sprite_index_t enemy_sprite)
     enemy.direction_animation[e] = 1;
 
 	enemy.health[e] = 100;
+	enemy.impact[e] = -30;
 	enemy.delay[e] = 0;
 
     stage_flightpath_t* flightpath = wave.enemy_flightpath[w];
@@ -96,10 +97,13 @@ unsigned char enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 void enemy_remove(unsigned char e) 
 {
     if(enemy.used[e]) {
+
 		// gotoxy(0, e);
 		// printf("%02u -     ", e);
+		
         enemy.used[e] = 0;
         enemy.enabled[e] = 0;
+		enemy.collided[e] = 1;
         vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
         sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
@@ -110,10 +114,13 @@ void enemy_remove(unsigned char e)
 }
 
 
-unsigned char enemy_hit(unsigned char e, unsigned char b) 
+unsigned char enemy_hit(unsigned char e, signed char impact) 
 {
-    enemy.health[e] += bullet_energy_get(b); // unbanked to BRAM_ENGINE_BULLET
+	
+    enemy.health[e] += impact;
     if(enemy.health[e] <= 0) {
+		enemy.collided[e] = 1;
+
 		return 1;
     }
 
@@ -296,7 +303,8 @@ void enemy_logic() {
 					bullet_enemy_fire((unsigned int)x, (unsigned int)y);
 				}
 #endif
-				collision_insert(&ht_collision, enemy.cx[e], enemy.cy[e], COLLISION_ENEMY | e);
+				enemy.collided[e] = 0;
+				collision_insert(enemy.cx[e], enemy.cy[e], COLLISION_ENEMY | e);
 			} else {
 				if(enemy.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);
@@ -315,7 +323,6 @@ unsigned char enemy_get_wave(unsigned char e) {
 #pragma data_seg(Data)
 #pragma nobank
 
-
 inline void enemy_bank() {
     bank_push_set_bram(BANK_ENGINE_ENEMIES);
 }
@@ -323,4 +330,21 @@ inline void enemy_bank() {
 inline void enemy_unbank() {
     bank_pull_bram();
 }
+
+signed char enemy_impact(unsigned char e) {
+	enemy_bank();
+	
+	signed char impact = enemy.impact[e];
+	enemy_unbank();
+	return impact;
+}
+
+// This will need rework
+unsigned char enemy_has_collided(unsigned char e) {
+	enemy_bank();
+	unsigned char collided = enemy.collided[e];
+	enemy_unbank();
+	return collided;
+}
+
 

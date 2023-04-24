@@ -91,7 +91,8 @@ void bullet_player_fire(unsigned int x, unsigned int y)
 
         bullet_sprite_animate_add(b, s);
 
-        bullet.energy[b] = -10;
+        
+        bullet.impact[b] = -100;
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
@@ -132,7 +133,7 @@ void bullet_enemy_fire(unsigned int x, unsigned int y)
 
         bullet_sprite_animate_add(b, s);
 
-        bullet.energy[b] = -25;
+        bullet.impact[b] = -25;
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
@@ -173,7 +174,7 @@ void FireBulletTower(unsigned char t)
 
         bullet_sprite_animate_add(b, s);
 
-        bullet.energy[b] = -50;
+        bullet.impact[b] = -50;
 
         stage.bullet_pool = (b+1)%FE_BULLET;
     }
@@ -183,6 +184,7 @@ void FireBulletTower(unsigned char t)
 void bullet_remove(unsigned char b) 
 {
     if(bullet.used[b]) {
+        
         vera_sprite_offset sprite_offset = bullet.sprite_offset[b];
         vera_sprite_disable(sprite_offset);
         sprite_free_offset(sprite_offset);
@@ -190,16 +192,12 @@ void bullet_remove(unsigned char b)
         fe_sprite_cache_free(bullet.sprite[b]);
         bullet.used[b] = 0;
         bullet.enabled[b] = 0;
+        bullet.collided[b] = 1;
         bullet.sprite[b] = 255;
 
         bullet_sprite_animate_del(b);
         stage.bullet_count--;
     }
-}
-
-signed char bullet_energy_get(unsigned char b) {
-    signed char energy = bullet.energy[b];
-    return energy;
 }
 
 void bullet_logic()
@@ -233,7 +231,8 @@ void bullet_logic()
 					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(bullet.sprite[b], animate_get_state(a)));
 				}
                 animate_logic(a);
-				collision_insert(&ht_collision, bullet.cx[b], bullet.cy[b], COLLISION_BULLET | b);
+                bullet.collided[b] = 0;
+				collision_insert(bullet.cx[b], bullet.cy[b], COLLISION_BULLET | b);
             } else {
                 bullet_remove(b);
             }
@@ -254,6 +253,23 @@ inline void bullet_bank() {
 
 inline void bullet_unbank() {
     bank_pull_bram();
+}
+
+signed char bullet_impact(unsigned char b) {
+    
+	bullet_bank();
+    signed char impact = bullet.impact[b];
+	bullet_unbank();
+    return impact;
+}
+
+
+// This will need rework
+unsigned char bullet_has_collided(unsigned char b) {
+	bullet_bank();
+	unsigned char collided = bullet.collided[b];
+	bullet_unbank();
+	return collided;
 }
 
 

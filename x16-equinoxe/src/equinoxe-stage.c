@@ -54,6 +54,8 @@ void stage_copy(unsigned char ew, unsigned int scenario) {
     wave.finished[ew] = 0;
     wave.scenario[ew] = scenario;
 
+    wave.enemy_alive[ew] = 0;
+
 
     // #ifdef __DEBUG_STAGE
     //     gotoxy(0, (unsigned char)scenario+1);
@@ -254,6 +256,7 @@ void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
     wave.wait[w] = wave.interval[w];
     wave.enemy_spawn[w] -= enemies;
     wave.enemy_count[w] -= enemies;
+    wave.enemy_alive[w] += 1;
 }
 
 
@@ -262,18 +265,20 @@ void stage_enemy_remove(unsigned char e)
     unsigned char w = enemy_get_wave(e);
     enemy_remove(e);
     wave.enemy_spawn[w] += 1;
+    wave.enemy_alive[w] -= 1;
     stage.enemy_count--;
 }
 
 
-void stage_enemy_hit(unsigned char e, unsigned char b)
+void stage_enemy_hit(unsigned char e, signed char impact)
 {
     unsigned char w = enemy_get_wave(e);
-    unsigned char hit = enemy_hit(e, b);
+    unsigned char hit = enemy_hit(e, impact);
     if(hit) {
         enemy_remove(e);
         wave.enemy_spawn[w] += 1;
         stage.enemy_count--;
+        wave.enemy_alive[w] -= 1;
     }
 }
 
@@ -296,8 +301,10 @@ void stage_logic()
                                 #endif
                             }
                         } else {
-                            wave.used[w] = 0;
-                            wave.finished[w] = 1;
+                            if(!wave.enemy_alive[w]) {
+                                wave.used[w] = 0;
+                                wave.finished[w] = 1;
+                            }
                         }
                     } else {
                        wave.wait[w]--;

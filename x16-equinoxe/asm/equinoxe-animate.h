@@ -1,4 +1,4 @@
-#include "../src/equinoxe-stage-types.h"
+//#include "../src/equinoxe-stage-types.h"
 
 void animate_init();
 unsigned char animate_add(char count, char loop, char speed, signed char direction, char reverse);

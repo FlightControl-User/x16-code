@@ -1,6 +1,8 @@
 #include <cx16-bramheap-typedefs.h>
 #include "equinoxe-palette-types.h"
 
+
+
 typedef struct {
     unsigned char loaded;
     char file[16];

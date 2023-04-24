@@ -62,7 +62,7 @@ __export char n001[] = kickasm {{{
 };}};
 
 __export char e0101[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0101","gif",0,12,1,512,64,64,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0101","gif",0,12,1,512,64,64,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -74,7 +74,7 @@ __export char e0101[] = kickasm {{{
 
 
 __export char e0102[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0102","gif",0,12,1,512,64,64,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0102","gif",0,12,1,512,64,64,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -86,7 +86,7 @@ __export char e0102[] = kickasm {{{
 
 
 __export char e0201[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0201","gif",0,12,1,512,64,64,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0201","gif",0,12,1,512,64,64,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -98,7 +98,7 @@ __export char e0201[] = kickasm {{{
 
 
 __export char e0202[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0202","gif",0,12,1,512,64,64,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0202","gif",0,12,1,512,64,64,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -110,7 +110,7 @@ __export char e0202[] = kickasm {{{
 
 
 __export char e0301[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0301","gif",0,12,1,512,64,64,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0301","gif",0,12,1,512,64,64,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -122,7 +122,7 @@ __export char e0301[] = kickasm {{{
 
 
 __export char e0302[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0302","gif",0,12,1,512,64,64,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0302","gif",0,12,1,512,64,64,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -134,7 +134,7 @@ __export char e0302[] = kickasm {{{
 
 
 __export char e0401[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0401","gif",0,14,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0401","gif",0,14,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -146,7 +146,7 @@ __export char e0401[] = kickasm {{{
 
 
 __export char e0501[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0501","gif",0,13,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0501","gif",0,13,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -158,7 +158,7 @@ __export char e0501[] = kickasm {{{
 
 
 __export char e0502[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0502","gif",0,14,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0502","gif",0,14,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -170,7 +170,7 @@ __export char e0502[] = kickasm {{{
 
 
 __export char e0601[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0601","gif",0,13,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0601","gif",0,13,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -182,7 +182,7 @@ __export char e0601[] = kickasm {{{
 
 
 __export char e0602[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0602","gif",0,13,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0602","gif",0,13,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -194,7 +194,7 @@ __export char e0602[] = kickasm {{{
 
 
 __export char e0701[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0701","gif",0,13,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0701","gif",0,13,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -205,7 +205,7 @@ __export char e0701[] = kickasm {{{
 };}};
 
 __export char e702[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0702","gif",0,13,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0702","gif",0,13,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)
@@ -216,7 +216,7 @@ __export char e702[] = kickasm {{{
 };}};
 
 __export char e703[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0703","gif",0,13,1,512,32,32,3,0,0,4,2,1,16,0)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/enemies/e0703","gif",0,13,1,512,32,32,3,0,0,4,2,0,16,0)
     .var pallist = GetPalette2(sprite)
     .var tiledata = MakeTile2(sprite,pallist)
     .var pallistdata = MakePalette2(sprite,pallist)

@@ -1,267 +1,246 @@
 #include <cx16-mouse.h>
 
+#include "equinoxe-bullet.h"
+#include "equinoxe-collision.h"
 #include "equinoxe-defines.h"
+#include "equinoxe-flightengine-types.h"
+#include "equinoxe-flightflight.h"
+#include "equinoxe-flight.h"
+#include "equinoxe-stage.h"
 #include "equinoxe-types.h"
 #include "equinoxe.h"
-#include "equinoxe-flightengine-types.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-collision.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-player.h"
-#include "equinoxe-bullet.h"
 
 #pragma data_seg(DATA_ENGINE_PLAYERS)
-fe_player_t player;
+fe_flight_t flight;
 fe_engine_t engine;
 
 #pragma data_seg(CODE_ENGINE_PLAYERS)
 
-void player_init()
-{
-    bank_push_set_bram(BANK_ENGINE_FLIGHT);
+#pragma code_seg(Code)
 
-    memset(&player, 0, sizeof(fe_player_t));
-    memset(&engine, 0, sizeof(fe_engine_t));
-
-    bank_pull_bram();
+void player_init() {
 }
 
-void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) 
-{
+void player_add(sprite_index_t sprite_flight, sprite_index_t sprite_engine) {
 
     bank_push_set_bram(BANK_ENGINE_FLIGHT);
+
+    unsigned char p = flight_add();
 
     stage.player_count++;
 
-	// player
-	unsigned char p = stage.player_pool;
+    flight.used[p] = 1;
+    flight.enabled[p] = 0;
 
-	while(player.used[p]) {
-		p = (p+1)%FE_PLAYER;
-	}
-	
-	player.used[p] = 1;
-	player.enabled[p] = 0;
+    flight.moved[p] = 2;
+    flight.firegun[p] = 0;
+    flight.reload[p] = 0;
 
-	player.moved[p] = 2;
+    flight.health[p] = 100;
+    flight.impact[p] = -100;
 
-	player.firegun[p] = 0;
-	player.reload[p] = 0;
+    flight.speed_animation[p] = 8;
+    flight.wait_animation[p] = flight.speed_animation[p];
+    flight.state_animation[p] = 3;
 
-	player.speed_animation[p] = 8;
-	player.wait_animation[p] = player.speed_animation[p];
-	player.state_animation[p] = 3;
+    unsigned char s = fe_sprite_cache_copy(sprite_flight);
+    flight.sprite[p] = s;
 
-    unsigned char s = fe_sprite_cache_copy(sprite_player);
-    player.sprite[p] = s;
+    flight.sprite_offset[p] = sprite_next_offset();
+    fe_sprite_configure(flight.sprite_offset[p], s);
 
-	player.sprite_offset[p] = sprite_next_offset();
-	fe_sprite_configure(player.sprite_offset[p], s);
+    flight.tx[p] = MAKELONG(320, 0);
+    flight.ty[p] = MAKELONG(200, 0);
+    flight.tdx[p] = 0;
+    flight.tdy[p] = 0;
 
-
-	player.tx[p] = MAKELONG(320, 0);
-	player.ty[p] = MAKELONG(200, 0);
-	player.tdx[p] = 0;
-	player.tdy[p] = 0;
-
-    player.health[p] = 100;
-
-	stage.player_pool = (p+1)%FE_PLAYER;
-
-	// Engine
-	while(engine.used[stage.engine_pool]) {
-		stage.engine_pool = (stage.engine_pool++)%FE_ENGINE;
-	}
-
-	unsigned char n = stage.engine_pool;
-
-	player.engine[p] = n;
-
-	engine.used[p] = 1;
-
-	engine.speed_animation[n] = 1;
-	engine.wait_animation[n] = engine.speed_animation[n];
-
-    unsigned char cn = fe_sprite_cache_copy(sprite_engine);
-    engine.sprite[n] = cn;
-
-	engine.sprite_offset[n] = sprite_next_offset();
-	fe_sprite_configure(engine.sprite_offset[n], cn);
-
-	stage.engine_pool = (stage.engine_pool++)%FE_ENGINE;
-
-    // stage.player_xor = player_checkxor();
-
-    bank_pull_bram();
-
-}
-
-void player_remove(unsigned char p, unsigned char b) 
-{
-
-    bank_push_set_bram(BANK_ENGINE_FLIGHT);
-
-    player.health[p] += bullet_energy_get(b);
-
-    if(player.health[p] <= 0) {
-
-        vera_sprite_offset sprite_offset = player.sprite_offset[p];
-        sprite_free_offset(sprite_offset);
-        vera_sprite_disable(sprite_offset);
-        palette_unuse_vram(sprite_cache.palette_offset[player.sprite[p]]);
-        fe_sprite_cache_free(player.sprite[p]);
-        player.used[p] = 0;
-        player.enabled[p] = 0;
-
-        unsigned char n = player.engine[p];
-        sprite_offset = engine.sprite_offset[n];
-        sprite_free_offset(sprite_offset);
-        vera_sprite_disable(sprite_offset);
-        palette_unuse_vram(sprite_cache.palette_offset[engine.sprite[n]]);
-        fe_sprite_cache_free(engine.sprite[n]);
-        engine.used[n] = 0;
-
-        stage.player_count--;
-
-        stage.lives--;
-        stage.respawn = 64;
+    // Engine
+    while (flight.used[stage.engine_pool]) {
+        stage.engine_pool = (stage.engine_pool++) % FE_ENGINE;
     }
 
-    // stage.player_xor = player_checkxor();
+    unsigned char n = flight_add();
+
+    flight.engine[p] = n;
+
+    flight.speed_animation[n] = 1;
+    flight.wait_animation[n] = flight.speed_animation[n];
+
+    unsigned char cn = fe_sprite_cache_copy(sprite_engine);
+    flight.sprite[n] = cn;
+
+    flight.sprite_offset[n] = sprite_next_offset();
+    fe_sprite_configure(flight.sprite_offset[n], cn);
 
     bank_pull_bram();
 }
 
+void player_remove(unsigned char p) {
+
+    if (flight.used[p]) {
+        unsigned char n = flight.engine[p];
+        flight_remove(p);
+        flight_remove(n);
+        stage.player_count--;
+    }
+}
+
+void player_hit(unsigned char p, signed char impact) {
+
+    if (flight.used[p]) {
+        flight.collided[p] = 1; // TODO isolate this.
+        flight.health[p] += impact;
+        if(flight.health[p]<=0) {
+            player_remove(p);
+        }
+    }
+}
 
 void player_logic() {
 
-    bank_push_set_bram(BANK_ENGINE_FLIGHT);
-
-    for(char p=0; p<FE_PLAYER; p++) {
+    for (flight_index_t p=0; p<128; p++) {
 
 #ifdef debug_scanlines
         vera_display_set_border_color(6);
 #endif
 
-        if(player.used[p]) {
+        if (flight.used[p]) {
 
-            if(player.reload[p] > 0) {
-                player.reload[p]--;
+            if (flight.reload[p] > 0) {
+                flight.reload[p]--;
             }
 
-            if(!player.wait_animation[p]) {
-                player.wait_animation[p] = player.speed_animation[p];
-                if(cx16_mouse.x < cx16_mouse.px && player.state_animation[p] > 0) {
+            if (!flight.wait_animation[p]) {
+                flight.wait_animation[p] = flight.speed_animation[p];
+                if (cx16_mouse.x < cx16_mouse.px && flight.state_animation[p] > 0) {
                     // Added fragment
-                    player.state_animation[p] -= 1;
-                    player.moved[p] = 2;
+                    flight.state_animation[p] -= 1;
+                    flight.moved[p] = 2;
                 }
-                if (cx16_mouse.x > cx16_mouse.px && player.state_animation[p] < 6) {
-                    player.state_animation[p] += 1;
-                    player.moved[p] = 2;
-                }
-
-                if (player.moved[p] == 1) {
-                    if (player.state_animation[p] < 3) {
-                        player.state_animation[p] += 1;
-                    }
-                    if (player.state_animation[p] > 3) {
-                        player.state_animation[p] -= 1;
-                    }
-                    if (player.state_animation[p] == 3) {
-                        player.moved[p] = 0;
-                    }
+                if (cx16_mouse.x > cx16_mouse.px && flight.state_animation[p] < 6) {
+                    flight.state_animation[p] += 1;
+                    flight.moved[p] = 2;
                 }
 
-                if(player.moved[p] == 2) {
-                    player.moved[p]--;
+                if (flight.moved[p] == 1) {
+                    if (flight.state_animation[p] < 3) {
+                        flight.state_animation[p] += 1;
+                    }
+                    if (flight.state_animation[p] > 3) {
+                        flight.state_animation[p] -= 1;
+                    }
+                    if (flight.state_animation[p] == 3) {
+                        flight.moved[p] = 0;
+                    }
+                }
+
+                if (flight.moved[p] == 2) {
+                    flight.moved[p]--;
                 }
             }
-            player.wait_animation[p]--;
+            flight.wait_animation[p]--;
 
-            unsigned char n = player.engine[p];
+            unsigned char n = flight.engine[p];
 
-            if (!engine.wait_animation[n]) {
-                engine.state_animation[n]++;
-                engine.state_animation[n] &= 0xF;
-                engine.wait_animation[n] = engine.speed_animation[n];
+            if (!flight.wait_animation[n]) {
+                flight.state_animation[n]++;
+                flight.state_animation[n] &= 0xF;
+                flight.wait_animation[n] = flight.speed_animation[n];
             }
-            engine.wait_animation[n]--;
-            
+            flight.wait_animation[n]--;
+
 #ifdef __BULLET
-            if (cx16_mouse.status == 1 && player.reload[p] <= 0) {
-                unsigned int x = WORD1(player.tx[p]);
-                unsigned int y = WORD1(player.ty[p]);        
-                if(player.firegun[p]) {
+            if (cx16_mouse.status == 1 && flight.reload[p] <= 0) {
+                unsigned int x = WORD1(flight.tx[p]);
+                unsigned int y = WORD1(flight.ty[p]);
+                if (flight.firegun[p]) {
                     x += (signed char)16;
                 }
-                player.firegun[p] = player.firegun[p]^1;
-                player.reload[p] = 8;
+                flight.firegun[p] = flight.firegun[p] ^ 1;
+                flight.reload[p] = 8;
                 bullet_player_fire(x, y);
             }
 #endif
 
-            // player.tdx[p] = MAKELONG((word)(cx16_mouse.x - cx16_mouse.px),0);
-            // player.tdy[p] = MAKELONG((word)(cx16_mouse.y - game.prev_mousey),0);
-            
-            // // Added fragment
-            // player.tx[p] += player.tdx[p];
-            // player.ty[p] += player.tdy[p];
+            flight.tx[p] = MAKELONG((word)(cx16_mouse.x), 0);
+            flight.ty[p] = MAKELONG((word)(cx16_mouse.y), 0);
 
-            player.tx[p] = MAKELONG((word)(cx16_mouse.x),0);
-            player.ty[p] = MAKELONG((word)(cx16_mouse.y),0);
+            flight.cx[p] = BYTE0(WORD1(flight.tx[p]) >> 2);
+            flight.cy[p] = BYTE0(WORD1(flight.ty[p]) >> 2);
 
-            player.cx[p] = BYTE0(WORD1(player.tx[p]) >> 2);
-            player.cy[p] = BYTE0(WORD1(player.ty[p]) >> 2);
+            volatile signed int flightx = (signed int)WORD1(flight.tx[p]);
+            volatile signed int flighty = (signed int)WORD1(flight.ty[p]);
 
+            vera_sprite_offset flight_sprite_offset = flight.sprite_offset[p];
+            vera_sprite_offset engine_sprite_offset = flight.sprite_offset[n];
 
-            volatile signed int playerx = (signed int)WORD1(player.tx[p]);
-            volatile signed int playery = (signed int)WORD1(player.ty[p]);
+            if (flightx > 640 - 32)
+                flightx = 640 - 32;
+            if (flightx < 0)
+                flightx = 0;
+            if (flighty > 480 - 32)
+                flighty = 480 - 32;
+            if (flighty < 0)
+                flighty = 0;
 
-            vera_sprite_offset player_sprite_offset = player.sprite_offset[p];
-            vera_sprite_offset engine_sprite_offset = engine.sprite_offset[n];
+#ifdef __COLLISION
+            flight.collided[p] = 0;
+            collision_insert(flight.cx[p], flight.cy[p], p);
+#endif
 
-            if(playerx > 640-32) playerx = 640-32;
-            if(playerx < 0) playerx = 0;
-            if(playery > 480-32) playery = 480-32;
-            if(playery < 0) playery = 0;
+            unsigned char flight_sprite = flight.sprite[p];
+            unsigned char engine_sprite = flight.sprite[n];
 
-            #ifdef __COLLISION
-            collision_insert(&ht_collision, player.cx[p], player.cy[p], COLLISION_PLAYER | p);
-            #endif
-
-            unsigned char player_sprite = player.sprite[p];
-            unsigned char engine_sprite = engine.sprite[n];
-
-            if(!player.enabled[p]) {
-                vera_sprite_zdepth(player_sprite_offset, sprite_cache.zdepth[player_sprite]);
+            if (!flight.enabled[p]) {
+                vera_sprite_zdepth(flight_sprite_offset, sprite_cache.zdepth[flight_sprite]);
                 vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
-                player.enabled[p] = 1;
+                flight.enabled[p] = 1;
             }
 
-            if(player.wait_animation[p]) {
-                vera_sprite_set_xy(player_sprite_offset, playerx, playery);
+            if (flight.wait_animation[p]) {
+                vera_sprite_set_xy(flight_sprite_offset, flightx, flighty);
             } else {
-                vera_sprite_set_xy_and_image_offset(player_sprite_offset, playerx, playery, sprite_image_cache_vram(player_sprite, player.state_animation[p]));
+                vera_sprite_set_xy_and_image_offset(flight_sprite_offset, flightx, flighty, sprite_image_cache_vram(flight_sprite, flight.state_animation[p]));
             }
-            #ifdef __ENGINE
-            if(engine.wait_animation[n]) {
-                vera_sprite_set_xy(engine_sprite_offset, playerx+8, playery+22);
+#ifdef __ENGINE
+            if (flight.wait_animation[n]) {
+                vera_sprite_set_xy(engine_sprite_offset, flightx + 8, flighty + 22);
             } else {
-                vera_sprite_set_xy_and_image_offset(engine_sprite_offset, playerx+8, playery+22, sprite_image_cache_vram(engine_sprite, engine.state_animation[n]));
+                vera_sprite_set_xy_and_image_offset(engine_sprite_offset, flightx + 8, flighty + 22,
+                                                    sprite_image_cache_vram(engine_sprite, flight.state_animation[n]));
             }
-            #endif
+#endif
         }
     }
-
-    // stage.player_xor = player_checkxor();
-
-    bank_pull_bram();
 }
 
 #pragma data_seg(Data)
 #pragma data_seg(Code)
+#pragma nobank
+
+
+inline void player_bank() {
+    bank_push_set_bram(BANK_ENGINE_FLIGHT);
+}
+
+inline void player_unbank() {
+    bank_pull_bram();
+}
+
+signed char player_impact(unsigned char p) {
+	player_bank();
+	signed char impact = flight.impact[p];
+	player_unbank();
+	return impact;
+}
+
+// This will need rework
+unsigned char player_has_collided(unsigned char p) {
+	player_bank();
+	unsigned char collided = flight.collided[p];
+	player_unbank();
+	return collided;
+}
+
 
 // #pragma var_model(mem)
-
-

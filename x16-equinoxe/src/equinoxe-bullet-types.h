@@ -13,6 +13,7 @@ typedef struct {
     unsigned char cy[32];
 
     unsigned char used[32];
+    unsigned char collided[32];
 
     unsigned char type[32];
     unsigned char side[32];
@@ -32,7 +33,7 @@ typedef struct {
     unsigned char baseangle[32];
 
     unsigned char reload[32];
-    signed char energy[32];
+    signed char impact[32];
 
     unsigned char animate[32];
 

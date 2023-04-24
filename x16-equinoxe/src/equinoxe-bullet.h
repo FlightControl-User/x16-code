@@ -17,8 +17,10 @@ void bullet_logic();
 
 // Unbanked functions
 
-signed char bullet_energy_get(unsigned char b);
+signed char bullet_impact(unsigned char b);
 void bullet_bank();
 void bullet_unbank();
+
+unsigned char bullet_has_collided(unsigned char b);
 
 #endif

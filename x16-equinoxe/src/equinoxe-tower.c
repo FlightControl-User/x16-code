@@ -113,7 +113,7 @@ unsigned char tower_hit(unsigned char t, unsigned char b)
 {
     bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
-    towers.health[t] += bullet_energy_get(b);
+    towers.health[t] += bullet_impact(b);
     if(towers.health[t] <= 0) {
         bank_pull_bram();
         return tower_remove(t);
@@ -255,7 +255,7 @@ void tower_logic()
                 vera_sprite_zdepth_in_front(sprite_offset);
                 vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(towers.sprite[t], towers.anim_state[t]));
                 // printf("tower logic: t=%u, towers gx=%04u, gy=%04u\n", t, gx, gy);
-                collision_insert(&ht_collision, towers.cx[t], towers.cy[t], COLLISION_TOWER | t);
+                collision_insert(towers.cx[t], towers.cy[t], COLLISION_TOWER | t);
                 if(towers.anim_state[t] == 3) {
                     #ifdef __BULLET                
                     signed int volatile py = towers.ty[t];

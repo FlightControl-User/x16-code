@@ -204,6 +204,10 @@ __export volatile stage_player_t stage_player = { p001, &stage_player_engine, &s
 
 #define  action_end                     { 0 }
 
+const stage_flightpath_t action_flightpath_000[] = {
+    { { .move = {320, 16, 0} },    STAGE_ACTION_MOVE,         0 }
+};
+
 const stage_flightpath_t action_flightpath_001[] = {
     { { .move = action_move_00 },    STAGE_ACTION_MOVE,        1 },
     { { .end = action_end },        STAGE_ACTION_END,         0 }
@@ -238,10 +242,10 @@ const stage_flightpath_t action_flightpath_006[] = {
 };
 
 const stage_scenario_t stage_scenario_01_b[32] = {
-//    ct, sp, enemy_xxx, action_flightpath_xxx,                                 xstrt, ystrt, xinc, yinc, ival, wait, prev    
-    {  8,  1, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,    0,    4,    0,  255 }, // 0
-    { 16, 16, &stage_enemy_e0701, action_flightpath_005,                                  704,    96,    0,    0,    4,   20,    0 }, // 1
-    { 16, 16, &stage_enemy_e0702, action_flightpath_006,                                  -64,   160,    0,    0,   12,   20,    0 }, // 2
+//    ct, sp,          enemy_xxx, action_flightpath_xxx,                                   xstrt, ystrt, xinc, yinc, ival, wait, prev    
+    {  1,  1, &stage_enemy_e0401, action_flightpath_000,                                  320,   160,    0,    0,    4,   10,  255 }, // 0
+    {  1,  1, &stage_enemy_e0701, action_flightpath_000,                                  160,   160,    0,    0,    4,   20,    0 }, // 1
+    {  1,  1, &stage_enemy_e0702, action_flightpath_000,                                  480,   160,    0,    0,    4,   30,    0 }, // 2
     { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,    32,    0,    0,   14,   20,    2 }, // 3
     { 16, 16, &stage_enemy_e0201, action_flightpath_006,                                  -64,    96,    0,    0,   16,   20,    2 }, // 4
     { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,   160,    0,    0,   18,   20,    2 }, // 5
@@ -279,7 +283,7 @@ __export volatile stage_floor_bram_tiles_t stage_tower_bram_tiles_01[] = {
 
 __export volatile
 stage_tower_t stage_towers_01 = {
-    1, stage_tower_bram_tiles_01, &tower_01, t001, 
+    19, stage_tower_bram_tiles_01, &tower_01, t001, 
     16, 16, 8, 8,
     &stage_bullet_vertical_laser
 };

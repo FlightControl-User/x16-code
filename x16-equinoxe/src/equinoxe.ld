@@ -16,6 +16,7 @@
                                      ", CodeEnginePalette" +
                                      ", DataBramHeap" +
                                      ", DataVeraHeap" +
+                                     ", DataEngineAnimate" +
                                      ", DataEngineStages" +
                                      ", DataEnginePlayers" +
                                      ", DataEngineEnemies" +
@@ -30,16 +31,17 @@
 .segmentdef CodeBramHeap            [startAfter="Code"] 
 .segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
 .segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
-.segmentdef CodeEnginePlayers       [startAfter="CodeLruCache"] 
-.segmentdef CodeEngineAnimate       [startAfter="CodeEnginePlayers"] 
-.segmentdef CodeEngineFloor         [startAfter="CodeEngineAnimate"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeLruCache"] 
+.segmentdef CodeEnginePlayers       [startAfter="CodeEngineAnimate"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEnginePlayers"] 
 .segmentdef CodeEngineFlight        [startAfter="CodeEngineFloor"] 
 .segmentdef CodeEnginePalette       [startAfter="CodeEngineFlight"] 
 
 .segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
 .segmentdef DataBramHeap            [startAfter="Data"] 
 .segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
-.segmentdef DataEngineFloor         [startAfter="DataVeraHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEngineFloor         [startAfter="DataEngineAnimate"] 
 //.segmentdef BramEngineFloor       [startAfter="DataEngineFloor"] 
 .segmentdef DataEngineFlight        [startAfter="DataEngineFloor"] 
 .segmentdef DataEnginePalette       [startAfter="DataEngineFlight"] 
@@ -49,7 +51,7 @@
 .segmentdef DataSpriteCache         [startAfter="DataEngineEnemies", align=$100]
 
 
-.segmentdef hash                    [start=$0400, min=$0400, max=$07FF, align=$100]
+.segmentdef Hash                    [start=$0400, min=$0400, max=$07FF, align=$100]
 
 .segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]

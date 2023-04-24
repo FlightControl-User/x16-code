@@ -164,7 +164,7 @@ void irq_vsync() {
         vera_display_set_border_color(BLUE);
     #endif
 
-    ht_init(&ht_collision);
+    collision_init();
 
 #ifdef __FLOOR
     #ifdef __CPULINES
@@ -357,9 +357,6 @@ void main() {
 
     equinoxe_init();
 
-    ht_init(&ht_collision);
-
-
 #if defined(__FLIGHT) || defined(__FLOOR)
     stage_reset();
 #endif
@@ -445,7 +442,7 @@ void main() {
 
     vera_sprites_show();
 
-    __mem unsigned char ch = kbhit();
+    unsigned char ch = kbhit();
     while (ch != 'x') {
         #ifdef __NOVSYNC
             irq_vsync();
@@ -473,8 +470,7 @@ void main() {
         #endif
 
         #ifdef __DEBUG_COLLISION_HASH
-            gotoxy(0,0);
-            ht_display(&ht_collision);
+            collision_debug();
         #endif
 
         // #ifdef __DEBUG_STAGE
@@ -483,9 +479,13 @@ void main() {
         //     CLI();
         // #endif
 
+        #ifdef __NOVSYNC
         SEI();
+        #endif
         ch=kbhit();
+        #ifdef __NOVSYNC
         CLI();
+        #endif
     }; 
 
     // Back to basic.

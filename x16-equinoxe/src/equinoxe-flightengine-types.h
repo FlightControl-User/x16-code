@@ -4,27 +4,9 @@
 #include <fp3.h>
 #include <ht.h>
 #include <cx16-bramheap-typedefs.h>
+#include "equinoxe-animate-types.h"
 
 typedef unsigned char fe_sprite_index_t;
-
-typedef struct {
-    char file[16];
-    unsigned char   loaded;
-    unsigned char   count;
-    unsigned int    SpriteSize;
-    unsigned char   Height;
-    unsigned char   Width;
-    unsigned char   Zdepth;
-    unsigned char   Hflip;
-    unsigned char   Vflip;
-    unsigned char   BPP;
-    unsigned char   PaletteOffset; 
-    unsigned char   reverse;
-    unsigned char   aabb[4];
-    unsigned int    offset;
-    unsigned char   loop;
-    fe_sprite_index_t sprite_cache;
-} sprite_bram_t;
 
 typedef struct {
     unsigned char xmin;
@@ -56,6 +38,7 @@ typedef unsigned char sprite_index_t;
 
 typedef bram_heap_handle_t sprite_bram_handles_t;
 
+// This header identifies the sprite behaviour in each sprite file.
 typedef struct {
     unsigned char count;
     unsigned int size;
@@ -75,13 +58,8 @@ typedef struct {
 } sprite_file_header_t;
 
 
-typedef struct {
-    unsigned char used[128];
-    vera_sprite_image_offset vram_image_offset[128];
-    vera_heap_handle_t vram_handle[128];
-    unsigned int id[128];
-} fe_vram_sprite_cache_t;
-
+// A structure for fast sprite information retrieval while floating.
+// This cache is managed in low memory.
 typedef struct {
     unsigned char used[16];
     sprite_index_t sprite_bram[16]; // TODO: I need to get rid of this ...
@@ -103,10 +81,44 @@ typedef struct {
     unsigned char ymin[16];
     unsigned char xmax[16];
     unsigned char ymax[16];
-
 } fe_sprite_cache_t;
 
+typedef unsigned char flight_index_t;
+typedef unsigned char flight_type_t;
 
+typedef struct {
+
+    flight_type_t type[128];                // The type of flight object.
+
+    unsigned char cx[128];                  // x-axis coordinate at collision precision.
+    unsigned char cy[128];                  // y-axis coordinate at collision precision.
+
+    FP tx[128];                             // Fixed point current x coordinate.
+    FP ty[128];                             // Fixed point current y coordinate.
+    FP tdx[128];                            // Fixed point delta x.
+    FP tdy[128];                            // Fixed point delta y.
+
+    unsigned char used[128];                // Is the sprite used, so free or not.
+    unsigned char collided[128];            // Has the sprite collided during the collision detection routine.
+
+    unsigned char moved[128];               // Has the sprite moved?
+    unsigned char enabled[128];             // Is the sprite enabled (visible or not)?
+    unsigned char engine[128];              // Does the sprite have an engine sprite?
+
+    unsigned char firegun[128];             // Models the armament.
+    unsigned char reload[128];              // Does the armament need reloading?          
+
+    signed char health[128];                // The health of the object.
+    signed char impact[128];                // The impact in energy that the object makes when colliding with an other object. 
+    
+    sprite_animate_t animation;             // Models the animation of the sprite.
+
+    fe_sprite_index_t sprite[128];          // Internal link field.
+    vera_sprite_offset sprite_offset[128];  // An internal field that holds the calculated offset in vera.
+
+    flight_index_t index;
+
+} flight_t;
 
 typedef struct {
 
@@ -119,6 +131,7 @@ typedef struct {
     unsigned char cy[4];
 
     unsigned char used[4];
+    unsigned char collided[4];
 
     unsigned char moved[4];
     unsigned char enabled[4];
@@ -126,7 +139,9 @@ typedef struct {
 
     unsigned char firegun[4];
     unsigned char reload[4];
+
     signed char health[4];
+    signed char impact[4];
 
     vera_sprite_offset sprite_offset[4];
 

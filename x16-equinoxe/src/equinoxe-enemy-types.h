@@ -11,6 +11,8 @@
 typedef struct {
 
     unsigned char used[64]; // 1088
+    unsigned char collided[64];
+
     unsigned char wave[64]; 
 
     unsigned char type[64]; // 1152
@@ -40,6 +42,7 @@ typedef struct {
 
     unsigned char reload[64]; // 1984
     signed char health[64]; // 2048
+    signed char impact[64];
 
     vera_sprite_offset sprite_offset[64]; // 2176
 

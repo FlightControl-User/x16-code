@@ -18,6 +18,8 @@ inline ht_index_t ht_hash_next(ht_index_t index);
 ht_index_t ht_get(ht_item_t* ht, ht_key_t key);
 inline ht_index_t ht_get_next(ht_index_t ht_index);
 inline ht_data_t ht_get_data(ht_index_t ht_index); 
+inline void ht_set_data(ht_index_t ht_index, ht_data_t ht_data);
+
 
 ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data);
 void ht_display(ht_item_t* ht);

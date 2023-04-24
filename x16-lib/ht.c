@@ -16,78 +16,68 @@
 #include <string.h>
 #include <stdlib.h>
 
+#pragma data_seg(Data)
+#pragma code_seg(Code)
 
 ht_list_t ht_list;
 
 __mem volatile unsigned char ht_list_pool;
 
+
 void ht_init(ht_item_t* ht)
 {
    // heap_segment_define(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!
-   for(unsigned char index=0; index<255; index++) {
-      ht->key[index] = 0;
-      ht->next[index] = 0;
-   }
+   memset_fast(ht->key, 0, 0);
+   memset_fast(ht->next, 0, 0);
+
    ht_list_pool = HT_SIZE-1;
 }
 
-__mem unsigned char ht_seed;
+__mem volatile unsigned char ht_seed;
 
-inline ht_index_t ht_hash(ht_key_t key)
-{
-   // This does not compile correctly if HT_SIZE is 256.
-   // See: https://gitlab.com/camelot/kickc/-/issues/802
-   // return key % HT_SIZE;
-   // instead we do:
-   return key;
-}
-
-// ht_index_t ht_hash(ht_key_t key)
+// inline ht_index_t ht_hash(ht_key_t key)
 // {
-//    ht_seed = key;
-//    asm{
-//                    lda ht_seed
-//                    beq !doEor+
-//                    asl
-//                    beq !noEor+
-//                    bcc !noEor+
-//        !doEor:     eor #$2b
-//        !noEor:     sta ht_seed
-//    }
-//    return ht_seed & HT_BOUNDARY;
+//    return key; //% HT_SIZE;
 // }
 
-inline ht_index_t ht_hash_next(ht_index_t index)
+ht_index_t ht_hash(ht_key_t key)
 {
-      // This does not compile correctly if HT_SIZE is 256.
-   // See: https://gitlab.com/camelot/kickc/-/issues/802
-   // return (index+1) % HT_SIZE;
-   // instead we do:
-   return (index+1);
+   ht_seed = key;
+   asm{
+                   lda ht_seed
+                   beq !doEor+
+                   asl
+                   beq !noEor+
+                   bcc !noEor+
+       !doEor:     eor #$2b
+       !noEor:     sta ht_seed
+   }
+   return ht_seed; // & HT_SIZE;
 }
 
-// ht_index_t ht_hash_next(ht_index_t index)
+// inline ht_index_t ht_hash_next(ht_index_t index)
 // {
-//    asm{
-//                    lda ht_seed
-//                    beq !doEor+
-//                    asl
-//                    beq !noEor+
-//                    bcc !noEor+
-//        !doEor:    eor #$2b
-//        !noEor:    sta ht_seed
-//    }
-//    return ht_seed & HT_BOUNDARY;
+//    return (index+1); // % HT_SIZE;
 // }
+
+ht_index_t ht_hash_next(ht_index_t index)
+{
+   asm{
+                   lda ht_seed
+                   beq !doEor+
+                   asl
+                   beq !noEor+
+                   bcc !noEor+
+       !doEor:    eor #$2b
+       !noEor:    sta ht_seed
+   }
+   return ht_seed;
+}
 
 ht_index_t ht_get(ht_item_t* ht, ht_key_t key)
 {
 
-   // This does not compile correctly if HT_SIZE is 256.
-   // See: https://gitlab.com/camelot/kickc/-/issues/802
-   // ht_index_t ht_index = ht_hash(key);
-   // Instead we do:
-   ht_index_t ht_index = key;
+   ht_index_t ht_index = ht_hash(key);
 
    ht_index_t ht_next;
    ht_key_t ht_key;
@@ -113,12 +103,15 @@ inline ht_data_t ht_get_data(ht_index_t ht_index)
    return ht_list.data[ht_index];
 }
 
+inline void ht_set_data(ht_index_t ht_index, ht_data_t ht_data)
+{
+   ht_list.data[ht_index] = ht_data;
+}
+
 
 ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data)
 {
-   // ht_index_t ht_index = ht_hash(key);
-   // Instead we do:
-   ht_index_t ht_index = key;
+   ht_index_t ht_index = ht_hash(key);
 
    ht_index_t ht_next;
    ht_key_t ht_key;

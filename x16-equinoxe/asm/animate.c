@@ -4,8 +4,12 @@
 #pragma library(animate)
 
 #pragma code_seg(CodeEngineAnimate)
-#pragma data_seg(CodeEngineAnimate)
+#pragma data_seg(DataEngineAnimate)
+
 #include "equinoxe-animate.h"
+
+#pragma code_seg(CodeEngineAnimate)
+#pragma data_seg(DataEngineAnimate)
 
 __export volatile void* funcs[] = {
     &animate_init,
@@ -16,7 +20,3 @@ __export volatile void* funcs[] = {
     &animate_del,
     // &lru_cache_display
 };
-
-#pragma code_seg(Code)
-#pragma data_seg(Data)
-
