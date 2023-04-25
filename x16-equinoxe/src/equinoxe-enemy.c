@@ -1,8 +1,6 @@
-#include <division.h>
-#include <multiply.h>
-#include <stdlib.h>
-#include "equinoxe-types.h"
+#include <cx16.h>
 #include "equinoxe.h"
+#include "equinoxe-types.h"
 #include "equinoxe-flightengine.h"
 #include "equinoxe-enemy.h"
 #include "equinoxe-bullet.h"
@@ -11,11 +9,15 @@
 #include "equinoxe-fighters.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-bullet.h"
+#include "equinoxe-flightengine.h"
+#include "equinoxe-animate-lib.h"
 #include <ht.h>
+#include <division.h>
+#include <multiply.h>
+#include <stdlib.h>
 
 
 #pragma data_seg(DATA_ENGINE_ENEMIES)
-fe_enemy_t enemy; ///< This memory area is banked and must always be reached by local routines in the same bank for efficiency!
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_ENEMIES)
@@ -26,90 +28,47 @@ fe_enemy_t enemy; ///< This memory area is banked and must always be reached by 
 
 void enemy_init()
 {
-    memset(&enemy, 0, sizeof(fe_enemy_t));
 }
 
-unsigned char enemy_add(unsigned char w, sprite_index_t enemy_sprite) 
+unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy) 
 {
 
     stage.enemy_count++;
 
-	unsigned char e = stage.enemy_pool;
+	unsigned char e = flight_add(FLIGHT_ENEMY, SIDE_ENEMY, sprite_enemy);
 
-	while(enemy.used[e]) {
-		e = (e+1)%FE_ENEMY;
-	}
-	
-	enemy.used[e] = 1;
-	enemy.enabled[e] = 0;
+    flight.wave[e] = w;
 
-    enemy.wave[e] = w;
+	flight.animate[e] = animate_add(
+		sprite_cache.count[flight.sprite[e]]-1, 
+		0,
+		0,
+		wave.animation_speed[w],
+		1, 
+		wave.animation_reverse[w]);
 
-    fe_sprite_index_t s = fe_sprite_cache_copy(enemy_sprite);
-    enemy.sprite[e] = s;
-
-	enemy.side[e] = SIDE_ENEMY;
-	enemy.move[e] = 0;
-	enemy.moved[e] = 0;
-	enemy.flight[e] = 0;
-	enemy.angle[e] = 0;
-	enemy.speed[e] = 0;
-	enemy.action[e] = 0;
-	enemy.turn[e] = 0;
-	enemy.radius[e] = 0;
-	enemy.baseangle[e] = 0;
-	enemy.reload[e] = 0;
-
-	enemy.wait_animation[e] = wave.animation_speed[w];
-	enemy.speed_animation[e] = wave.animation_speed[w];
-	enemy.state_animation[e] = 0;
-    enemy.reverse_animation[e] = wave.animation_reverse[w];
-    enemy.start_animation[e] = 0;
-    enemy.stop_animation[e] = sprite_cache.count[s]-1;
-    enemy.direction_animation[e] = 1;
-
-	enemy.health[e] = 100;
-	enemy.impact[e] = -30;
-	enemy.delay[e] = 0;
+	flight.health[e] = 100;
+	flight.impact[e] = -30;
 
     stage_flightpath_t* flightpath = wave.enemy_flightpath[w];
-    enemy.flightpath[e] = flightpath;
-
-	enemy.sprite_offset[e] = sprite_next_offset();
-	fe_sprite_configure(enemy.sprite_offset[e], s);
+    flight.flightpath[e] = flightpath;
 
     signed int x = wave.x[w];
     signed int y = wave.y[w];
 
-	enemy.tx[e] = MAKELONG((unsigned int)x, 0);
-	enemy.ty[e] = MAKELONG((unsigned int)y, 0);
-	enemy.tdx[e] = 0;
-	enemy.tdy[e] = 0;
+	flight.tx[e] = MAKELONG((unsigned int)x, 0);
+	flight.ty[e] = MAKELONG((unsigned int)y, 0);
+	flight.tdx[e] = 0;
+	flight.tdy[e] = 0;
 	
-	stage.enemy_pool = (e+1)%FE_ENEMY;
-
-    enemy_animate();
-
     unsigned char ret = 1;
     return ret;
 }
 
 void enemy_remove(unsigned char e) 
 {
-    if(enemy.used[e]) {
-
-		// gotoxy(0, e);
-		// printf("%02u -     ", e);
-		
-        enemy.used[e] = 0;
-        enemy.enabled[e] = 0;
-		enemy.collided[e] = 1;
-        vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
-        sprite_free_offset(sprite_offset);
-        vera_sprite_disable(sprite_offset);
-        palette_unuse_vram(sprite_cache.palette_offset[enemy.sprite[e]]);
-        fe_sprite_cache_free(enemy.sprite[e]);
-
+    if(flight.used[e]) {
+		flight_remove(e);
     }
 }
 
@@ -117,86 +76,54 @@ void enemy_remove(unsigned char e)
 unsigned char enemy_hit(unsigned char e, signed char impact) 
 {
 	
-    enemy.health[e] += impact;
-    if(enemy.health[e] <= 0) {
-		enemy.collided[e] = 1;
-
+    flight.health[e] += impact;
+    if(flight.health[e] <= 0) {
+		flight.collided[e] = 1;
 		return 1;
     }
 
     return 0;
 }
 
-void enemy_move( unsigned char e, unsigned int flight, unsigned char turn, unsigned char speed)
+void enemy_move( unsigned char e, unsigned int moving, unsigned char turn, unsigned char speed)
 {
-	enemy.move[e] = 1;
-	if(speed>1) flight >>= (speed-1);
-	enemy.flight[e] = flight;
-	enemy.angle[e] = enemy.angle[e] + turn;
-	enemy.speed[e] = speed;
+	flight.move[e] = 1;
+	if(speed>1) moving >>= (speed-1);
+	flight.moving[e] = moving;
+	flight.angle[e] = flight.angle[e] + turn;
+	flight.speed[e] = speed;
 }
 
 void enemy_arc( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed)
 {
-	enemy.move[e] = 2;
-	enemy.turn[e] = sgn_u8(turn);
-	enemy.radius[e] = radius;
-	enemy.delay[e] = 0;
-	enemy.flight[e] = mul8u(abs_u8((unsigned char)turn), radius);
-	enemy.baseangle[e] = enemy.angle[e];
-	enemy.speed[e] = speed;
-}
-
-void enemy_animate() {
-
-	for(unsigned char e=0; e<FE_ENEMY; e++) {
-
-		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
-
-			if (!enemy.wait_animation[e]) {
-				enemy.wait_animation[e] = enemy.speed_animation[e];
-                if(enemy.direction_animation[e]>0) {
-                    if(enemy.state_animation[e] >= enemy.stop_animation[e]) {
-                        if(enemy.reverse_animation[e]) {
-                            enemy.direction_animation[e] = -1;                            
-                        } else {
-                            enemy.state_animation[e] = enemy.start_animation[e];
-                        }
-                    }
-                }
- 
-                if(enemy.direction_animation[e]<0) {
-                    if(enemy.state_animation[e] <= enemy.start_animation[e]) {
-                        enemy.direction_animation[e] = 1;                            
-                    }
-                }
-                enemy.state_animation[e] += enemy.direction_animation[e];
-			}
-			enemy.wait_animation[e]--;
-        }
-    }
+	flight.move[e] = 2;
+	flight.turn[e] = sgn_u8(turn);
+	flight.radius[e] = radius;
+	flight.delay[e] = 0;
+	flight.moving[e] = mul8u(abs_u8((unsigned char)turn), radius);
+	flight.speed[e] = speed;
 }
 
 void enemy_logic() {
 
-	for(unsigned char e=0; e<FE_ENEMY; e++) {
+	for(unsigned char e=0; e<FLIGHT_OBJECTS; e++) {
 
-		if(enemy.used[e] && enemy.side[e] == SIDE_ENEMY) {	
+		if(flight.type[e] == FLIGHT_ENEMY && flight.used[e]) {	
 
-			if(!enemy.flight[e]) {
+			if(!flight.moving[e]) {
 
 				// gotoxy(0, e);
 				// printf("%02u - used", e);
 
-				stage_flightpath_t* enemy_flightpath = enemy.flightpath[e];
-				unsigned char enemy_action = enemy.action[e];
+				stage_flightpath_t* enemy_flightpath = flight.flightpath[e];
+				unsigned char enemy_action = flight.action[e];
                 stage_action_t* action = stage_get_flightpath_action(enemy_flightpath, enemy_action);
                 unsigned char type = stage_get_flightpath_type(enemy_flightpath, enemy_action);
                 unsigned char next = stage_get_flightpath_next(enemy_flightpath, enemy_action);
 
 				// printf("efp=%p, ac=%03u, ty=%03u, ne=%03u - ", enemy_flightpath, enemy_action, type, next );
 
-				unsigned int flight = 0;
+				unsigned int path = 0;
 				signed char turn = 0;
 				unsigned char speed = 0;
 				unsigned char radius = 0;
@@ -204,13 +131,13 @@ void enemy_logic() {
 				switch(type) {
 
 				case STAGE_ACTION_MOVE:
-                    flight = stage_get_flightpath_action_move_flight(action);
+                    path = stage_get_flightpath_action_move_flight(action);
                     turn = stage_get_flightpath_action_move_turn(action);
                     speed = stage_get_flightpath_action_move_speed(action);
                     // printf("move f=%03u, t=%03d, s=%03u, a=%03u - ", flight, turn, speed, next );
 
-					enemy_move(e, flight, (unsigned char)turn, speed);
-                    enemy.action[e] = next;
+					enemy_move(e, path, (unsigned char)turn, speed);
+                    flight.action[e] = next;
 					break;
 
 				case STAGE_ACTION_TURN:
@@ -220,7 +147,7 @@ void enemy_logic() {
                     // printf("turn t=%03d, r=%03u, s=%03u, a=%03u - ", turn, radius, speed, next );
 
 					enemy_arc( e, (unsigned char)turn, radius, speed);
-                    enemy.action[e] = next;
+                    flight.action[e] = next;
 					break;
         
 
@@ -234,81 +161,83 @@ void enemy_logic() {
                     
 				}
 			} else {
-				enemy.flight[e]--;
+				flight.moving[e]--;
 
-				if( enemy.move[e]) {
-					if(enemy.move[e] == 1) {
-						enemy.tdx[e] = math_vecx(enemy.angle[e], enemy.speed[e]);
-						enemy.tdy[e] = math_vecy(enemy.angle[e], enemy.speed[e]);
-						enemy.move[e] = 0;
+				if( flight.move[e]) {
+					if(flight.move[e] == 1) {
+						flight.tdx[e] = math_vecx(flight.angle[e], flight.speed[e]);
+						flight.tdy[e] = math_vecy(flight.angle[e], flight.speed[e]);
+						flight.move[e] = 0;
 					}
-					if(enemy.move[e] == 2) {
+					if(flight.move[e] == 2) {
 						// Calculate current angle based on flight from x,y and angle startpoint.
-						if(!enemy.delay[e]) {
-							enemy.angle[e] += enemy.turn[e];
-							enemy.angle[e] %= 64;
-							enemy.delay[e] = enemy.radius[e];
-							enemy.tdx[e] = math_vecx(enemy.angle[e], enemy.speed[e]);
-							enemy.tdy[e] = math_vecy(enemy.angle[e], enemy.speed[e]);
+						if(!flight.delay[e]) {
+							flight.angle[e] += flight.turn[e];
+							flight.angle[e] %= 64;
+							flight.delay[e] = flight.radius[e];
+							flight.tdx[e] = math_vecx(flight.angle[e], flight.speed[e]);
+							flight.tdy[e] = math_vecy(flight.angle[e], flight.speed[e]);
 						}
-						enemy.delay[e]--;
+						flight.delay[e]--;
 					}
 				}
 			}
 
-			enemy.tx[e] += enemy.tdx[e];
-			enemy.ty[e] += enemy.tdy[e];
+			flight.tx[e] += flight.tdx[e];
+			flight.ty[e] += flight.tdy[e];
 
-            enemy.cx[e] = BYTE0(WORD1(enemy.tx[e]) >> 2);
-            enemy.cy[e] = BYTE0(WORD1(enemy.ty[e]) >> 2);
+            flight.cx[e] = BYTE0(WORD1(flight.tx[e]) >> 2);
+            flight.cy[e] = BYTE0(WORD1(flight.ty[e]) >> 2);
 
 
-			// enemy.tdx[e] = tdx;
-			// enemy.tdy[e] = tdy;
+			// flight.tdx[e] = tdx;
+			// flight.tdy[e] = tdy;
 
-			if (enemy.reload[e] > 0) {
-				enemy.reload[e]--;
+			if (flight.reload[e] > 0) {
+				flight.reload[e]--;
 			}
 
 
 
-			signed int x = (signed int)WORD1(enemy.tx[e]);
-			signed int y = (signed int)WORD1(enemy.ty[e]);
+			signed int x = (signed int)WORD1(flight.tx[e]);
+			signed int y = (signed int)WORD1(flight.ty[e]);
 
-			vera_sprite_offset sprite_offset = enemy.sprite_offset[e];
+			vera_sprite_offset sprite_offset = flight.sprite_offset[e];
 
             // printf("x=%05i, y=%05i, offset=%04x", x, y, sprite_offset);
 
 			if(x>=-68 && x<640+68 && y>=-68 && y<480+68) {
 
-				if(!enemy.enabled[e]) {
-			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[enemy.sprite[e]]);
-					enemy.enabled[e] = 1;
+				if(!flight.enabled[e]) {
+			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[e]]);
+					flight.enabled[e] = 1;
 				}
 
 			// gotoxy(0, e);
-			// printf("%02u - wait=%u", e, enemy.wait_animation[e]);
+			// printf("%02u - wait=%u", e, flight.wait_animation[e]);
 
 
-				if(enemy.wait_animation[e]) {
+				if(animate_is_waiting(flight.animate[e])) {
 					vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
-					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)enemy.sprite[e]*16+enemy.state_animation[e]]);
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_image_cache_vram(enemy.sprite[e], enemy.state_animation[e]));
+					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[e]*16+flight.state_animation[e]]);
+					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, 
+						sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e])));
 				}
 
-#ifdef __BULLET                
+#ifdef __BULLET         
 				unsigned int r = rand();
 				if(r>=65300) {
-					bullet_enemy_fire((unsigned int)x, (unsigned int)y);
+					bullet_add(WORD1(flight.tx[e]), WORD1(flight.ty[e]), WORD1(flight.tx[stage.player]), WORD1(flight.ty[stage.player]), 2, SIDE_ENEMY, b002);
 				}
 #endif
-				enemy.collided[e] = 0;
-				collision_insert(enemy.cx[e], enemy.cy[e], COLLISION_ENEMY | e);
+				animate_logic(flight.animate[e]);
+				flight.collided[e] = 0;
+				collision_insert(flight.cx[e], flight.cy[e], e);
 			} else {
-				if(enemy.enabled[e]) {
+				if(flight.enabled[e]) {
 			    	vera_sprite_disable(sprite_offset);
-					enemy.enabled[e] = 0;
+					flight.enabled[e] = 0;
 				}
 			}
 		}
@@ -316,7 +245,7 @@ void enemy_logic() {
 }
 
 unsigned char enemy_get_wave(unsigned char e) {
-	return enemy.wave[e];
+	return flight.wave[e];
 }
 
 #pragma code_seg(Code)
@@ -324,26 +253,19 @@ unsigned char enemy_get_wave(unsigned char e) {
 #pragma nobank
 
 inline void enemy_bank() {
-    bank_push_set_bram(BANK_ENGINE_ENEMIES);
 }
 
 inline void enemy_unbank() {
-    bank_pull_bram();
 }
 
 signed char enemy_impact(unsigned char e) {
-	enemy_bank();
-	
-	signed char impact = enemy.impact[e];
-	enemy_unbank();
+	signed char impact = flight.impact[e];
 	return impact;
 }
 
 // This will need rework
 unsigned char enemy_has_collided(unsigned char e) {
-	enemy_bank();
-	unsigned char collided = enemy.collided[e];
-	enemy_unbank();
+	unsigned char collided = flight.collided[e];
 	return collided;
 }
 

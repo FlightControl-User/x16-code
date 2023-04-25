@@ -1,3 +1,5 @@
+#pragma once
+
 #include "equinoxe-types.h"
 
 volatile extern stage_t stage;

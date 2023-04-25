@@ -1,5 +1,4 @@
-#ifndef __EQUINOXE_TYPES_H
-#define __EQUINOXE_TYPES_H
+#pragma once
 
 // #include <cx16-typedefs.h>
 // #include <ht-typedefs.h>
@@ -46,5 +45,3 @@ typedef struct {
 
 
 #pragma data_seg(Data)
-
-#endif

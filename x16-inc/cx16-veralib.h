@@ -12,6 +12,8 @@
  */
 
 
+#pragma once
+
 #include <cx16-vera.h>
 
 /// vera increment / decrement enumeration to be used in @ref vera addressing.

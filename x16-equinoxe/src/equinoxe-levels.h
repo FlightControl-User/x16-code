@@ -1,3 +1,5 @@
+#pragma once
+
 // #include "equinoxe-types.h"
 #include "equinoxe-level-types.h"
 #include "equinoxe-defines.h"

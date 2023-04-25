@@ -1,3 +1,5 @@
+
+#pragma once
 typedef struct {
     signed char f;
     signed int i;

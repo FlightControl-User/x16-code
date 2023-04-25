@@ -1,3 +1,6 @@
+
+#pragma once
+
 #include <fp3-typedefs.h>
 
 void fp3_set(FP3* fp3, signed int i, signed char f);

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cx16-bramheap-typedefs.h>
 #include <cx16-veralib.h>
 
@@ -38,6 +40,7 @@ typedef struct {
     vera_sprite_id sprite_pool; // Keep track of the last sprite allocated.
     unsigned char  sprite_count;
 
+    unsigned char player;
     unsigned char bullet_count;
     unsigned char player_count;
     unsigned char enemy_count;
@@ -57,10 +60,6 @@ typedef struct {
     unsigned char palette;
     unsigned char palette_count;
 
-    unsigned char enemy_pool;
-    unsigned char player_pool;
-    unsigned char engine_pool;
-    unsigned char bullet_pool;
     unsigned char tower_pool;
 
     unsigned char animate_pool;

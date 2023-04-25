@@ -4,15 +4,16 @@
 #include "equinoxe-collision.h"
 #include "equinoxe-defines.h"
 #include "equinoxe-flightengine-types.h"
-#include "equinoxe-flightflight.h"
-#include "equinoxe-flight.h"
+#include "equinoxe-flightengine.h"
+#include "equinoxe-player.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-types.h"
 #include "equinoxe.h"
+#include "equinoxe-animate-lib.h"
+#include "equinoxe-levels.h"
+
 
 #pragma data_seg(DATA_ENGINE_PLAYERS)
-fe_flight_t flight;
-fe_engine_t engine;
 
 #pragma data_seg(CODE_ENGINE_PLAYERS)
 
@@ -21,16 +22,11 @@ fe_engine_t engine;
 void player_init() {
 }
 
-void player_add(sprite_index_t sprite_flight, sprite_index_t sprite_engine) {
+void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
 
-    bank_push_set_bram(BANK_ENGINE_FLIGHT);
-
-    unsigned char p = flight_add();
+    unsigned char p = flight_add(FLIGHT_PLAYER, SIDE_PLAYER, sprite_player);
 
     stage.player_count++;
-
-    flight.used[p] = 1;
-    flight.enabled[p] = 0;
 
     flight.moved[p] = 2;
     flight.firegun[p] = 0;
@@ -39,40 +35,22 @@ void player_add(sprite_index_t sprite_flight, sprite_index_t sprite_engine) {
     flight.health[p] = 100;
     flight.impact[p] = -100;
 
-    flight.speed_animation[p] = 8;
-    flight.wait_animation[p] = flight.speed_animation[p];
-    flight.state_animation[p] = 3;
 
-    unsigned char s = fe_sprite_cache_copy(sprite_flight);
-    flight.sprite[p] = s;
-
-    flight.sprite_offset[p] = sprite_next_offset();
-    fe_sprite_configure(flight.sprite_offset[p], s);
+    flight.animate[p] = animate_add(6,3,3,8,1,0);
 
     flight.tx[p] = MAKELONG(320, 0);
     flight.ty[p] = MAKELONG(200, 0);
     flight.tdx[p] = 0;
     flight.tdy[p] = 0;
 
-    // Engine
-    while (flight.used[stage.engine_pool]) {
-        stage.engine_pool = (stage.engine_pool++) % FE_ENGINE;
-    }
-
-    unsigned char n = flight_add();
+    unsigned char n = flight_add(FLIGHT_ENGINE, SIDE_PLAYER, sprite_engine);
 
     flight.engine[p] = n;
 
-    flight.speed_animation[n] = 1;
-    flight.wait_animation[n] = flight.speed_animation[n];
+    flight.animate[n] = animate_add(4,0,0,2,1,0);
 
-    unsigned char cn = fe_sprite_cache_copy(sprite_engine);
-    flight.sprite[n] = cn;
+    stage.player = p;
 
-    flight.sprite_offset[n] = sprite_next_offset();
-    fe_sprite_configure(flight.sprite_offset[n], cn);
-
-    bank_pull_bram();
 }
 
 void player_remove(unsigned char p) {
@@ -98,56 +76,20 @@ void player_hit(unsigned char p, signed char impact) {
 
 void player_logic() {
 
-    for (flight_index_t p=0; p<128; p++) {
-
 #ifdef debug_scanlines
         vera_display_set_border_color(6);
 #endif
 
-        if (flight.used[p]) {
+    for (flight_index_t p=0; p<FLIGHT_OBJECTS; p++) {
+
+        if (flight.type[p] == FLIGHT_PLAYER && flight.used[p]) {
 
             if (flight.reload[p] > 0) {
                 flight.reload[p]--;
             }
 
-            if (!flight.wait_animation[p]) {
-                flight.wait_animation[p] = flight.speed_animation[p];
-                if (cx16_mouse.x < cx16_mouse.px && flight.state_animation[p] > 0) {
-                    // Added fragment
-                    flight.state_animation[p] -= 1;
-                    flight.moved[p] = 2;
-                }
-                if (cx16_mouse.x > cx16_mouse.px && flight.state_animation[p] < 6) {
-                    flight.state_animation[p] += 1;
-                    flight.moved[p] = 2;
-                }
-
-                if (flight.moved[p] == 1) {
-                    if (flight.state_animation[p] < 3) {
-                        flight.state_animation[p] += 1;
-                    }
-                    if (flight.state_animation[p] > 3) {
-                        flight.state_animation[p] -= 1;
-                    }
-                    if (flight.state_animation[p] == 3) {
-                        flight.moved[p] = 0;
-                    }
-                }
-
-                if (flight.moved[p] == 2) {
-                    flight.moved[p]--;
-                }
-            }
-            flight.wait_animation[p]--;
-
-            unsigned char n = flight.engine[p];
-
-            if (!flight.wait_animation[n]) {
-                flight.state_animation[n]++;
-                flight.state_animation[n] &= 0xF;
-                flight.wait_animation[n] = flight.speed_animation[n];
-            }
-            flight.wait_animation[n]--;
+            animate_player(flight.animate[p], cx16_mouse.x, cx16_mouse.px);
+            animate_logic(flight.animate[flight.engine[p]]);
 
 #ifdef __BULLET
             if (cx16_mouse.status == 1 && flight.reload[p] <= 0) {
@@ -158,7 +100,7 @@ void player_logic() {
                 }
                 flight.firegun[p] = flight.firegun[p] ^ 1;
                 flight.reload[p] = 8;
-                bullet_player_fire(x, y);
+                bullet_add(x, y, x, 0, 3, SIDE_PLAYER, b001);
             }
 #endif
 
@@ -172,7 +114,7 @@ void player_logic() {
             volatile signed int flighty = (signed int)WORD1(flight.ty[p]);
 
             vera_sprite_offset flight_sprite_offset = flight.sprite_offset[p];
-            vera_sprite_offset engine_sprite_offset = flight.sprite_offset[n];
+            vera_sprite_offset engine_sprite_offset = flight.sprite_offset[flight.engine[p]];
 
             if (flightx > 640 - 32)
                 flightx = 640 - 32;
@@ -189,7 +131,7 @@ void player_logic() {
 #endif
 
             unsigned char flight_sprite = flight.sprite[p];
-            unsigned char engine_sprite = flight.sprite[n];
+            unsigned char engine_sprite = flight.sprite[flight.engine[p]];
 
             if (!flight.enabled[p]) {
                 vera_sprite_zdepth(flight_sprite_offset, sprite_cache.zdepth[flight_sprite]);
@@ -197,17 +139,18 @@ void player_logic() {
                 flight.enabled[p] = 1;
             }
 
-            if (flight.wait_animation[p]) {
+            if (animate_is_waiting(flight.animate[p])) {
                 vera_sprite_set_xy(flight_sprite_offset, flightx, flighty);
             } else {
-                vera_sprite_set_xy_and_image_offset(flight_sprite_offset, flightx, flighty, sprite_image_cache_vram(flight_sprite, flight.state_animation[p]));
+                vera_sprite_set_xy_and_image_offset(flight_sprite_offset, flightx, flighty, 
+                    sprite_image_cache_vram(flight_sprite, animate_get_state(flight.animate[p])));
             }
 #ifdef __ENGINE
-            if (flight.wait_animation[n]) {
+            if (animate_is_waiting(flight.animate[p])) {
                 vera_sprite_set_xy(engine_sprite_offset, flightx + 8, flighty + 22);
             } else {
                 vera_sprite_set_xy_and_image_offset(engine_sprite_offset, flightx + 8, flighty + 22,
-                                                    sprite_image_cache_vram(engine_sprite, flight.state_animation[n]));
+                    sprite_image_cache_vram(engine_sprite, animate_get_state(flight.animate[flight.engine[p]])));
             }
 #endif
         }

@@ -85,17 +85,17 @@ void equinoxe_init() {
     // bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
 
 #ifdef __PLAYER
-    player_init();
+    //player_init();
 #endif
 
 #ifdef __ENEMY
     bytes = fload_bram("enemies.bin", BANK_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
-    enemy_init();
+    //enemy_init();
 #endif
 
 #ifdef __BULLET
     bytes = fload_bram("bullets.bin", BANK_ENGINE_BULLETS, (bram_ptr_t)0xA000);
-    bullet_init();
+    //bullet_init();
 #endif
 
     animate_init();
@@ -227,16 +227,9 @@ void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(GREY);
         #endif
-        enemy_animate();
     #endif
 
-    #ifdef __BULLET
-        // bullets_resource();
-    #endif
-
-    #ifdef __PLAYER
-        // player_resource();
-    #endif
+    flight_draw();
 
     #ifdef __COLLISION
     #ifdef __CPULINES

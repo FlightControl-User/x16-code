@@ -1,15 +1,13 @@
-#ifndef equinoxe_bullet_h
-#define equinoxe_bullet_h
+#pragma once
 
 #include "equinoxe-types.h"
-#include "equinoxe-flightengine.h"
+// #include "equinoxe-flightengine.h"
 
 
 void bullet_init();
-void bullet_player_fire(unsigned int x, unsigned int y);
+void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
 
-void bullet_enemy_fire(unsigned int x, unsigned int y);
-void FireBulletTower(unsigned char t);
+/*void FireBulletTower(unsigned char t);*/
 
 void bullet_remove(unsigned char b); 
 
@@ -22,5 +20,3 @@ void bullet_bank();
 void bullet_unbank();
 
 unsigned char bullet_has_collided(unsigned char b);
-
-#endif

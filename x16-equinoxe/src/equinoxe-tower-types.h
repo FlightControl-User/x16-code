@@ -1,6 +1,4 @@
-#ifndef __EQUINOXE_TOWER_TYPES_H
-#define __EQUINOXE_TOWER_TYPES_H
-
+#pragma once
 typedef struct {
 
     unsigned char used[8];
@@ -37,5 +35,3 @@ typedef struct {
 
 } tower_t;
 
-
-#endif

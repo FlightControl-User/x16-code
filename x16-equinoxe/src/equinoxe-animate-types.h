@@ -1,9 +1,11 @@
+#pragma once
 
 #define SPRITE_ANIMATE 128
 
 typedef struct {
     unsigned char locked[SPRITE_ANIMATE];
     unsigned char state[SPRITE_ANIMATE];
+    unsigned char moved[SPRITE_ANIMATE];
     unsigned char wait[SPRITE_ANIMATE];
     unsigned char speed[SPRITE_ANIMATE];
     unsigned char loop[SPRITE_ANIMATE];

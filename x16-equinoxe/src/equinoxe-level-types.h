@@ -1,3 +1,5 @@
+#pragma once
+
 #include "equinoxe-flightengine-types.h"
 #include "equinoxe-floorengine-types.h"
 #include "cx16-veraheap-typedefs.h"

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cx16-bramheap-lib.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
@@ -7,34 +9,32 @@
 
 #include "equinoxe-flightengine-types.h"
 
-
-const unsigned char FE_PLAYER = 4;
-const unsigned char FE_ENEMY = 64;
-const unsigned char FE_BULLET = 32;
-const unsigned char FE_ENGINE = 4;
 const unsigned char FE_CACHE = 16;
 
 
-#define FLIGHT_PLAYER   (0x01)
-#define FLIGHT_ENEMY    (0x02)
-#define FLIGHT_TOWER    (0x04)
-#define FLIGHT_BULLET   (0x08)
-#define FLIGHT_MASK     (0x0F)
+#define FLIGHT_PLAYER       (0x01)
+#define FLIGHT_ENEMY        (0x02)
+#define FLIGHT_TOWER        (0x04)
+#define FLIGHT_BULLET       (0x08)
+#define FLIGHT_ENGINE       (0x10)
+#define FLIGHT_EXPLOSION    (0x20)
+#define FLIGHT_MASK         (0x2F)
+
+#define SIDE_ENEMY          (0x01)
+#define SIDE_PLAYER         (0x02)
+#define SIDE_SCENERY        (0x04)
 
 
 extern fe_t fe; // used for storing the positions of the control blocks pools.
 
 extern flight_t flight;
 
-extern fe_player_t player;
-extern fe_engine_t engine;
-extern fe_enemy_t enemy;
 extern fe_sprite_cache_t sprite_cache;
 // extern lru_cache_table_t sprite_cache_vram;
 
 extern vera_sprite_offset sprite_offsets[127];
 
-flight_index_t flight_add();
+flight_index_t flight_add(flight_type_t type, flight_side_t side, sprite_index_t sprite);
 void flight_remove(flight_index_t f);
 
 

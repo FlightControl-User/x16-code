@@ -9,8 +9,9 @@
  * 
  */
 
-#include "ht-typedefs.h"
+#pragma once
 
+#include "ht-typedefs.h"
 
 void ht_init(ht_item_t* ht);
 inline ht_index_t ht_hash(ht_key_t key);

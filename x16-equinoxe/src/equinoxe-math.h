@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fp3.h>
 
 // #pragma data_seg(Math)

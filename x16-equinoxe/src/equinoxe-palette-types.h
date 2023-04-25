@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file equinoxe-palette-types.h
  * @author your name (you@domain.com)

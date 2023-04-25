@@ -2,7 +2,7 @@
 #include "../src/equinoxe-stage-types.h"
 // #include "equinoxe-stage.h"
 #include <cx16.h>
-// #include "equinoxe-flightengine.h"
+// #include "../src/equinoxe-flightengine.h"
 
 #pragma zp_reserve(0x00..0x21, 0x80..0xA8)
 
@@ -21,7 +21,7 @@ void animate_init() {
     animate.used = 0;
 }
 
-unsigned char animate_add(char count, char loop, char speed, signed char direction, char reverse) {
+unsigned char animate_add(char count, char state, char loop, char speed, signed char direction, char reverse) {
 
     if (animate.used < SPRITE_ANIMATE) {
         while (animate.locked[animate.pool]) {
@@ -34,12 +34,9 @@ unsigned char animate_add(char count, char loop, char speed, signed char directi
         animate.reverse[a] = reverse;
         animate.loop[a] = loop;
         animate.count[a] = count;
-        animate.direction[a] = direction;
 
-        if (direction > 0)
-            animate.state[a] = 0;
-        else
-            animate.state[a] = animate.count[a];
+        animate.state[a] = state;
+        animate.direction[a] = direction;
 
         animate.used++;
     }
@@ -55,9 +52,7 @@ unsigned char animate_del(unsigned char a) {
 
 unsigned char animate_is_waiting(unsigned char a) { return animate.wait[a]; }
 
-unsigned char animate_get_state(unsigned char a) { 
-    return animate.state[a]; 
-}
+unsigned char animate_get_state(unsigned char a) { return animate.state[a]; }
 
 void animate_logic(unsigned char a) {
     if (!animate.wait[a]) {
@@ -84,4 +79,39 @@ void animate_logic(unsigned char a) {
 
     if (animate.speed[a])
         animate.wait[a]--;
+}
+
+void animate_player(unsigned char a, signed int x, signed int px) {
+
+    if (!animate.wait[a]) {
+
+        animate.wait[a] = animate.speed[a];
+
+        if (x < px && animate.state[a] > 0) {
+            // Added fragment
+            animate.state[a] -= 1;
+            animate.moved[a] = 2;
+        }
+        if (x > px && animate.state[a] < 6) {
+            animate.state[a] += 1;
+            animate.moved[a] = 2;
+        }
+
+        if (animate.moved[a] == 1) {
+            if (animate.state[a] < animate.loop[a]) {
+                animate.state[a] += 1;
+            }
+            if (animate.state[a] > animate.loop[a]) {
+                animate.state[a] -= 1;
+            }
+            if (animate.state[a] == animate.loop[a]) {
+                animate.moved[a] = 0;
+            }
+        }
+
+        if (animate.moved[a] == 2) {
+            animate.moved[a]--;
+        }
+    }
+    animate.wait[a]--;
 }

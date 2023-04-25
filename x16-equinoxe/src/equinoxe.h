@@ -1,3 +1,5 @@
+#pragma once
+
 #include "equinoxe-bank.h"
 #include "equinoxe-types.h"
 

@@ -1,3 +1,4 @@
+#pragma once
 
 #include "equinoxe-flightengine-types.h"
 

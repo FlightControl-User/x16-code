@@ -1,3 +1,6 @@
+
+#pragma once
+
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
 #include "cx16-veraheap-typedefs.h"
@@ -5,6 +8,8 @@
 #include <ht.h>
 #include <cx16-bramheap-typedefs.h>
 #include "equinoxe-animate-types.h"
+
+#define FLIGHT_OBJECTS 64
 
 typedef unsigned char fe_sprite_index_t;
 
@@ -85,41 +90,101 @@ typedef struct {
 
 typedef unsigned char flight_index_t;
 typedef unsigned char flight_type_t;
+typedef unsigned char flight_side_t;
 
+#include "equinoxe-level-types.h"
 typedef struct {
 
-    flight_type_t type[128];                // The type of flight object.
+    flight_type_t type[FLIGHT_OBJECTS];                // The type of flight object.
+    flight_side_t side[FLIGHT_OBJECTS];                // The type of flight object.
 
-    unsigned char cx[128];                  // x-axis coordinate at collision precision.
-    unsigned char cy[128];                  // y-axis coordinate at collision precision.
+    unsigned char cx[FLIGHT_OBJECTS];                  // x-axis coordinate at collision precision.
+    unsigned char cy[FLIGHT_OBJECTS];                  // y-axis coordinate at collision precision.
 
-    FP tx[128];                             // Fixed point current x coordinate.
-    FP ty[128];                             // Fixed point current y coordinate.
-    FP tdx[128];                            // Fixed point delta x.
-    FP tdy[128];                            // Fixed point delta y.
+    FP tx[FLIGHT_OBJECTS];                             // Fixed point current x coordinate.
+    FP ty[FLIGHT_OBJECTS];                             // Fixed point current y coordinate.
+    FP tdx[FLIGHT_OBJECTS];                            // Fixed point delta x.
+    FP tdy[FLIGHT_OBJECTS];                            // Fixed point delta y.
 
-    unsigned char used[128];                // Is the sprite used, so free or not.
-    unsigned char collided[128];            // Has the sprite collided during the collision detection routine.
+    unsigned char used[FLIGHT_OBJECTS];                // Is the sprite used, so free or not.
+    unsigned char enabled[FLIGHT_OBJECTS];             // Is the sprite enabled (visible or not)?
+    unsigned char collided[FLIGHT_OBJECTS];            // Has the sprite collided during the collision detection routine.
 
-    unsigned char moved[128];               // Has the sprite moved?
-    unsigned char enabled[128];             // Is the sprite enabled (visible or not)?
-    unsigned char engine[128];              // Does the sprite have an engine sprite?
+    unsigned char move[FLIGHT_OBJECTS]; 
+    unsigned char moved[FLIGHT_OBJECTS];               // Has the sprite moved?
+    unsigned int moving[FLIGHT_OBJECTS]; // 1536
+    unsigned char delay[FLIGHT_OBJECTS];
 
-    unsigned char firegun[128];             // Models the armament.
-    unsigned char reload[128];              // Does the armament need reloading?          
+    unsigned char engine[FLIGHT_OBJECTS];              // Does the sprite have an engine sprite?
 
-    signed char health[128];                // The health of the object.
-    signed char impact[128];                // The impact in energy that the object makes when colliding with an other object. 
+    unsigned char firegun[FLIGHT_OBJECTS];             // Models the armament.
+    unsigned char reload[FLIGHT_OBJECTS];              // Does the armament need reloading?          
+
+
+    unsigned char angle[FLIGHT_OBJECTS];                    // The angle of movement.
+    unsigned char speed[FLIGHT_OBJECTS];                // The speed of movement.
+    unsigned char turn[FLIGHT_OBJECTS];                 // The turn ratio.
+    unsigned char radius[FLIGHT_OBJECTS];               // The radius of the turn.
+
+    signed char health[FLIGHT_OBJECTS];                // The health of the object.
+    signed char impact[FLIGHT_OBJECTS];                // The impact in energy that the object makes when colliding with an other object. 
     
-    sprite_animate_t animation;             // Models the animation of the sprite.
+    unsigned char animate[FLIGHT_OBJECTS];                // Models the animation of the sprite.
 
-    fe_sprite_index_t sprite[128];          // Internal link field.
-    vera_sprite_offset sprite_offset[128];  // An internal field that holds the calculated offset in vera.
+    unsigned char action[FLIGHT_OBJECTS]; 
+    stage_flightpath_t* flightpath[FLIGHT_OBJECTS]; 
+    unsigned char initpath;
+
+    unsigned char wave[FLIGHT_OBJECTS]; 
+    fe_sprite_index_t sprite[FLIGHT_OBJECTS];          // Internal link field.
+    vera_sprite_offset sprite_offset[FLIGHT_OBJECTS];  // An internal field that holds the calculated offset in vera.
 
     flight_index_t index;
 
 } flight_t;
 
+/*
+typedef struct {
+
+    unsigned char wave[64]; 
+
+    unsigned char move[64]; // FLIGHT_OBJECTSGHT_OBJECTS0
+    unsigned char moved[64]; // 1344
+    unsigned char enabled[64]; // 1408
+
+    unsigned int moving[64]; // 1536
+    unsigned char delay[64]; // 1600
+
+    unsigned char angle[64]; // 1664
+    unsigned char speed[64]; // 1728
+    unsigned char turn[64]; // 1792
+    unsigned char radius[64]; // 1856
+    unsigned char baseangle[64]; // 1920
+
+    signed char health[64]; // 2048
+    signed char impact[64];
+
+    vera_sprite_offset sprite_offset[64]; // 2176
+
+    unsigned char wait_animation[64]; // 2240
+    unsigned char speed_animation[64]; // 2304
+    unsigned char state_animation[64]; // 2368
+    unsigned char reverse_animation[64]; // 2432
+    signed char direction_animation[64]; // 2496
+    unsigned char start_animation[64]; // 2560
+    unsigned char stop_animation[64]; // 2624
+
+    unsigned char action[64]; // 2688
+    stage_flightpath_t* flightpath[64]; // 2816
+    unsigned char initpath; // 2217
+
+    fe_sprite_index_t sprite[64]; // 2881
+
+} fe_enemy_t;
+
+*/
+
+/*
 typedef struct {
 
     FP tx[4];
@@ -167,7 +232,7 @@ typedef struct {
 
 } fe_engine_t;
 
-
+*/
 
 // To store the position of the control blocks in the engine parts.
 typedef struct {

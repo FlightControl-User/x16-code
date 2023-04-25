@@ -236,6 +236,7 @@ void tower_move()
 
 void tower_logic() 
 {
+    /*
 
     bank_push_set_bram(BANK_ENGINE_TOWERS);
 
@@ -262,7 +263,7 @@ void tower_logic()
                     if(py>0) {
                         unsigned char rnd = rand();
                         if( rnd < 32 ) {
-                            FireBulletTower(t);
+                            bullet_add(t);
                         }
                     }
                     #endif
@@ -272,6 +273,7 @@ void tower_logic()
         }
 	}
     bank_pull_bram();
+    */
 }
 
 #pragma data_seg(Data)

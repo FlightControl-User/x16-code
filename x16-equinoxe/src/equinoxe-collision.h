@@ -1,3 +1,5 @@
+#pragma once
+
 #include "equinoxe-types.h"
 #include "equinoxe-collision-types.h"
 #include "ht.h"

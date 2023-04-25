@@ -413,13 +413,11 @@ unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn
 }
 
 
-
 void stage_display()
 {
     gotoxy(0,0);
     printf("stage statistics\n");
     printf("count bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_count, stage.enemy_count, stage.tower_count, stage.player_count);
-    printf("pool  bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_pool, stage.enemy_pool, stage.tower_pool, stage.player_pool);
 }
 
 #pragma data_seg(Data)

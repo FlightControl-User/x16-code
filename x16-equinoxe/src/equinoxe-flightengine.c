@@ -28,19 +28,37 @@ vera_sprite_offset sprite_offsets[127] = { 0 };
 
 // #pragma var_model(zp)
 
-flight_index_t flight_add(flight_type_t type) {
+flight_index_t flight_add(flight_type_t type, flight_side_t side, sprite_index_t sprite) {
 
     unsigned char f = flight.index;
     while (flight.used[f]) {
-        f = (f + 1) % 128;
+        f = (f + 1) % FLIGHT_OBJECTS;
     }
     flight.index = f;
 
-    flight.type = type;
-    
+    flight.type[f] = type;
+    flight.side[f] = side;
+
     flight.used[f] = 1;
     flight.enabled[f] = 0;
 
+	flight.move[f] = 0;
+	flight.moved[f] = 0;
+	flight.moving[f] = 0;
+	flight.angle[f] = 0;
+	flight.speed[f] = 0;
+	flight.action[f] = 0;
+	flight.turn[f] = 0;
+	flight.radius[f] = 0;
+	flight.reload[f] = 0;
+    flight.delay[f] = 0;
+
+
+    unsigned char s = fe_sprite_cache_copy(sprite);
+    flight.sprite[f] = s;
+
+    flight.sprite_offset[f] = sprite_next_offset();
+    fe_sprite_configure(flight.sprite_offset[f], s);
 
     return f;
 }
@@ -53,10 +71,69 @@ void flight_remove(flight_index_t f) {
         vera_sprite_disable(sprite_offset);
         palette_unuse_vram(sprite_cache.palette_offset[flight.sprite[f]]);
         fe_sprite_cache_free(flight.sprite[f]);
-        flight.used[p] = 0;
-        flight.enabled[p] = 0;
-        flight.collided[p] = 1;
+        flight.used[f] = 0;
+        flight.enabled[f] = 0;
+        flight.collided[f] = 1;
     }
+}
+
+void flight_draw() {
+
+    for(unsigned char f=0; f<FLIGHT_OBJECTS; f++) {
+
+		if(flight.used[f]) {	
+
+			unsigned int x = WORD1(flight.tx[e]);
+			unsigned int y = WORD1(flight.ty[e]);
+
+			vera_sprite_offset sprite_offset = flight.sprite_offset[e];
+
+			if(x<640+68 && y<480+68 && x<0xFFFF-68 && y<0xFFFF-68 ) {
+
+                *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
+                *VERA_ADDRX_M = BYTE1(sprite_offset+2);
+                *VERA_ADDRX_H = bank | inc_dec;
+
+				if(animate_is_waiting(flight.animate[e])) {
+                    *VERA_ADDRX_L = BYTE0(sprite_offset+2);
+                    *VERA_DATA0 = BYTE0(x);
+                    *VERA_DATA0 = BYTE1(x);
+                    *VERA_DATA0 = BYTE0(y);
+                    *VERA_DATA0 = BYTE1(y);
+
+					// vera_sprite_set_xy(sprite_offset, x, y);
+				} else {
+					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[e]*16+flight.state_animation[e]]);
+                    vera_sprite_image_offset sprite_image_offset = sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e]));
+                    *VERA_ADDRX_L = BYTE0(sprite_offset);
+                    *VERA_DATA0 = BYTE0(sprite_image_offset);
+                    *VERA_DATA0 = BYTE1(sprite_image_offset);
+                    *VERA_DATA0 = BYTE0(x);
+                    *VERA_DATA0 = BYTE1(x);
+                    *VERA_DATA0 = BYTE0(y);
+                    *VERA_DATA0 = BYTE1(y);
+					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, 
+					// 	sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e])));
+				}
+
+				if(!flight.enabled[e]) {
+                    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | sprite_cache.zdepth[flight.sprite[e]];
+			    	// vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[e]]);
+					flight.enabled[e] = 1;
+				}
+
+			// gotoxy(0, e);
+			// printf("%02u - wait=%u", e, flight.wait_animation[e]);
+			} else {
+				if(flight.enabled[e]) {
+			    	// vera_sprite_disable(sprite_offset);
+                    *VERA_ADDRX_L = BYTE0(sprite_offset+6);
+                    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK;
+					flight.enabled[e] = 0;
+				}
+			}
+		}
+	}
 }
 
 vera_sprite_offset sprite_next_offset()
