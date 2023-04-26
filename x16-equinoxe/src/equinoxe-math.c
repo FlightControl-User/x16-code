@@ -26,7 +26,7 @@
  * @return signed char
  */
 
-inline FP math_vecx(unsigned char angle, char speed) {
+inline signed int math_vecx(unsigned char angle, char speed) {
 
     // TODO: check with jesper this code section, could be a bug in the optimizer.
     signed int dx = 0;
@@ -40,10 +40,10 @@ inline FP math_vecx(unsigned char angle, char speed) {
     // signed char dx4 = (signed char)0;
     // if(dx3<0) dx4=-1;
     // return (FP)MAKELONG4((char)dx4, (char)dx3, (char)dx2, 0);
-    return (FP)dx << 8;
+    return dx;
 }
 
-inline FP math_vecy(unsigned char angle, char speed) {
+inline signed int math_vecy(unsigned char angle, char speed) {
 
     signed int dy = 0;
     if (speed) {
@@ -56,7 +56,7 @@ inline FP math_vecy(unsigned char angle, char speed) {
     // signed char dy4 = (signed char)0;
     // if(dy3<0) dy4=-1;
     // return (FP)MAKELONG4((char)dy4, (char)dy3, (char)dy2, 0);
-    return (FP)dy << 8;
+    return dy;
 }
 
 inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2) {

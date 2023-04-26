@@ -38,10 +38,12 @@ void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
 
     flight.animate[p] = animate_add(6,3,3,8,1,0);
 
-    flight.tx[p] = MAKELONG(320, 0);
-    flight.ty[p] = MAKELONG(200, 0);
-    flight.tdx[p] = 0;
-    flight.tdy[p] = 0;
+    flight.xf[p] = 0;
+    flight.yf[p] = 0;
+    flight.xi[p] = 320;
+    flight.yi[p] = 200;
+    flight.xd[p] = 0;
+    flight.yd[p] = 0;
 
     unsigned char n = flight_add(FLIGHT_ENGINE, SIDE_PLAYER, sprite_engine);
 
@@ -88,13 +90,11 @@ void player_logic() {
                 flight.reload[p]--;
             }
 
-            animate_player(flight.animate[p], cx16_mouse.x, cx16_mouse.px);
-            animate_logic(flight.animate[flight.engine[p]]);
 
 #ifdef __BULLET
             if (cx16_mouse.status == 1 && flight.reload[p] <= 0) {
-                unsigned int x = WORD1(flight.tx[p]);
-                unsigned int y = WORD1(flight.ty[p]);
+                unsigned int x = flight.xi[p];
+                unsigned int y = flight.yi[p];
                 if (flight.firegun[p]) {
                     x += (signed char)16;
                 }
@@ -104,55 +104,62 @@ void player_logic() {
             }
 #endif
 
-            flight.tx[p] = MAKELONG((word)(cx16_mouse.x), 0);
-            flight.ty[p] = MAKELONG((word)(cx16_mouse.y), 0);
 
-            flight.cx[p] = BYTE0(WORD1(flight.tx[p]) >> 2);
-            flight.cy[p] = BYTE0(WORD1(flight.ty[p]) >> 2);
+            unsigned int x = flight.xi[p];
+            unsigned int y = flight.yi[p];
 
-            volatile signed int flightx = (signed int)WORD1(flight.tx[p]);
-            volatile signed int flighty = (signed int)WORD1(flight.ty[p]);
+            flight.xi[p] = cx16_mouse.x;
+            flight.yi[p] = cx16_mouse.y;
+
+            flight_index_t n = flight.engine[p];
+            flight.xi[n] = flight.xi[p]+8;
+            flight.yi[n] = flight.yi[p]+22;
+
+            flight.cx[p] = BYTE0(flight.xi[p] >> 2);
+            flight.cy[p] = BYTE0(flight.yi[p] >> 2);
 
             vera_sprite_offset flight_sprite_offset = flight.sprite_offset[p];
             vera_sprite_offset engine_sprite_offset = flight.sprite_offset[flight.engine[p]];
 
-            if (flightx > 640 - 32)
-                flightx = 640 - 32;
-            if (flightx < 0)
-                flightx = 0;
-            if (flighty > 480 - 32)
-                flighty = 480 - 32;
-            if (flighty < 0)
-                flighty = 0;
+            if (x > 640 - 32) {
+                x = 640 - 32;
+            }
+
+            if (y > 480 - 32) {
+                y = 480 - 32;
+            }
+
+            animate_player(flight.animate[p], (signed int)cx16_mouse.x, (signed int)cx16_mouse.px);
+            animate_logic(flight.animate[n]);
 
 #ifdef __COLLISION
             flight.collided[p] = 0;
             collision_insert(flight.cx[p], flight.cy[p], p);
 #endif
 
-            unsigned char flight_sprite = flight.sprite[p];
-            unsigned char engine_sprite = flight.sprite[flight.engine[p]];
+//             unsigned char flight_sprite = flight.sprite[p];
+//             unsigned char engine_sprite = flight.sprite[flight.engine[p]];
 
-            if (!flight.enabled[p]) {
-                vera_sprite_zdepth(flight_sprite_offset, sprite_cache.zdepth[flight_sprite]);
-                vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
-                flight.enabled[p] = 1;
-            }
+//             if (!flight.enabled[p]) {
+//                 vera_sprite_zdepth(flight_sprite_offset, sprite_cache.zdepth[flight_sprite]);
+//                 vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
+//                 flight.enabled[p] = 1;
+//             }
 
-            if (animate_is_waiting(flight.animate[p])) {
-                vera_sprite_set_xy(flight_sprite_offset, flightx, flighty);
-            } else {
-                vera_sprite_set_xy_and_image_offset(flight_sprite_offset, flightx, flighty, 
-                    sprite_image_cache_vram(flight_sprite, animate_get_state(flight.animate[p])));
-            }
-#ifdef __ENGINE
-            if (animate_is_waiting(flight.animate[p])) {
-                vera_sprite_set_xy(engine_sprite_offset, flightx + 8, flighty + 22);
-            } else {
-                vera_sprite_set_xy_and_image_offset(engine_sprite_offset, flightx + 8, flighty + 22,
-                    sprite_image_cache_vram(engine_sprite, animate_get_state(flight.animate[flight.engine[p]])));
-            }
-#endif
+//             if (animate_is_waiting(flight.animate[p])) {
+//                 vera_sprite_set_xy(flight_sprite_offset, flightx, flighty);
+//             } else {
+//                 vera_sprite_set_xy_and_image_offset(flight_sprite_offset, flightx, flighty, 
+//                     sprite_image_cache_vram(flight_sprite, animate_get_state(flight.animate[p])));
+//             }
+// #ifdef __ENGINE
+//             if (animate_is_waiting(flight.animate[p])) {
+//                 vera_sprite_set_xy(engine_sprite_offset, flightx + 8, flighty + 22);
+//             } else {
+//                 vera_sprite_set_xy_and_image_offset(engine_sprite_offset, flightx + 8, flighty + 22,
+//                     sprite_image_cache_vram(engine_sprite, animate_get_state(flight.animate[flight.engine[p]])));
+//             }
+// #endif
         }
     }
 }

@@ -53,13 +53,12 @@ unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy)
     stage_flightpath_t* flightpath = wave.enemy_flightpath[w];
     flight.flightpath[e] = flightpath;
 
-    signed int x = wave.x[w];
-    signed int y = wave.y[w];
-
-	flight.tx[e] = MAKELONG((unsigned int)x, 0);
-	flight.ty[e] = MAKELONG((unsigned int)y, 0);
-	flight.tdx[e] = 0;
-	flight.tdy[e] = 0;
+	flight.xf[e] = 0;
+	flight.yf[e] = 0;
+	flight.xi[e] = (unsigned int)wave.x[w];
+	flight.yi[e] = (unsigned int)wave.y[w];
+	flight.xd[e] = 0;
+	flight.yd[e] = 0;
 	
     unsigned char ret = 1;
     return ret;
@@ -165,8 +164,8 @@ void enemy_logic() {
 
 				if( flight.move[e]) {
 					if(flight.move[e] == 1) {
-						flight.tdx[e] = math_vecx(flight.angle[e], flight.speed[e]);
-						flight.tdy[e] = math_vecy(flight.angle[e], flight.speed[e]);
+						flight.xd[e] = (unsigned int)math_vecx(flight.angle[e], flight.speed[e]);
+						flight.yd[e] = (unsigned int)math_vecy(flight.angle[e], flight.speed[e]);
 						flight.move[e] = 0;
 					}
 					if(flight.move[e] == 2) {
@@ -175,71 +174,102 @@ void enemy_logic() {
 							flight.angle[e] += flight.turn[e];
 							flight.angle[e] %= 64;
 							flight.delay[e] = flight.radius[e];
-							flight.tdx[e] = math_vecx(flight.angle[e], flight.speed[e]);
-							flight.tdy[e] = math_vecy(flight.angle[e], flight.speed[e]);
+							flight.xd[e] = (unsigned int)math_vecx(flight.angle[e], flight.speed[e]);
+							flight.yd[e] = (unsigned int)math_vecy(flight.angle[e], flight.speed[e]);
 						}
 						flight.delay[e]--;
 					}
 				}
 			}
 
-			flight.tx[e] += flight.tdx[e];
-			flight.ty[e] += flight.tdy[e];
+            char* const xf = (char*)&flight.xf;
+            char* const yf = (char*)&flight.yf;
+            char* const xi = (char*)&flight.xi;
+            char* const yi = (char*)&flight.yi;
+            char* const xd = (char*)&flight.xd;
+            char* const yd = (char*)&flight.yd;
 
-            flight.cx[e] = BYTE0(WORD1(flight.tx[e]) >> 2);
-            flight.cy[e] = BYTE0(WORD1(flight.ty[e]) >> 2);
+            kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
+                lda e
+                asl
+                tay
+                ldx e
+                lda xf,x        // Load the fractional part of the coordinate.
+                clc             // For addition, clear the carry.
+                adc xd,y        // Add the low byte (=fractional part) of the delta.
+                sta xf,x        // Store the low byte of the delta in the fractional part of the coordinate.
+                lda xi,y        // Load the low byte of the integer part of the coordinate.
+                adc xd+1,y      // Add the high byte (=integer part) of the delta.
+                sta xi,y        // Store the result in the low byte of the integer part of the coordinate.
+                lda xd+1,y      // Load back the high byte of the axis delta, it may be negative.
+                ora #$7f        // We check the sign bit.
+                bmi !+          // If it was minus, the result in A will be $FF.
+                lda #0          // The result was not minus, so just add carry.
+                !:
+                adc xi+1,y      // Now do the signed final addition.
+                sta xi+1,y      // And store the result, we're done.
 
+                lda yf,x        // Load the fractional part of the coordinate.
+                clc             // For addition, clear the carry.
+                adc yd,y        // Add the low byte (=fractional part) of the delta.
+                sta yf,x        // Store the low byte of the delta in the fractional part of the coordinate.
+                lda yi,y        // Load the low byte of the integer part of the coordinate.
+                adc yd+1,y      // Add the high byte (=integer part) of the delta.
+                sta yi,y        // Store the result in the low byte of the integer part of the coordinate.
+                lda yd+1,y      // Load back the high byte of the delta, it may be negative.
+                ora #$7f        // We check the sign bit.
+                bmi !+          // If it was minus, the result in A will be $FF.
+                lda #0          // The result was not minus, so just add carry.
+                !:
+                adc yi+1,y      // Now do the signed final addition.
+                sta yi+1,y      // And store the result, we're done.
+            }};
 
-			// flight.tdx[e] = tdx;
-			// flight.tdy[e] = tdy;
+            flight.cx[e] = BYTE0(flight.xi[e] >> 2);
+            flight.cy[e] = BYTE0(flight.yi[e] >> 2);
 
 			if (flight.reload[e] > 0) {
 				flight.reload[e]--;
 			}
 
-
-
-			signed int x = (signed int)WORD1(flight.tx[e]);
-			signed int y = (signed int)WORD1(flight.ty[e]);
-
-			vera_sprite_offset sprite_offset = flight.sprite_offset[e];
+			// vera_sprite_offset sprite_offset = flight.sprite_offset[e];
 
             // printf("x=%05i, y=%05i, offset=%04x", x, y, sprite_offset);
 
-			if(x>=-68 && x<640+68 && y>=-68 && y<480+68) {
+			// if(x>=-68 && x<640+68 && y>=-68 && y<480+68) {
 
-				if(!flight.enabled[e]) {
-			    	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[e]]);
-					flight.enabled[e] = 1;
-				}
+			// 	if(!flight.enabled[e]) {
+			//     	vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[e]]);
+			// 		flight.enabled[e] = 1;
+			// 	}
 
-			// gotoxy(0, e);
-			// printf("%02u - wait=%u", e, flight.wait_animation[e]);
+			// // gotoxy(0, e);
+			// // printf("%02u - wait=%u", e, flight.wait_animation[e]);
 
 
-				if(animate_is_waiting(flight.animate[e])) {
-					vera_sprite_set_xy(sprite_offset, x, y);
-				} else {
-					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[e]*16+flight.state_animation[e]]);
-					vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, 
-						sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e])));
-				}
+			// 	if(animate_is_waiting(flight.animate[e])) {
+			// 		vera_sprite_set_xy(sprite_offset, x, y);
+			// 	} else {
+			// 		// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[e]*16+flight.state_animation[e]]);
+			// 		vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, 
+			// 			sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e])));
+			// 	}
 
 #ifdef __BULLET         
 				unsigned int r = rand();
 				if(r>=65300) {
-					bullet_add(WORD1(flight.tx[e]), WORD1(flight.ty[e]), WORD1(flight.tx[stage.player]), WORD1(flight.ty[stage.player]), 2, SIDE_ENEMY, b002);
+					bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 2, SIDE_ENEMY, b002);
 				}
 #endif
 				animate_logic(flight.animate[e]);
 				flight.collided[e] = 0;
 				collision_insert(flight.cx[e], flight.cy[e], e);
-			} else {
-				if(flight.enabled[e]) {
-			    	vera_sprite_disable(sprite_offset);
-					flight.enabled[e] = 0;
-				}
-			}
+			// } else {
+			// 	if(flight.enabled[e]) {
+			//     	vera_sprite_disable(sprite_offset);
+			// 		flight.enabled[e] = 0;
+			// 	}
+			// }
 		}
 	}
 }

@@ -101,10 +101,12 @@ typedef struct {
     unsigned char cx[FLIGHT_OBJECTS];                  // x-axis coordinate at collision precision.
     unsigned char cy[FLIGHT_OBJECTS];                  // y-axis coordinate at collision precision.
 
-    FP tx[FLIGHT_OBJECTS];                             // Fixed point current x coordinate.
-    FP ty[FLIGHT_OBJECTS];                             // Fixed point current y coordinate.
-    FP tdx[FLIGHT_OBJECTS];                            // Fixed point delta x.
-    FP tdy[FLIGHT_OBJECTS];                            // Fixed point delta y.
+    unsigned char xf[FLIGHT_OBJECTS];                  // Fractional current x coordinate.
+    unsigned char yf[FLIGHT_OBJECTS];                  // Fractional current x coordinate.
+    unsigned int xi[FLIGHT_OBJECTS];                   // Integer current x coordinate.
+    unsigned int yi[FLIGHT_OBJECTS];                   // Integer point current y coordinate.
+    unsigned int xd[FLIGHT_OBJECTS];                   // Fixed point delta x.
+    unsigned int yd[FLIGHT_OBJECTS];                   // Fixed point delta y.
 
     unsigned char used[FLIGHT_OBJECTS];                // Is the sprite used, so free or not.
     unsigned char enabled[FLIGHT_OBJECTS];             // Is the sprite enabled (visible or not)?

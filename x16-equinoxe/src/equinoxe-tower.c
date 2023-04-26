@@ -38,7 +38,7 @@ unsigned char tower_add(
     unsigned char palette_index ) 
 {
 
-    bank_push_set_bram(BANK_ENGINE_TOWERS);
+/*    bank_push_set_bram(BANK_ENGINE_TOWERS);
 
 	unsigned char t = stage.tower_pool;
 
@@ -80,7 +80,7 @@ unsigned char tower_add(
 	stage.tower_pool = (t+1)%TOWERS_TOTAL;
 
     bank_pull_bram();
-
+*/
     unsigned char ret = 1;
     return ret;
 }

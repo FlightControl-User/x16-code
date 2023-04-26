@@ -79,22 +79,25 @@ void flight_remove(flight_index_t f) {
 
 void flight_draw() {
 
+    // BREAKPOINT
+    *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
+
     for(unsigned char f=0; f<FLIGHT_OBJECTS; f++) {
 
 		if(flight.used[f]) {	
 
-			unsigned int x = WORD1(flight.tx[e]);
-			unsigned int y = WORD1(flight.ty[e]);
+			unsigned int x = flight.xi[f];
+			unsigned int y = flight.yi[f];
 
-			vera_sprite_offset sprite_offset = flight.sprite_offset[e];
+			vera_sprite_offset sprite_offset = flight.sprite_offset[f];
+
+            *VERA_ADDRX_H = 1 | VERA_INC_1;
 
 			if(x<640+68 && y<480+68 && x<0xFFFF-68 && y<0xFFFF-68 ) {
 
-                *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
-                *VERA_ADDRX_M = BYTE1(sprite_offset+2);
-                *VERA_ADDRX_H = bank | inc_dec;
+                *VERA_ADDRX_M = BYTE1(sprite_offset); // Normally the +2 should not be an issue.
 
-				if(animate_is_waiting(flight.animate[e])) {
+				if(animate_is_waiting(flight.animate[f])) {
                     *VERA_ADDRX_L = BYTE0(sprite_offset+2);
                     *VERA_DATA0 = BYTE0(x);
                     *VERA_DATA0 = BYTE1(x);
@@ -104,7 +107,7 @@ void flight_draw() {
 					// vera_sprite_set_xy(sprite_offset, x, y);
 				} else {
 					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[e]*16+flight.state_animation[e]]);
-                    vera_sprite_image_offset sprite_image_offset = sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e]));
+                    vera_sprite_image_offset sprite_image_offset = sprite_image_cache_vram(flight.sprite[f], animate_get_state(flight.animate[f]));
                     *VERA_ADDRX_L = BYTE0(sprite_offset);
                     *VERA_DATA0 = BYTE0(sprite_image_offset);
                     *VERA_DATA0 = BYTE1(sprite_image_offset);
@@ -116,20 +119,22 @@ void flight_draw() {
 					// 	sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e])));
 				}
 
-				if(!flight.enabled[e]) {
-                    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | sprite_cache.zdepth[flight.sprite[e]];
+				if(!flight.enabled[f]) {
+                    *VERA_ADDRX_H = 1 | VERA_INC_0;
+                    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | sprite_cache.zdepth[flight.sprite[f]];
 			    	// vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[e]]);
-					flight.enabled[e] = 1;
+					flight.enabled[f] = 1;
 				}
 
 			// gotoxy(0, e);
 			// printf("%02u - wait=%u", e, flight.wait_animation[e]);
 			} else {
-				if(flight.enabled[e]) {
+				if(flight.enabled[f]) {
 			    	// vera_sprite_disable(sprite_offset);
                     *VERA_ADDRX_L = BYTE0(sprite_offset+6);
+                    *VERA_ADDRX_H = 1 | VERA_INC_0;
                     *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK;
-					flight.enabled[e] = 0;
+					flight.enabled[f] = 0;
 				}
 			}
 		}

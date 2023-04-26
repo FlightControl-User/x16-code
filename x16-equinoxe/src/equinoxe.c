@@ -57,18 +57,6 @@
 
 
 
-#pragma data_seg(Heap)
-
-// heap_structure_t heap; const heap_structure_t* heap_bram_blocked = &heap;
-
-// fb_heap_segment_t heap_64; const fb_heap_segment_t* bin64 = &heap_64;
-// fb_heap_segment_t heap_128; const fb_heap_segment_t* bin128 = &heap_128;
-// fb_heap_segment_t heap_256; const fb_heap_segment_t* bin256 = &heap_256;
-// fb_heap_segment_t heap_512; const fb_heap_segment_t* bin512 = &heap_512;
-// fb_heap_segment_t heap_1024; const fb_heap_segment_t* bin1024 = &heap_1024;
-// fb_heap_segment_t heap_1152; const fb_heap_segment_t* bin1152 = &heap_1152;
-// fb_heap_segment_t heap_2048; const fb_heap_segment_t* bin2048 = &heap_2048;
-
 #pragma data_seg(Data)
 
 equinoxe_game_t game = {0, 0, 0, 2, 0};
@@ -208,27 +196,7 @@ void irq_vsync() {
         enemy_logic();
     #endif
 
-    #ifdef __TOWER
-        #ifdef __CPULINES
-            vera_display_set_border_color(LIGHT_GREEN);
-        #endif
-        tower_logic();
-    #endif
-
-    #ifdef __CPULINES
-        vera_display_set_border_color(GREY);
-    #endif
-
-    #ifdef __TOWER
-        tower_animate();
-    #endif
-
-    #ifdef __ENEMY
-        #ifdef __CPULINES
-            vera_display_set_border_color(GREY);
-        #endif
-    #endif
-
+    vera_display_set_border_color(GREY);
     flight_draw();
 
     #ifdef __COLLISION

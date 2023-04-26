@@ -61,11 +61,14 @@ void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int 
 
     unsigned char angle = math_atan2(asx, atx, asy, aty);
 
-    flight.tdx[b] = math_vecx(angle-16, speed);
-    flight.tdy[b] = math_vecy(angle-16, speed);
+    signed int dx = math_vecx(angle-16, speed);
+    signed int dy = math_vecy(angle-16, speed);  
 
-    flight.tx[b] = MAKELONG(sx, 0);
-    flight.ty[b] = MAKELONG(sy, 0);
+    flight.xd[b] = (unsigned int)dx;
+    flight.yd[b] = (unsigned int)dy;
+
+    flight.xi[b] = sx;
+    flight.yi[b] = sy;
 
     flight.speed[b] = speed; 
     flight.impact[b] = -100;
@@ -140,35 +143,78 @@ void bullet_logic()
 
             vera_sprite_offset sprite_offset = flight.sprite_offset[b];
 
-            flight.tx[b] += flight.tdx[b];
-            flight.ty[b] += flight.tdy[b];
+            char* const xf = (char*)&flight.xf;
+            char* const yf = (char*)&flight.yf;
+            char* const xi = (char*)&flight.xi;
+            char* const yi = (char*)&flight.yi;
+            char* const xd = (char*)&flight.xd;
+            char* const yd = (char*)&flight.yd;
 
-            unsigned int x = WORD1(flight.tx[b]);
-            unsigned int y = WORD1(flight.ty[b]);
 
-            if(x<640 && y<480 && y<0xFFFF-32 && x<0xFFFF-32) {
+            kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
+                lda b
+                asl
+                tay
+                ldx b
+                lda xf,x        // Load the fractional part of the coordinate.
+                clc             // For addition, clear the carry.
+                adc xd,y        // Add the low byte (=fractional part) of the delta.
+                sta xf,x        // Store the low byte of the delta in the fractional part of the coordinate.
+                lda xi,y        // Load the low byte of the integer part of the coordinate.
+                adc xd+1,y      // Add the high byte (=integer part) of the delta.
+                sta xi,y        // Store the result in the low byte of the integer part of the coordinate.
+                lda xd+1,y      // Load back the high byte of the axis delta, it may be negative.
+                ora #$7f        // We check the sign bit.
+                bmi !+          // If it was minus, the result in A will be $FF.
+                lda #0          // The result was not minus, so just add carry.
+                !:
+                adc xi+1,y      // Now do the signed final addition.
+                sta xi+1,y      // And store the result, we're done.
 
-                if(!flight.enabled[b]) {
-                    vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[b]]);
-                    flight.enabled[b] = 1;
-                }
+                lda yf,x        // Load the fractional part of the coordinate.
+                clc             // For addition, clear the carry.
+                adc yd,y        // Add the low byte (=fractional part) of the delta.
+                sta yf,x        // Store the low byte of the delta in the fractional part of the coordinate.
+                lda yi,y        // Load the low byte of the integer part of the coordinate.
+                adc yd+1,y      // Add the high byte (=integer part) of the delta.
+                sta yi,y        // Store the result in the low byte of the integer part of the coordinate.
+                lda yd+1,y      // Load back the high byte of the delta, it may be negative.
+                ora #$7f        // We check the sign bit.
+                bmi !+          // If it was minus, the result in A will be $FF.
+                lda #0          // The result was not minus, so just add carry.
+                !:
+                adc yi+1,y      // Now do the signed final addition.
+                sta yi+1,y      // And store the result, we're done.
+            }};
+
+            // flight.tx[b] += flight.tdx[b];
+            // flight.ty[b] += flight.tdy[b];
+
+            unsigned int x = flight.xi[b];
+            unsigned int y = flight.yi[b];
+
+
+            if(x<640 && y<480 && x<0xFFFF-32 && y<0xFFFF-32) {
+
+            //     if(!flight.enabled[b]) {
+                    // vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[b]]);
+            //         flight.enabled[b] = 1;
+            //     }
 
                 unsigned char volatile a = flight.animate[b];
-				if(animate_is_waiting(a)) {
-					vera_sprite_set_xy(sprite_offset, (signed int)x, (signed int)y);
-				} else {
-					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[b]*16+flight.state_animation[b]]);
-					vera_sprite_set_xy_and_image_offset(sprite_offset, (signed int)x, (signed int)y, sprite_image_cache_vram(flight.sprite[b], animate_get_state(a)));
-				}
+			// 	if(animate_is_waiting(a)) {
+			// 		vera_sprite_set_xy(sprite_offset, (signed int)x, (signed int)y);
+			// 	} else {
+			// 		// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[b]*16+flight.state_animation[b]]);
+			// 		vera_sprite_set_xy_and_image_offset(sprite_offset, (signed int)x, (signed int)y, sprite_image_cache_vram(flight.sprite[b], animate_get_state(a)));
+			// 	}
                 animate_logic(a);
 
-                unsigned char cx = BYTE0(x >> 2);
-                unsigned char cy = BYTE0(y >> 2);
-                flight.cx[b] = cx;
-                flight.cy[b] = cy;
+                flight.cx[b] = BYTE0(x >> 2);
+                flight.cy[b] = BYTE0(y >> 2);
 
                 flight.collided[b] = 0;
-				collision_insert(cx, cy, b);
+				collision_insert(flight.cx[b], flight.cy[b], b);
             } else {
                 bullet_remove(b);
             }

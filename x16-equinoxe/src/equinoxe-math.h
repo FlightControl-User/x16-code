@@ -36,8 +36,8 @@ __align(0x100)  unsigned char adjust_octant[] = kickasm {{
 
 
 
-FP math_vecx(unsigned char angle, char speed);
-FP math_vecy(unsigned char angle, char speed);
+signed int math_vecx(unsigned char angle, char speed);
+signed int math_vecy(unsigned char angle, char speed);
 unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2);
 
 // FP3 vecx(char angle, char speed);
