@@ -10,8 +10,6 @@
 #include "equinoxe.h"
 #include "stdio.h"
 
-#pragma var_model(zp)
-
 #pragma data_seg(Hash)
 ht_item_t collision_hash;
 collision_quadrant_t collision_quadrant;
@@ -45,12 +43,16 @@ ht_key_t collision_key(unsigned char gx, unsigned char gy) {
  * @param group
  * @param xmin
  * @param ymin
- * @param data
+ * @param f
  */
-void collision_insert(unsigned char xmin, unsigned char ymin, ht_data_t data) {
+void collision_insert(flight_index_t f) {
 
-    // bram_bank_t bram_old = bank_get_bram();
-    // bank_set_bram(60);
+    unsigned char xmin = flight.xi[f] >> 2; 
+    unsigned char ymin = flight.yi[f] >> 2;
+
+    flight.cx[f] = xmin;
+    flight.cy[f] = ymin;
+    flight.collided[f] = 0;
 
     // The coordinates start at -63, so we add 16 to avoid negative numbers in the grid key.
     xmin += 16;
@@ -67,12 +69,10 @@ void collision_insert(unsigned char xmin, unsigned char ymin, ht_data_t data) {
     for (unsigned char gx = xmin; gx <= xmax; gx += 1) {
         for (unsigned char gy = ymin; gy <= ymax; gy += 16) {
             ht_key_t ht_key = collision_key((unsigned char)gx, (unsigned char)gy);
-            // printf("cell %02x,%02x:%02x(%02x)", gx, gy, ht_key, data);
-            ht_insert(&collision_hash, ht_key, data);
+            ht_insert(&collision_hash, ht_key, f);
             collision_quadrant.cell[gy + gx] += 1;
         }
     }
-    // bank_set_bram(bram_old);
 }
 
 inline unsigned char collision_count(unsigned char gx, unsigned char gy) { return collision_quadrant.cell[gx + gy]; }
@@ -93,7 +93,7 @@ unsigned char collision_data(unsigned char collision, collision_decision_t *coll
     unsigned char side = flight.side[collision];
     unsigned char x = flight.cx[collision];
     unsigned char y = flight.cy[collision];
-    unsigned char s = flight.sprite[collision]; // Which sprite is it in the cache...
+    unsigned char s = flight.cache[collision]; // Which sprite is it in the cache...
 
     collision_decision->collision = collision;
     collision_decision->s = s;
@@ -174,8 +174,6 @@ unsigned char collision_data(unsigned char collision, collision_decision_t *coll
  *
  */
 void collision_detect() {
-
-    bank_push_set_bram(BANK_ENGINE_FLIGHT);
 
 #ifdef __DEBUG_COLLISION
 #ifndef __CONIO_BSOUT
@@ -342,7 +340,4 @@ void collision_detect() {
             }
         }
     }
-    bank_pull_bram();
 }
-
-#pragma var_model(mem)

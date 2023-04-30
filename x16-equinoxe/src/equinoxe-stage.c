@@ -232,7 +232,6 @@ static void stage_reset(void)
 
     stage.lives = 10;
     stage.scenario_total = stage.current_playbook.scenario_total_b; // bug?
-    stage.sprite_cache_pool = 0;
 
     stage_load(); // Load the artefacts of the stage.
 
@@ -247,7 +246,7 @@ static void stage_reset(void)
 }
 
 
-void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
+__zp void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 {
     unsigned char enemies = enemy_add(w, enemy_sprite);
 
@@ -257,10 +256,11 @@ void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
     wave.enemy_spawn[w] -= enemies;
     wave.enemy_count[w] -= enemies;
     wave.enemy_alive[w] += 1;
+    stage.enemy_count++;
 }
 
 
-void stage_enemy_remove(unsigned char e)
+__zp void stage_enemy_remove(unsigned char e)
 {
     unsigned char w = enemy_get_wave(e);
     enemy_remove(e);
@@ -270,7 +270,7 @@ void stage_enemy_remove(unsigned char e)
 }
 
 
-void stage_enemy_hit(unsigned char e, signed char impact)
+__zp void stage_enemy_hit(unsigned char e, signed char impact)
 {
     unsigned char w = enemy_get_wave(e);
     unsigned char hit = enemy_hit(e, impact);
@@ -282,7 +282,7 @@ void stage_enemy_hit(unsigned char e, signed char impact)
     }
 }
 
-void stage_logic()
+__zp void stage_logic()
 {
 
     if(stage.playbook_current < stage.script_b.playbook_total_b) {
@@ -355,9 +355,9 @@ void stage_logic()
         }
     }
 
-    if(stage.respawn) {
-        stage.respawn--;
-        if(!stage.respawn) {
+    if(stage.player_respawn) {
+        stage.player_respawn--;
+        if(!stage.player_respawn) {
 #ifdef __PLAYER
             stage_playbook_t* stage_playbooks = stage.script_b.playbooks_b;
             stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook_current];
@@ -371,44 +371,44 @@ void stage_logic()
     
 }
 
-stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action) {
+__zp stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action) {
     stage_action_t* flightpath_action = &flightpath[action].action;
     return flightpath_action;
 }
 
-unsigned char stage_get_flightpath_type(stage_flightpath_t* flightpath, unsigned char action) {
+__zp unsigned char stage_get_flightpath_type(stage_flightpath_t* flightpath, unsigned char action) {
     unsigned char type = flightpath[action].type;
     return type;
 }
 
-unsigned char stage_get_flightpath_next(stage_flightpath_t* flightpath, unsigned char action) {
+__zp unsigned char stage_get_flightpath_next(stage_flightpath_t* flightpath, unsigned char action) {
     unsigned char next = flightpath[action].next;
     return next;
 }
 
 
-unsigned int stage_get_flightpath_action_move_flight(stage_action_t* action_move) {
+__zp unsigned int stage_get_flightpath_action_move_flight(stage_action_t* action_move) {
     return ((stage_action_move_t*)action_move)->flight;
 }
 
-signed char stage_get_flightpath_action_move_turn(stage_action_t* action_move) {
+__zp signed char stage_get_flightpath_action_move_turn(stage_action_t* action_move) {
     return ((stage_action_move_t*)action_move)->turn;
 }
 
-unsigned char stage_get_flightpath_action_move_speed(stage_action_t* action_move) {
+__zp unsigned char stage_get_flightpath_action_move_speed(stage_action_t* action_move) {
     return ((stage_action_move_t*)action_move)->speed;
 }
 
 
-signed char stage_get_flightpath_action_turn_turn(volatile stage_action_t* action_turn) {
+__zp signed char stage_get_flightpath_action_turn_turn(volatile stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->turn;
 }
 
-unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_turn) {
+__zp unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->radius;
 }
 
-unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
+__zp unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->speed;
 }
 

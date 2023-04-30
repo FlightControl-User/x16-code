@@ -21,7 +21,7 @@
 
 ht_list_t ht_list;
 
-__mem volatile unsigned char ht_list_pool;
+volatile unsigned char ht_list_pool;
 
 
 void ht_init(ht_item_t* ht)
@@ -35,44 +35,44 @@ void ht_init(ht_item_t* ht)
 
 __mem volatile unsigned char ht_seed;
 
-// inline ht_index_t ht_hash(ht_key_t key)
-// {
-//    return key; //% HT_SIZE;
-// }
-
-ht_index_t ht_hash(ht_key_t key)
+inline ht_index_t ht_hash(ht_key_t key)
 {
-   ht_seed = key;
-   asm{
-                   lda ht_seed
-                   beq !doEor+
-                   asl
-                   beq !noEor+
-                   bcc !noEor+
-       !doEor:     eor #$2b
-       !noEor:     sta ht_seed
-   }
-   return ht_seed; // & HT_SIZE;
+   return key; //% HT_SIZE;
 }
 
-// inline ht_index_t ht_hash_next(ht_index_t index)
+// ht_index_t ht_hash(ht_key_t key)
 // {
-//    return (index+1); // % HT_SIZE;
+//    ht_seed = key;
+//    asm{
+//                    lda ht_seed
+//                    beq !doEor+
+//                    asl
+//                    beq !noEor+
+//                    bcc !noEor+
+//        !doEor:     eor #$2b
+//        !noEor:     sta ht_seed
+//    }
+//    return ht_seed; // & HT_SIZE;
 // }
 
-ht_index_t ht_hash_next(ht_index_t index)
+inline ht_index_t ht_hash_next(ht_index_t index)
 {
-   asm{
-                   lda ht_seed
-                   beq !doEor+
-                   asl
-                   beq !noEor+
-                   bcc !noEor+
-       !doEor:    eor #$2b
-       !noEor:    sta ht_seed
-   }
-   return ht_seed;
+   return (index+1); // % HT_SIZE;
 }
+
+// ht_index_t ht_hash_next(ht_index_t index)
+// {
+//    asm{
+//                    lda ht_seed
+//                    beq !doEor+
+//                    asl
+//                    beq !noEor+
+//                    bcc !noEor+
+//        !doEor:    eor #$2b
+//        !noEor:    sta ht_seed
+//    }
+//    return ht_seed;
+// }
 
 ht_index_t ht_get(ht_item_t* ht, ht_key_t key)
 {

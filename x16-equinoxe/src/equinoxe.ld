@@ -42,13 +42,14 @@
 .segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
 .segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
 .segmentdef DataEngineFloor         [startAfter="DataEngineAnimate"] 
-//.segmentdef BramEngineFloor       [startAfter="DataEngineFloor"] 
-.segmentdef DataEngineFlight        [startAfter="DataEngineFloor"] 
-.segmentdef DataEnginePalette       [startAfter="DataEngineFlight"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineFloor"] 
 .segmentdef DataEngineStages        [startAfter="DataEnginePalette"]
 .segmentdef DataEnginePlayers       [startAfter="DataEngineStages"]
 .segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
-.segmentdef DataSpriteCache         [startAfter="DataEngineEnemies", align=$100]
+.segmentdef DataEngineFlight        [startAfter="DataEngineEnemies", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
 
 
 .segmentdef Hash                    [start=$0400, min=$0400, max=$07FF, align=$100]

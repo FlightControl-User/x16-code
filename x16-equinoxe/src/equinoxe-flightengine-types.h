@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include <cx16-vera.h>
-#include <cx16-veralib.h>
+// #include <cx16-vera.h>
+// #include <cx16-veralib.h>
 #include "cx16-veraheap-typedefs.h"
-#include <fp3.h>
-#include <ht.h>
+// #include <fp3.h>
+// #include <ht.h>
 #include <cx16-bramheap-typedefs.h>
 #include "equinoxe-animate-types.h"
 
@@ -95,6 +95,12 @@ typedef unsigned char flight_side_t;
 #include "equinoxe-level-types.h"
 typedef struct {
 
+    fe_sprite_index_t cache[FLIGHT_OBJECTS];          // Internal link field.
+    vera_sprite_offset sprite_offset[FLIGHT_OBJECTS];  // An internal field that holds the calculated offset in vera.
+    unsigned char used[FLIGHT_OBJECTS];                // Is the sprite used, so free or not.
+    unsigned char enabled[FLIGHT_OBJECTS];             // Is the sprite enabled (visible or not)?
+    unsigned char collided[FLIGHT_OBJECTS];            // Has the sprite collided during the collision detection routine.
+
     flight_type_t type[FLIGHT_OBJECTS];                // The type of flight object.
     flight_side_t side[FLIGHT_OBJECTS];                // The type of flight object.
 
@@ -107,10 +113,6 @@ typedef struct {
     unsigned int yi[FLIGHT_OBJECTS];                   // Integer point current y coordinate.
     unsigned int xd[FLIGHT_OBJECTS];                   // Fixed point delta x.
     unsigned int yd[FLIGHT_OBJECTS];                   // Fixed point delta y.
-
-    unsigned char used[FLIGHT_OBJECTS];                // Is the sprite used, so free or not.
-    unsigned char enabled[FLIGHT_OBJECTS];             // Is the sprite enabled (visible or not)?
-    unsigned char collided[FLIGHT_OBJECTS];            // Has the sprite collided during the collision detection routine.
 
     unsigned char move[FLIGHT_OBJECTS]; 
     unsigned char moved[FLIGHT_OBJECTS];               // Has the sprite moved?
@@ -138,8 +140,6 @@ typedef struct {
     unsigned char initpath;
 
     unsigned char wave[FLIGHT_OBJECTS]; 
-    fe_sprite_index_t sprite[FLIGHT_OBJECTS];          // Internal link field.
-    vera_sprite_offset sprite_offset[FLIGHT_OBJECTS];  // An internal field that holds the calculated offset in vera.
 
     flight_index_t index;
 
@@ -237,6 +237,4 @@ typedef struct {
 */
 
 // To store the position of the control blocks in the engine parts.
-typedef struct {
-    unsigned char sprite_cache_pool;
-} fe_t;
+typedef unsigned char fe_t;

@@ -1,15 +1,14 @@
 #include <cx16.h>
 #include "equinoxe.h"
-#include "equinoxe-types.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-enemy.h"
-#include "equinoxe-bullet.h"
+//#include "equinoxe-types.h"
+//#include "equinoxe-flightengine.h"
+//#include "equinoxe-enemy.h"
+//#include "equinoxe-bullet.h"
 #include "equinoxe-math.h"
 #include "equinoxe-stage.h"
-#include "equinoxe-fighters.h"
 #include "equinoxe-collision.h"
-#include "equinoxe-bullet.h"
-#include "equinoxe-flightengine.h"
+//#include "equinoxe-bullet.h"
+//#include "equinoxe-flightengine.h"
 #include "equinoxe-animate-lib.h"
 #include <ht.h>
 #include <division.h>
@@ -25,7 +24,6 @@
 #pragma bank(cx16_ram,BANK_ENGINE_ENEMIES)
 #endif
 
-
 void enemy_init()
 {
 }
@@ -40,7 +38,7 @@ unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy)
     flight.wave[e] = w;
 
 	flight.animate[e] = animate_add(
-		sprite_cache.count[flight.sprite[e]]-1, 
+		sprite_cache.count[flight.cache[e]]-1, 
 		0,
 		0,
 		wave.animation_speed[w],
@@ -67,6 +65,7 @@ unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy)
 void enemy_remove(unsigned char e) 
 {
     if(flight.used[e]) {
+		animate_del(flight.animate[e]);
 		flight_remove(e);
     }
 }
@@ -151,12 +150,8 @@ void enemy_logic() {
         
 
 				case STAGE_ACTION_END:
-
-                    // printf("end.");
-
-
                     stage_enemy_remove(e);
-					break;
+					continue; // After removal, continue with the next enemy.
                     
 				}
 			} else {
@@ -225,8 +220,8 @@ void enemy_logic() {
                 sta yi+1,y      // And store the result, we're done.
             }};
 
-            flight.cx[e] = BYTE0(flight.xi[e] >> 2);
-            flight.cy[e] = BYTE0(flight.yi[e] >> 2);
+			unsigned int x = flight.xi[e];
+			unsigned int y = flight.yi[e];
 
 			if (flight.reload[e] > 0) {
 				flight.reload[e]--;
@@ -262,8 +257,9 @@ void enemy_logic() {
 				}
 #endif
 				animate_logic(flight.animate[e]);
-				flight.collided[e] = 0;
-				collision_insert(flight.cx[e], flight.cy[e], e);
+#ifdef __COLLISION
+				collision_insert(e);
+#endif
 			// } else {
 			// 	if(flight.enabled[e]) {
 			//     	vera_sprite_disable(sprite_offset);
@@ -298,5 +294,4 @@ unsigned char enemy_has_collided(unsigned char e) {
 	unsigned char collided = flight.collided[e];
 	return collided;
 }
-
 

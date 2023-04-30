@@ -1,18 +1,4 @@
-#include <cx16.h>
-#include <cx16-mouse.h>
-#include "equinoxe-types.h"
 #include "equinoxe.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-bullet.h"
-#include "equinoxe-collision.h"
-#include "equinoxe-math.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-levels.h"
-#include "equinoxe-tower.h"
-#include "equinoxe-animate-lib.h"
-#include "equinoxe-palette-lib.h"
-
-// #pragma var_model(mem)
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_BULLETS)
@@ -28,7 +14,7 @@ void bullet_init()
 
 void bullet_sprite_offset_set(unsigned char b, unsigned char s)
 {
-    vera_sprite_offset offset = sprite_next_offset();
+    vera_sprite_offset offset = flight_sprite_next_offset();
     flight.sprite_offset[b] = offset;
     fe_sprite_configure(offset, s);
 }
@@ -74,12 +60,12 @@ void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int 
     flight.impact[b] = -100;
 
     flight.animate[b] = animate_add(
-        sprite_cache.count[flight.sprite[b]], 
+        sprite_cache.count[flight.cache[b]], 
         0, 
-        sprite_cache.loop[flight.sprite[b]], 
+        sprite_cache.loop[flight.cache[b]], 
         1, 
         1, 
-        sprite_cache.reverse[flight.sprite[b]]);
+        sprite_cache.reverse[flight.cache[b]]);
 }
 
 /*
@@ -128,9 +114,8 @@ void FireBulletTower(unsigned char t)
 void bullet_remove(flight_index_t b) 
 {
     if(flight.used[b]) {
-        flight_remove(b);
-
         bullet_sprite_animate_del(b);
+        flight_remove(b);
         stage.bullet_count--;
     }
 }
@@ -187,12 +172,8 @@ void bullet_logic()
                 sta yi+1,y      // And store the result, we're done.
             }};
 
-            // flight.tx[b] += flight.tdx[b];
-            // flight.ty[b] += flight.tdy[b];
-
             unsigned int x = flight.xi[b];
             unsigned int y = flight.yi[b];
-
 
             if(x<640 && y<480 && x<0xFFFF-32 && y<0xFFFF-32) {
 
@@ -210,11 +191,9 @@ void bullet_logic()
 			// 	}
                 animate_logic(a);
 
-                flight.cx[b] = BYTE0(x >> 2);
-                flight.cy[b] = BYTE0(y >> 2);
-
-                flight.collided[b] = 0;
-				collision_insert(flight.cx[b], flight.cy[b], b);
+#ifdef __COLLISION
+				collision_insert(b);
+#endif
             } else {
                 bullet_remove(b);
             }
@@ -248,6 +227,3 @@ unsigned char bullet_has_collided(unsigned char b) {
 	unsigned char collided = flight.collided[b];
 	return collided;
 }
-
-
-// #pragma var_model(mem)

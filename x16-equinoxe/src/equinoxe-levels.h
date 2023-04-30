@@ -2,7 +2,7 @@
 
 // #include "equinoxe-types.h"
 #include "equinoxe-level-types.h"
-#include "equinoxe-defines.h"
+// #include "equinoxe-defines.h"
 
 #pragma data_seg(BRAM_ENGINE_FLIGHT)
 
@@ -62,7 +62,6 @@ __export sprite_t sprites = {
     }, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}, {0}
 };
 
-__export volatile sprite_bram_handles_t sprite_bram_handles[512];
 
 #pragma data_seg(BRAM_ENGINE_FLOOR)
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cx16-bramheap-typedefs.h>
-#include <cx16-veralib.h>
+// #include <cx16-veralib.h>
 
 #include "equinoxe-level-types.h"
 #include "equinoxe-types.h"
@@ -65,8 +65,6 @@ typedef struct {
     unsigned char animate_pool;
     unsigned char animate_count;
 
-    unsigned char sprite_cache_pool;
-    
     floor_t* floor;
     floor_t* towers;
 
@@ -75,7 +73,7 @@ typedef struct {
     unsigned int penalty;
 
     unsigned char lives;
-    unsigned char respawn;
+    unsigned char player_respawn;
 
     unsigned char enemy_xor;
     unsigned char player_xor;

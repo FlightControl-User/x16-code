@@ -4,7 +4,7 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 
-#pragma var_model(mem)
+#pragma var_model(zp)
 
 #pragma zp_reserve(0x00..0x30, 0x80..0xA8)
 
@@ -12,46 +12,19 @@
 
 #include "equinoxe-defines.h"
 
-#include <kernal.h>
-#include <6502.h>
-#include <mos6522.h>
-#include <conio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <printf.h>
-#include <division.h>
-#include <multiply.h>
 
-#include <ht.h>
-#include <lru-cache-lib.h>
 
-#pragma var_model(mem)
-
-#include <cx16.h>
-#include <cx16-conio.h>
 // #include <cx16-bramheap-lib.h>
-#include <cx16-bramheap-lib.h>
-#include <cx16-veraheap-lib.h>
-#include <cx16-veralib.h>
-#include <cx16-mouse.h>
 
-
-#include "equinoxe-types.h"
 #include "equinoxe.h"
-#include "equinoxe-flightengine.h"
 
-#ifdef __FLOOR
-#include "equinoxe-floorengine.h"
-#endif
 
-#include "equinoxe-palette-lib.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-bullet.h"
-#include "equinoxe-fighters.h"
-#include "equinoxe-enemy.h"
-#include "equinoxe-player.h"
-#include "equinoxe-tower.h"
-#include "equinoxe-levels.h"
+// #include "equinoxe-stage.h"
+//#include "equinoxe-bullet.h"
+//#include "equinoxe-enemy.h"
+//#include "equinoxe-player.h"
+// #include "equinoxe-tower.h"
+// #include "equinoxe-levels.h"
 
 #include "equinoxe-petscii.c"
 
@@ -63,6 +36,8 @@ equinoxe_game_t game = {0, 0, 0, 2, 0};
 
 #pragma nobank
 
+#pragma var_model(mem)
+
 void equinoxe_init() {
 
     // Load all banks with data and code!
@@ -71,6 +46,8 @@ void equinoxe_init() {
     bytes = fload_bram("bramflight1.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
     bytes = fload_bram("bramfloor1.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
     // bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
+
+    flight_init();
 
 #ifdef __PLAYER
     //player_init();
@@ -148,6 +125,7 @@ void irq_vsync() {
 
 #if defined(__FLIGHT) || defined(__FLOOR)
 
+
     #ifdef __CPULINES
         vera_display_set_border_color(BLUE);
     #endif
@@ -166,7 +144,8 @@ void irq_vsync() {
     // cx16_mouse_scan(); 
     cx16_mouse_get();
 
-#ifdef __STAGE
+#ifdef __STAGE 
+
     unsigned char tickupdate = game.ticksync & 0x01;
     if(!tickupdate) {
         stage_logic();
@@ -174,6 +153,7 @@ void irq_vsync() {
     }
     game.ticksync++;
 #endif
+
 
     #ifdef __PLAYER
         #ifdef __CPULINES
@@ -196,8 +176,6 @@ void irq_vsync() {
         enemy_logic();
     #endif
 
-    vera_display_set_border_color(GREY);
-    flight_draw();
 
     #ifdef __COLLISION
     #ifdef __CPULINES
@@ -208,6 +186,9 @@ void irq_vsync() {
 
 #endif // __FLIGHT
 
+    // BREAKPOINT
+    vera_display_set_border_color(GREY);
+    flight_draw();
 
 #ifndef __NOVSYNC
     // Reset the VSYNC interrupt
@@ -275,11 +256,12 @@ void irq_vsync() {
 
 void main() {
 
-/*
+
     {kickasm {{
         jsr bramheap.__start
+        jsr veraheap.__start
+        jsr lru_cache.__start
     }}}
-*/
 
     cx16_k_screen_set_charset(3, (char *)0);
 
@@ -408,21 +390,6 @@ void main() {
         #ifdef __NOVSYNC
             irq_vsync();
         #endif
-
-        switch(ch) {
-            case 'x':
-            break;
-
-            #ifdef __DEBUG_LRU_CACHE
-            case 'l':
-            SEI();
-            gotoxy(0, 30);
-            lru_cache_display();
-            CLI();
-            break;
-            #endif
-
-        }
 
         #ifdef __DEBUG_SPRITE_CACHE
             SEI();

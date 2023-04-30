@@ -1,14 +1,15 @@
 #include <cx16-mouse.h>
 
-#include "equinoxe-bullet.h"
+#include "equinoxe.h"
+//#include "equinoxe-bullet.h"
 #include "equinoxe-collision.h"
-#include "equinoxe-defines.h"
-#include "equinoxe-flightengine-types.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-player.h"
+//#include "equinoxe-defines.h"
+//#include "equinoxe-flightengine-types.h"
+//#include "equinoxe-flightengine.h"
+//#include "equinoxe-player.h"
 #include "equinoxe-stage.h"
 #include "equinoxe-types.h"
-#include "equinoxe.h"
+//#include "equinoxe.h"
 #include "equinoxe-animate-lib.h"
 #include "equinoxe-levels.h"
 
@@ -59,9 +60,12 @@ void player_remove(unsigned char p) {
 
     if (flight.used[p]) {
         unsigned char n = flight.engine[p];
-        flight_remove(p);
+        animate_del(flight.animate[n]); // Remove the animation of the engine sprite.
         flight_remove(n);
+        animate_del(flight.animate[p]); // Remove the animation of the player sprite.
+        flight_remove(p);
         stage.player_count--;
+        stage.player_respawn = 8;       // Wait 8 tickes until stage respawns the sprite. This needs rework. TODO.
     }
 }
 
@@ -100,13 +104,10 @@ void player_logic() {
                 }
                 flight.firegun[p] = flight.firegun[p] ^ 1;
                 flight.reload[p] = 8;
-                bullet_add(x, y, x, 0, 3, SIDE_PLAYER, b001);
+                bullet_add(x, y, x, 0, 5, SIDE_PLAYER, b001);
             }
 #endif
 
-
-            unsigned int x = flight.xi[p];
-            unsigned int y = flight.yi[p];
 
             flight.xi[p] = cx16_mouse.x;
             flight.yi[p] = cx16_mouse.y;
@@ -115,8 +116,8 @@ void player_logic() {
             flight.xi[n] = flight.xi[p]+8;
             flight.yi[n] = flight.yi[p]+22;
 
-            flight.cx[p] = BYTE0(flight.xi[p] >> 2);
-            flight.cy[p] = BYTE0(flight.yi[p] >> 2);
+            unsigned int x = flight.xi[p];
+            unsigned int y = flight.yi[p];
 
             vera_sprite_offset flight_sprite_offset = flight.sprite_offset[p];
             vera_sprite_offset engine_sprite_offset = flight.sprite_offset[flight.engine[p]];
@@ -133,8 +134,7 @@ void player_logic() {
             animate_logic(flight.animate[n]);
 
 #ifdef __COLLISION
-            flight.collided[p] = 0;
-            collision_insert(flight.cx[p], flight.cy[p], p);
+            collision_insert(p);
 #endif
 
 //             unsigned char flight_sprite = flight.sprite[p];

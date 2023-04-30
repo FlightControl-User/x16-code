@@ -1,18 +1,4 @@
-
 #include "equinoxe.h"
-#include "equinoxe-bank.h"
-#include "equinoxe-levels.h"
-#include "equinoxe-palette-lib.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-types.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-animate-lib.h"
-#include <cx16-file.h>
-#include <cx16-veraheap-lib.h>
-#include <cx16-bramheap-lib.h>
-
-
-
 
 #pragma data_seg(DATA_SPRITE_CACHE)
 // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
@@ -21,20 +7,30 @@ fe_sprite_cache_t sprite_cache;
 #pragma data_seg(DATA_ENGINE_FLIGHT)
 flight_t flight;
 
-fe_t fe;  // Flight engine control.
-vera_sprite_offset sprite_offsets[127] = { 0 };
+volatile fe_t sprite_cache_pool;  // Flight engine control.
+vera_sprite_offset flight_sprite_offsets[127] = { 0 };
+
+volatile sprite_bram_handles_t sprite_bram_handles[256];
+
+volatile unsigned char flight_sprite_offset_pool = 1;
 
 #pragma data_seg(CODE_ENGINE_FLIGHT)
 
-// #pragma var_model(zp)
+void flight_init() {
+    memset_fast(sprite_cache.sprite_bram, 255, 16);
+    flight_sprite_offset_pool = 1;
+}
 
 flight_index_t flight_add(flight_type_t type, flight_side_t side, sprite_index_t sprite) {
 
-    unsigned char f = flight.index;
+    unsigned char f = flight.index % FLIGHT_OBJECTS;
     while (flight.used[f]) {
         f = (f + 1) % FLIGHT_OBJECTS;
     }
     flight.index = f;
+
+    // gotoxy(0+f,50);
+    // cputc('x');
 
     flight.type[f] = type;
     flight.side[f] = side;
@@ -55,9 +51,9 @@ flight_index_t flight_add(flight_type_t type, flight_side_t side, sprite_index_t
 
 
     unsigned char s = fe_sprite_cache_copy(sprite);
-    flight.sprite[f] = s;
+    flight.cache[f] = s;
 
-    flight.sprite_offset[f] = sprite_next_offset();
+    flight.sprite_offset[f] = flight_sprite_next_offset();
     fe_sprite_configure(flight.sprite_offset[f], s);
 
     return f;
@@ -67,20 +63,21 @@ void flight_remove(flight_index_t f) {
 
     if (flight.used[f]) {
         vera_sprite_offset sprite_offset = flight.sprite_offset[f];
-        sprite_free_offset(sprite_offset);
+        flight_sprite_free_offset(sprite_offset);
         vera_sprite_disable(sprite_offset);
-        palette_unuse_vram(sprite_cache.palette_offset[flight.sprite[f]]);
-        fe_sprite_cache_free(flight.sprite[f]);
-        flight.used[f] = 0;
-        flight.enabled[f] = 0;
-        flight.collided[f] = 1;
+        palette_unuse_vram(sprite_cache.palette_offset[flight.cache[f]]);
+        fe_sprite_cache_free(flight.cache[f]);
     }
+    flight.used[f] = 0;
+    flight.enabled[f] = 0;
+    flight.collided[f] = 1;
+    // gotoxy(0+f,50);
+    // cputc(' ');
 }
 
 void flight_draw() {
 
     // BREAKPOINT
-    *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
 
     for(unsigned char f=0; f<FLIGHT_OBJECTS; f++) {
 
@@ -91,121 +88,109 @@ void flight_draw() {
 
 			vera_sprite_offset sprite_offset = flight.sprite_offset[f];
 
-            *VERA_ADDRX_H = 1 | VERA_INC_1;
+            
+			// if( x<640+68 && y<480+68 && (signed int)x>-68 && (signed int)y>-68 ) {
 
-			if(x<640+68 && y<480+68 && x<0xFFFF-68 && y<0xFFFF-68 ) {
-
+            unsigned char a = flight.animate[f];
+            unsigned char s = animate_get_state(a);
+            volatile unsigned char i = flight.cache[f]; // This variable needs to be volatile or the kickc optimizer kills it.
+            if(animate_is_waiting(a)) {
+                *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
+                *VERA_ADDRX_H = 1 | VERA_INC_1;
+                *VERA_ADDRX_M = BYTE1(sprite_offset+2); // Normally the +2 should not be an issue.
+                *VERA_ADDRX_L = BYTE0(sprite_offset+2);
+            } else {
+                vera_sprite_image_offset sprite_image_offset = 
+                    sprite_image_cache_vram(i, animate_get_state(a));
+                *VERA_CTRL &= ~VERA_ADDRSEL;     // Select DATA0
+                *VERA_ADDRX_H = 1 | VERA_INC_1;
                 *VERA_ADDRX_M = BYTE1(sprite_offset); // Normally the +2 should not be an issue.
-
-				if(animate_is_waiting(flight.animate[f])) {
-                    *VERA_ADDRX_L = BYTE0(sprite_offset+2);
-                    *VERA_DATA0 = BYTE0(x);
-                    *VERA_DATA0 = BYTE1(x);
-                    *VERA_DATA0 = BYTE0(y);
-                    *VERA_DATA0 = BYTE1(y);
-
-					// vera_sprite_set_xy(sprite_offset, x, y);
-				} else {
-					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[e]*16+flight.state_animation[e]]);
-                    vera_sprite_image_offset sprite_image_offset = sprite_image_cache_vram(flight.sprite[f], animate_get_state(flight.animate[f]));
-                    *VERA_ADDRX_L = BYTE0(sprite_offset);
-                    *VERA_DATA0 = BYTE0(sprite_image_offset);
-                    *VERA_DATA0 = BYTE1(sprite_image_offset);
-                    *VERA_DATA0 = BYTE0(x);
-                    *VERA_DATA0 = BYTE1(x);
-                    *VERA_DATA0 = BYTE0(y);
-                    *VERA_DATA0 = BYTE1(y);
-					// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, 
-					// 	sprite_image_cache_vram(flight.sprite[e], animate_get_state(flight.animate[e])));
-				}
-
-				if(!flight.enabled[f]) {
-                    *VERA_ADDRX_H = 1 | VERA_INC_0;
-                    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | sprite_cache.zdepth[flight.sprite[f]];
-			    	// vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[e]]);
-					flight.enabled[f] = 1;
-				}
-
-			// gotoxy(0, e);
-			// printf("%02u - wait=%u", e, flight.wait_animation[e]);
-			} else {
-				if(flight.enabled[f]) {
-			    	// vera_sprite_disable(sprite_offset);
-                    *VERA_ADDRX_L = BYTE0(sprite_offset+6);
-                    *VERA_ADDRX_H = 1 | VERA_INC_0;
-                    *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK;
-					flight.enabled[f] = 0;
-				}
-			}
+                *VERA_ADDRX_L = BYTE0(sprite_offset);
+                *VERA_DATA0 = BYTE0(sprite_image_offset);
+                *VERA_DATA0 = BYTE1(sprite_image_offset);
+			// }
+            }
+            *VERA_DATA0 = BYTE0(x);
+            *VERA_DATA0 = BYTE1(x);
+            *VERA_DATA0 = BYTE0(y);
+            *VERA_DATA0 = BYTE1(y);
+            *VERA_ADDRX_H = 1 | VERA_INC_0;
+            *VERA_DATA0 = *VERA_DATA0 & ~VERA_SPRITE_ZDEPTH_MASK | sprite_cache.zdepth[flight.cache[f]];
 		}
 	}
 }
 
-vera_sprite_offset sprite_next_offset()
+vera_sprite_offset flight_sprite_next_offset()
 {
-    while (sprite_offsets[stage.sprite_cache_pool]) {
-        stage.sprite_cache_pool = (stage.sprite_cache_pool >= 127) ? 1 : stage.sprite_cache_pool + 1;
+    while (!flight_sprite_offset_pool || flight_sprite_offsets[flight_sprite_offset_pool]) {
+        flight_sprite_offset_pool = (flight_sprite_offset_pool + 1) % 128; 
     }
 
     stage.sprite_count++;
-    vera_sprite_offset sprite_offset = vera_sprite_get_offset(stage.sprite_cache_pool);
-    sprite_offsets[stage.sprite_cache_pool] = sprite_offset;
+    vera_sprite_offset sprite_offset = vera_sprite_get_offset(flight_sprite_offset_pool);
+    flight_sprite_offsets[flight_sprite_offset_pool] = sprite_offset;
     return sprite_offset;
 }
 
 
-void sprite_free_offset(vera_sprite_offset sprite_offset)
+void flight_sprite_free_offset(vera_sprite_offset sprite_offset)
 {
     vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
-    sprite_offsets[sprite_id] = 0;
+    flight_sprite_offsets[sprite_id] = 0;
     stage.sprite_count--;
 }
 
+
+#ifdef __DEBUG_SPRITE_CACHE
 
 void fe_sprite_debug()
 {
     char x = wherex();
     char y = wherey();
 
-    printf("pool %2x", fe.sprite_cache_pool);
+    printf("pool %2x", sprite_cache_pool);
     gotoxy(0, 3);
     printf("ca bram used file           offs size wi he");
 
     for (unsigned int c = 0; c < FE_CACHE; c++) {
         gotoxy(0, (char)c + 4);
         printf("%02x %04p %02x %16s %4u %4u %02x %02x", c, sprite_cache.sprite_bram[c], sprite_cache.used[c], 
-        &sprite_cache.file[c * 16], sprite_cache.offset[c], sprite_cache.size[c], sprite_cache.width[c], sprite_cache.height[c]
+        &sprite_cache.file[c * 16], sprite_cache.offset[c], sprite_cache.size[c], 
+        sprite_cache.width[c], sprite_cache.height[c]
         );
     }
 
     gotoxy(x, y);
 }
+#endif
 
-vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_index, unsigned char fe_sprite_image_index)
+vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t sprite_cache_index, unsigned char fe_sprite_image_index)
 {
     // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
     // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
 
-    unsigned int image_index = sprite_cache.offset[fe_sprite_index] + fe_sprite_image_index;
+    unsigned int image_index = sprite_cache.offset[sprite_cache_index] + fe_sprite_image_index;
 
     // We declare temporary variables for the vram memory handles.
     // lru_cache_data_t vram_handle;
     // vram_bank_t vram_bank;
     // vram_offset_t vram_offset;
 
-    char x = (image_index / 32)*20;
-    char y = (char)10+(char)(image_index % 32);
-
 #ifdef __DEBUG_LRU_CACHE
+    char x = (image_index / 32)*20;
+    char y = (char)20+(char)(image_index % 32);
+
+    gotoxy(0,0);
+    printf("%02x %02x %04x               ", fe_sprite_index, fe_sprite_image_index, image_index);
     gotoxy(x,y);
-    printf("%03u           ", image_index);
-    gotoxy(x+4,y);
+    printf("%02x %02x %04x               ", fe_sprite_index, fe_sprite_image_index, image_index);
+    gotoxy(x+10,y);
 #endif
 
     // We check if there is a cache hit?
     lru_cache_index_t vram_index = lru_cache_index(image_index);
     // lru_cache_data_t lru_cache_data;
-    vera_sprite_image_offset sprite_offset;
+    volatile vera_sprite_image_offset sprite_offset;
     if (vram_index != 0xFF) {
 
 #ifdef __DEBUG_LRU_CACHE
@@ -213,24 +198,31 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 #endif
 
         // So we have a cache hit, so we can re-use the same image from the cache and we win time!
-        lru_cache_data_t vram_handle = lru_cache_get(vram_index);
+        vera_heap_index_t vram_handle = (vera_heap_index_t)lru_cache_get(vram_index);
 
         // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
         // Dynamic allocation of sprites in vera vram.
         vram_bank_t vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle));
         vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle));
 
-        sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
+        // We have extended the vera heap manager to also keep the offset of the sprite image, instead of calculating.
+        // sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
+        sprite_offset = vera_heap_get_image(VERA_HEAP_SEGMENT_SPRITES, vram_handle);
     } else {
 
 #ifdef __CPULINES
         vera_display_set_border_color(RED);
 #endif
 
+        // NO CACHE HIT -> allocate new image.
+
+        // BREAKPOINT
+        // vera_heap_dump(VERA_HEAP_SEGMENT_SPRITES,0,0);
+
 
         // The idea of this section is to free up lru_cache and/or vram memory until there is sufficient space available.
         // The size requested contains the required size to be allocated on vram.
-        vera_heap_size_int_t vram_size_required = sprite_cache.size[fe_sprite_index];
+        vera_heap_size_int_t vram_size_required = sprite_cache.size[sprite_cache_index];
 
         // We check if the vram heap has sufficient memory available for the size requested.
         // We also check if the lru cache has sufficient elements left to contain the new sprite image.
@@ -268,12 +260,11 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 
 #ifdef __DEBUG_LRU_CACHE
         printf("f%u ", f);
-        printf("n ");
 #endif
 
         // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
         // Dynamic allocation of sprites in vera vram.
-        lru_cache_data_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)sprite_cache.size[fe_sprite_index]);
+        vera_heap_index_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)sprite_cache.size[sprite_cache_index]);
         vram_bank_t vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle));
         vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle));
 
@@ -285,11 +276,19 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t fe_sprite_ind
 
         bram_bank_t sprite_bank = bram_heap_data_get_bank(1, handle_bram);
         bram_ptr_t  sprite_ptr = bram_heap_data_get_offset(1, handle_bram);
-        unsigned int sprite_size = sprite_cache.size[fe_sprite_index];
+        unsigned int sprite_size = sprite_cache.size[sprite_cache_index];
+
+#ifdef __DEBUG_LRU_CACHE
+        printf("%04x %02x %04p %04x ", vram_offset, sprite_bank, sprite_ptr, sprite_size);
+#endif
+
         memcpy_vram_bram(vram_bank, vram_offset, sprite_bank, sprite_ptr, sprite_size);
 
+        // Calculate the vera sprite offset, and store it in the vera heap manager.
         sprite_offset = vera_sprite_get_image_offset(vram_bank, vram_offset);
-        lru_cache_insert(image_index, vram_handle);
+        vera_heap_set_image(VERA_HEAP_SEGMENT_SPRITES, vram_handle, sprite_offset);
+
+        lru_cache_insert(image_index, (lru_cache_data_t)vram_handle);
 
 #ifdef __CPULINES
         vera_display_set_border_color(BLACK);
@@ -315,10 +314,10 @@ fe_sprite_index_t fe_sprite_cache_copy(sprite_index_t sprite_index)
     // Allocate, otherwise reuse the existing sprite.
     if (cache_bram != sprite_index) {
         if (sprite_cache.used[c]) {
-            while (sprite_cache.used[fe.sprite_cache_pool]) {
-                fe.sprite_cache_pool = (fe.sprite_cache_pool + 1) % FE_CACHE;
+            while (sprite_cache.used[sprite_cache_pool]) {
+                sprite_cache_pool = (sprite_cache_pool + 1) % FE_CACHE;
             }
-            c = fe.sprite_cache_pool;
+            c = sprite_cache_pool;
         }
 
         unsigned char co = c * FE_CACHE;
@@ -377,7 +376,7 @@ void sprite_map_header(sprite_file_header_t* sprite_file_header, sprite_index_t 
     sprites.aabb[sprite].ymax = sprite_file_header->height - sprite_file_header->collision;
     sprites.PaletteOffset[sprite] = 0;
     sprites.loop[sprite] = sprite_file_header->loop;
-    sprites.sprite_cache[sprite] = 255;
+    sprites.sprite_cache[sprite] = 0;
 }
 
 // Load the sprite into bram using the new cx16 heap manager.
