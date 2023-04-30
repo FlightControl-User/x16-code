@@ -1,25 +1,25 @@
 // Space tile scrolling engine for a space game written in kickc for the Commander X16.
 
 
-#include <cx16.h>
-#include <cx16-veralib.h>
-#include <cx16-veraheap-lib.h>
-#include <cx16-file.h>
-#include <kernal.h>
-#include <6502.h>
-#include <conio.h>
-#include <cx16-conio.h>
-#include <stdio.h>
-#include <division.h>
-#include <mos6522.h>
-#include <multiply.h>
-#include <cx16-bramheap-lib.h>
+// #include <cx16.h>
+// #include <cx16-veralib.h>
+// #include <cx16-veraheap-lib.h>
+// #include <cx16-file.h>
+// #include <kernal.h>
+// #include <6502.h>
+// #include <conio.h>
+// #include <cx16-conio.h>
+// #include <stdio.h>
+// #include <division.h>
+// #include <mos6522.h>
+// #include <multiply.h>
+// #include <cx16-bramheap-lib.h>
 
-#include "equinoxe-types.h"
+// #include "equinoxe-types.h"
 #include "equinoxe.h"
-#include "equinoxe-floorengine.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-palette-lib.h"
+// #include "equinoxe-floorengine.h"
+// #include "equinoxe-stage.h"
+// #include "equinoxe-palette-lib.h"
 
 #pragma data_seg(DATA_ENGINE_FLOOR)
 #pragma code_seg(CODE_ENGINE_FLOOR)

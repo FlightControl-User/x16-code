@@ -40,8 +40,9 @@ vera_heap_data_packed_t vera_heap_data_pack(vram_bank_t vram_bank, vram_offset_t
 
 vera_heap_data_packed_t vera_heap_get_data_packed(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
-    return MAKEWORD(vera_heap_index.data1[index],vera_heap_index.data0[index]);
+    return MAKEWORD(vera_heap_index.data1[index], vera_heap_index.data0[index]);
 }
+
 
 
 vram_bank_t vera_heap_data_get_bank(vera_heap_segment_index_t s, vera_heap_index_t index)
@@ -75,6 +76,18 @@ void vera_heap_set_data_packed(vera_heap_segment_index_t s, vera_heap_index_t in
 {
     vera_heap_index.data1[index] = BYTE1(data_packed);
     vera_heap_index.data0[index] = BYTE0(data_packed);
+}
+
+
+vera_heap_image_t vera_heap_get_image(vera_heap_segment_index_t s, vera_heap_index_t index)
+{
+    return MAKEWORD(vera_heap_index.image1[index], vera_heap_index.image0[index]);
+}
+
+void vera_heap_set_image(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_image_t image)
+{
+    vera_heap_index.image1[index] = BYTE1(image);
+    vera_heap_index.image0[index] = BYTE0(image);
 }
 
 void vera_heap_set_free(vera_heap_segment_index_t s, vera_heap_index_t index)

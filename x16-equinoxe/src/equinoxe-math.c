@@ -26,7 +26,7 @@
  * @return signed char
  */
 
-inline signed int math_vecx(unsigned char angle, char speed) {
+__zp inline signed int math_vecx(unsigned char angle, char speed) {
 
     // TODO: check with jesper this code section, could be a bug in the optimizer.
     signed int dx = 0;
@@ -43,7 +43,7 @@ inline signed int math_vecx(unsigned char angle, char speed) {
     return dx;
 }
 
-inline signed int math_vecy(unsigned char angle, char speed) {
+__zp inline signed int math_vecy(unsigned char angle, char speed) {
 
     signed int dy = 0;
     if (speed) {
@@ -59,7 +59,7 @@ inline signed int math_vecy(unsigned char angle, char speed) {
     return dy;
 }
 
-inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2) {
+__zp inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned char y1, unsigned char y2) {
     unsigned char octant_temp;
     unsigned char angle;
 
@@ -102,7 +102,7 @@ inline unsigned char math_atan2(unsigned char x1, unsigned char x2, unsigned cha
 }
 
 // Get the absolute value of an 8-bit unsigned number treated as a signed number.
-unsigned char abs_u8(unsigned char b) {
+__zp unsigned char abs_u8(unsigned char b) {
     if (b & 0x80) {
         return -b;
     } else {
@@ -111,7 +111,7 @@ unsigned char abs_u8(unsigned char b) {
 }
 
 // Get the absolute value of a 16-bit unsigned number treated as a signed number.
-unsigned int abs_u16(unsigned int w) {
+__zp unsigned int abs_u16(unsigned int w) {
     if (BYTE1(w) & 0x80) {
         return -w;
     } else {

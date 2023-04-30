@@ -1,8 +1,8 @@
 #pragma once
 
-#include "equinoxe-types.h"
+#include "equinoxe.h"
 
-#include "equinoxe-flightengine.h"
+// #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"
 #include "equinoxe-stage.h"
 

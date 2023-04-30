@@ -25,7 +25,9 @@ typedef unsigned char vera_heap_index_t;
 
 typedef unsigned int vera_heap_data_t;
 typedef unsigned int vera_heap_data_packed_t;
+typedef unsigned int vera_heap_image_t;
 typedef unsigned char vera_heap_index_data_packed_t;
+typedef unsigned char vera_heap_index_image_t;
 
 typedef unsigned long vera_heap_size_t;
 typedef unsigned int vera_heap_size_int_t;
@@ -58,6 +60,8 @@ typedef unsigned char vera_heap_segment_index_t;
  * Contains condensed pointers to next and previous header blocks.
  */
 typedef struct {
+	vera_heap_index_image_t image0[VERAHEAP_INDEXES];
+	vera_heap_index_image_t image1[VERAHEAP_INDEXES];
 	vera_heap_index_data_packed_t data0[VERAHEAP_INDEXES];
 	vera_heap_index_data_packed_t data1[VERAHEAP_INDEXES];
 	vera_heap_index_size_packed_t size0[VERAHEAP_INDEXES];

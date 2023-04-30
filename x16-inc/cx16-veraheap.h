@@ -27,6 +27,9 @@ vera_heap_size_t vera_heap_get_size(vera_heap_segment_index_t s, vera_heap_index
 vera_heap_size_int_t vera_heap_get_size_int(vera_heap_segment_index_t s, vera_heap_index_t index);
 vera_heap_size_packed_t vera_heap_get_size_packed(vera_heap_segment_index_t s, vera_heap_index_t index);
 
+vera_heap_image_t vera_heap_get_image(vera_heap_segment_index_t s, vera_heap_index_t index);
+void vera_heap_set_image(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_image_t image);
+
 
 vera_heap_size_t vera_heap_alloc_size(vera_heap_segment_index_t s);
 vera_heap_size_t vera_heap_free_size(vera_heap_segment_index_t s);

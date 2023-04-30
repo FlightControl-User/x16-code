@@ -28,6 +28,8 @@ __export volatile void* funcs[] = {
     &vera_heap_segment_init,
     &vera_heap_data_get_offset,
     &vera_heap_data_get_bank,
+    &vera_heap_get_image,
+    &vera_heap_set_image,
     &vera_heap_has_free,
     // &vera_heap_dump,
 };

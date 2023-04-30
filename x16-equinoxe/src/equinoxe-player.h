@@ -1,7 +1,7 @@
 #pragma once
 
 #include "equinoxe.h"
-#include "equinoxe-types.h"
+// #include "equinoxe-types.h"
 
 void player_init();
 void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine);
