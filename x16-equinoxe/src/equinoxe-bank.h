@@ -57,7 +57,7 @@
 #define CODE_ENGINE_ENEMIES          CodeEngineEnemies
 #define DATA_ENGINE_ENEMIES          DataEngineEnemies
 //
-#define BANK_ENGINE_PLAYERS                                 0x02
+#define BANK_ENGINE_PLAYERS                                 0x09
 #define CODE_ENGINE_PLAYERS          CodeEnginePlayers
 #define DATA_ENGINE_PLAYERS          DataEnginePlayers
 //

@@ -1,24 +1,28 @@
-#include <cx16-mouse.h>
-
 #include "equinoxe.h"
 //#include "equinoxe-bullet.h"
-#include "equinoxe-collision.h"
+// #include "equinoxe-collision.h"
 //#include "equinoxe-defines.h"
 //#include "equinoxe-flightengine-types.h"
 //#include "equinoxe-flightengine.h"
 //#include "equinoxe-player.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-types.h"
+// #include "equinoxe-stage.h"
+// #include "equinoxe-types.h"
 //#include "equinoxe.h"
-#include "equinoxe-animate-lib.h"
-#include "equinoxe-levels.h"
+// #include "equinoxe-animate-lib.h"
+// #include "equinoxe-levels.h"
 
 
+// #pragma data_seg(DATA_ENGINE_PLAYERS)
+// #pragma data_seg(CODE_ENGINE_PLAYERS)
+// #pragma code_seg(Code)
+
+
+#ifdef __BANKING
+#pragma code_seg(CODE_ENGINE_PLAYERS)
 #pragma data_seg(DATA_ENGINE_PLAYERS)
+#pragma bank(cx16_ram,BANK_ENGINE_PLAYERS)
+#endif
 
-#pragma data_seg(CODE_ENGINE_PLAYERS)
-
-#pragma code_seg(Code)
 
 void player_init() {
 }
@@ -165,8 +169,8 @@ void player_logic() {
 }
 
 #pragma data_seg(Data)
-#pragma data_seg(Code)
-#pragma nobank
+#pragma code_seg(Code)
+#pragma nobank()
 
 
 inline void player_bank() {
@@ -178,17 +182,17 @@ inline void player_unbank() {
 }
 
 signed char player_impact(unsigned char p) {
-	player_bank();
+	// player_bank();
 	signed char impact = flight.impact[p];
-	player_unbank();
+	// player_unbank();
 	return impact;
 }
 
 // This will need rework
 unsigned char player_has_collided(unsigned char p) {
-	player_bank();
+	// player_bank();
 	unsigned char collided = flight.collided[p];
-	player_unbank();
+	// player_unbank();
 	return collided;
 }
 

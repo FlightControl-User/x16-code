@@ -49,11 +49,13 @@
 #include "equinoxe-enemy.h"
 #include "equinoxe-bullet.h"
 #include "equinoxe-collision.h"
+#include "equinoxe-stage.h"
 #pragma var_model(mem)
 
-#include "equinoxe-stage.h"
 //extern const heap_structure_t* heap_bram_blocked;
 
 #include "equinoxe-tower.h"
 
 extern equinoxe_game_t game;
+
+#pragma var_model(zp)

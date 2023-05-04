@@ -1,18 +1,5 @@
-#include <cx16.h>
-#include <cx16-veralib.h>
-#include <cx16-file.h>
 
-#include "equinoxe-defines.h"
-#include "equinoxe-types.h"
-
-#include "equinoxe-flightengine.h"
-#include "equinoxe-floorengine.h"
-#include "equinoxe-player.h"
-#include "equinoxe-enemy.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-palette-lib.h"
-#include "equinoxe-tower.h"
-#include "equinoxe-levels.h"
+#include "equinoxe.h"
 
 #pragma data_seg(DATA_ENGINE_STAGES)
 
@@ -26,42 +13,50 @@ volatile stage_t stage;
 #pragma bank(cx16_ram,BANK_ENGINE_STAGES)
 #endif
 
-void stage_copy(unsigned char ew, unsigned int scenario) {
+
+inline stage_playbook_t* stage_playbook_ptr() {
     stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;
-    stage_playbook_t* stage_playbook_b = &stage_playbooks_b[stage.playbook_current];
-    stage_scenario_t* stage_scenarios_b = stage_playbook_b->scenarios_b;
-    stage_scenario_t* stage_scenario_b = &stage_scenarios_b[scenario];
+    return &stage_playbooks_b[stage.playbook_current];
+}
 
-    wave.enemy_count[ew] = stage_scenario_b->enemy_count;
+/// @brief Retrieve the pointer to the scenario element.
+/// @param stage_playbook_ptr_b The playbook where the scenario resides.
+/// @param scenario The sequence number of the scenario.
+/// @return The scenario pointer.
+inline stage_scenario_t* stage_scenario_ptr(stage_playbook_t* stage_playbook_ptr_b, stage_scenario_index_t scenario) {
+    stage_scenario_t* stage_scenarios_b = stage_playbook_ptr_b->scenarios_b;
+    return &stage_scenarios_b[scenario];
+}
 
-    wave.dx[ew] = stage_scenarios_b[scenario].dx;
-    wave.dy[ew] = stage_scenarios_b[scenario].dy;
+void stage_copy(unsigned char ew, stage_scenario_index_t scenario) {
 
-    wave.enemy_flightpath[ew] = stage_scenarios_b[scenario].enemy_flightpath;
-    wave.enemy_spawn[ew] = stage_scenarios_b[scenario].enemy_spawn;
+    stage_playbook_t* stage_playbook_ptr_b = stage_playbook_ptr();
+    stage_scenario_t* stage_scenario_ptr_b = stage_scenario_ptr(stage_playbook_ptr_b, scenario);
 
-    stage_enemy_t* stage_enemy = stage_scenarios_b[scenario].stage_enemy;
+    wave.x[ew] = stage_scenario_ptr_b->x;
+    wave.y[ew] = stage_scenario_ptr_b->y;
+
+    wave.enemy_count[ew] = stage_scenario_ptr_b->enemy_count;
+
+    wave.dx[ew] = stage_scenario_ptr_b->dx;
+    wave.dy[ew] = stage_scenario_ptr_b->dy;
+
+    wave.enemy_flightpath[ew] = stage_scenario_ptr_b->enemy_flightpath;
+    wave.enemy_spawn[ew] = stage_scenario_ptr_b->enemy_spawn;
+
+    stage_enemy_t* stage_enemy = stage_scenario_ptr_b->stage_enemy;
     wave.animation_speed[ew] = stage_enemy->animation_speed;
     wave.animation_reverse[ew] = stage_enemy->animation_reverse;
 
     wave.enemy_sprite[ew] = stage_enemy->enemy_sprite_flight;
-    wave.interval[ew] = stage_scenarios_b[scenario].interval;
-    wave.prev[ew] = stage_scenarios_b[scenario].prev;
-    wave.wait[ew] = stage_scenarios_b[scenario].wait;
-    wave.x[ew] = stage_scenarios_b[scenario].x;
-    wave.y[ew] = stage_scenarios_b[scenario].y;
+    wave.interval[ew] = stage_scenario_ptr_b->interval;
+    wave.prev[ew] = stage_scenario_ptr_b->prev;
+    wave.wait[ew] = stage_scenario_ptr_b->wait;
     wave.used[ew] = 1;
     wave.finished[ew] = 0;
     wave.scenario[ew] = scenario;
 
     wave.enemy_alive[ew] = 0;
-
-
-    // #ifdef __DEBUG_STAGE
-    //     gotoxy(0, (unsigned char)scenario+1);
-    //     sprite_index_t sprite_enemy = stage_enemy->enemy_sprite_flight;
-    //     printf("%3u %3u %3x %4u %4u %3u", scenario, wave.enemy_count[ew], wave.enemy_spawn[ew], wave.interval[ew], wave.wait[ew], wave.prev[ew]);
-    // #endif
 
 }
 
@@ -246,7 +241,7 @@ static void stage_reset(void)
 }
 
 
-__zp void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
+void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 {
     unsigned char enemies = enemy_add(w, enemy_sprite);
 
@@ -260,7 +255,7 @@ __zp void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 }
 
 
-__zp void stage_enemy_remove(unsigned char e)
+void stage_enemy_remove(unsigned char e)
 {
     unsigned char w = enemy_get_wave(e);
     enemy_remove(e);
@@ -270,7 +265,7 @@ __zp void stage_enemy_remove(unsigned char e)
 }
 
 
-__zp void stage_enemy_hit(unsigned char e, signed char impact)
+void stage_enemy_hit(unsigned char e, signed char impact)
 {
     unsigned char w = enemy_get_wave(e);
     unsigned char hit = enemy_hit(e, impact);
@@ -282,9 +277,8 @@ __zp void stage_enemy_hit(unsigned char e, signed char impact)
     }
 }
 
-__zp void stage_logic()
+void stage_logic()
 {
-
     if(stage.playbook_current < stage.script_b.playbook_total_b) {
         
         if(!(game.tickstage & 0x03)) {
@@ -311,8 +305,8 @@ __zp void stage_logic()
                     }
                 }
 #ifdef __DEBUG_WAVE
-                // gotoxy(0,50+w);
-                // printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w]);
+                gotoxy(0,50+w);
+                printf("wave %02x  %02x  %02x  %02x  %02x  %02x  %04p  %02x", w, wave.used[w], wave.wait[w], wave.enemy_count[w], wave.enemy_spawn[w], wave.finished[w], wave.enemy_sprite[w], wave.scenario[w]);
 #endif
             }
 
@@ -322,14 +316,14 @@ __zp void stage_logic()
                 if(wave.finished[w]) {
 
                     // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
-                    __mem unsigned int new_scenario = wave.scenario[w];
+                    __mem stage_scenario_index_t new_scenario = wave.scenario[w];
                     __mem unsigned int wave_scenario = wave.scenario[w];
                     // TODO find solution for this loop, maybe with pointers?
                     while(new_scenario < stage.scenario_total) {
-                        stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b;
-                        stage_scenario_t* stage_scenarios_b = stage_playbooks_b[stage.playbook_current].scenarios_b;
+                        stage_playbook_t* stage_playbook_ptr_b = stage_playbook_ptr();
+                        stage_scenario_t* stage_scenario_ptr_b = stage_scenario_ptr(stage_playbook_ptr_b, new_scenario); 
 
-                        unsigned int prev = stage_scenarios_b[new_scenario].prev;
+                        unsigned int prev = stage_scenario_ptr_b->prev;
 
                         if(prev == wave_scenario) {
                             // We create new waves from the scenarios that are dependent on the finished one.
@@ -340,15 +334,16 @@ __zp void stage_logic()
                         new_scenario++;
                     }
                     wave.finished[w] = 0;
+                    // stage.scenario_current = new_scenario;
                 }
             }
 
             if(stage.scenario_current >= stage.scenario_total) {
                 if(stage.playbook_current < stage.script_b.playbook_total_b) {
-                    stage.playbook_current++;
-                    stage_playbook_t* stage_playbook = stage.script_b.playbooks_b;
-                    stage.current_playbook = stage_playbook[stage.playbook_current];
-                    stage.scenario_total = stage.current_playbook.scenario_total_b;
+                    // stage.playbook_current++;
+                    // stage_playbook_t* stage_playbook = stage.script_b.playbooks_b;
+                    // stage.current_playbook = stage_playbook[stage.playbook_current];
+                    // stage.scenario_total = stage.current_playbook.scenario_total_b;
                     stage.scenario_current = 0;
                 }
             }
@@ -359,56 +354,53 @@ __zp void stage_logic()
         stage.player_respawn--;
         if(!stage.player_respawn) {
 #ifdef __PLAYER
-            stage_playbook_t* stage_playbooks = stage.script_b.playbooks_b;
-            stage_playbook_t* stage_playbook = &stage_playbooks[stage.playbook_current];
-            stage_player_t* stage_player = stage_playbook->stage_player;
-            stage_engine_t* stage_engine = stage_player->stage_engine;
-            player_add(stage_player->player_sprite, stage_engine->engine_sprite);
+            stage_playbook_t* stage_playbook_ptr_b = stage_playbook_ptr();
+            stage_player_t* stage_player_ptr_b = stage_playbook_ptr_b->stage_player;
+            stage_engine_t* stage_engine_ptr_b = stage_player_ptr_b->stage_engine;
+            player_add(stage_player_ptr_b->player_sprite, stage_engine_ptr_b->engine_sprite);
 #endif
         }
     }
-
-    
 }
 
-__zp stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action) {
+stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action) {
     stage_action_t* flightpath_action = &flightpath[action].action;
     return flightpath_action;
 }
 
-__zp unsigned char stage_get_flightpath_type(stage_flightpath_t* flightpath, unsigned char action) {
+unsigned char stage_get_flightpath_type(stage_flightpath_t* flightpath, unsigned char action) {
     unsigned char type = flightpath[action].type;
     return type;
 }
 
-__zp unsigned char stage_get_flightpath_next(stage_flightpath_t* flightpath, unsigned char action) {
+unsigned char stage_get_flightpath_next(stage_flightpath_t* flightpath, unsigned char action) {
     unsigned char next = flightpath[action].next;
     return next;
 }
 
 
-__zp unsigned int stage_get_flightpath_action_move_flight(stage_action_t* action_move) {
+unsigned int stage_get_flightpath_action_move_flight(stage_action_t* action_move) {
     return ((stage_action_move_t*)action_move)->flight;
 }
 
-__zp signed char stage_get_flightpath_action_move_turn(stage_action_t* action_move) {
+signed char stage_get_flightpath_action_move_turn(stage_action_t* action_move) {
     return ((stage_action_move_t*)action_move)->turn;
 }
 
-__zp unsigned char stage_get_flightpath_action_move_speed(stage_action_t* action_move) {
+unsigned char stage_get_flightpath_action_move_speed(stage_action_t* action_move) {
     return ((stage_action_move_t*)action_move)->speed;
 }
 
 
-__zp signed char stage_get_flightpath_action_turn_turn(volatile stage_action_t* action_turn) {
+signed char stage_get_flightpath_action_turn_turn(volatile stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->turn;
 }
 
-__zp unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_turn) {
+unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->radius;
 }
 
-__zp unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
+unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->speed;
 }
 

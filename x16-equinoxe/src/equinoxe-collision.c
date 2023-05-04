@@ -1,14 +1,14 @@
 // #include <cx16-bitmap.h>
-#include "equinoxe-collision.h"
-#include "equinoxe-bullet.h"
-#include "equinoxe-flightengine.h"
-#include "equinoxe-player.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-tower.h"
-#include "equinoxe-enemy.h"
-#include "equinoxe-types.h"
+// #include "equinoxe-collision.h"
+// #include "equinoxe-bullet.h"
+// #include "equinoxe-flightengine.h"
+// #include "equinoxe-player.h"
+// #include "equinoxe-stage.h"
+// #include "equinoxe-tower.h"
+// #include "equinoxe-enemy.h"
+// #include "equinoxe-types.h"
 #include "equinoxe.h"
-#include "stdio.h"
+// #include "stdio.h"
 
 #pragma data_seg(Hash)
 ht_item_t collision_hash;
@@ -16,6 +16,7 @@ collision_quadrant_t collision_quadrant;
 
 #pragma data_seg(Data)
 #pragma code_seg(Code)
+#pragma nobank
 
 void collision_init() {
     ht_init(&collision_hash);
@@ -253,6 +254,7 @@ void collision_detect() {
 #ifdef __DEBUG_COLLISION
                                                 printf("player %u\n", inner);
 #endif
+                                                
                                                 if(!bullet_has_collided(outer)) bullet_remove(outer);
                                                 if(!player_has_collided(inner)) player_hit(inner, bullet_impact(outer));
                                             }
@@ -323,6 +325,7 @@ void collision_detect() {
 #ifdef __DEBUG_COLLISION
                                                 printf("enemy %u\n", inner);
 #endif
+                                                
                                                 
                                                 if(!enemy_has_collided(inner)) stage_enemy_hit(inner, player_impact(outer));
                                                 if(!player_has_collided(outer)) player_hit(outer, enemy_impact(inner));

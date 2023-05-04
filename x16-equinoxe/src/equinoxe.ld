@@ -1,5 +1,6 @@
 .file                               [name="%O", type="prg", segments="Program"]
 .file                               [name="STAGES.BIN", type="bin", segments="CodeEngineStages, BramEngineStages"]
+.file                               [name="PLAYERS.BIN", type="bin", segments="CodeEnginePlayers"]
 .file                               [name="BULLETS.BIN", type="bin", segments="CodeEngineBullets"]
 .file                               [name="ENEMIES.BIN", type="bin", segments="CodeEngineEnemies"]
 .file                               [name="BRAMFLIGHT1.BIN", type="bin", segments="BramEngineFlight"]
@@ -9,7 +10,7 @@
                                      ", CodeBramHeap" +
                                      ", CodeVeraHeap" +
                                      ", CodeLruCache" + 
-                                     ", CodeEnginePlayers" +
+//                                     ", CodeEnginePlayers" +
                                      ", CodeEngineAnimate" +
                                      ", CodeEngineFlight" +
                                      ", CodeEngineFloor" +
@@ -32,8 +33,8 @@
 .segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
 .segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
 .segmentdef CodeEngineAnimate       [startAfter="CodeLruCache"] 
-.segmentdef CodeEnginePlayers       [startAfter="CodeEngineAnimate"] 
-.segmentdef CodeEngineFloor         [startAfter="CodeEnginePlayers"] 
+//.segmentdef CodeEnginePlayers       [startAfter="CodeEngineAnimate"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineAnimate"] 
 .segmentdef CodeEngineFlight        [startAfter="CodeEngineFloor"] 
 .segmentdef CodeEnginePalette       [startAfter="CodeEngineFlight"] 
 
@@ -59,6 +60,7 @@
 .segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
 

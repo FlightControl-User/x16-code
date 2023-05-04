@@ -3,40 +3,17 @@
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
-
 #pragma var_model(zp)
-
 #pragma zp_reserve(0x00..0x30, 0x80..0xA8)
 
-#define __MAIN
-
-#include "equinoxe-defines.h"
-
-
-
-// #include <cx16-bramheap-lib.h>
-
 #include "equinoxe.h"
-
-
-// #include "equinoxe-stage.h"
-//#include "equinoxe-bullet.h"
-//#include "equinoxe-enemy.h"
-//#include "equinoxe-player.h"
-// #include "equinoxe-tower.h"
-// #include "equinoxe-levels.h"
-
 #include "equinoxe-petscii.c"
 
-
-
 #pragma data_seg(Data)
+#pragma nobank
+#pragma var_model(mem)
 
 equinoxe_game_t game = {0, 0, 0, 2, 0};
-
-#pragma nobank
-
-#pragma var_model(mem)
 
 void equinoxe_init() {
 
@@ -45,11 +22,11 @@ void equinoxe_init() {
     bytes = fload_bram("stages.bin", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000);
     bytes = fload_bram("bramflight1.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
     bytes = fload_bram("bramfloor1.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
-    // bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
 
     flight_init();
 
 #ifdef __PLAYER
+    bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
     //player_init();
 #endif
 
@@ -254,6 +231,7 @@ void irq_vsync() {
     #endif
 }
 
+/// @brief game startup
 void main() {
 
 
@@ -282,16 +260,6 @@ void main() {
     bram_heap_bram_bank_init(BANK_HEAP_BRAM);
     // BREAKPOINT
     bram_heap_segment_init(1, 0x10, (bram_ptr_t)0xA000, 0x39, (bram_ptr_t)0xA000);
-
-    // We create the heap blocks in BRAM using the Fixed Block Heap Memory Manager.
-
-    // heap_segment_base(heap_bram_blocked, BANK_HEAP_BRAM, (heap_bram_fb_ptr_t)0xA000); // We set the heap to start in BRAM, bank 8. 
-    // heap_segment_define(heap_bram_blocked, bin64, 64, 128, 64*128);         // 10 - 01 - 0x02000 = 64 * 128
-    // heap_segment_define(heap_bram_blocked, bin128, 128, 64, 128*64);        // 11 - 01 - 0x02000 = 128 * 64
-    // heap_segment_define(heap_bram_blocked, bin256, 256, 64, 256*64);        // 12 - 02 - 0x04000 = 256 * 64
-    // heap_segment_define(heap_bram_blocked, bin512, 512, 256, 512*(256));    // 14 - 10 - 0x20000 = 512 * 256
-    // heap_segment_define(heap_bram_blocked, bin1024, 1024, 32, 1024*32);     // 24 - 04 - 0x08000 = 1024 * 32
-    // heap_segment_define(heap_bram_blocked, bin2048, 2048, 96, 2048*96);     // 28 - 18 - 0x28000 = 2048 * 96 => 40
 
     // We intialize the Commander X16 VERA heap manager. This manages dynamically the memory space in vera ram as a real heap.
     vera_heap_bram_bank_init(BANK_VERA_HEAP);

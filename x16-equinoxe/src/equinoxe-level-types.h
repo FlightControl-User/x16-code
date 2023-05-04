@@ -58,23 +58,24 @@ typedef struct {
     unsigned char next;
 } stage_flightpath_t;
 
-
+typedef unsigned int stage_scenario_index_t;
 typedef struct {
-    unsigned char enemy_count;
-    unsigned char enemy_spawn;
-    stage_enemy_t* stage_enemy;
-    stage_flightpath_t* enemy_flightpath;
-    signed int x;
-    signed int y;
-    signed char dx;
-    signed char dy;
-    unsigned char interval;
-    unsigned char wait;
-    unsigned char prev;
+    unsigned char enemy_count;                      // 01
+    unsigned char enemy_spawn;                      // 02
+    stage_enemy_t* stage_enemy;                     // 04
+    stage_flightpath_t* enemy_flightpath;           // 06 
+    signed int x;                                   // 08
+    signed int y;                                   // 10
+    signed char dx;                                 // 11
+    signed char dy;                                 // 12
+    unsigned char interval;                         // 13
+    unsigned char wait;                             // 14
+    unsigned char prev;                             // 15
+    unsigned char dummy;                            // 16
 } stage_scenario_t;
 
 typedef struct {
-    floor_bram_tiles_t* floor_bram_tile;
+    floor_bram_tiles_t* floor_bram_tile;            // 02
 } stage_floor_bram_tiles_t;
 
 #define STAGE_FLOOR_FILE_COUNT 3
@@ -97,12 +98,12 @@ typedef struct {
 } stage_tower_t;
 
 typedef struct {
-    unsigned char scenario_total_b;
-    stage_scenario_t* scenarios_b;
-    stage_player_t* stage_player;
-    stage_floor_t* stage_floor;
-    unsigned char tower_count;
-    stage_tower_t* stage_towers; 
+    unsigned char scenario_total_b;                     // 1
+    stage_scenario_t* scenarios_b;                      // 3
+    stage_player_t* stage_player;                       // 5
+    stage_floor_t* stage_floor;                         // 7
+    unsigned char tower_count;                          // 8
+    stage_tower_t* stage_towers;                        // 10
 
 } stage_playbook_t;
 typedef struct {

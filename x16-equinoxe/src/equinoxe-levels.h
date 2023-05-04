@@ -243,27 +243,27 @@ const stage_flightpath_t action_flightpath_006[] = {
 };
 
 const stage_scenario_t stage_scenario_01_b[32] = {
-//    ct, sp,          enemy_xxx, action_flightpath_xxx,                                   xstrt, ystrt, xinc, yinc, ival, wait, prev    
-    {  1,  1, &stage_enemy_e0401, action_flightpath_000,                                  320,   160,    0,    0,    4,   10,  255 }, // 0
-    {  1,  1, &stage_enemy_e0701, action_flightpath_000,                                  160,   160,    0,    0,    4,   20,    0 }, // 1
-    {  1,  1, &stage_enemy_e0702, action_flightpath_000,                                  480,   160,    0,    0,    4,   30,    0 }, // 2
-    { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,    32,    0,    0,   14,   20,    2 }, // 3
-    { 16, 16, &stage_enemy_e0201, action_flightpath_006,                                  -64,    96,    0,    0,   16,   20,    2 }, // 4
-    { 16, 16, &stage_enemy_e0201, action_flightpath_005,                                  704,   160,    0,    0,   18,   20,    2 }, // 5
-    {  8,  8, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,    0,    8,   20,    5 }, // 6
-    {  8,  8, &stage_enemy_e0401, action_flightpath_005,                                  704,    96,    0,    0,    8,   20,    5 }, // 7
-    {  8,  8, &stage_enemy_e0301, action_flightpath_006,                                  -64,   160,    0,    0,    8,   20,    5 }, // 8
-    {  8,  8, &stage_enemy_e0302, action_flightpath_005,                                  704,   224,    0,    0,    8,   20,    8 }, // 9
-    {  8,  8, &stage_enemy_e0401, action_flightpath_006,                                  -64,    32,    0,   32,    4,   20,    8 }, // 10
-    {  8,  8, &stage_enemy_e0501, action_flightpath_005,                                  704,    32,    0,   32,    2,   20,   10 }, // 11
-    {  8,  8, &stage_enemy_e0601, action_flightpath_006,                                  -64,    32,    0,   32,    2,   20,   10 }, // 12
-    {  8,  8, &stage_enemy_e0701, action_flightpath_005,                                  704,    32,    0,   32,    6,   20,   12 }, // 13
-    {  8,  8, &stage_enemy_e0702, action_flightpath_006,                                  -64,    32,    0,   32,    8,   20,   12 }, // 14
-    {  8,  8, &stage_enemy_e0703, action_flightpath_005,                                  704,    32,    0,   32,   10,   20,   12 }, // 15
-    {  8,  8, &stage_enemy_e0101, action_flightpath_left_circle_002,                      704,    32,    0,   32,    6,   20,   15 }, // 16
-    {  8,  8, &stage_enemy_e0202, action_flightpath_right_circle_003,                     -64,    32,    0,   32,    8,   20,   15 }, // 17
-    {  8,  8, &stage_enemy_e0401, action_flightpath_right_circle_003,                     704,    32,    0,   32,   10,   20,   17 }, // 18
-    {  8,  8, &stage_enemy_e0401, action_flightpath_left_circle_002,                      704,    32,    0,   32,   10,   20,   17 }  // 19
+//    ct, sp, enemy_xxx,            action_flightpath_xxx,                  xstrt,  ystrt,  xinc,   yinc,   ival,   wait,   prv,    fill    
+    {  1,  1, &stage_enemy_e0401,   action_flightpath_000,                  320,    160,    0,      0,      4,      10,     255,    0 }, // 0
+    {  1,  1, &stage_enemy_e0701,   action_flightpath_000,                  160,    160,    0,      0,      4,      20,     0,      0 }, // 1
+    {  1,  1, &stage_enemy_e0702,   action_flightpath_000,                  480,    160,    0,      0,      4,      30,     0,      0 }, // 2
+    { 16, 16, &stage_enemy_e0201,   action_flightpath_005,                  704,    32,     0,      0,      14,     20,     2,      0 }, // 3
+    { 16, 16, &stage_enemy_e0201,   action_flightpath_006,                  -64,    96,     0,      0,      16,     20,     2,      0 }, // 4
+    { 16, 16, &stage_enemy_e0201,   action_flightpath_005,                  704,    160,    0,      0,      18,     20,     2,      0 }, // 5
+    {  8,  8, &stage_enemy_e0401,   action_flightpath_006,                  -64,    32,     0,      0,      8,      20,     5,      0 }, // 6
+    {  8,  8, &stage_enemy_e0401,   action_flightpath_005,                  704,    96,     0,      0,      8,      20,     5,      0 }, // 7
+    {  8,  8, &stage_enemy_e0301,   action_flightpath_006,                  -64,    160,    0,      0,      8,      20,     5,      0 }, // 8
+    {  8,  8, &stage_enemy_e0302,   action_flightpath_005,                  704,    224,    0,      0,      8,      20,     8,      0 }, // 9
+    {  8,  8, &stage_enemy_e0401,   action_flightpath_006,                  -64,    32,     0,      32,     4,      20,     8,      0 }, // 10
+    {  8,  8, &stage_enemy_e0501,   action_flightpath_005,                  704,    32,     0,      32,     2,      20,     10,     0 }, // 11
+    {  8,  8, &stage_enemy_e0601,   action_flightpath_006,                  -64,    32,     0,      32,     2,      20,     10,     0 }, // 12
+    {  8,  8, &stage_enemy_e0701,   action_flightpath_005,                  704,    32,     0,      32,     6,      20,     12,     0 }, // 13
+    {  8,  8, &stage_enemy_e0702,   action_flightpath_006,                  -64,    32,     0,      32,     8,      20,     12,     0 }, // 14
+    {  8,  8, &stage_enemy_e0703,   action_flightpath_005,                  704,    32,     0,      32,     10,     20,     12,     0 }, // 15
+    {  8,  8, &stage_enemy_e0101,   action_flightpath_left_circle_002,      704,    32,     0,      32,     6,      20,     15,     0 }, // 16
+    {  8,  8, &stage_enemy_e0202,   action_flightpath_right_circle_003,     -64,    32,     0,      32,     8,      20,     15,     0 }, // 17
+    {  8,  8, &stage_enemy_e0401,   action_flightpath_right_circle_003,     704,    32,     0,      32,     10,     20,     17,     0 }, // 18
+    {  8,  8, &stage_enemy_e0401,   action_flightpath_left_circle_002,      704,    32,     0,      32,     10,     20,     17,     0 }  // 19
 };
 
 __export volatile stage_floor_bram_tiles_t stage_floor_bram_tiles_01[] = {

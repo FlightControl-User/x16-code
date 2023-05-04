@@ -4,23 +4,23 @@
 //#include "equinoxe-flightengine.h"
 //#include "equinoxe-enemy.h"
 //#include "equinoxe-bullet.h"
-#include "equinoxe-math.h"
-#include "equinoxe-stage.h"
-#include "equinoxe-collision.h"
+//#include "equinoxe-math.h"
+//#include "equinoxe-stage.h"
+//#include "equinoxe-collision.h"
 //#include "equinoxe-bullet.h"
 //#include "equinoxe-flightengine.h"
 #include "equinoxe-animate-lib.h"
-#include <ht.h>
-#include <division.h>
-#include <multiply.h>
-#include <stdlib.h>
+//#include <ht.h>
+//#include <division.h>
+//#include <multiply.h>
+//#include <stdlib.h>
 
 
 #pragma data_seg(DATA_ENGINE_ENEMIES)
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_ENEMIES)
-#pragma data_seg(CODE_ENGINE_ENEMIES)
+#pragma data_seg(DATA_ENGINE_ENEMIES)
 #pragma bank(cx16_ram,BANK_ENGINE_ENEMIES)
 #endif
 
