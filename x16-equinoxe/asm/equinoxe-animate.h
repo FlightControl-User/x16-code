@@ -7,5 +7,6 @@ unsigned char animate_add(char count, char state, char loop, char speed, signed 
 unsigned char animate_del(unsigned char a);
 unsigned char animate_is_waiting(unsigned char a);
 unsigned char animate_get_state(unsigned char a);
+unsigned char animate_get_image(unsigned char a); 
 void animate_logic(unsigned char a);
 void animate_player(unsigned char a, signed int x, signed int px);

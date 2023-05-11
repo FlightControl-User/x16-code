@@ -92,6 +92,7 @@ typedef unsigned char flight_index_t;
 typedef unsigned char flight_type_t;
 typedef unsigned char flight_side_t;
 
+#include <cx16-veralib.h>
 #include "equinoxe-level-types.h"
 typedef struct {
 
@@ -140,6 +141,11 @@ typedef struct {
     unsigned char initpath;
 
     unsigned char wave[FLIGHT_OBJECTS]; 
+
+    unsigned char next[FLIGHT_OBJECTS];
+    unsigned char prev[FLIGHT_OBJECTS];
+    unsigned char root[10];
+    unsigned char count[10];
 
     flight_index_t index;
 

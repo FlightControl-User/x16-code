@@ -43,7 +43,8 @@ unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy)
 		0,
 		wave.animation_speed[w],
 		1, 
-		wave.animation_reverse[w]);
+		wave.animation_reverse[w]
+		);
 
 	flight.health[e] = 100;
 	flight.impact[e] = -30;
@@ -66,7 +67,7 @@ void enemy_remove(unsigned char e)
 {
     if(flight.used[e]) {
 		animate_del(flight.animate[e]);
-		flight_remove(e);
+		flight_remove(FLIGHT_ENEMY, e);
     }
 }
 
@@ -104,7 +105,10 @@ void enemy_arc( unsigned char e, unsigned char turn, unsigned char radius, unsig
 
 void enemy_logic() {
 
-	for(unsigned char e=0; e<FLIGHT_OBJECTS; e++) {
+    flight_index_t e = flight_root(FLIGHT_ENEMY);
+	while(e) {
+
+		flight_index_t en = flight_next(e);
 
 		if(flight.type[e] == FLIGHT_ENEMY && flight.used[e]) {	
 
@@ -184,7 +188,7 @@ void enemy_logic() {
             char* const xd = (char*)&flight.xd;
             char* const yd = (char*)&flight.yd;
 
-            kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
+            {kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
                 lda e
                 asl
                 tay
@@ -218,7 +222,7 @@ void enemy_logic() {
                 !:
                 adc yi+1,y      // Now do the signed final addition.
                 sta yi+1,y      // And store the result, we're done.
-            }};
+            }};}
 
 			unsigned int x = flight.xi[e];
 			unsigned int y = flight.yi[e];
@@ -253,7 +257,7 @@ void enemy_logic() {
 #ifdef __BULLET         
 				unsigned int r = rand();
 				if(r>=65300) {
-					bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 2, SIDE_ENEMY, b002);
+					bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
 				}
 #endif
 				animate_logic(flight.animate[e]);
@@ -267,6 +271,7 @@ void enemy_logic() {
 			// 	}
 			// }
 		}
+		e = en;
 	}
 }
 

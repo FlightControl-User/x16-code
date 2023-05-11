@@ -21,6 +21,19 @@ void animate_init() {
     animate.used = 0;
 }
 
+/**
+ * @brief Add an animation to the animation pool.
+ * There can be a maximum of 16 different animation active at the same time.
+ * Animations are assigned to each object, so each object has it's own unique state.
+ * 
+ * @param count Total amount of animation possible states.
+ * @param state Start state of the animation.
+ * @param loop Start state when the animation loops.
+ * @param speed Speed of the animation in frames per second.
+ * @param direction Direction of the animation, which can be 1 or -1.
+ * @param reverse Check if the animation needs to be reversed when loop is reached.
+ * @return unsigned char
+ */
 unsigned char animate_add(char count, char state, char loop, char speed, signed char direction, char reverse) {
 
     if (animate.used < SPRITE_ANIMATE) {
@@ -37,6 +50,7 @@ unsigned char animate_add(char count, char state, char loop, char speed, signed 
 
         animate.state[a] = state;
         animate.direction[a] = direction;
+        animate.image[a] = 0;
 
         animate.used++;
     }
@@ -44,6 +58,10 @@ unsigned char animate_add(char count, char state, char loop, char speed, signed 
     return animate.pool;
 }
 
+
+/**
+ * @brief Delete the animation from the queue.
+ */
 unsigned char animate_del(unsigned char a) {
     animate.locked[a] = 0;
     animate.used--;
@@ -52,8 +70,31 @@ unsigned char animate_del(unsigned char a) {
 
 unsigned char animate_is_waiting(unsigned char a) { return animate.wait[a]; }
 
-unsigned char animate_get_state(unsigned char a) { return animate.state[a]; }
+/**
+ * @brief Enquire the current state of the animation.
+ * Note that the actual state is decoupled from the actual image of the animation.
+ */
+unsigned char animate_get_state(unsigned char a) { 
+    return animate.state[a]; 
+}
 
+/**
+ * @brief There is a decouplement between the state of the animation and the actual image projected.
+ * This is handy when there are multiple transitions and multiple images to reflect those transitions
+ * with high level of re-use of images.
+ * This function is called when drawing, enquiring the animation state.
+ */
+unsigned char animate_get_image(unsigned char a) { 
+    return animate.image[a]; 
+}
+
+/**
+ * @brief Main animation logic, for looping and reversing animations:
+ * - Start loop from a start position.
+ * - Loop when a loop position is reached.
+ * - Two possible directions of looping.
+ * - Possibly change direction and reverse.
+ */
 void animate_logic(unsigned char a) {
     if (!animate.wait[a]) {
         animate.wait[a] = animate.speed[a];
@@ -79,21 +120,36 @@ void animate_logic(unsigned char a) {
 
     if (animate.speed[a])
         animate.wait[a]--;
+
+    animate.image[a] = animate.state[a];
 }
 
+/**
+ * @brief Animation of the player object.
+ * It performs 3 different transitions:
+ * - Stable state alternating between rotor positions.
+ * - Fly left or right, turning wings.
+ * - Rotate for eye candy, left or right.
+ * 
+ * Needs a current x and a previous x coordinate to decide on the animation action.
+ * Both coordinates are signed.
+ */
 void animate_player(unsigned char a, signed int x, signed int px) {
 
     if (!animate.wait[a]) {
 
         animate.wait[a] = animate.speed[a];
 
-        if (x < px && animate.state[a] > 0) {
-            // Added fragment
-            animate.state[a] -= 1;
+        if (x < px) {
+            if (animate.state[a] > 0) {
+                animate.state[a] -= 1;
+            }
             animate.moved[a] = 2;
         }
-        if (x > px && animate.state[a] < 6) {
-            animate.state[a] += 1;
+        if (x > px) {
+            if(animate.state[a] < 6) {
+                animate.state[a] += 1;
+            }
             animate.moved[a] = 2;
         }
 
@@ -112,6 +168,20 @@ void animate_player(unsigned char a, signed int x, signed int px) {
         if (animate.moved[a] == 2) {
             animate.moved[a]--;
         }
+
+        if(animate.moved[a] == 0) {
+            if(animate.image[a] == 16) {
+                animate.image[a] = animate.state[a]-animate.loop[a];
+            } else {
+                animate.image[a] = 16;
+            }
+        } else {
+            if(animate.moved[a] == 1) {
+                animate.image[a] = ((char)13 + animate.state[a]) % (char)16;
+            }
+        }
+
     }
+
     animate.wait[a]--;
 }

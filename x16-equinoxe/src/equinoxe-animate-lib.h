@@ -8,5 +8,6 @@ extern __stackcall __library(animate) unsigned char animate_add(char count, char
 extern __stackcall __library(animate) unsigned char animate_del(unsigned char a);
 extern __stackcall __library(animate) unsigned char animate_is_waiting(unsigned char a);
 extern __stackcall __library(animate) unsigned char animate_get_state(unsigned char a);
+extern __stackcall __library(animate) unsigned char animate_get_image(unsigned char a);
 extern __stackcall __library(animate) void animate_logic(unsigned char a);
 extern __stackcall __library(animate) void animate_player(unsigned char a, signed int x, signed int px);

@@ -65,7 +65,8 @@ void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int 
         sprite_cache.loop[flight.cache[b]], 
         1, 
         1, 
-        sprite_cache.reverse[flight.cache[b]]);
+        sprite_cache.reverse[flight.cache[b]]
+        );
 }
 
 /*
@@ -115,15 +116,16 @@ void bullet_remove(flight_index_t b)
 {
     if(flight.used[b]) {
         bullet_sprite_animate_del(b);
-        flight_remove(b);
+        flight_remove(FLIGHT_BULLET, b);
         stage.bullet_count--;
     }
 }
 
 void bullet_logic()
 {
-    for(unsigned char b=0; b<FLIGHT_OBJECTS; b++) {
-
+    flight_index_t b = flight_root(FLIGHT_BULLET);
+    while(b) {
+        flight_index_t bn = flight_next(b);
         if(flight.type[b] == FLIGHT_BULLET && flight.used[b]) {
 
             vera_sprite_offset sprite_offset = flight.sprite_offset[b];
@@ -135,8 +137,7 @@ void bullet_logic()
             char* const xd = (char*)&flight.xd;
             char* const yd = (char*)&flight.yd;
 
-
-            kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
+            {kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
                 lda b
                 asl
                 tay
@@ -170,7 +171,7 @@ void bullet_logic()
                 !:
                 adc yi+1,y      // Now do the signed final addition.
                 sta yi+1,y      // And store the result, we're done.
-            }};
+            }};}
 
             unsigned int x = flight.xi[b];
             unsigned int y = flight.yi[b];
@@ -198,6 +199,7 @@ void bullet_logic()
                 bullet_remove(b);
             }
         }
+        b = bn;
     }
 }
 

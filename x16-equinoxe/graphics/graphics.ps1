@@ -1,0 +1,1 @@
+./magick_equinoxe.ps1

@@ -12,6 +12,7 @@ typedef struct {
     unsigned char count[SPRITE_ANIMATE];
     signed char direction[SPRITE_ANIMATE];
     unsigned char reverse[SPRITE_ANIMATE];
+    unsigned char image[SPRITE_ANIMATE];
     unsigned char pool;
     unsigned char used;
 } sprite_animate_t;

@@ -40,10 +40,10 @@ __export char t001[] = kickasm {{{
 };}};
 
 __export char p001[] = kickasm {{{
-    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/player/p001","png",1,7,1,512,32,32,3,0,0,4,2,0,16,0)
-    .var pallist = GetPalette2(sprite)
-    .var tiledata = MakeTile2(sprite,pallist)
-    .var pallistdata = MakePalette2(sprite,pallist)
+    .var sprite = Sprite("../x16-code/x16-equinoxe/graphics/player/p001_sheet","png",0,17,1,512,32,32,3,0,0,4,2,0,16,0)
+    .var pallist = GetPalette3(sprite)
+    .var tiledata = MakeTile3(sprite,pallist)
+    .var pallistdata = MakePalette3(sprite,pallist)
     .file [name="P001.BIN", type="bin", segments="p001"]
     .segmentdef p001
     .segment p001

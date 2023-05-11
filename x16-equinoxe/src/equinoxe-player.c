@@ -1,28 +1,10 @@
 #include "equinoxe.h"
-//#include "equinoxe-bullet.h"
-// #include "equinoxe-collision.h"
-//#include "equinoxe-defines.h"
-//#include "equinoxe-flightengine-types.h"
-//#include "equinoxe-flightengine.h"
-//#include "equinoxe-player.h"
-// #include "equinoxe-stage.h"
-// #include "equinoxe-types.h"
-//#include "equinoxe.h"
-// #include "equinoxe-animate-lib.h"
-// #include "equinoxe-levels.h"
-
-
-// #pragma data_seg(DATA_ENGINE_PLAYERS)
-// #pragma data_seg(CODE_ENGINE_PLAYERS)
-// #pragma code_seg(Code)
-
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_PLAYERS)
 #pragma data_seg(DATA_ENGINE_PLAYERS)
 #pragma bank(cx16_ram,BANK_ENGINE_PLAYERS)
 #endif
-
 
 void player_init() {
 }
@@ -41,7 +23,7 @@ void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
     flight.impact[p] = -100;
 
 
-    flight.animate[p] = animate_add(6,3,3,8,1,0);
+    flight.animate[p] = animate_add(6,3,3,10,1,0);
 
     flight.xf[p] = 0;
     flight.yf[p] = 0;
@@ -54,7 +36,7 @@ void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
 
     flight.engine[p] = n;
 
-    flight.animate[n] = animate_add(4,0,0,2,1,0);
+    flight.animate[n] = animate_add(16,0,0,2,1,0);
 
     stage.player = p;
 
@@ -65,9 +47,9 @@ void player_remove(unsigned char p) {
     if (flight.used[p]) {
         unsigned char n = flight.engine[p];
         animate_del(flight.animate[n]); // Remove the animation of the engine sprite.
-        flight_remove(n);
+        flight_remove(FLIGHT_ENGINE, n);
         animate_del(flight.animate[p]); // Remove the animation of the player sprite.
-        flight_remove(p);
+        flight_remove(FLIGHT_PLAYER, p);
         stage.player_count--;
         stage.player_respawn = 8;       // Wait 8 tickes until stage respawns the sprite. This needs rework. TODO.
     }
@@ -90,7 +72,10 @@ void player_logic() {
         vera_display_set_border_color(6);
 #endif
 
-    for (flight_index_t p=0; p<FLIGHT_OBJECTS; p++) {
+    flight_index_t p = flight_root(FLIGHT_PLAYER);
+    while(p) {
+
+        flight_index_t pn = flight_next(p);
 
         if (flight.type[p] == FLIGHT_PLAYER && flight.used[p]) {
 
@@ -118,7 +103,7 @@ void player_logic() {
 
             flight_index_t n = flight.engine[p];
             flight.xi[n] = flight.xi[p]+8;
-            flight.yi[n] = flight.yi[p]+22;
+            flight.yi[n] = flight.yi[p]+32;
 
             unsigned int x = flight.xi[p];
             unsigned int y = flight.yi[p];
@@ -141,30 +126,8 @@ void player_logic() {
             collision_insert(p);
 #endif
 
-//             unsigned char flight_sprite = flight.sprite[p];
-//             unsigned char engine_sprite = flight.sprite[flight.engine[p]];
-
-//             if (!flight.enabled[p]) {
-//                 vera_sprite_zdepth(flight_sprite_offset, sprite_cache.zdepth[flight_sprite]);
-//                 vera_sprite_zdepth(engine_sprite_offset, sprite_cache.zdepth[engine_sprite]);
-//                 flight.enabled[p] = 1;
-//             }
-
-//             if (animate_is_waiting(flight.animate[p])) {
-//                 vera_sprite_set_xy(flight_sprite_offset, flightx, flighty);
-//             } else {
-//                 vera_sprite_set_xy_and_image_offset(flight_sprite_offset, flightx, flighty, 
-//                     sprite_image_cache_vram(flight_sprite, animate_get_state(flight.animate[p])));
-//             }
-// #ifdef __ENGINE
-//             if (animate_is_waiting(flight.animate[p])) {
-//                 vera_sprite_set_xy(engine_sprite_offset, flightx + 8, flighty + 22);
-//             } else {
-//                 vera_sprite_set_xy_and_image_offset(engine_sprite_offset, flightx + 8, flighty + 22,
-//                     sprite_image_cache_vram(engine_sprite, animate_get_state(flight.animate[flight.engine[p]])));
-//             }
-// #endif
         }
+        p = pn;
     }
 }
 

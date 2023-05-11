@@ -6,6 +6,7 @@
 #pragma code_seg(CodeEngineAnimate)
 #pragma data_seg(DataEngineAnimate)
 
+#include <cx16-veralib.h>
 #include "equinoxe-animate.h"
 
 #pragma code_seg(CodeEngineAnimate)
@@ -16,7 +17,7 @@ __export volatile void* funcs[] = {
     &animate_add,
     &animate_logic,
     &animate_is_waiting,
-    &animate_get_state,
+    &animate_get_image,
     &animate_del,
     &animate_player,
     // &lru_cache_display
