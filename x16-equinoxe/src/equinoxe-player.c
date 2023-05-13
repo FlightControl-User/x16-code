@@ -93,7 +93,7 @@ void player_logic() {
                 }
                 flight.firegun[p] = flight.firegun[p] ^ 1;
                 flight.reload[p] = 8;
-                bullet_add(x, y, x, 0, 5, SIDE_PLAYER, b001);
+                stage_bullet_add(x, y, x, 0, 5, SIDE_PLAYER, b001);
             }
 #endif
 
@@ -119,8 +119,10 @@ void player_logic() {
                 y = 480 - 32;
             }
 
-            animate_player(flight.animate[p], (signed int)cx16_mouse.x, (signed int)cx16_mouse.px);
-            animate_logic(flight.animate[n]);
+            unsigned char ap = flight.animate[p]; 
+            animate_player(ap, (signed int)cx16_mouse.x, (signed int)cx16_mouse.px);
+            unsigned char an = flight.animate[n]; 
+            animate_logic(an);
 
 #ifdef __COLLISION
             collision_insert(p);

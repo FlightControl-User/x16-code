@@ -6,13 +6,22 @@ volatile extern stage_t stage;
 volatile extern stage_wave_t wave;
 
 
-stage_tower_t* stage_tower_get();
 
 void stage_reset();
 void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite);
 void stage_enemy_hit(unsigned char e, signed char impact);
 void stage_enemy_remove(unsigned char e);
 void stage_logic();
+
+#ifdef __TOWER
+stage_tower_t* stage_tower_get();
+void stage_tower_add(unsigned char row, unsigned char column);
+void stage_tower_remove(unsigned char t);
+#endif
+
+void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
+void stage_bullet_remove(flight_index_t b);
+
 
 
 stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action);

@@ -5,7 +5,7 @@
 
 
 void bullet_init();
-void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
+flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
 
 /*void FireBulletTower(unsigned char t);*/
 
@@ -18,5 +18,3 @@ void bullet_logic();
 signed char bullet_impact(unsigned char b);
 void bullet_bank();
 void bullet_unbank();
-
-unsigned char bullet_has_collided(unsigned char b);

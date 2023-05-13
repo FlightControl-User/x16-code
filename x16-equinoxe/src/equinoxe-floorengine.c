@@ -180,7 +180,7 @@ void floor_init()
  * @param row
  * @param column
  */
-void floor_paint(unsigned char row, unsigned char column)
+void floor_paint(unsigned char column, unsigned char row)
 {
     unsigned char rnd = BYTE0(rand());
 
@@ -341,7 +341,7 @@ void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
 
 
 // Load the floor tiles into bram using the bram heap manager.
-unsigned char floor_parts_load_bram(unsigned char* part, floor_t* floor, floor_bram_tiles_t* floor_bram_tile)
+unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_bram_tiles_t* floor_bram_tile)
 {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
@@ -395,14 +395,14 @@ unsigned char floor_parts_load_bram(unsigned char* part, floor_t* floor, floor_b
                     break;
 #endif
                 } else {
-                    floor_parts->bram_handles[*part] = handle_bram;
-                    floor_parts->floor_tile[*part] = floor_bram_tile;
+                    floor_parts->bram_handles[part] = handle_bram;
+                    floor_parts->floor_tile[part] = floor_bram_tile;
 
                     // Assign the palette to the floor part, this is used when painting the floor.
                     // The palettes are automatically painted.
-                    floor_parts->palette[*part] = palette_use_vram(palette_index);
+                    floor_parts->palette[part] = palette_use_vram(palette_index);
 
-                    (*part)++;
+                    part++;
                 }
             }
 
@@ -423,7 +423,7 @@ unsigned char floor_parts_load_bram(unsigned char* part, floor_t* floor, floor_b
 
     bank_pull_bram();
 
-    return *part - 1;
+    return part;
 }
 
 void floor_scroll()
@@ -431,8 +431,8 @@ void floor_scroll()
 
 
     // We only will execute the scroll logic when a scroll action needs to be done.
-    if (!game.screen_vscroll_wait--) {
-        game.screen_vscroll_wait = 4;
+    if (!game.scroll_wait--) {
+        game.scroll_wait = game.scroll_speed;
 
         unsigned char row = (char)((game.screen_vscroll - 16) / 16);
         row %= 32;
@@ -448,11 +448,9 @@ void floor_scroll()
         // We paint from bottom to top. Each paint segment is 64 pixels on the y axis, so we must paint every 4 rows.
         // We paint when the row is the bottom row of the paint segment, so row 3. Row 0 is the top row of the segment.
         if (row % 4 == 3) {
+            floor_paint(floor_pos.tile_column, floor_pos.tile_row);
 #ifdef __TOWER
-            floor_paint(floor_pos.tile_row, floor_pos.tile_column);
-            tower_paint(floor_pos.tile_row, floor_pos.tile_column);
-#else
-            floor_paint(floor_pos.tile_row, floor_pos.tile_column);
+            tower_paint(floor_pos.tile_column, floor_pos.tile_row);
 #endif
         }
 
@@ -471,7 +469,7 @@ void floor_scroll()
 
         // Now we set the vertical scroll to the required scroll position.
         vera_layer0_set_vertical_scroll(game.screen_vscroll);
-#ifdef __TOWER
+#ifdef __LAYER1
         vera_layer1_set_vertical_scroll(game.screen_vscroll);
 #endif
         game.screen_vscroll--;

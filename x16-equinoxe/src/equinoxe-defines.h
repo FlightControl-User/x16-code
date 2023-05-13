@@ -15,7 +15,7 @@
 #include "equinoxe-bank.h"
 
 // #define __CONIO_BSOUT
-// #define __LAYER1
+#define __LAYER1
 // #define __NOVSYNC
 #define __CPULINES
 
@@ -26,7 +26,7 @@
 #define __COLLISION
 
 #define __FLOOR
-// #define __TOWER
+#define __TOWER
 #define __PLAYER
 #define __BULLET
 #define __ENEMY
@@ -81,5 +81,5 @@
 // #define __DEBUG_ENGINE
 
 
-#define BREAKPOINT   {asm{.byte $db}}
+#define BREAKPOINT   {asm{.byte $db}} // BREAKPOINT
 

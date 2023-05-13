@@ -96,24 +96,26 @@ typedef unsigned char flight_side_t;
 #include "equinoxe-level-types.h"
 typedef struct {
 
-    fe_sprite_index_t cache[FLIGHT_OBJECTS];          // Internal link field.
-    vera_sprite_offset sprite_offset[FLIGHT_OBJECTS];  // An internal field that holds the calculated offset in vera.
-    unsigned char used[FLIGHT_OBJECTS];                // Is the sprite used, so free or not.
-    unsigned char enabled[FLIGHT_OBJECTS];             // Is the sprite enabled (visible or not)?
-    unsigned char collided[FLIGHT_OBJECTS];            // Has the sprite collided during the collision detection routine.
+    fe_sprite_index_t cache[FLIGHT_OBJECTS];            // Internal link field.
+    vera_sprite_offset sprite_offset[FLIGHT_OBJECTS];   // An internal field that holds the calculated offset in vera.
+    unsigned char used[FLIGHT_OBJECTS];                 // Is the sprite used, so free or not.
+    unsigned char enabled[FLIGHT_OBJECTS];              // Is the sprite enabled (visible or not)?
+    unsigned char collided[FLIGHT_OBJECTS];             // Has the sprite collided during the collision detection routine.
 
-    flight_type_t type[FLIGHT_OBJECTS];                // The type of flight object.
-    flight_side_t side[FLIGHT_OBJECTS];                // The type of flight object.
+    flight_type_t type[FLIGHT_OBJECTS];                 // The type of flight object.
+    flight_side_t side[FLIGHT_OBJECTS];                 // The type of flight object.
 
-    unsigned char cx[FLIGHT_OBJECTS];                  // x-axis coordinate at collision precision.
-    unsigned char cy[FLIGHT_OBJECTS];                  // y-axis coordinate at collision precision.
+    unsigned char cx[FLIGHT_OBJECTS];                   // x-axis coordinate at collision precision.
+    unsigned char cy[FLIGHT_OBJECTS];                   // y-axis coordinate at collision precision.
 
-    unsigned char xf[FLIGHT_OBJECTS];                  // Fractional current x coordinate.
-    unsigned char yf[FLIGHT_OBJECTS];                  // Fractional current x coordinate.
-    unsigned int xi[FLIGHT_OBJECTS];                   // Integer current x coordinate.
-    unsigned int yi[FLIGHT_OBJECTS];                   // Integer point current y coordinate.
-    unsigned int xd[FLIGHT_OBJECTS];                   // Fixed point delta x.
-    unsigned int yd[FLIGHT_OBJECTS];                   // Fixed point delta y.
+    unsigned char xf[FLIGHT_OBJECTS];                   // Fractional current x coordinate.
+    unsigned char yf[FLIGHT_OBJECTS];                   // Fractional current x coordinate.
+    unsigned int xi[FLIGHT_OBJECTS];                    // Integer current x coordinate.
+    unsigned int yi[FLIGHT_OBJECTS];                    // Integer current y coordinate.
+    unsigned int xd[FLIGHT_OBJECTS];                    // Fixed delta x.
+    unsigned int yd[FLIGHT_OBJECTS];                    // Fixed delta y.
+    unsigned char xs[FLIGHT_OBJECTS];                   // Integer shoot x relative to xi.
+    unsigned char ys[FLIGHT_OBJECTS];                   // Integer shoot y relative to xy.
 
     unsigned char move[FLIGHT_OBJECTS]; 
     unsigned char moved[FLIGHT_OBJECTS];               // Has the sprite moved?

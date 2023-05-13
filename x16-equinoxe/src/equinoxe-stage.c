@@ -96,7 +96,7 @@ void stage_load_enemy(stage_enemy_t* stage_enemy)
         // }
 }
 
-
+#ifdef __FLOOR
 void stage_load_floor(stage_floor_t* stage_floor)
 {
     // Loading the floor in bram.
@@ -107,11 +107,11 @@ void stage_load_floor(stage_floor_t* stage_floor)
     floor_part_memset_vram(0, floor, 0);
 
     unsigned char part=1;
-    unsigned char parts_count = 0;
     for(unsigned char f=0; f<stage_floor->floor_file_count; f++) {
         floor_bram_tiles_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
-        parts_count += floor_parts_load_bram(&part, floor, floor_bram);
+        part = floor_parts_load_bram(part, floor, floor_bram);
     }
+    unsigned char parts_count = part-1;
 
     for(unsigned char part=1; part<=parts_count; part++) {
         floor_part_memcpy_vram_bram(part, floor);
@@ -119,7 +119,9 @@ void stage_load_floor(stage_floor_t* stage_floor)
 
     stage.floor = floor;
 }
+#endif
 
+#ifdef __TOWER
 void stage_load_tower(stage_tower_t* stage_tower)
 {
 
@@ -133,11 +135,11 @@ void stage_load_tower(stage_tower_t* stage_tower)
 
     // Now count from 1!
     unsigned char part=1;
-    unsigned char parts_count = 0;
     for(unsigned char t=0; t<stage_tower->tower_file_count; t++) {
         floor_bram_tiles_t* tower_bram = tower_bram_tiles[t].floor_bram_tile;
-        parts_count += floor_parts_load_bram(&part, towers, tower_bram);
+        part = floor_parts_load_bram(part, towers, tower_bram);
     }
+    unsigned char parts_count = part-1;
 
     for(unsigned char part=1; part<=parts_count; part++) {
         floor_part_memcpy_vram_bram(part, towers);
@@ -160,6 +162,7 @@ stage_tower_t* stage_tower_get()
     stage_tower_t* stage_towers = stage_playbook_b->stage_towers;
     return stage_towers;
 }
+#endif
 
 static void stage_load(void)
 {
@@ -175,9 +178,9 @@ static void stage_load(void)
 
 #ifdef __TOWER
     // Loading towers tiles and towers sprites in bram.
-    unsigned char tower_count = stage_playbook->tower_count;
+    unsigned char tower_count = stage_playbook_b->tower_count;
     for(unsigned char t=0; t<tower_count; t++) {
-        stage_load_tower(stage_playbook->stage_towers);
+        stage_load_tower(stage_playbook_b->stage_towers);
     }
 #endif
 
@@ -240,9 +243,30 @@ static void stage_reset(void)
 #endif
 }
 
+void stage_tower_add(unsigned char column, unsigned char row) {
+#ifdef __TOWER
+    stage_tower_t* st = stage.current_playbook.stage_towers;
+    sprite_index_t turret = st->turret;
+    unsigned char tx = st->turret_x;
+    unsigned char ty = st->turret_y;
+    unsigned char fx = st->fire_x;
+    unsigned char fy = st->fire_y;
+    tower_add(turret, (unsigned int)column*64+tx, (unsigned int)ty-64-(game.screen_vscroll % 16), fx, fy);
+    stage.tower_count++;
+#endif
+}
+
+void stage_tower_remove(unsigned char t)
+{
+#ifdef __TOWER
+    tower_remove(t);
+    stage.tower_count--;
+#endif
+}
 
 void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 {
+#ifdef __ENEMY
     unsigned char enemies = enemy_add(w, enemy_sprite);
 
     wave.x[w] += wave.dx[w];
@@ -252,21 +276,25 @@ void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
     wave.enemy_count[w] -= enemies;
     wave.enemy_alive[w] += 1;
     stage.enemy_count++;
+#endif
 }
 
 
 void stage_enemy_remove(unsigned char e)
 {
+#ifdef __ENEMY
     unsigned char w = enemy_get_wave(e);
     enemy_remove(e);
     wave.enemy_spawn[w] += 1;
     wave.enemy_alive[w] -= 1;
     stage.enemy_count--;
+#endif
 }
 
 
 void stage_enemy_hit(unsigned char e, signed char impact)
 {
+#ifdef __ENEMY
     unsigned char w = enemy_get_wave(e);
     unsigned char hit = enemy_hit(e, impact);
     if(hit) {
@@ -275,6 +303,21 @@ void stage_enemy_hit(unsigned char e, signed char impact)
         stage.enemy_count--;
         wave.enemy_alive[w] -= 1;
     }
+#endif
+}
+
+void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet) {
+#ifdef __BULLET
+    bullet_add(sx, sy, tx, ty, speed, side, sprite_bullet);
+    stage.bullet_count++;
+#endif
+}
+
+void stage_bullet_remove(flight_index_t b) {
+#ifdef __BULLET
+    bullet_remove(b);
+    stage.bullet_count--;
+#endif
 }
 
 void stage_logic()
@@ -403,6 +446,7 @@ unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_tur
 unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
     return ((stage_action_turn_t*)action_turn)->speed;
 }
+
 
 
 void stage_display()

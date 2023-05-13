@@ -51,6 +51,7 @@
 #define BRAM_ENGINE_PALETTE          BramEnginePalette
 //
 #define BANK_ENGINE_BULLETS                                 0x07
+#define DATA_ENGINE_BULLETS          DataEngineBullets
 #define CODE_ENGINE_BULLETS          CodeEngineBullets
 //
 #define BANK_ENGINE_ENEMIES                                 0x08
@@ -60,6 +61,10 @@
 #define BANK_ENGINE_PLAYERS                                 0x09
 #define CODE_ENGINE_PLAYERS          CodeEnginePlayers
 #define DATA_ENGINE_PLAYERS          DataEnginePlayers
+//
+#define BANK_ENGINE_TOWERS                                  0x0A
+#define CODE_ENGINE_TOWERS           CodeEngineTowers
+#define DATA_ENGINE_TOWERS           DataEngineTowers
 //
 #define BANK_HEAP_BRAM                                      0x0F
 

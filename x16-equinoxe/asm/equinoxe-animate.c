@@ -51,6 +51,7 @@ unsigned char animate_add(char count, char state, char loop, char speed, signed 
         animate.state[a] = state;
         animate.direction[a] = direction;
         animate.image[a] = 0;
+        animate.moved[a] = 0;
 
         animate.used++;
     }
@@ -71,11 +72,10 @@ unsigned char animate_del(unsigned char a) {
 unsigned char animate_is_waiting(unsigned char a) { return animate.wait[a]; }
 
 /**
- * @brief Enquire the current state of the animation.
- * Note that the actual state is decoupled from the actual image of the animation.
+ * @brief Enquire the current state of transition of the animation.
  */
-unsigned char animate_get_state(unsigned char a) { 
-    return animate.state[a]; 
+unsigned char animate_get_transition(unsigned char a) { 
+    return animate.moved[a]; 
 }
 
 /**
@@ -184,4 +184,58 @@ void animate_player(unsigned char a, signed int x, signed int px) {
     }
 
     animate.wait[a]--;
+}
+
+void animate_tower(unsigned char a) {
+
+    switch(animate.moved[a]) {
+        case 0:
+            unsigned char rnd = rand();
+            if(rnd <= 5) animate.moved[a] = 1;
+            break;
+        case 1:
+            animate.wait[a] = 0;
+            animate.moved[a] = 2;
+            break;
+        case 2:
+            if(!animate.wait[a]) {
+                animate.wait[a] = animate.speed[a];
+                if(animate.state[a] == animate.count[a]) {
+                    animate.wait[a] = 120;
+                    animate.moved[a] = 3;
+                } else {
+                    animate.state[a] += 1;
+                }
+            } else {
+                animate.wait[a]--;
+            }
+            break;
+        case 3:
+            // Shoot
+            if(!animate.wait[a]) {
+                animate.wait[a] = 0;
+                animate.moved[a] = 4;
+            } else {
+                animate.wait[a]--;
+            }
+            break;   
+        case 4:
+            // Shot fired
+            animate.moved[a] = 5;
+            animate.wait[a] = 0;
+            break;   
+        case 5:
+            if(!animate.wait[a]) {
+                animate.wait[a] = animate.speed[a];
+                if(animate.state[a] <= animate.loop[a]) {
+                    animate.moved[a] = 0;
+                } else {
+                    animate.state[a] -= 1;
+                }
+            }
+            animate.wait[a]--;
+            break;
+        default:
+    }
+    animate.image[a] = animate.state[a];
 }

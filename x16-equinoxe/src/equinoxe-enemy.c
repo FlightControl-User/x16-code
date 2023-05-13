@@ -1,19 +1,6 @@
 #include <cx16.h>
 #include "equinoxe.h"
-//#include "equinoxe-types.h"
-//#include "equinoxe-flightengine.h"
-//#include "equinoxe-enemy.h"
-//#include "equinoxe-bullet.h"
-//#include "equinoxe-math.h"
-//#include "equinoxe-stage.h"
-//#include "equinoxe-collision.h"
-//#include "equinoxe-bullet.h"
-//#include "equinoxe-flightengine.h"
 #include "equinoxe-animate-lib.h"
-//#include <ht.h>
-//#include <division.h>
-//#include <multiply.h>
-//#include <stdlib.h>
 
 
 #pragma data_seg(DATA_ENGINE_ENEMIES)
@@ -257,7 +244,7 @@ void enemy_logic() {
 #ifdef __BULLET         
 				unsigned int r = rand();
 				if(r>=65300) {
-					bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
+					stage_bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
 				}
 #endif
 				animate_logic(flight.animate[e]);

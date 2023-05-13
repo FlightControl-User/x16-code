@@ -13,7 +13,7 @@
 #pragma nobank
 #pragma var_model(mem)
 
-equinoxe_game_t game = {0, 0, 0, 2, 0};
+equinoxe_game_t game = {0, 0, 0, 0, 127, 64, 2};
 
 void equinoxe_init() {
 
@@ -27,17 +27,18 @@ void equinoxe_init() {
 
 #ifdef __PLAYER
     bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
-    //player_init();
 #endif
 
 #ifdef __ENEMY
     bytes = fload_bram("enemies.bin", BANK_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
-    //enemy_init();
+#endif
+
+#ifdef __TOWER
+    bytes = fload_bram("towers.bin", BANK_ENGINE_TOWERS, (bram_ptr_t)0xA000);
 #endif
 
 #ifdef __BULLET
     bytes = fload_bram("bullets.bin", BANK_ENGINE_BULLETS, (bram_ptr_t)0xA000);
-    //bullet_init();
 #endif
 
     animate_init();
@@ -131,7 +132,6 @@ void irq_vsync() {
     game.ticksync++;
 #endif
 
-
     #ifdef __PLAYER
         #ifdef __CPULINES
             vera_display_set_border_color(LIGHT_BLUE);
@@ -153,6 +153,12 @@ void irq_vsync() {
         enemy_logic();
     #endif
 
+    #ifdef __TOWER
+        #ifdef __CPULINES
+            vera_display_set_border_color(BROWN);
+        #endif
+        tower_logic();
+    #endif
 
     #ifdef __COLLISION
     #ifdef __CPULINES

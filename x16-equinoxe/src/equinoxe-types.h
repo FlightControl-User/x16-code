@@ -15,6 +15,7 @@
 #include "equinoxe-floorengine-types.h"
 #include "equinoxe-tower-types.h"
 #include "equinoxe-enemy-types.h"
+#include "equinoxe-tower-types.h"
 #include "equinoxe-bullet-types.h"
 #include "equinoxe-stage-types.h"
 
@@ -36,8 +37,10 @@ typedef struct {
     unsigned char ticksync;
     unsigned char tickstage;
     unsigned int  screen_vscroll;
-    unsigned char screen_vscroll_wait;
-    unsigned char row;
+    unsigned char row;                          ///< Current row in the scroll of the background scenery.
+    unsigned char tower_frequency;              ///< Frequency of the tower occurance in tower space.
+    unsigned char scroll_wait;                  ///< Remaining wait cycles to scroll the background scenery.
+    unsigned char scroll_speed;                 ///< Speed in wait cycles to scroll the background scenery.
 
 } equinoxe_game_t;
 

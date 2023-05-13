@@ -18,7 +18,9 @@ __export volatile void* funcs[] = {
     &animate_logic,
     &animate_is_waiting,
     &animate_get_image,
+    &animate_get_transition,
     &animate_del,
     &animate_player,
+    &animate_tower,
     // &lru_cache_display
 };

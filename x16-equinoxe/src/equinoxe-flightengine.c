@@ -116,6 +116,18 @@ flight_index_t flight_root(flight_type_t type) { return flight.root[type]; }
 
 flight_index_t flight_next(flight_index_t i) { return flight.next[i]; }
 
+signed char flight_impact(unsigned char f) {
+    signed char impact = flight.impact[f];
+    return impact;
+}
+
+
+// This will need rework
+unsigned char flight_has_collided(unsigned char f) {
+	unsigned char collided = flight.collided[f];
+	return collided;
+}
+
 void flight_draw() {
 
     // BREAKPOINT

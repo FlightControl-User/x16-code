@@ -1,16 +1,15 @@
 .file                               [name="%O", type="prg", segments="Program"]
-.file                               [name="STAGES.BIN", type="bin", segments="CodeEngineStages, BramEngineStages"]
-.file                               [name="PLAYERS.BIN", type="bin", segments="CodeEnginePlayers"]
-.file                               [name="BULLETS.BIN", type="bin", segments="CodeEngineBullets"]
-.file                               [name="ENEMIES.BIN", type="bin", segments="CodeEngineEnemies"]
-.file                               [name="BRAMFLIGHT1.BIN", type="bin", segments="BramEngineFlight"]
-.file                               [name="BRAMFLOOR1.BIN", type="bin", segments="BramEngineFloor"]
-//.file                             [name="PLAYERS.BIN", type="bin", segments="CodeEnginePlayers"]
+.file                               [name="STAGES.BIN",         type="bin", segments="CodeEngineStages, BramEngineStages"]
+.file                               [name="PLAYERS.BIN",        type="bin", segments="CodeEnginePlayers"]
+.file                               [name="BULLETS.BIN",        type="bin", segments="CodeEngineBullets"]
+.file                               [name="ENEMIES.BIN",        type="bin", segments="CodeEngineEnemies"]
+.file                               [name="TOWERS.BIN",         type="bin", segments="CodeEngineTowers"]
+.file                               [name="BRAMFLIGHT1.BIN",    type="bin", segments="BramEngineFlight"]
+.file                               [name="BRAMFLOOR1.BIN",     type="bin", segments="BramEngineFloor"]
 .segmentdef Program                 [segments="Basic, Code, Data" + 
                                      ", CodeBramHeap" +
                                      ", CodeVeraHeap" +
                                      ", CodeLruCache" + 
-//                                     ", CodeEnginePlayers" +
                                      ", CodeEngineAnimate" +
                                      ", CodeEngineFlight" +
                                      ", CodeEngineFloor" +
@@ -19,6 +18,7 @@
                                      ", DataVeraHeap" +
                                      ", DataEngineAnimate" +
                                      ", DataEngineStages" +
+                                     ", DataEngineBullets" +
                                      ", DataEnginePlayers" +
                                      ", DataEngineEnemies" +
                                      ", DataEngineFlight" +
@@ -33,7 +33,6 @@
 .segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
 .segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
 .segmentdef CodeEngineAnimate       [startAfter="CodeLruCache"] 
-//.segmentdef CodeEnginePlayers       [startAfter="CodeEngineAnimate"] 
 .segmentdef CodeEngineFloor         [startAfter="CodeEngineAnimate"] 
 .segmentdef CodeEngineFlight        [startAfter="CodeEngineFloor"] 
 .segmentdef CodeEnginePalette       [startAfter="CodeEngineFlight"] 
@@ -45,9 +44,11 @@
 .segmentdef DataEngineFloor         [startAfter="DataEngineAnimate"] 
 .segmentdef DataEnginePalette       [startAfter="DataEngineFloor"] 
 .segmentdef DataEngineStages        [startAfter="DataEnginePalette"]
-.segmentdef DataEnginePlayers       [startAfter="DataEngineStages"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
 .segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
-.segmentdef DataEngineFlight        [startAfter="DataEngineEnemies", align=$100] 
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
 .segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
 
 //.segmentdef BramEngineFloor       [startAfter=""] 
@@ -57,20 +58,18 @@
 
 .segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
 
 .segmentdef BramEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
 .segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
 .segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
 
-//.segmentdef CodeEngineTowers      [start=$A000, min=$A000, max=$BFFF, align=$100]
 //.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
-//.segmentdef CodeEnginePlayers     [start=$A000, min=$A000, max=$BFFF, align=$100]
 //.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
 
 .segment Basic

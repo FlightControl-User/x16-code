@@ -17,7 +17,7 @@ void floor_init();
 
 unsigned char FLOOR_CACHE(unsigned char layer, unsigned char row, unsigned char column);
 
-void floor_paint(unsigned char row, unsigned char column);
+void floor_paint(unsigned char column, unsigned char row);
 
 void floor_draw_clear(unsigned char layer);
 void floor_clear_row(unsigned char layer, floor_t* floor, unsigned char x, unsigned char y);
@@ -28,7 +28,7 @@ void floor_paint_background(unsigned char layer, floor_t* floor);
 
 void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pattern);
 void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor);
-unsigned char floor_parts_load_bram(unsigned char* part, floor_t* floor, floor_bram_tiles_t * floor_bram_tile); 
+unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_bram_tiles_t * floor_bram_tile); 
 
 void floor_scroll();
 

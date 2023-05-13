@@ -2,7 +2,7 @@
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_BULLETS)
-#pragma data_seg(CODE_ENGINE_BULLETS)
+#pragma data_seg(DATA_ENGINE_BULLETS)
 #pragma bank(cx16_ram,BANK_ENGINE_BULLETS)
 #endif
 
@@ -34,10 +34,8 @@ void bullet_sprite_animate_del(unsigned char b)
     animate_del(a);
 }
 
-void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet)
+flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet)
 {
-    stage.bullet_count++;
-
     flight_index_t b = flight_add(FLIGHT_BULLET, side, sprite_bullet);
 
     unsigned char asx = BYTE0(sx >> 2);
@@ -57,7 +55,7 @@ void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int 
     flight.yi[b] = sy;
 
     flight.speed[b] = speed; 
-    flight.impact[b] = -100;
+    flight.impact[b] = -((signed char)(BYTE0(rand())>>4));
 
     flight.animate[b] = animate_add(
         sprite_cache.count[flight.cache[b]], 
@@ -67,57 +65,16 @@ void bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int 
         1, 
         sprite_cache.reverse[flight.cache[b]]
         );
+    
+    return b;
 }
 
-/*
-void FireBulletTower(unsigned char t)
-{
-    if(stage.bullet_count<FE_BULLET) {
-
-        stage.bullet_count++;
-
-        unsigned char b = stage.bullet_pool;
-
-        while(flight.used[b]) {
-            b = (b+1)%FE_BULLET;
-        }
-
-        flight.used[b] = 1;
-        flight.enabled[b] = 0;
-        flight.side[b] = SIDE_ENEMY;
-
-        fe_sprite_index_t s = bullet_sprite_cache(b, b003);
-        bullet_sprite_offset_set(b, s);
-
-        
-        // signed int volatile ex = towers.tx[t] + towers.fx[t];
-        // signed int volatile ey = towers.ty[t] + towers.fy[t];
-
-        // printf("ex=%i, ey=%i ", ex, ey);
-
-        flight.tx[b] = MAKELONG((unsigned int)((unsigned int)towers.tx[t] + (unsigned int)towers.fx[t]), 0);
-        flight.ty[b] = MAKELONG((unsigned int)((unsigned int)towers.ty[t] + (unsigned int)towers.fy[t]), 0);
-
-        unsigned char angle = 90;
-
-        flight.tdx[b] = 0;
-        flight.tdy[b] = MAKELONG((unsigned int)8, 0); 
-
-        bullet_sprite_animate_add(b, s);
-
-        flight.impact[b] = -50;
-
-        stage.bullet_pool = (b+1)%FE_BULLET;
-    }
-}
-*/
 
 void bullet_remove(flight_index_t b) 
 {
     if(flight.used[b]) {
         bullet_sprite_animate_del(b);
         flight_remove(FLIGHT_BULLET, b);
-        stage.bullet_count--;
     }
 }
 
@@ -221,11 +178,4 @@ inline void bullet_unbank() {
 signed char bullet_impact(unsigned char b) {
     signed char impact = flight.impact[b];
     return impact;
-}
-
-
-// This will need rework
-unsigned char bullet_has_collided(unsigned char b) {
-	unsigned char collided = flight.collided[b];
-	return collided;
 }

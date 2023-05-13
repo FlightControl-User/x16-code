@@ -24,7 +24,6 @@
 #include <ht.h>
 #include <lru-cache-lib.h>
 
-
 #include "equinoxe-types.h"
 #include "equinoxe-bank.h"
 #include "equinoxe-defines.h"
@@ -39,22 +38,35 @@
 #define VERA_HEAP_SEGMENT_SPRITES   (vera_heap_segment_index_t)1
 
 #pragma var_model(zp)
+#include "equinoxe-math.h"
 #include "equinoxe-levels.h"
+
 #ifdef __FLOOR
 #include "equinoxe-floorengine.h"
 #endif
+
 #include "equinoxe-flightengine.h"
-#include "equinoxe-math.h"
+
 #include "equinoxe-player.h"
+
+#ifdef __ENEMY
 #include "equinoxe-enemy.h"
+#endif
+
+#ifdef __TOWER
+#include "equinoxe-tower.h"
+#endif
+
+#ifdef __BULLET
 #include "equinoxe-bullet.h"
+#endif
+
 #include "equinoxe-collision.h"
 #include "equinoxe-stage.h"
 #pragma var_model(mem)
 
 //extern const heap_structure_t* heap_bram_blocked;
 
-#include "equinoxe-tower.h"
 
 extern equinoxe_game_t game;
 
