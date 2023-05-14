@@ -10,30 +10,6 @@ void bullet_init()
 {
 }
 
-
-
-void bullet_sprite_offset_set(unsigned char b, unsigned char s)
-{
-    vera_sprite_offset offset = flight_sprite_next_offset();
-    flight.sprite_offset[b] = offset;
-    fe_sprite_configure(offset, s);
-}
-
-
-unsigned char bullet_sprite_animate_add(unsigned char b, unsigned char s)
-{
-    unsigned char a = animate_add(sprite_cache.count[s], 0, sprite_cache.loop[s], 0, 1, sprite_cache.reverse[s]);
-    flight.animate[b] = a;
-
-    return a;
-}
-
-void bullet_sprite_animate_del(unsigned char b)
-{
-    unsigned char a = flight.animate[b];
-    animate_del(a);
-}
-
 flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet)
 {
     flight_index_t b = flight_add(FLIGHT_BULLET, side, sprite_bullet);
@@ -55,7 +31,6 @@ flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, uns
     flight.yi[b] = sy;
 
     flight.speed[b] = speed; 
-    flight.impact[b] = -((signed char)(BYTE0(rand())>>4));
 
     flight.animate[b] = animate_add(
         sprite_cache.count[flight.cache[b]], 
@@ -65,6 +40,10 @@ flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, uns
         1, 
         sprite_cache.reverse[flight.cache[b]]
         );
+
+    signed char impact = (signed char)(BYTE0(rand())>>4);
+    flight.health[b] = 0;
+    flight.impact[b] = -impact;
     
     return b;
 }
@@ -73,7 +52,7 @@ flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, uns
 void bullet_remove(flight_index_t b) 
 {
     if(flight.used[b]) {
-        bullet_sprite_animate_del(b);
+        animate_del(flight.animate[b]);
         flight_remove(FLIGHT_BULLET, b);
     }
 }
@@ -173,9 +152,4 @@ inline void bullet_bank() {
 
 inline void bullet_unbank() {
     bank_pull_bram();
-}
-
-signed char bullet_impact(unsigned char b) {
-    signed char impact = flight.impact[b];
-    return impact;
 }

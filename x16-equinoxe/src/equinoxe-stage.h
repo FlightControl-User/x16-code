@@ -9,9 +9,10 @@ volatile extern stage_wave_t wave;
 
 void stage_reset();
 void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite);
-void stage_enemy_hit(unsigned char e, signed char impact);
 void stage_enemy_remove(unsigned char e);
 void stage_logic();
+
+void stage_impact(unsigned char f, flight_index_t h);
 
 #ifdef __TOWER
 stage_tower_t* stage_tower_get();

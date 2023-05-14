@@ -18,8 +18,6 @@ void enemy_init()
 unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy) 
 {
 
-    stage.enemy_count++;
-
 	unsigned char e = flight_add(FLIGHT_ENEMY, SIDE_ENEMY, sprite_enemy);
 
     flight.wave[e] = w;
@@ -58,18 +56,6 @@ void enemy_remove(unsigned char e)
     }
 }
 
-
-unsigned char enemy_hit(unsigned char e, signed char impact) 
-{
-	
-    flight.health[e] += impact;
-    if(flight.health[e] <= 0) {
-		flight.collided[e] = 1;
-		return 1;
-    }
-
-    return 0;
-}
 
 void enemy_move( unsigned char e, unsigned int moving, unsigned char turn, unsigned char speed)
 {
@@ -274,16 +260,5 @@ inline void enemy_bank() {
 }
 
 inline void enemy_unbank() {
-}
-
-signed char enemy_impact(unsigned char e) {
-	signed char impact = flight.impact[e];
-	return impact;
-}
-
-// This will need rework
-unsigned char enemy_has_collided(unsigned char e) {
-	unsigned char collided = flight.collided[e];
-	return collided;
 }
 

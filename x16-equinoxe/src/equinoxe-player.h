@@ -13,5 +13,3 @@ void player_logic();
 
 void player_bank();
 void player_unbank();
-unsigned char player_has_collided(unsigned char p);
-signed char player_impact(unsigned char p);

@@ -116,6 +116,15 @@ flight_index_t flight_root(flight_type_t type) { return flight.root[type]; }
 
 flight_index_t flight_next(flight_index_t i) { return flight.next[i]; }
 
+signed char flight_hit(unsigned char f, signed char impact) {
+    flight.health[f] += impact;
+    if(flight.health[f] <= 0) {
+		flight.collided[f] = 1;
+		return 1;
+    }
+    return 0;
+}
+
 signed char flight_impact(unsigned char f) {
     signed char impact = flight.impact[f];
     return impact;
@@ -125,6 +134,7 @@ signed char flight_impact(unsigned char f) {
 // This will need rework
 unsigned char flight_has_collided(unsigned char f) {
 	unsigned char collided = flight.collided[f];
+    flight.collided[f] = 1;
 	return collided;
 }
 

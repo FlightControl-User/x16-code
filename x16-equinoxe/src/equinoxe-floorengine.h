@@ -9,7 +9,6 @@
 #define FLOOR_TILE_SIZE 128
 
 extern floor_layer_t floor_layer[2];
-
 extern floor_cache_t floor_cache[FLOOR_CACHE_LAYERS*FLOOR_CACHE_ROWS*FLOOR_CACHE_COLUMNS];
 
 

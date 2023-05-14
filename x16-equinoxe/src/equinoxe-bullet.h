@@ -15,6 +15,5 @@ void bullet_logic();
 
 // Unbanked functions
 
-signed char bullet_impact(unsigned char b);
 void bullet_bank();
 void bullet_unbank();

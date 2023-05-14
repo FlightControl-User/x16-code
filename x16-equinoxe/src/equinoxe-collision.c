@@ -243,115 +243,52 @@ void collision_detect() {
                                     printf("outer_max_y=%04x, inner_max_y=%04x \n", collision_outer.max_y, collision_inner.max_y);
 #endif
                                     // Collision happened
-
+                                    unsigned char collision_detected = 0;
                                     if (collision_outer.side == SIDE_ENEMY) {
                                         switch (collision_outer.type) {
-#ifdef __BULLET
                                         case FLIGHT_BULLET:
-#ifdef __DEBUG_COLLISION
-                                            printf(", bullet %u -> ", outer);
-#endif
                                             if (collision_inner.type == FLIGHT_PLAYER) {
-#ifdef __DEBUG_COLLISION
-                                                printf("player %u\n", inner);
-#endif
-                                                
-                                                if(!flight_has_collided(outer)) stage_bullet_remove(outer);
-                                                if(!flight_has_collided(inner)) player_hit(inner, bullet_impact(outer));
+                                                collision_detected++;
                                             }
                                             break;
-#endif
-#ifdef __ENEMY
                                         case FLIGHT_ENEMY:
-#ifdef __DEBUG_COLLISION
-                                            printf(", enemy %u -> ", outer);
-#endif
-#ifdef __BULLET
                                             if (collision_inner.type == FLIGHT_BULLET) {
-#ifdef __DEBUG_COLLISION
-                                                printf("bullet %u\n", inner);
-#endif
-                                                if(!flight_has_collided(outer)) stage_enemy_hit(outer, bullet_impact(inner));
-                                                if(!flight_has_collided(inner)) stage_bullet_remove(inner);
+                                                collision_detected++;
                                             }
-#endif
                                             if (collision_inner.type == FLIGHT_PLAYER) {
-#ifdef __DEBUG_COLLISION
-                                                printf("player %u\n", inner);
-#endif
-                                                
-                                                if(!flight_has_collided(outer)) stage_enemy_hit(outer, player_impact(inner));
-                                                if(!flight_has_collided(inner)) player_hit(inner, enemy_impact(outer));
+                                                collision_detected++;
                                             }
                                             break;
-#endif
-#ifdef __TOWER
                                         case FLIGHT_TOWER:
-#ifdef __DEBUG_COLLISION
-                                            printf(", tower %u -> ", outer);
-#endif
-#ifdef __BULLET
                                             if (collision_inner.type == FLIGHT_BULLET) {
-#ifdef __DEBUG_COLLISION
-                                                printf("bullet %u\n", inner);
-#endif
-                                                if(!flight_has_collided(inner)) stage_bullet_remove(inner);
-                                                if(!flight_has_collided(outer)) stage_tower_remove(outer);
+                                                collision_detected++;
                                             }
-#endif
                                             break;
-#endif
                                         }
                                     } else {
                                         // Friendly
                                         switch (collision_outer.type) {
-#ifdef __BULLET
                                         case FLIGHT_BULLET:
-#ifdef __DEBUG_COLLISION
-                                            printf(", bullet %u -> ", outer);
-#endif
-#ifdef __ENEMY
                                             if (collision_inner.type == FLIGHT_ENEMY) {
-#ifdef __DEBUG_COLLISION
-                                                printf("enemy %u\n", inner);
-#endif
-                                                // Remove first the enemy, then the bullet, because the bullet contains the energy of impact.
-                                                if(!flight_has_collided(inner)) stage_enemy_hit(inner, bullet_impact(outer));
-                                                if(!flight_has_collided(outer)) stage_bullet_remove(outer);
+                                                collision_detected++;
                                             }
-#endif
-#ifdef __TOWER
                                             if (collision_inner.type == FLIGHT_TOWER) {
-#ifdef __DEBUG_COLLISION
-                                                printf("tower %u\n", inner);
-#endif
-                                                if(!flight_has_collided(outer)) stage_bullet_remove(outer);
-                                                if(!flight_has_collided(inner)) stage_tower_remove(inner);
+                                                collision_detected++;
                                             }
-#endif
                                             break;
-#endif
-
-#ifdef __PLAYER
                                         case FLIGHT_PLAYER:
-#ifdef __DEBUG_COLLISION
-                                            printf(", player %u -> ", outer);
-#endif
-#ifdef __ENEMY
                                             if (collision_inner.type == FLIGHT_ENEMY) {
-#ifdef __DEBUG_COLLISION
-                                                printf("enemy %u\n", inner);
-#endif
-                                                
-                                                
-                                                if(!flight_has_collided(inner)) stage_enemy_hit(inner, player_impact(outer));
-                                                if(!flight_has_collided(outer)) player_hit(outer, enemy_impact(inner));
+                                                collision_detected++;
                                             }
-#endif
                                             break;
-#endif
                                         }
                                     }
+
+                                    if(collision_detected) {
+                                        if(!flight_has_collided(outer)) stage_impact(outer, inner);
+                                        if(!flight_has_collided(inner)) stage_impact(inner, outer);
+                                    }
+
                                 }
                             }
                             ht_index_inner = ht_get_next(ht_index_inner);

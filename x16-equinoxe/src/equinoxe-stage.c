@@ -106,7 +106,7 @@ void stage_load_floor(stage_floor_t* stage_floor)
 
     floor_part_memset_vram(0, floor, 0);
 
-    unsigned char part=1;
+    volatile unsigned char part=1;
     for(unsigned char f=0; f<stage_floor->floor_file_count; f++) {
         floor_bram_tiles_t* floor_bram = floor_bram_tiles[f].floor_bram_tile;
         part = floor_parts_load_bram(part, floor, floor_bram);
@@ -243,6 +243,20 @@ static void stage_reset(void)
 #endif
 }
 
+void stage_player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
+#ifdef __PLAYER
+    player_add(sprite_player, sprite_engine);
+    stage.player_count++;
+#endif
+}
+
+void stage_player_remove(flight_index_t p) {
+#ifdef __PLAYER
+    player_remove(p);
+    stage.player_count--;
+#endif
+}
+
 void stage_tower_add(unsigned char column, unsigned char row) {
 #ifdef __TOWER
     stage_tower_t* st = stage.current_playbook.stage_towers;
@@ -284,26 +298,35 @@ void stage_enemy_remove(unsigned char e)
 {
 #ifdef __ENEMY
     unsigned char w = enemy_get_wave(e);
-    enemy_remove(e);
     wave.enemy_spawn[w] += 1;
     wave.enemy_alive[w] -= 1;
+    enemy_remove(e);
     stage.enemy_count--;
 #endif
 }
 
 
-void stage_enemy_hit(unsigned char e, signed char impact)
+void stage_impact(unsigned char f, flight_index_t h)
 {
-#ifdef __ENEMY
-    unsigned char w = enemy_get_wave(e);
-    unsigned char hit = enemy_hit(e, impact);
+    signed char hit = flight_hit(f, flight_impact(h));
     if(hit) {
-        enemy_remove(e);
-        wave.enemy_spawn[w] += 1;
-        stage.enemy_count--;
-        wave.enemy_alive[w] -= 1;
-    }
+        switch(flight.type[f]) {
+#ifdef __ENEMY
+            case FLIGHT_ENEMY:
+                stage_enemy_remove(f);
+                break;
 #endif
+            case FLIGHT_BULLET:
+                stage_bullet_remove(f);
+                break;
+            case FLIGHT_PLAYER:
+                stage_player_remove(f);
+                break;
+            case FLIGHT_TOWER:
+                stage_tower_remove(f);
+                break;
+        }                
+    }
 }
 
 void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet) {

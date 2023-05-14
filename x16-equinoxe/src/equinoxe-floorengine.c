@@ -119,6 +119,8 @@ void floor_draw_row(unsigned char layer, floor_t* floor, unsigned char row, unsi
             palette = palette << 4;
             *VERA_DATA0 = BYTE0(offset);
             *VERA_DATA0 = palette | BYTE1(offset);
+            // sprintf(buffer, "floor_parts=%04p mapbase_offset=%04x sr=%02x r=%02x cache=%02x tile=%02x offset=%04x palette=%02x segment2=%02x composition=%04x", floor_parts, mapbase_offset, sr, r, cache, tile, offset, palette, segment2, floor_parts->floor_tile_offset[tile]);
+            // BREAKPOINT
         }
     }
     bank_pull_bram();

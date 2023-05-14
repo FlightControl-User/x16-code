@@ -51,10 +51,13 @@
 .segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
 .segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
 
+
 //.segmentdef BramEngineFloor       [startAfter=""] 
 
 
-.segmentdef Hash                    [start=$0400, min=$0400, max=$07FF, align=$100]
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
 
 .segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
@@ -71,6 +74,7 @@
 
 //.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
 //.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
 
 .segment Basic
 :BasicUpstart(%E)

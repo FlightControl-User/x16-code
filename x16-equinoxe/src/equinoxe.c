@@ -4,10 +4,13 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 #pragma var_model(zp)
-#pragma zp_reserve(0x00..0x30, 0x80..0xA8)
+#pragma zp_reserve(0x00..0x10, 0x80..0xA8)
 
 #include "equinoxe.h"
 #include "equinoxe-petscii.c"
+
+#pragma data_seg(Debug)
+volatile char buffer[256];
 
 #pragma data_seg(Data)
 #pragma nobank

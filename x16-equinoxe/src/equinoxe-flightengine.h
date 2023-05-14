@@ -36,6 +36,7 @@ void flight_remove(flight_type_t type, flight_index_t f);
 flight_index_t flight_root(flight_type_t type);
 flight_index_t flight_next(flight_index_t i);
 signed char flight_impact(unsigned char f);
+signed char flight_hit(unsigned char f, signed char impact);
 unsigned char flight_has_collided(unsigned char f);
 
 fe_sprite_index_t fe_sprite_cache_copy(sprite_index_t sprite_bram);

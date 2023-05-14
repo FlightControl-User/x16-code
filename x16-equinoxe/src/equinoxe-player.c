@@ -13,8 +13,6 @@ void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
 
     unsigned char p = flight_add(FLIGHT_PLAYER, SIDE_PLAYER, sprite_player);
 
-    stage.player_count++;
-
     flight.moved[p] = 2;
     flight.firegun[p] = 0;
     flight.reload[p] = 0;
@@ -50,7 +48,6 @@ void player_remove(unsigned char p) {
         flight_remove(FLIGHT_ENGINE, n);
         animate_del(flight.animate[p]); // Remove the animation of the player sprite.
         flight_remove(FLIGHT_PLAYER, p);
-        stage.player_count--;
         stage.player_respawn = 8;       // Wait 8 tickes until stage respawns the sprite. This needs rework. TODO.
     }
 }
@@ -144,21 +141,6 @@ inline void player_bank() {
 
 inline void player_unbank() {
     bank_pull_bram();
-}
-
-signed char player_impact(unsigned char p) {
-	// player_bank();
-	signed char impact = flight.impact[p];
-	// player_unbank();
-	return impact;
-}
-
-// This will need rework
-unsigned char player_has_collided(unsigned char p) {
-	// player_bank();
-	unsigned char collided = flight.collided[p];
-	// player_unbank();
-	return collided;
 }
 
 

@@ -13,7 +13,7 @@ flight_index_t tower_add(sprite_index_t sprite_tower, unsigned int xi, unsigned 
     flight_index_t t = flight_add(FLIGHT_TOWER, SIDE_ENEMY, sprite_tower);
 
     flight.health[t] = 100;
-    flight.impact[t] = 0;
+    flight.impact[t] = 100;
 
     flight.xi[t] = xi;
     flight.yi[t] = yi;
@@ -33,16 +33,6 @@ void tower_remove(flight_index_t t) {
         animate_del(flight.animate[t]);
         flight_remove(FLIGHT_TOWER, t);
     }
-}
-
-unsigned char tower_hit(unsigned char t, signed char impact) {
-    flight.health[t] += impact;
-    if (flight.health[t] <= 0) {
-        flight.collided[t] = 1;
-        return 1;
-    }
-
-    return 0;
 }
 
 void tower_paint(unsigned char column, unsigned char row) {
@@ -115,9 +105,4 @@ void tower_logic() {
 #pragma data_seg(Data)
 #pragma code_seg(Code)
 #pragma nobank
-
-signed char tower_impact(unsigned char b) {
-    signed char impact = flight.impact[b];
-    return impact;
-}
 

@@ -69,5 +69,7 @@
 
 
 extern equinoxe_game_t game;
+volatile extern char buffer[256];
+
 
 #pragma var_model(zp)
