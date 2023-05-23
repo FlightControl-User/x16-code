@@ -188,12 +188,12 @@ void floor_paint(unsigned char column, unsigned char row)
 
     unsigned char cache;
 
-    // Now that we know the weight, select a record from the weight table.
-    // char div = div8u(rnd,16);
-    // unsigned char tile = rem8u;
-    // unsigned char tile = 13;
+    unsigned char weight = (BYTE0(rand()) & 0x0F);
+    unsigned char tile = 0x0F;
+    if(weight < 0x07) {
+        tile = (BYTE0(rand()) & 0x0F);
 
-    unsigned char tile = (BYTE0(rand()) & 0x0F);
+    }
 
     if (column < 15) {
         // unsigned char TileRight = floor_cache.layer[0].row[row].column[column+1];
@@ -469,13 +469,17 @@ void floor_scroll()
         tower_move();
 #endif
 
-        // Now we set the vertical scroll to the required scroll position.
-        vera_layer0_set_vertical_scroll(game.screen_vscroll);
-#ifdef __LAYER1
-        vera_layer1_set_vertical_scroll(game.screen_vscroll);
-#endif
+
         game.screen_vscroll--;
     }
+}
+
+void floor_position() {
+    // Now we set the vertical scroll to the required scroll position.
+    vera_layer0_set_vertical_scroll(game.screen_vscroll);
+#ifdef __LAYER1
+    vera_layer1_set_vertical_scroll(game.screen_vscroll);
+#endif
 }
 
 

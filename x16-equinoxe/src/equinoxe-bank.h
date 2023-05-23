@@ -14,29 +14,29 @@
 // Main memory layout
 // ------------------
 
-//      SEGMENTS                     LINKER SEGMENT ID      BANK  START   END     PURPOSE
-//      ---------------------------  ---------------------  ----  ------  ------  -------
+//      SEGMENTS                     LINKER SEGMENT ID     // BANK  START   END     PURPOSE
+//      ---------------------------  --------------------- -- ----  ------  ------  -------
 //   
-//           SPRITE_CACHE                                   0x00  0x9000  0x9F00  Contains the sprite cache to blazingly fast track sprite movements.
+//           SPRITE_CACHE                                     0x00  0x9000  0x9F00  Contains the sprite cache to blazingly fast track sprite movements.
 #define DATA_SPRITE_CACHE            DataSpriteCache
 //
 //           VERA_HEAP                                                       0xA000  0xBFFF  Contains the index of the dynamic heap data of the objects in the vera.                                                         
-#define BANK_VERA_HEAP                                      0x01
-#define DATA_VERA_HEAP               CodeVeraHeap
-#define CODE_VERA_HEAP               CodeVeraHeap
-#define BRAM_VERA_HEAP               BramVeraHeap
+#define BANK_VERA_HEAP                                        0x01
+#define DATA_VERA_HEAP               DataVeraHeap          // ---- 
+#define CODE_VERA_HEAP               CodeVeraHeap          // ----
+#define BRAM_VERA_HEAP               BramVeraHeap          // 0x01
 //
 //           FLIGHT_ENGINE                                                   0xA000  0xBFFF  Flight engine.                                                         
-#define BANK_ENGINE_FLIGHT                                  0x02
-#define BANK_ENGINE_TOWERS                                  0x02
-#define CODE_ENGINE_FLIGHT           CodeEngineFlight
-#define DATA_ENGINE_FLIGHT           DataEngineFlight
-#define BRAM_ENGINE_FLIGHT           BramEngineFlight
+#define BANK_ENGINE_FLIGHT                                    0x02
+#define BANK_ENGINE_TOWERS                                    0x02
+#define CODE_ENGINE_FLIGHT           CodeEngineFlight      // ----
+#define DATA_ENGINE_FLIGHT           DataEngineFlight      // ----
+#define BRAM_ENGINE_FLIGHT           BramEngineFlight      // 0x02
 //
-#define BANK_ENGINE_STAGES                                  0x03
-#define CODE_ENGINE_STAGES           CodeEngineStages
-#define DATA_ENGINE_STAGES           DataEngineStages
-#define BRAM_ENGINE_STAGES           BramEngineStages
+#define BANK_ENGINE_STAGES                                    0x03
+#define CODE_ENGINE_STAGES           CodeEngineStages      // 0x03
+#define DATA_ENGINE_STAGES           DataEngineStages      // ----
+#define BRAM_ENGINE_STAGES           BramEngineStages      // 0x03
 //
 #define BANK_ENGINE_SPRITES                                 0x04
 //

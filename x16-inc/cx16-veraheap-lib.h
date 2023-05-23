@@ -1,10 +1,10 @@
 #include <cx16-veraheap-typedefs.h>
 
-extern __stackcall __library(veraheap)  void vera_heap_bram_bank_init(bram_bank_t bram_bank);
+extern __stackcall __library(veraheap) void vera_heap_bram_bank_init(bram_bank_t bram_bank);
 
-extern __stackcall __library(veraheap)  vera_heap_segment_index_t vera_heap_segment_init(vera_heap_segment_index_t s, vram_bank_t vram_bank_floor, vram_offset_t vram_offset_floor, vram_bank_t vram_bank_ceil, vram_offset_t vram_offset_ceil);
+extern __stackcall __library(veraheap) vera_heap_segment_index_t vera_heap_segment_init(vera_heap_segment_index_t s, vram_bank_t vram_bank_floor, vram_offset_t vram_offset_floor, vram_bank_t vram_bank_ceil, vram_offset_t vram_offset_ceil);
 
-extern __stackcall __library(veraheap)  vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t size);
+extern __stackcall __library(veraheap) vera_heap_index_t vera_heap_alloc(vera_heap_segment_index_t s, vera_heap_size_t size);
 extern __stackcall __library(veraheap) void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t handle);
 
 extern __stackcall __library(veraheap) void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char y);

@@ -4,7 +4,7 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 #pragma var_model(zp)
-#pragma zp_reserve(0x00..0x10, 0x80..0xA8)
+#pragma zp_reserve(0x00..0x20, 0x80..0xA8)
 
 #include "equinoxe.h"
 #include "equinoxe-petscii.c"
@@ -17,6 +17,8 @@ volatile char buffer[256];
 #pragma var_model(mem)
 
 equinoxe_game_t game = {0, 0, 0, 0, 127, 64, 2};
+__mem FILE* music;
+unsigned char music_buffer[1024];
 
 void equinoxe_init() {
 
@@ -25,6 +27,7 @@ void equinoxe_init() {
     bytes = fload_bram("stages.bin", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000);
     bytes = fload_bram("bramflight1.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
     bytes = fload_bram("bramfloor1.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
+    bytes = fload_bram("veraheap.bin", BANK_VERA_HEAP, (bram_ptr_t)0xA000);
 
     flight_init();
 
@@ -63,9 +66,41 @@ __interrupt(rom_sys_cx16) void irq_vsync() {
 void irq_vsync() {
 #endif
 
+    bank_set_brom(0);
+
+    #ifdef __CPULINES
+        vera_display_set_border_color(YELLOW);
+    #endif
+
+    // unsigned int read = fgets(music_buffer, 512, music);
+
+#ifdef __FLOOR
+    vera_layer0_mode_tile( 
+        FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
+        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_4BPP
+    );
+    vera_layer0_show();
+
+    #ifdef __LAYER1
+    vera_layer1_mode_tile( 
+        FLOOR_MAP1_BANK_VRAM, (vram_offset_t)FLOOR_MAP1_OFFSET_VRAM, 
+        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_4BPP
+    );
+    vera_layer1_show();
+    #endif
+
+    floor_position();
+#endif
+
     // This is essential, the BRAM bank is set to 0, because the sprite control blocks are located between address A8000 till BFFF.
-    bank_set_brom(CX16_ROM_KERNAL);
     bank_push_set_bram(255);
+
 
 #ifdef __VERAHEAP_DEBUG
     gotoxy(0, 0);
@@ -75,33 +110,6 @@ void irq_vsync() {
         clearline();
     }
     gotoxy(0,30);
-#endif
-
-#ifdef __DEBUG_ENGINE
-
-    char stack_entry;
-    {
-    char x = wherex();
-    char y = wherey();
-    gotoxy(0,58);
-
-    __mem char stack_max = 0;
-    __mem char stack_min = 255;
-    #ifndef __INTELLISENSE__
-        asm {
-            tsx
-            stx stack_entry
-        }
-    #endif
-    printf("stack %x", stack_entry);
-    if(stack_min>stack_entry) stack_min=stack_entry;
-    printf(", min %x", stack_min);
-    if(stack_max<stack_entry) stack_max=stack_entry;
-    printf(", max %x", stack_max);
-    printf(", bram %x", bank_get_bram());
-    gotoxy(x,y);
-    }
-
 #endif
 
 #if defined(__FLIGHT) || defined(__FLOOR)
@@ -118,7 +126,6 @@ void irq_vsync() {
     vera_display_set_border_color(GREY);
     #endif
     floor_scroll();
-
 #endif
 
 
@@ -264,6 +271,9 @@ void main() {
     clrscr();
     #endif
 
+    // music = fopen("music.bin","r");
+
+    equinoxe_init();
 
     // We initialize the Commander X16 BRAM heap manager. This manages dynamically the memory space in banked ram as a real heap.
     bram_heap_bram_bank_init(BANK_HEAP_BRAM);
@@ -274,8 +284,6 @@ void main() {
     vera_heap_bram_bank_init(BANK_VERA_HEAP);
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
-
-    equinoxe_init();
 
 #if defined(__FLIGHT) || defined(__FLOOR)
     stage_reset();

@@ -256,7 +256,7 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t sprite_cache_
     // We check if there is a cache hit?
     lru_cache_index_t vram_index = lru_cache_index(image_index);
     // lru_cache_data_t lru_cache_data;
-    volatile vera_sprite_image_offset sprite_offset;
+    vera_sprite_image_offset sprite_offset;
     if (vram_index != 0xFF) {
 
 #ifdef __DEBUG_LRU_CACHE

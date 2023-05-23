@@ -29,7 +29,11 @@
 #include "equinoxe-defines.h"
 
 #include <cx16-bramheap-lib.h>
+
+// #pragma bank(cx16_ram, BANK_VERA_HEAP)
 #include <cx16-veraheap-lib.h>
+// #pragma nobank
+
 #include "equinoxe-palette-lib.h"
 #include "equinoxe-animate-lib.h"
 

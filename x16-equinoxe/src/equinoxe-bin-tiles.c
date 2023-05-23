@@ -22,8 +22,20 @@ __export char header[] =kickasm {{
 }};
 
 
+__export char MARS_01[] = kickasm {{{
+    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/mars01/mars01_sheet","png",0,54,1,16,16,4,16,0)
+    .var pallist = GetPalette3(tile)
+    .var tiledata = MakeTile3(tile,pallist)
+    .var pallistdata = MakePalette3(tile,pallist)
+    .file [name="MARS01.BIN", type="bin", segments="mars01"]
+    .segmentdef mars01
+    .segment mars01
+    Data(tile,tiledata,pallistdata)
+};}};
+
+
 __export char FLOOR_01[] = kickasm {{{
-    .var tile = Tile("D:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,20,1,16,16,4,16,0)
+    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_yellow_metal","png",0,20,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -34,7 +46,7 @@ __export char FLOOR_01[] = kickasm {{{
 };}};
 
 __export char FLOOR_02[] = kickasm {{{
-    .var tile = Tile("D:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_metal","png",1,1,1,16,16,4,16,0)
+    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_metal","png",1,1,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -45,7 +57,7 @@ __export char FLOOR_02[] = kickasm {{{
 };}};
 
 __export char FLOOR_03[] = kickasm {{{
-    .var tile = Tile("D:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_red_metal","png",1,1,1,16,16,4,16,0)
+    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/8bit/floor_red_metal","png",1,1,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)

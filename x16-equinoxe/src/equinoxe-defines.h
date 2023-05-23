@@ -15,22 +15,22 @@
 #include "equinoxe-bank.h"
 
 // #define __CONIO_BSOUT
-#define __LAYER1
+// #define __LAYER1
 // #define __NOVSYNC
 #define __CPULINES
 
 #define __PALETTE
 
-#define __FLIGHT
+// #define __FLIGHT
 #define __STAGE
-#define __COLLISION
+// #define __COLLISION
 
 #define __FLOOR
-#define __TOWER
-#define __PLAYER
-#define __BULLET
-#define __ENEMY
-#define __ENGINE
+// #define __TOWER
+// #define __PLAYER
+// #define __BULLET
+// #define __ENEMY
+// #define __ENGINE
 
 #define __BANKING
 
@@ -45,7 +45,7 @@
 
 
 // Show information when generating the floor.
-// #define __DEBUG_FLOOR
+#define __DEBUG_FLOOR
 
 // Show heap allocation and free processes.
 // #define __DEBUG_HEAP_BRAM_BLOCKED
