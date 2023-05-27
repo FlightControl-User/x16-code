@@ -27,6 +27,8 @@
 
 floor_cache_t floor_cache[FLOOR_CACHE_ROWS * FLOOR_CACHE_COLUMNS];
 
+floor_layer_vram_offset_t floor_layer_offsets[2];
+
 floor_scroll_t floor_pos;
 
 // #pragma var_model(zp)
@@ -39,11 +41,13 @@ void floor_draw_clear(floor_t* floor)
     unsigned char Offset = 0;
 
     for(unsigned char layer = 0; layer < game.layers; layer++) {
-        floor_layer_t* floor_layer = floor->layers[layer];
-        vera_vram_data0_bank_offset(floor_layer->bank, floor_layer->offset, VERA_INC_1);
+
+        unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
+        unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
+        vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
 
         // TODO: VERA MEMSET
-        for (unsigned int i = 0; i < FLOOR_CACHE_ROWS * 4 * FLOOR_CACHE_COLUMNS * 4; i++) {
+        for (unsigned int i = 0; i < 64*32; i++) {
             *VERA_DATA0 = BYTE0(Offset);
             *VERA_DATA0 = BYTE1(Offset);
         }
@@ -58,15 +62,18 @@ void floor_clear_row(floor_t* floor, unsigned char x, unsigned char y)
 
     floor_parts_t* floor_parts = floor->floor_parts;
 
+    floor_composition_t* floor_composition = &floor->floor_compositions[0];
+    floor_layer_composition_t* floor_layer_composition = floor_composition->floor_layer_compositions;
+
     for(unsigned char layer = 0; layer < game.layers; layer++) {
 
-        floor_layer_t* floor_layer = floor->layers[layer];
+        floor_layer_t* floor_layer = floor_layer_composition[layer].floor_layer;
 
         unsigned int row = (word)y << 2;
         unsigned int column = (word)x;
 
-        unsigned char mapbase_bank = floor_layer->bank;
-        unsigned int mapbase_offset = floor_layer->offset;
+        unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
+        unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
 
         unsigned char shift = vera_layer0_get_rowshift();
         mapbase_offset += ((word)row << shift);
@@ -116,13 +123,20 @@ void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
 
     floor_parts_t* floor_parts = floor->floor_parts;
 
+    unsigned char cache = FLOOR_CACHE(row / 4, column);
+    unsigned int cache_segment = (word)floor_cache[cache];
+
+    floor_composition_t* floor_composition = &floor->floor_compositions[cache_segment];
+
     for(unsigned char layer = 0; layer < game.layers; layer++) {
 
-        floor_layer_t* floor_layer = floor->layers[layer];
-        unsigned char layer_offset = floor->layer_offsets[layer];
+        floor_layer_composition_t* floor_layer_composition = &floor_composition->floor_layer_compositions[layer];
+        floor_layer_t* floor_layer = floor_layer_composition->floor_layer;
+        unsigned char* floor_segments = floor_layer_composition->floor_segments;
+        unsigned char layer_offset = floor_layer->segment_offset;
 
-        unsigned char mapbase_bank = floor_layer->bank;
-        unsigned int mapbase_offset = floor_layer->offset;
+        unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
+        unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
 
         unsigned char shift = vera_layer0_get_rowshift();
         mapbase_offset += ((word)row << shift);
@@ -131,30 +145,31 @@ void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
         unsigned char sr = ((row % 4) / 2) * 2;
         unsigned char r = (row % 2) * 2;
 
-        unsigned char cache = FLOOR_CACHE(row / 4, column);
-        unsigned int cache_segment = (word)floor_cache[cache];
-        cache_segment = cache_segment << 2;
         // char buffer[80] = "";
         vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
-        for (unsigned char sc = 0;sc < 2;sc++) {
+        for (unsigned char sc = 0; sc < 2; sc++) {
             unsigned char s = sc + sr;
-            // sprintf(buffer, "layer=%u, floor->slab=%p, s=%u, cache_segment=%u ", layer, floor->slab, s, cache_segment);
+            // sprintf(buffer, "layer=%u, layer_offset=%u, s=%u, cache_segment=%u ", layer, layer_offset, s, cache_segment);
             // BREAKPOINT
-            unsigned char segment = floor->slab[(unsigned char)cache_segment + s]; // todo i need to create a new variable because the optimizer deletes the old!
+            unsigned char segment = floor_segments[s];
             // sprintf(buffer, "layer=%u, segment=%u ", layer, segment);
             // BREAKPOINT
             unsigned char segment_index = floor_calculate_segment_index(floor_layer, segment);
             // sprintf(buffer, "layer=%u, segment_index=%u ", layer, segment_index);
             // BREAKPOINT
-            for (unsigned char c = 0;c < 2;c++) {
+            for (unsigned char c = 0; c < 2; c++) {
                 floor_segment_t* floor_segment = &floor_layer->segments[segment_index];
-                unsigned char tile = floor_segment->tiles[c + r] + layer_offset; // BANK_ENGINE_FLOOR
+                unsigned char tile = floor_segment->tiles[c + r]; // BANK_ENGINE_FLOOR
+                if(tile>0) tile = tile + layer_offset;
                 unsigned int offset = floor_parts->floor_tile_offset[tile];
+                // sprintf(buffer, "layer=%u, segment=%u, cache_segment=%u, tile=%u? offset=%u? floor_parts->floor_tile_offset*=%04p ", layer, segment_index, cache_segment, tile, offset, floor_parts->floor_tile_offset);
+                // BREAKPOINT
                 unsigned char palette = floor_parts->palette[tile];
                 palette = palette << 4;
                 *VERA_DATA0 = BYTE0(offset);
                 *VERA_DATA0 = palette | BYTE1(offset);
                 // sprintf(buffer, "layer=%u, segment=%u, cache_segment=%u, tile=%u ", layer, segment_index, cache_segment, tile);
+                // BREAKPOINT
             }
         }
     }
@@ -352,6 +367,9 @@ void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pa
     vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_TILES, vram_handle);
     memset_vram(vram_bank, vram_offset, pattern, FLOOR_TILE_SIZE);
 
+    floor_parts->floor_tile_offset[0] = 0;
+    floor_parts->palette[0] = 0;
+
     floor->parts_count++;
 
     bank_pull_bram();
@@ -377,13 +395,10 @@ void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
     bank_pull_bram();
 }
 
-void floor_layer_map(floor_t* floor, unsigned char layer, unsigned char bank, unsigned int offset) {
+inline void floor_layer_map(unsigned char layer, unsigned char bank, unsigned int offset) {
 
-    bank_push_set_bram(BANK_ENGINE_FLOOR);
-    floor_layer_t* floor_layer = floor->layers[layer];
-    floor_layer->bank = bank;
-    floor_layer->offset = offset;
-    bank_pull_bram();
+    floor_layer_offsets[layer].bank = bank;
+    floor_layer_offsets[layer].offset = offset;
 }
 
 /**
@@ -396,10 +411,10 @@ void floor_layer_map(floor_t* floor, unsigned char layer, unsigned char bank, un
 void floor_layer_index_segments(floor_t* floor) {
 
     bank_push_set_bram(BANK_ENGINE_FLOOR);
-
-    for(unsigned char layer = 0; layer < game.layers; layer++) {
-
-        floor_layer_t* floor_layer = floor->layers[layer];
+    
+    unsigned char layer = 0;
+    floor_layer_t* floor_layer = floor->floor_layers[layer];
+    while(floor_layer) {
 
         // Index of the floor for drawing while randomizing the selection of segments.
         unsigned char offset = 0;
@@ -419,6 +434,9 @@ void floor_layer_index_segments(floor_t* floor) {
         } while(segment < floor_layer->segment_index.segments);
         floor_layer->segment_index.offsets[mask] = offset;
         floor_layer->segment_index.variations[mask] = variation;
+
+        floor_layer = floor->floor_layers[++layer];
+
     }
 
     bank_pull_bram();
@@ -429,7 +447,7 @@ void floor_layer_debug(floor_t* floor, unsigned char layer) {
 
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
-    floor_layer_t* floor_layer = floor->layers[layer];
+    floor_layer_t* floor_layer = floor->floor_layers[layer];
 
     printf("L # mask t0  t1  t2  t3 \n");
     for(unsigned char s=0; s < floor_layer->segment_index.segments; s++) {

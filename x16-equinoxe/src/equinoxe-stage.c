@@ -118,9 +118,9 @@ void stage_load_floor(stage_floor_t* stage_floor)
     }
 
     floor_layer_index_segments(floor);
-    floor_layer_map(floor, 0, FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM);
+    floor_layer_map(0, FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM);
     #ifdef __LAYER1
-    floor_layer_map(floor, 1, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM);
+    floor_layer_map(1, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM);
     #endif
     // floor_layer_debug(floor, 0);
     // floor_layer_debug(floor, 1);

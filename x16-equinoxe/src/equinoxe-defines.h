@@ -21,16 +21,16 @@
 
 #define __PALETTE
 
-#define __FLIGHT
+// #define __FLIGHT
 #define __STAGE
-#define __COLLISION
+// #define __COLLISION
 
 #define __FLOOR
 // #define __TOWER
-#define __PLAYER
-#define __BULLET
-#define __ENEMY
-#define __ENGINE
+// #define __PLAYER
+// #define __BULLET
+// #define __ENEMY
+// #define __ENGINE
 
 #define __BANKING
 
