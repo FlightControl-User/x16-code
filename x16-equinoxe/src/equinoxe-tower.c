@@ -39,8 +39,7 @@ void tower_paint(unsigned char column, unsigned char row) {
 
 #ifdef __FLOOR
     if (column < 8) {
-        unsigned char cache_floor = FLOOR_CACHE(0, row, column);
-        unsigned char cache_tower = FLOOR_CACHE(1, row, column);
+        unsigned char cache_floor = FLOOR_CACHE(row, column);
         unsigned char floor_slab = floor_cache[cache_floor];
         floor_cache[cache_tower] = 0;
         if (floor_slab == 15) {

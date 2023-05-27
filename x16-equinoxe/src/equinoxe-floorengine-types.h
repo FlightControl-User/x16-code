@@ -14,7 +14,7 @@ typedef struct {
     unsigned int palette; 
 } floor_bram_tiles_t;
 
-#define FLOOR_PARTS 64
+#define FLOOR_PARTS 96
 typedef struct {
     floor_bram_tiles_t *floor_tile[FLOOR_PARTS];
     unsigned int floor_tile_offset[FLOOR_PARTS];
@@ -23,17 +23,33 @@ typedef struct {
     palette_index_t palette[FLOOR_PARTS];
 } floor_parts_t;
 
-#define FLOOR_SEGMENTS 4
 typedef struct {
-    unsigned char segment[FLOOR_SEGMENTS];
-} floor_segments_t;
+    unsigned char segments;
+    unsigned char variations[16];
+    unsigned char offsets[16];
+} floor_segment_index_t;
 
-#define FLOOR_SEGMENT_WEIGHTS 64
-#define FLOOR_SEGMENT_COMPOSITIONS 256
+#define FLOOR_TILES 4
+typedef unsigned char floor_tile_t;
+
+typedef struct {
+    unsigned char mask;
+    floor_tile_t tiles[FLOOR_TILES];
+} floor_segment_t;
+#define FLOOR_SEGMENTS 48
+
+typedef struct {
+    vram_bank_t bank;
+    vram_offset_t offset;
+    floor_segment_index_t segment_index;
+    floor_segment_t segments[FLOOR_SEGMENTS];
+} floor_layer_t;
+
+#define FLOOR_SEGMENT_COMPOSITIONS 16*4
 typedef struct {
     floor_parts_t* floor_parts;
-    unsigned char weight[FLOOR_SEGMENT_WEIGHTS];
-    unsigned char composition[FLOOR_SEGMENT_COMPOSITIONS];
+    floor_layer_t* layers[2];
+    unsigned char layer_offsets[2];
     unsigned char slab[FLOOR_SEGMENT_COMPOSITIONS];
     unsigned char parts_count;
 } floor_t;
@@ -45,15 +61,9 @@ typedef struct {
     unsigned char TileSegment[FLOOR_WEIGHT_SEGMENTS];
 } tile_weight_t;
 
-#define FLOOR_CACHE_LAYERS 2
 #define FLOOR_CACHE_ROWS 8
 #define FLOOR_CACHE_COLUMNS 16
 typedef unsigned char floor_cache_t; // this is exactly 256 bytes, so we have a very efficient cache!
-
-typedef struct {
-    vram_bank_t bank;
-    vram_offset_t offset;
-} floor_layer_t;
 
 // #define FLOOR_CACHE(layer, row, column) ((char)((char)(layer<<7) | (char)(row<<4) | (char)(column)))
 typedef bram_heap_handle_t floor_bram_handles_t;

@@ -2,6 +2,8 @@
 
 #pragma var_model(mem)
 
+#include "equinoxe-defines.h"
+
 #include <cx16.h>
 #include "cx16-vera.h"
 #include "cx16-veralib.h"
@@ -13,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <printf.h>
+#include <sprintf.h>
 #include <division.h>
 #include <multiply.h>
 #include <cx16-veralib.h>
@@ -73,7 +76,7 @@
 
 
 extern equinoxe_game_t game;
-volatile extern char buffer[256];
+// volatile extern char buffer[256];
 
 
 #pragma var_model(zp)

@@ -34,6 +34,7 @@ const byte SIDE_ENEMY = 1;
 
 
 typedef struct {
+    unsigned char layers;
     unsigned char ticksync;
     unsigned char tickstage;
     unsigned int  screen_vscroll;
@@ -41,7 +42,12 @@ typedef struct {
     unsigned char tower_frequency;              ///< Frequency of the tower occurance in tower space.
     unsigned char scroll_wait;                  ///< Remaining wait cycles to scroll the background scenery.
     unsigned char scroll_speed;                 ///< Speed in wait cycles to scroll the background scenery.
-
+    unsigned char floor_border;
+    unsigned char floor_empty;
+    unsigned char floor_ticks;
+    unsigned char floor_interval;
+    signed char delta_border;
+    signed char delta_empty;
 } equinoxe_game_t;
 
 

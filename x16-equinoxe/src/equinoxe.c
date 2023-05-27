@@ -10,15 +10,16 @@
 #include "equinoxe-petscii.c"
 
 #pragma data_seg(Debug)
-volatile char buffer[256];
+// volatile char buffer[256];
 
 #pragma data_seg(Data)
 #pragma nobank
 #pragma var_model(mem)
 
-equinoxe_game_t game = {0, 0, 0, 0, 127, 64, 2};
-__mem FILE* music;
-unsigned char music_buffer[1024];
+equinoxe_game_t game = {1, 0, 0, 0, 0, 127, 64, 2, 
+                        0x02, 0x0A, 0x0f, 0x0f, 1, -1 };
+// __mem FILE* music;
+// unsigned char music_buffer[1024];
 
 void equinoxe_init() {
 
@@ -75,14 +76,6 @@ void irq_vsync() {
     // unsigned int read = fgets(music_buffer, 512, music);
 
 #ifdef __FLOOR
-    vera_layer0_mode_tile( 
-        FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
-        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
-        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-        VERA_LAYER_COLOR_DEPTH_4BPP
-    );
-    vera_layer0_show();
 
     #ifdef __LAYER1
     vera_layer1_mode_tile( 
@@ -94,6 +87,15 @@ void irq_vsync() {
     );
     vera_layer1_show();
     #endif
+
+    vera_layer0_mode_tile( 
+        FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
+        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
+        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
+        VERA_LAYER_COLOR_DEPTH_4BPP
+    );
+    vera_layer0_show();
 
     floor_position();
 #endif
@@ -262,7 +264,14 @@ void main() {
     // We are going to use only the kernal on the X16.
     bank_set_brom(CX16_ROM_KERNAL);
 
+    vera_layer0_hide();
+    vera_layer1_hide();
+
+#ifndef __LAYER1
     petscii();
+#else
+    game.layers++; // This to indicate that two layers are to be drawn in the floor engine!
+#endif
     scroll(1);
 
     #ifndef __LAYER1
@@ -303,6 +312,7 @@ void main() {
 #endif
 
 #ifdef __FLOOR
+
     vera_layer0_mode_tile( 
         FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
         FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
@@ -322,6 +332,7 @@ void main() {
     );
     vera_layer1_show();
     #endif
+
 #endif
 
 
@@ -333,11 +344,10 @@ void main() {
     while(!kbhit());
 #endif
 
-    floor_draw_clear(0);
-    floor_draw_clear(1);
-    
-    floor_paint_background(0, stage.floor);
-    floor_draw_background(0, stage.floor);
+    floor_draw_clear(stage.floor);
+
+    floor_paint_background();
+    floor_draw_background(stage.floor);
 
     game.screen_vscroll = 16; // This is important, as we need to be exactly at the right spot of the floor_cache.
     vera_layer0_set_vertical_scroll(16);

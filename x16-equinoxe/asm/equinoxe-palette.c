@@ -60,7 +60,7 @@ void palette_init(bram_bank_t bram_bank)
 
     // Doubled to save zeropage...
     for(unsigned char i=0; i<16; i++) {
-        palette.vram.offset[i] = (vram_offset_t)(VERA_PALETTE_PTR+((unsigned int)i*32));
+        palette.vram.offset[i] = (vram_offset_t)(VERA_PALETTE_PTR+(unsigned int)((unsigned int)i*(unsigned int)32));
         palette.vram.used[i] = 0;
     }
     palette.vram.used[0] = 1;

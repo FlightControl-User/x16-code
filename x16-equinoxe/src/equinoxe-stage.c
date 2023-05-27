@@ -117,6 +117,14 @@ void stage_load_floor(stage_floor_t* stage_floor)
         floor_part_memcpy_vram_bram(part, floor);
     }
 
+    floor_layer_index_segments(floor);
+    floor_layer_map(floor, 0, FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM);
+    #ifdef __LAYER1
+    floor_layer_map(floor, 1, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM);
+    #endif
+    // floor_layer_debug(floor, 0);
+    // floor_layer_debug(floor, 1);
+
     stage.floor = floor;
 }
 #endif
@@ -197,6 +205,8 @@ static void stage_load(void)
         stage_load_enemy(stage_scenario->stage_enemy);
     }
 #endif
+
+
 }
 
 
@@ -348,6 +358,8 @@ void stage_logic()
     if(stage.playbook_current < stage.script_b.playbook_total_b) {
         
         if(!(game.tickstage & 0x03)) {
+
+            floor_evolve();
 #ifdef __DEBUG_STAGE
 #endif
             // BREAKPOINT
