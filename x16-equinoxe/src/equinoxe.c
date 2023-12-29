@@ -4,7 +4,7 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 #pragma var_model(zp)
-#pragma zp_reserve(0x00..0x20, 0x80..0xA8)
+#pragma zp_reserve(0x00..0x21, 0x80..0xa8, 0xfc..0xff)
 
 #include "equinoxe.h"
 #include "equinoxe-petscii.c"

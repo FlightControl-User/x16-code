@@ -1,6 +1,5 @@
 // Space tile scrolling engine for a space game written in kickc for the Commander X16.
 
-
 // #include <cx16.h>
 // #include <cx16-veralib.h>
 // #include <cx16-veraheap-lib.h>
@@ -24,7 +23,6 @@
 #pragma data_seg(DATA_ENGINE_FLOOR)
 #pragma code_seg(CODE_ENGINE_FLOOR)
 
-
 floor_cache_t floor_cache[FLOOR_CACHE_ROWS * FLOOR_CACHE_COLUMNS];
 
 floor_layer_vram_offset_t floor_layer_offsets[2];
@@ -33,21 +31,20 @@ floor_scroll_t floor_pos;
 
 // #pragma var_model(zp)
 
-void floor_draw_clear(floor_t* floor)
-{
+void floor_draw_clear(floor_t *floor) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
     unsigned char palette = 0;
     unsigned char Offset = 0;
 
-    for(unsigned char layer = 0; layer < game.layers; layer++) {
+    for (unsigned char layer = 0; layer < game.layers; layer++) {
 
         unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
         unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
         vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
 
         // TODO: VERA MEMSET
-        for (unsigned int i = 0; i < 64*32; i++) {
+        for (unsigned int i = 0; i < 64 * 32; i++) {
             *VERA_DATA0 = BYTE0(Offset);
             *VERA_DATA0 = BYTE1(Offset);
         }
@@ -56,18 +53,17 @@ void floor_draw_clear(floor_t* floor)
     bank_pull_bram();
 }
 
-void floor_clear_row(floor_t* floor, unsigned char x, unsigned char y)
-{
+void floor_clear_row(floor_t *floor, unsigned char x, unsigned char y) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
-    floor_parts_t* floor_parts = floor->floor_parts;
+    floor_parts_t *floor_parts = floor->floor_parts;
 
-    floor_composition_t* floor_composition = &floor->floor_compositions[0];
-    floor_layer_composition_t* floor_layer_composition = floor_composition->floor_layer_compositions;
+    floor_composition_t *floor_composition = &floor->floor_compositions[0];
+    floor_layer_composition_t *floor_layer_composition = floor_composition->floor_layer_compositions;
 
-    for(unsigned char layer = 0; layer < game.layers; layer++) {
+    for (unsigned char layer = 0; layer < game.layers; layer++) {
 
-        floor_layer_t* floor_layer = floor_layer_composition[layer].floor_layer;
+        floor_layer_t *floor_layer = floor_layer_composition[layer].floor_layer;
 
         unsigned int row = (word)y << 2;
         unsigned int column = (word)x;
@@ -97,42 +93,41 @@ void floor_clear_row(floor_t* floor, unsigned char x, unsigned char y)
     bank_pull_bram();
 }
 
-unsigned char floor_calculate_segment_index(floor_layer_t* floor_layer, unsigned char segment) {
+unsigned char floor_calculate_segment_index(floor_layer_t *floor_layer, unsigned char segment) {
 
     // BREAKPOINT
     unsigned char segment_offset = floor_layer->segment_index.offsets[segment];
     unsigned char segment_variations = floor_layer->segment_index.variations[segment];
     unsigned char segment_index = segment_offset;
 
-    switch(segment_variations) {
-        case 1:
-            break;
-        case 2:
-            segment_index += ((unsigned char)rand()) % 2;
-            break;
-        case 4:
-            segment_index += ((unsigned char)rand()) % 4;
-            break;
+    switch (segment_variations) {
+    case 1:
+        break;
+    case 2:
+        segment_index += ((unsigned char)rand()) % 2;
+        break;
+    case 4:
+        segment_index += ((unsigned char)rand()) % 4;
+        break;
     }
     return segment_index;
 }
 
-void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
-{
+void floor_draw_row(floor_t *floor, unsigned char row, unsigned char column) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
-    floor_parts_t* floor_parts = floor->floor_parts;
+    floor_parts_t *floor_parts = floor->floor_parts;
 
     unsigned char cache = FLOOR_CACHE(row / 4, column);
     unsigned int cache_segment = (word)floor_cache[cache];
 
-    floor_composition_t* floor_composition = &floor->floor_compositions[cache_segment];
+    floor_composition_t *floor_composition = &floor->floor_compositions[cache_segment];
 
-    for(unsigned char layer = 0; layer < game.layers; layer++) {
+    for (unsigned char layer = 0; layer < game.layers; layer++) {
 
-        floor_layer_composition_t* floor_layer_composition = &floor_composition->floor_layer_compositions[layer];
-        floor_layer_t* floor_layer = floor_layer_composition->floor_layer;
-        unsigned char* floor_segments = floor_layer_composition->floor_segments;
+        floor_layer_composition_t *floor_layer_composition = &floor_composition->floor_layer_compositions[layer];
+        floor_layer_t *floor_layer = floor_layer_composition->floor_layer;
+        unsigned char *floor_segments = floor_layer_composition->floor_segments;
         unsigned char layer_offset = floor_layer->segment_offset;
 
         unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
@@ -158,13 +153,14 @@ void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
             // sprintf(buffer, "layer=%u, segment_index=%u ", layer, segment_index);
             // BREAKPOINT
             for (unsigned char c = 0; c < 2; c++) {
-                floor_segment_t* floor_segment = &floor_layer->segments[segment_index];
+                floor_segment_t *floor_segment = &floor_layer->segments[segment_index];
                 unsigned char tile = floor_segment->tiles[c + r]; // BANK_ENGINE_FLOOR
-                if(tile>0) tile = tile + layer_offset;
-                unsigned int offset = floor_parts->floor_tile_offset[tile];
-                // sprintf(buffer, "layer=%u, segment=%u, cache_segment=%u, tile=%u? offset=%u? floor_parts->floor_tile_offset*=%04p ", layer, segment_index, cache_segment, tile, offset, floor_parts->floor_tile_offset);
-                // BREAKPOINT
-                unsigned char palette = floor_parts->palette[tile];
+                if (tile > 0)
+                    tile = tile + layer_offset;
+                unsigned int offset = floor_parts->floor_tile_offset[(unsigned int)tile];
+                // sprintf(buffer, "layer=%u, segment=%u, cache_segment=%u, tile=%u? offset=%u? floor_parts->floor_tile_offset*=%04p ", layer, segment_index,
+                // cache_segment, tile, offset, floor_parts->floor_tile_offset); BREAKPOINT
+                unsigned char palette = floor_parts->palette[(unsigned int)tile];
                 palette = palette << 4;
                 *VERA_DATA0 = BYTE0(offset);
                 *VERA_DATA0 = palette | BYTE1(offset);
@@ -176,17 +172,11 @@ void floor_draw_row(floor_t* floor, unsigned char row, unsigned char column)
     bank_pull_bram();
 }
 
+unsigned char FLOOR_CACHE(unsigned char row, unsigned char column) { return ((char)((char)(row << 4) | (char)(column))); }
 
-unsigned char FLOOR_CACHE(unsigned char row, unsigned char column)
-{
-    return ((char)((char)(row << 4) | (char)(column)));
-}
-
-void floor_init()
-{
+void floor_init() {
 
     // Initialize the first new floor was blank tiles.
-
 }
 
 /**
@@ -232,40 +222,112 @@ void floor_init()
  * @param row
  * @param column
  */
-void floor_paint(unsigned char column, unsigned char row)
-{
+void floor_paint(unsigned char column, unsigned char row) {
     unsigned char rnd = BYTE0(rand());
 
     unsigned char cache;
 
+    // Define the down tile to be glued.
+    // cache = ;
+    unsigned char tile_down = floor_cache[FLOOR_CACHE((row + 1) & 0x07, column)];
+    unsigned char tile_left_down = floor_cache[FLOOR_CACHE((row + 1) & 0x07, column-1)];
+
+    // Define the right tile to be glued.
+    // If the column is 15, then the right tile is the tile randomized (there is no start point).
+    unsigned char tile_right = tile_down;
+    // If the column is less than 15, then the right tile is the tile from the right in the cache.
+    if (column < 15) {
+        cache = FLOOR_CACHE(row, column + 1);
+        tile_right = floor_cache[cache];
+    }
+
     unsigned char weight = (BYTE0(rand()) & 0x0F);
     unsigned char tile = 0x0F;
-    if(weight < game.floor_border) {
-        tile = (BYTE0(rand()) & 0x0F);
+    if (weight < game.floor_border) {
+        // do {
+            tile = (BYTE0(rand()) & 0x0F);
+        // } while(tile != 0b0110 && tile != 0b1001);
     } else {
-        if(weight < game.floor_empty) {
+        if (weight < game.floor_empty) {
             tile = 0x00;
         }
     }
 
+    // Now we mask the down tile to get the correct glue for the tile.
+    // When the down tile type is not equal to the tile type, then we don't glue!
+    unsigned char tile_mask_down_right = (((tile_down & 0b1111) >> 2) & 0b0001);
+    unsigned char tile_mask_down_left = (((tile_down & 0b1111) >> 2) & 0b0010);
+    unsigned char tile_down_mask = tile_mask_down_left | tile_mask_down_right;
+    tile = tile & 0b1100;
+    tile = tile | tile_down_mask;
+
+    // Now we glue the tile to the right, there are no restrictions here.
     if (column < 15) {
-        // unsigned char TileRight = floor_cache.layer[0].row[row].column[column+1];
         cache = FLOOR_CACHE(row, column + 1);
-        unsigned char TileRight = floor_cache[cache];
-        unsigned char TileMask = ((TileRight >> 1) & 0b0100) | ((TileRight << 1) & 0b0010);
-        tile = tile & 0b1001;
-        tile = tile | TileMask;
+        tile_right = floor_cache[cache];
+        unsigned char tile_mask_right_up = (((tile_right & 0b1111) >> 1) & 0b0100);
+        unsigned char tile_mask_right_down = (((tile_right & 0b1111) >> 1) & 0b0001);
+        unsigned char tile_right_mask = tile_mask_right_up | tile_mask_right_down;
+        tile = tile & 0b1010;
+        tile = tile | tile_right_mask;
     }
 
-    // unsigned char TileDown = floor_cache.layer[0].row[(row+1)&0x0F].column[column];
-    cache = FLOOR_CACHE((row + 1) & 0x07, column);
-    unsigned char TileDown = floor_cache[cache];
-    unsigned char TileMask = ((TileDown >> 3) & 0b0001) | ((TileDown >> 1) & 0b0010);
-    tile = tile & 0b1100;
-    tile = tile | TileMask;
+    // The right tile type is the same as the down tile type as a a start point.
+    unsigned char tile_right_type = tile_right & 0b11110000;
+    unsigned char tile_down_type = tile_down & 0b11110000;
+    unsigned char tile_left_down_type = tile_left_down & 0b11110000;
 
-    cache = FLOOR_CACHE(row, column);
+    // By default, the tile type of the new tile is equal to the tile on the right.
+    unsigned char tile_type = tile_right_type;
+
+    if (tile == 0b0111) {
+        unsigned char weight = rand();
+        if(weight<224) {
+            tile_type = ((char)rand() & 0x10) + ((char)rand() & 0x10);
+        }
+    } else {
+        // if (tile == 0b1000) {
+        //     tile_type = 0x20;
+        // } else {
+            if ((tile | 0b1011) == 0b1011) {
+                // if(tile == 0b0011 || tile == 0b1011 || tile == 0b0001 || tile == 0b1001) {
+                tile_type = tile_right_type;
+            } else {
+                tile_type = tile_down_type;
+            }
+        // }
+    }
+
+    // We need to adjust when the down tile type is not equal to the right tile type!
+    if (tile_type != tile_down_type) {
+        if (tile != 0b1001) {
+            tile |= 0b0011; // We ensure that the right down and left down glue is set in the tile.
+            tile_down |= 0b1100;
+        } else {
+            tile |= 0b0001;
+            tile_down |= 0b0100;
+        }
+    }
+
+    if(tile == 0b1001) {
+        if(tile_type != tile_down_type) {
+            tile_type = tile_down_type;
+            tile = tile | 0b1100;
+            tile_right = tile_right | 0b1010;
+        }
+    }
+    
+
+    tile |= tile_type;
+
+    cache = FLOOR_CACHE(row, column); // paint tile
     floor_cache[cache] = tile;
+
+    cache = FLOOR_CACHE((row + 1) & 0x07, column); // down tile
+    floor_cache[cache] = tile_down;
+
+    if(column<15)
+        floor_cache[FLOOR_CACHE(row, column+1)] = tile_right;
 
 #ifdef __DEBUG_FLOOR
     gotoxy(column << 2 + 10, row);
@@ -277,8 +339,7 @@ void floor_paint(unsigned char column, unsigned char row)
 #endif
 }
 
-void floor_paint_background()
-{
+void floor_paint_background() {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
     unsigned char cache;
@@ -302,8 +363,7 @@ void floor_paint_background()
     bank_pull_bram();
 }
 
-void floor_draw_background(floor_t* floor)
-{
+void floor_draw_background(floor_t *floor) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
     unsigned char row_draw = 32;
@@ -321,16 +381,15 @@ void floor_draw_background(floor_t* floor)
     bank_pull_bram();
 }
 
-vera_heap_handle_t floor_part_alloc_vram(unsigned char part, floor_parts_t* floor_parts, vera_heap_segment_index_t segment)
-{
+vera_heap_handle_t floor_part_alloc_vram(unsigned char part, floor_parts_t *floor_parts, vera_heap_segment_index_t segment) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
     // Dynamic allocation of tiles in vera vram.
     vera_heap_handle_t vram_handle = vera_heap_alloc(segment, FLOOR_TILE_SIZE);
-    vram_bank_t   vram_bank = vera_heap_data_get_bank(segment, vram_handle);
+    vram_bank_t vram_bank = vera_heap_data_get_bank(segment, vram_handle);
     vram_offset_t vram_offset = vera_heap_data_get_offset(segment, vram_handle);
 
-    floor_parts->vram_handles[part] = vram_handle;
+    floor_parts->vram_handles[(unsigned int)part] = vram_handle;
 
     // The offset starts at 0x2000.
     // Each tile is 0x0080 unsigned chars large.
@@ -348,22 +407,21 @@ vera_heap_handle_t floor_part_alloc_vram(unsigned char part, floor_parts_t* floo
     //     sta offset+1
     // }
 
-    floor_parts->floor_tile_offset[part] = offset;
+    floor_parts->floor_tile_offset[(unsigned int)part] = offset;
 
     bank_pull_bram();
 
     return vram_handle;
 }
 
-void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pattern)
-{
+void floor_part_memset_vram(unsigned char part, floor_t *floor, unsigned char pattern) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
-    floor_parts_t* floor_parts = floor->floor_parts;
+    floor_parts_t *floor_parts = floor->floor_parts;
 
     vera_heap_handle_t vram_handle = floor_part_alloc_vram(part, floor_parts, VERA_HEAP_SEGMENT_TILES);
 
-    vram_bank_t   vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_TILES, vram_handle);
+    vram_bank_t vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_TILES, vram_handle);
     vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_TILES, vram_handle);
     memset_vram(vram_bank, vram_offset, pattern, FLOOR_TILE_SIZE);
 
@@ -373,22 +431,20 @@ void floor_part_memset_vram(unsigned char part, floor_t* floor, unsigned char pa
     floor->parts_count++;
 
     bank_pull_bram();
-
 }
 
-void floor_part_memcpy_vram_bram(unsigned char part, floor_t* floor)
-{
+void floor_part_memcpy_vram_bram(unsigned char part, floor_t *floor) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
-    floor_parts_t* floor_parts = floor->floor_parts;
+    floor_parts_t *floor_parts = floor->floor_parts;
 
     vera_heap_handle_t vram_handle = floor_part_alloc_vram(part, floor_parts, VERA_HEAP_SEGMENT_TILES);
-    vram_bank_t   vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_TILES, floor_parts->vram_handles[part]);
+    vram_bank_t vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_TILES, floor_parts->vram_handles[part]);
     vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_TILES, floor_parts->vram_handles[part]);
 
-    bram_heap_handle_t bram_handle = floor_parts->bram_handles[part];
-    bram_bank_t   bram_bank = bram_heap_data_get_bank(1, bram_handle);
-    bram_ptr_t    bram_ptr = bram_heap_data_get_offset(1, bram_handle);
+    bram_heap_handle_t bram_handle = floor_parts->bram_handles[(unsigned int)part];
+    bram_bank_t bram_bank = bram_heap_data_get_bank(1, bram_handle);
+    bram_ptr_t bram_ptr = bram_heap_data_get_offset(1, bram_handle);
 
     memcpy_vram_bram(vram_bank, vram_offset, bram_bank, bram_ptr, FLOOR_TILE_SIZE);
 
@@ -405,16 +461,16 @@ inline void floor_layer_map(unsigned char layer, unsigned char bank, unsigned in
  * @brief Iterate through the floor and build the floor index.
  * This to quickly be able to select a randomized segment for the specific range of segments with the same floor mask.
  * Each layer has its floor index with specific segments and composition of slabs.
- * 
- * @param floor 
+ *
+ * @param floor
  */
-void floor_layer_index_segments(floor_t* floor) {
+void floor_layer_index_segments(floor_t *floor) {
 
     bank_push_set_bram(BANK_ENGINE_FLOOR);
-    
+
     unsigned char layer = 0;
-    floor_layer_t* floor_layer = floor->floor_layers[layer];
-    while(floor_layer) {
+    floor_layer_t *floor_layer = floor->floor_layers[layer];
+    while (floor_layer) {
 
         // Index of the floor for drawing while randomizing the selection of segments.
         unsigned char offset = 0;
@@ -422,7 +478,7 @@ void floor_layer_index_segments(floor_t* floor) {
         unsigned char mask = 0;
         unsigned char variation = 0;
         do {
-            if(mask != floor_layer->segments[segment].mask) {
+            if (mask != floor_layer->segments[segment].mask) {
                 floor_layer->segment_index.offsets[mask] = offset;
                 floor_layer->segment_index.variations[mask] = variation;
                 mask = floor_layer->segments[segment].mask;
@@ -431,46 +487,42 @@ void floor_layer_index_segments(floor_t* floor) {
             }
             variation++;
             segment++;
-        } while(segment < floor_layer->segment_index.segments);
+        } while (segment < floor_layer->segment_index.segments);
         floor_layer->segment_index.offsets[mask] = offset;
         floor_layer->segment_index.variations[mask] = variation;
 
         floor_layer = floor->floor_layers[++layer];
-
     }
 
     bank_pull_bram();
-
 }
 
-void floor_layer_debug(floor_t* floor, unsigned char layer) {
+void floor_layer_debug(floor_t *floor, unsigned char layer) {
 
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
-    floor_layer_t* floor_layer = floor->floor_layers[layer];
+    floor_layer_t *floor_layer = floor->floor_layers[layer];
 
     printf("L # mask t0  t1  t2  t3 \n");
-    for(unsigned char s=0; s < floor_layer->segment_index.segments; s++) {
-        floor_segment_t* segment = &floor_layer->segments[s];
+    for (unsigned char s = 0; s < floor_layer->segment_index.segments; s++) {
+        floor_segment_t *segment = &floor_layer->segments[s];
         printf("%1u %1u %02x   ", layer, s, segment->mask);
-        for(unsigned char t=0; t<4; t++) {
+        for (unsigned char t = 0; t < 4; t++) {
             printf("%3u ", segment->tiles[t]);
         }
         printf("\n");
     }
 
     bank_pull_bram();
-
 }
 
 // Load the floor tiles into bram using the bram heap manager.
-unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_bram_tiles_t* floor_bram_tile)
-{
+unsigned char floor_parts_load_bram(unsigned char part, floor_t *floor, floor_bram_tiles_t *floor_bram_tile) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
 
     // printf("load:floor = %p\n", floor);
 
-    floor_parts_t* floor_parts = floor->floor_parts;
+    floor_parts_t *floor_parts = floor->floor_parts;
 
     // printf("floor parts = %p", floor_parts);
 
@@ -485,7 +537,7 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
         printf("\n%10s : ", filename);
 #endif
 
-        FILE* fp = fopen(filename,"r");
+        FILE *fp = fopen(filename, "r");
         if (fp) {
 
             // The palette data, which we load and index using the palette library.
@@ -494,7 +546,7 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
             unsigned char palette_size = 0;
             floor_bram_tile->palette = palette_index;
             bank_push_set_bram(BANK_ENGINE_PALETTE);
-            unsigned int read = fgets((char*)palette_ptr, 32, fp);
+            unsigned int read = fgets((char *)palette_ptr, 32, fp);
             bank_pull_bram();
 
             unsigned int count = floor_bram_tile->count;
@@ -517,17 +569,16 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
                     break;
 #endif
                 } else {
-                    floor_parts->bram_handles[part] = handle_bram;
-                    floor_parts->floor_tile[part] = floor_bram_tile;
+                    floor_parts->bram_handles[(unsigned int)part] = handle_bram;
+                    floor_parts->floor_tile[(unsigned int)part] = floor_bram_tile;
 
                     // Assign the palette to the floor part, this is used when painting the floor.
                     // The palettes are automatically painted.
-                    floor_parts->palette[part] = palette_use_vram(palette_index);
+                    floor_parts->palette[(unsigned int)part] = palette_use_vram(palette_index);
 
                     part++;
                 }
             }
-
 
             if (fclose(fp)) {
 #ifdef __INCLUDE_PRINT
@@ -538,10 +589,10 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
             }
         } else {
 #ifdef __INCLUDE_PRINT
-            if (status) printf("error opening file %s\n", fp->filename);
+            if (status)
+                printf("error opening file %s\n", fp->filename);
 #endif
         }
-
     }
 
     bank_pull_bram();
@@ -549,8 +600,7 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t* floor, floor_br
     return part;
 }
 
-void floor_scroll()
-{
+void floor_scroll() {
     // We only will execute the scroll logic when a scroll action needs to be done.
     if (!game.scroll_wait--) {
         game.scroll_wait = game.scroll_speed;
@@ -569,7 +619,7 @@ void floor_scroll()
         // We paint from bottom to top. Each paint segment is 64 pixels on the y axis, so we must paint every 4 rows.
         // We paint when the row is the bottom row of the paint segment, so row 3. Row 0 is the top row of the segment.
         if (row % 4 == 3) {
-            floor_paint(floor_pos.tile_column, floor_pos.tile_row);
+            floor_paint(floor_pos.tile_column, (floor_pos.tile_row - 1) % 8);
 #ifdef __TOWER
             tower_paint(floor_pos.tile_column, floor_pos.tile_row);
 #endif
@@ -600,17 +650,16 @@ void floor_position() {
 #endif
 }
 
-
 void floor_evolve() {
-    if(!game.floor_ticks) {
-        if(!game.floor_border) {
+    if (!game.floor_ticks) {
+        if (!game.floor_border) {
             game.delta_border = 1;
         }
-        if(game.floor_border == game.floor_empty) {
+        if (game.floor_border == game.floor_empty) {
             game.delta_border = -1;
             game.delta_empty = 1;
         }
-        if(game.floor_empty == 0x0f) {
+        if (game.floor_empty == 0x0f) {
             game.delta_empty = -1;
         }
         game.floor_border += game.delta_border;
@@ -622,4 +671,3 @@ void floor_evolve() {
 
 #pragma data_seg(Data)
 #pragma data_seg(Code)
-

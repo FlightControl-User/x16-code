@@ -14,7 +14,7 @@ typedef struct {
     unsigned int palette; 
 } floor_bram_tiles_t;
 
-#define FLOOR_PARTS 128
+#define FLOOR_PARTS 160
 typedef struct {
     floor_bram_tiles_t *floor_tile[FLOOR_PARTS];
     unsigned int floor_tile_offset[FLOOR_PARTS];

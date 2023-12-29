@@ -60,7 +60,7 @@ __export char MARS_SEA[] = kickasm {{{
 
 
 __export char METAL_YELLOW[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/metal/metal-yellow_sheet","png",0,20,1,16,16,4,16,0)
+    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/metal/metal-yellow2_sheet","png",1,40,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
