@@ -26,7 +26,7 @@ __export char header[] =kickasm {{
 
 
 __export char MARS_LAND[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/mars01/mars-land_sheet","png",1,72,1,16,16,4,16,0)
+    .var tile = Tile("../graphics/floors/mars01/mars-land_sheet","png",1,94,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -37,7 +37,7 @@ __export char MARS_LAND[] = kickasm {{{
 };}};
 
 __export char MARS_SAND[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/mars01/mars-sand_sheet","png",1,4,1,16,16,4,16,0)
+    .var tile = Tile("../graphics/floors/mars01/mars-sand_sheet","png",1,4,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -48,7 +48,7 @@ __export char MARS_SAND[] = kickasm {{{
 };}};
 
 __export char MARS_SEA[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/mars01/mars-sea_sheet","png",1,16,1,16,16,4,16,0)
+    .var tile = Tile("../graphics/floors/mars01/mars-sea_sheet","png",1,16,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -60,7 +60,7 @@ __export char MARS_SEA[] = kickasm {{{
 
 
 __export char METAL_YELLOW[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/metal/metal-yellow2_sheet","png",1,40,1,16,16,4,16,0)
+    .var tile = Tile("../graphics/floors/metal/metal-yellow2_sheet","png",1,42,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -71,7 +71,7 @@ __export char METAL_YELLOW[] = kickasm {{{
 };}};
 
 __export char METAL_RED[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/metal/metal-grey_sheet","png",1,1,1,16,16,4,16,0)
+    .var tile = Tile("../graphics/floors/metal/metal-grey_sheet","png",1,1,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)
@@ -82,7 +82,7 @@ __export char METAL_RED[] = kickasm {{{
 };}};
 
 __export char METAL_GREY[] = kickasm {{{
-    .var tile = Tile("C:/Users/svenv/OneDrive/Documents/GitHub/x16-code/x16-equinoxe/graphics/floors/metal/metal-red_sheet","png",1,1,1,16,16,4,16,0)
+    .var tile = Tile("../graphics/floors/metal/metal-red_sheet","png",1,1,1,16,16,4,16,0)
     .var pallist = GetPalette3(tile)
     .var tiledata = MakeTile3(tile,pallist)
     .var pallistdata = MakePalette3(tile,pallist)

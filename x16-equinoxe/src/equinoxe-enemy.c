@@ -1,6 +1,6 @@
 #include <cx16.h>
 #include "equinoxe.h"
-#include "equinoxe-animate-lib.h"
+#include "equinoxe-animate.h"
 
 
 #pragma data_seg(DATA_ENGINE_ENEMIES)

@@ -16,7 +16,7 @@
 #endif
 
 #ifndef LRU_CACHE_MAX
-    #define LRU_CACHE_MAX 32
+    #define LRU_CACHE_MAX 96
 #endif
 
 

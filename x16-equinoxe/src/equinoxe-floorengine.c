@@ -1,24 +1,6 @@
 // Space tile scrolling engine for a space game written in kickc for the Commander X16.
 
-// #include <cx16.h>
-// #include <cx16-veralib.h>
-// #include <cx16-veraheap-lib.h>
-// #include <cx16-file.h>
-// #include <kernal.h>
-// #include <6502.h>
-// #include <conio.h>
-// #include <cx16-conio.h>
-// #include <stdio.h>
-// #include <division.h>
-// #include <mos6522.h>
-// #include <multiply.h>
-// #include <cx16-bramheap-lib.h>
-
-// #include "equinoxe-types.h"
 #include "equinoxe.h"
-// #include "equinoxe-floorengine.h"
-// #include "equinoxe-stage.h"
-// #include "equinoxe-palette-lib.h"
 
 #pragma data_seg(DATA_ENGINE_FLOOR)
 #pragma code_seg(CODE_ENGINE_FLOOR)
@@ -118,49 +100,49 @@ void floor_draw_row(floor_t *floor, unsigned char row, unsigned char column) {
 
     floor_parts_t *floor_parts = floor->floor_parts;
 
-    unsigned char cache = FLOOR_CACHE(row / 4, column);
-    unsigned int cache_segment = (word)floor_cache[cache];
+    __mem unsigned char cache = FLOOR_CACHE(row / 4, column);
+    __mem unsigned int cache_segment = (word)floor_cache[cache];
 
     floor_composition_t *floor_composition = &floor->floor_compositions[cache_segment];
 
-    for (unsigned char layer = 0; layer < game.layers; layer++) {
+    for (__mem unsigned char layer = 0; layer < game.layers; layer++) {
 
         floor_layer_composition_t *floor_layer_composition = &floor_composition->floor_layer_compositions[layer];
         floor_layer_t *floor_layer = floor_layer_composition->floor_layer;
         unsigned char *floor_segments = floor_layer_composition->floor_segments;
-        unsigned char layer_offset = floor_layer->segment_offset;
+        __mem unsigned char layer_offset = floor_layer->segment_offset;
 
-        unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
-        unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
+        __mem unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
+        __mem unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
 
-        unsigned char shift = vera_layer0_get_rowshift();
+        __mem unsigned char shift = vera_layer0_get_rowshift();
         mapbase_offset += ((word)row << shift);
         mapbase_offset += column * 8;
 
-        unsigned char sr = ((row % 4) / 2) * 2;
-        unsigned char r = (row % 2) * 2;
+        __mem unsigned char sr = ((row % 4) / 2) * 2;
+        __mem unsigned char r = (row % 2) * 2;
 
         // char buffer[80] = "";
         vera_vram_data0_bank_offset(mapbase_bank, mapbase_offset, VERA_INC_1);
-        for (unsigned char sc = 0; sc < 2; sc++) {
-            unsigned char s = sc + sr;
+        for (__mem unsigned char sc = 0; sc < 2; sc++) {
+            __mem unsigned char s = sc + sr;
             // sprintf(buffer, "layer=%u, layer_offset=%u, s=%u, cache_segment=%u ", layer, layer_offset, s, cache_segment);
             // BREAKPOINT
-            unsigned char segment = floor_segments[s];
+            __mem unsigned char segment = floor_segments[s];
             // sprintf(buffer, "layer=%u, segment=%u ", layer, segment);
             // BREAKPOINT
-            unsigned char segment_index = floor_calculate_segment_index(floor_layer, segment);
+            __mem unsigned char segment_index = floor_calculate_segment_index(floor_layer, segment);
             // sprintf(buffer, "layer=%u, segment_index=%u ", layer, segment_index);
             // BREAKPOINT
-            for (unsigned char c = 0; c < 2; c++) {
+            for (__mem unsigned char c = 0; c < 2; c++) {
                 floor_segment_t *floor_segment = &floor_layer->segments[segment_index];
-                unsigned char tile = floor_segment->tiles[c + r]; // BANK_ENGINE_FLOOR
+                __mem unsigned char tile = floor_segment->tiles[c + r]; // BANK_ENGINE_FLOOR
                 if (tile > 0)
                     tile = tile + layer_offset;
-                unsigned int offset = floor_parts->floor_tile_offset[(unsigned int)tile];
+                __mem unsigned int offset = floor_parts->floor_tile_offset[(unsigned int)tile];
                 // sprintf(buffer, "layer=%u, segment=%u, cache_segment=%u, tile=%u? offset=%u? floor_parts->floor_tile_offset*=%04p ", layer, segment_index,
                 // cache_segment, tile, offset, floor_parts->floor_tile_offset); BREAKPOINT
-                unsigned char palette = floor_parts->palette[(unsigned int)tile];
+                __mem unsigned char palette = floor_parts->palette[(unsigned int)tile];
                 palette = palette << 4;
                 *VERA_DATA0 = BYTE0(offset);
                 *VERA_DATA0 = palette | BYTE1(offset);
@@ -172,7 +154,7 @@ void floor_draw_row(floor_t *floor, unsigned char row, unsigned char column) {
     bank_pull_bram();
 }
 
-unsigned char FLOOR_CACHE(unsigned char row, unsigned char column) { return ((char)((char)(row << 4) | (char)(column))); }
+inline unsigned char FLOOR_CACHE(__mem unsigned char row, __mem unsigned char column) { return ((char)((char)(row << 4) | (char)(column))); }
 
 void floor_init() {
 
@@ -223,26 +205,26 @@ void floor_init() {
  * @param column
  */
 void floor_paint(unsigned char column, unsigned char row) {
-    unsigned char rnd = BYTE0(rand());
+    __mem unsigned char rnd = BYTE0(rand());
 
-    unsigned char cache;
+    __mem unsigned char cache;
 
     // Define the down tile to be glued.
     // cache = ;
-    unsigned char tile_down = floor_cache[FLOOR_CACHE((row + 1) & 0x07, column)];
-    unsigned char tile_left_down = floor_cache[FLOOR_CACHE((row + 1) & 0x07, column-1)];
+    __mem unsigned char tile_down = floor_cache[FLOOR_CACHE((row + 1) & 0x07, column)];
+    __mem unsigned char tile_left_down = floor_cache[FLOOR_CACHE((row + 1) & 0x07, column-1)];
 
     // Define the right tile to be glued.
     // If the column is 15, then the right tile is the tile randomized (there is no start point).
-    unsigned char tile_right = tile_down;
+    __mem unsigned char tile_right = tile_down;
     // If the column is less than 15, then the right tile is the tile from the right in the cache.
     if (column < 15) {
         cache = FLOOR_CACHE(row, column + 1);
         tile_right = floor_cache[cache];
     }
 
-    unsigned char weight = (BYTE0(rand()) & 0x0F);
-    unsigned char tile = 0x0F;
+    __mem unsigned char weight = (BYTE0(rand()) & 0x0F);
+    __mem unsigned char tile = 0x0F;
     if (weight < game.floor_border) {
         // do {
             tile = (BYTE0(rand()) & 0x0F);
@@ -255,9 +237,9 @@ void floor_paint(unsigned char column, unsigned char row) {
 
     // Now we mask the down tile to get the correct glue for the tile.
     // When the down tile type is not equal to the tile type, then we don't glue!
-    unsigned char tile_mask_down_right = (((tile_down & 0b1111) >> 2) & 0b0001);
-    unsigned char tile_mask_down_left = (((tile_down & 0b1111) >> 2) & 0b0010);
-    unsigned char tile_down_mask = tile_mask_down_left | tile_mask_down_right;
+    __mem unsigned char tile_mask_down_right = (((tile_down & 0b1111) >> 2) & 0b0001);
+    __mem unsigned char tile_mask_down_left = (((tile_down & 0b1111) >> 2) & 0b0010);
+    __mem unsigned char tile_down_mask = tile_mask_down_left | tile_mask_down_right;
     tile = tile & 0b1100;
     tile = tile | tile_down_mask;
 
@@ -265,23 +247,23 @@ void floor_paint(unsigned char column, unsigned char row) {
     if (column < 15) {
         cache = FLOOR_CACHE(row, column + 1);
         tile_right = floor_cache[cache];
-        unsigned char tile_mask_right_up = (((tile_right & 0b1111) >> 1) & 0b0100);
-        unsigned char tile_mask_right_down = (((tile_right & 0b1111) >> 1) & 0b0001);
-        unsigned char tile_right_mask = tile_mask_right_up | tile_mask_right_down;
+        __mem unsigned char tile_mask_right_up = (((tile_right & 0b1111) >> 1) & 0b0100);
+        __mem unsigned char tile_mask_right_down = (((tile_right & 0b1111) >> 1) & 0b0001);
+        __mem unsigned char tile_right_mask = tile_mask_right_up | tile_mask_right_down;
         tile = tile & 0b1010;
         tile = tile | tile_right_mask;
     }
 
     // The right tile type is the same as the down tile type as a a start point.
-    unsigned char tile_right_type = tile_right & 0b11110000;
-    unsigned char tile_down_type = tile_down & 0b11110000;
-    unsigned char tile_left_down_type = tile_left_down & 0b11110000;
+    __mem unsigned char tile_right_type = tile_right & 0b11110000;
+    __mem unsigned char tile_down_type = tile_down & 0b11110000;
+    __mem unsigned char tile_left_down_type = tile_left_down & 0b11110000;
 
     // By default, the tile type of the new tile is equal to the tile on the right.
-    unsigned char tile_type = tile_right_type;
+    __mem unsigned char tile_type = tile_right_type;
 
     if (tile == 0b0111) {
-        unsigned char weight = rand();
+        __mem unsigned char weight = rand();
         if(weight<224) {
             tile_type = ((char)rand() & 0x10) + ((char)rand() & 0x10);
         }
@@ -558,7 +540,9 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t *floor, floor_br
 #endif
                 bram_heap_handle_t handle_bram = bram_heap_alloc(1, size);
                 bram_bank_t bram_bank = bram_heap_data_get_bank(1, handle_bram);
+                // printf("bram_bank = %u\n", bram_bank);
                 bram_ptr_t bram_ptr = bram_heap_data_get_offset(1, handle_bram);
+                // printf("bram_ptr = %p\n", bram_ptr);
 
                 bank_push_set_bram(bram_bank);
                 unsigned int read = fgets(bram_ptr, size, fp);

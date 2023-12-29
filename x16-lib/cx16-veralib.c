@@ -195,7 +195,7 @@ vera_width vera_display_get_width() {
  */
 void vera_display_set_border_color(char color) {
 
-    *VERA_CTRL &= ~VERA_DCSEL;
+    *VERA_CTRL &= 0b10000001;
     *VERA_DC_BORDER = color;
 }
 
@@ -1562,7 +1562,7 @@ void vera_sprite_attributes_set(vera_sprite_offset sprite_offset, struct VERA_SP
  * @param sprite_attr A pointer to a VERA_SPRITE structure containing the sprite attributes to be returned.
  */
 void vera_sprite_attributes_get(vera_sprite_offset sprite_offset, struct VERA_SPRITE *sprite_attr) {
-    memcpy_ram_vram((ram_ptr_t)sprite_attr, 1, sprite_offset, sizeof(struct VERA_SPRITE));
+    memcpy_ram_vram((bram_ptr_t)sprite_attr, 1, sprite_offset, sizeof(struct VERA_SPRITE));
 }
 
 

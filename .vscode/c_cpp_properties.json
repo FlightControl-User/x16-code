@@ -23,6 +23,7 @@
                 "__mem=",
                 "__ssa=",
                 "__ma=",
+                "__zp(zp)=",
                 "__address(size)=",
                 "__interrupt(rom_sys_cx16)=",
                 "__export=",

@@ -151,6 +151,8 @@ void flight_draw() {
 
             vera_sprite_offset sprite_offset = flight.sprite_offset[f];
 
+            // BREAKPOINT
+
             // if( x<640+68 && y<480+68 && (signed int)x>-68 && (signed int)y>-68 ) {
 
             unsigned char a = flight.animate[f];
@@ -163,6 +165,12 @@ void flight_draw() {
                 *VERA_ADDRX_L = BYTE0(sprite_offset + 2);
             } else {
                 vera_sprite_image_offset sprite_image_offset = sprite_image_cache_vram(i, s);
+                if(sprite_image_offset==0x0) {
+                    BREAKPOINT
+                }
+                // gotoxy(0,0);
+                // printf("%02x %04x, ", f, sprite_image_offset);
+
                 *VERA_CTRL &= ~VERA_ADDRSEL; // Select DATA0
                 *VERA_ADDRX_H = 1 | VERA_INC_1;
                 *VERA_ADDRX_M = BYTE1(sprite_offset); // Normally the +2 should not be an issue.
@@ -235,6 +243,9 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t sprite_cache_
     // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
     // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
 
+    
+    
+
     unsigned int image_index = sprite_cache.offset[sprite_cache_index] + fe_sprite_image_index;
 
     // We declare temporary variables for the vram memory handles.
@@ -243,14 +254,14 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t sprite_cache_
     // vram_offset_t vram_offset;
 
 #ifdef __DEBUG_LRU_CACHE
-    char x = (image_index / 32) * 20;
-    char y = (char)20 + (char)(image_index % 32);
+    char x = (image_index / 32) * 16;
+    char y = (char)(image_index % 32);
 
-    gotoxy(0, 0);
-    printf("%02x %02x %04x               ", fe_sprite_index, fe_sprite_image_index, image_index);
-    gotoxy(x, y);
-    printf("%02x %02x %04x               ", fe_sprite_index, fe_sprite_image_index, image_index);
-    gotoxy(x + 10, y);
+    // gotoxy(0, 0);
+    // printf("%02x %02x %04x               ", fe_sprite_index, fe_sprite_image_index, image_index);
+    // gotoxy(x, y);
+    printf("%04x ", image_index);
+    // gotoxy(x + 6, y);
 #endif
 
     // We check if there is a cache hit?
@@ -339,12 +350,12 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t sprite_cache_
         sprite_bram_handles_t handle_bram = sprite_bram_handles[image_index];
         bank_pull_bram();
 
-        bram_bank_t sprite_bank = bram_heap_data_get_bank(1, handle_bram);
-        bram_ptr_t sprite_ptr = bram_heap_data_get_offset(1, handle_bram);
+        bram_bank_t sprite_bank = bram_heap_data_get_bank(0, handle_bram);
+        bram_ptr_t sprite_ptr = bram_heap_data_get_offset(0, handle_bram);
         unsigned int sprite_size = sprite_cache.size[sprite_cache_index];
 
 #ifdef __DEBUG_LRU_CACHE
-        printf("%04x %02x %04p %04x ", vram_offset, sprite_bank, sprite_ptr, sprite_size);
+        printf("b:%02x p:%04p s:%04x ", sprite_bank, sprite_ptr, sprite_size);
 #endif
 
         memcpy_vram_bram(vram_bank, vram_offset, sprite_bank, sprite_ptr, sprite_size);
@@ -359,6 +370,10 @@ vera_sprite_image_offset sprite_image_cache_vram(fe_sprite_index_t sprite_cache_
         vera_display_set_border_color(BLACK);
 #endif
     }
+
+#ifdef __DEBUG_LRU_CACHE
+        printf("%04x \n", vram_offset);
+#endif
 
     // We return the image offset in vram of the sprite to be drawn.
     // This offset is used by the vera image set offset function to directly change the image displayed of the sprite!
@@ -499,13 +514,28 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
                        sprites.aabb[sprite_index].xmax, sprites.aabb[sprite_index].ymax, sprites.loop[sprite_index], sprites.reverse[sprite_index]);
 #endif
                 for (unsigned char s = 0; s < sprites.count[sprite_index]; s++) {
-                    bram_heap_handle_t handle_bram = bram_heap_alloc(1, sprite_size);
+                    bram_heap_handle_t handle_bram = bram_heap_alloc(0, sprite_size);
+#ifdef __DEBUG_HEAP_BRAM
+                    gotoxy(40,0);
+                    printf("handle_bram = %u\n", handle_bram);
+#endif
 #ifdef __DEBUG_LOAD
                     cputc('.');
 #endif
 
-                    bram_bank_t sprite_bank = bram_heap_data_get_bank(1, handle_bram);
-                    bram_ptr_t sprite_ptr = bram_heap_data_get_offset(1, handle_bram);
+                    bram_bank_t sprite_bank = bram_heap_data_get_bank(0, handle_bram);
+#ifdef __DEBUG_HEAP_BRAM
+                    gotoxy(40,1);
+                    printf("sprite_bank = %u\n", sprite_bank);
+#endif
+                    bram_ptr_t sprite_ptr = bram_heap_data_get_offset(0, handle_bram);
+#ifdef __DEBUG_HEAP_BRAM
+                    gotoxy(40,2);
+                    printf("sprite_ptr = %p\n", sprite_ptr);
+                    bram_heap_dump(0,0,2);
+                    // bram_heap_dump_stats(0);
+                    while(!kbhit());
+#endif
                     bank_push_set_bram(sprite_bank);
                     unsigned int read = fgets(sprite_ptr, sprite_size, fp);
                     bank_pull_bram();

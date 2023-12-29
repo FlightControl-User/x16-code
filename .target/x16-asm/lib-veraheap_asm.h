@@ -1,0 +1,10 @@
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($46, $1e, 4, $3d, $3d) __zp(4) char vera_heap_alloc(__zp($46) char s, __zp($1e) unsigned long size);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($47, $41, $30, $1c, $16, $c, $1c, $30, $1c, $16, $c, $1c) void vera_heap_free(__zp($47) char s, __zp($41) char free_index);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($3f) void vera_heap_bram_bank_init(__zp($3f) char bram_bank);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($2e, $40, $16, $41, $3d, $2e, $16, $16, $28, $48, $28, $28, $48, $3c) __zp($2e) char vera_heap_segment_init(__zp($2e) char s, __zp($40) char vram_bank_floor, __zp($16) unsigned int vram_offset_floor, __zp($41) char vram_bank_ceil, __zp($3d) unsigned int vram_offset_ceil);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve(7, $41, $1c, $1c, $1c, $1c) __zp($1c) unsigned int vera_heap_data_get_offset(__zp(7) char s, __zp($41) char index);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($36, $3b, $c) __zp($c) char vera_heap_data_get_bank(__zp($36) char s, __zp($3b) char index);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($48, $3c, 8, 8) __zp(8) unsigned int vera_heap_get_image(__zp($48) char s, __zp($3c) char index);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($2e, $42, $44) void vera_heap_set_image(__zp($2e) char s, __zp($42) char index, __zp($44) unsigned int image);
+extern __varcall __asm_import("lib-veraheap") __zp_reserve($43, $2c, $2b, $16, $16) __zp($2b) bool vera_heap_has_free(__zp($43) char s, __zp($2c) unsigned int size_requested);
+extern __phicall __asm_import("lib-veraheap") void __lib_veraheap_start();

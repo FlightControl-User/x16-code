@@ -153,49 +153,49 @@ void vera_heap_set_size_packed(vera_heap_segment_index_t s, vera_heap_index_t in
 }
 
 
-inline vera_heap_index_t vera_heap_get_next(vera_heap_segment_index_t s, vera_heap_index_t index)
+vera_heap_index_t vera_heap_get_next(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     return vera_heap_index.next[index];
 }
 
 
-inline void vera_heap_set_next(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t next)
+void vera_heap_set_next(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t next)
 {
     vera_heap_index.next[index] = next;
 }
 
 
-inline vera_heap_index_t vera_heap_get_prev(vera_heap_segment_index_t s, vera_heap_index_t index)
+vera_heap_index_t vera_heap_get_prev(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     return vera_heap_index.prev[index];
 }
 
 
-inline void vera_heap_set_prev(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t prev)
+void vera_heap_set_prev(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t prev)
 {
     vera_heap_index.prev[index] = prev;
 }
 
 
-inline vera_heap_index_t vera_heap_get_left(vera_heap_segment_index_t s, vera_heap_index_t index)
+vera_heap_index_t vera_heap_get_left(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     return vera_heap_index.left[index];
 }
 
 
-inline void vera_heap_set_left(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t left)
+void vera_heap_set_left(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t left)
 {
     vera_heap_index.left[index] = left;
 }
 
 
-inline vera_heap_index_t vera_heap_get_right(vera_heap_segment_index_t s, vera_heap_index_t index)
+vera_heap_index_t vera_heap_get_right(vera_heap_segment_index_t s, vera_heap_index_t index)
 {
     return vera_heap_index.right[index];
 }
 
 
-inline void vera_heap_set_right(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t right)
+void vera_heap_set_right(vera_heap_segment_index_t s, vera_heap_index_t index, vera_heap_index_t right)
 {
     vera_heap_index.right[index] = right;
 }
@@ -796,7 +796,7 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
     #ifdef __VERAHEAP_COLOR_FREE
     vera_heap_size_int_t free_size_coalesced = vera_heap_get_size_int(s, free_index);
     vera_heap_bank_t free_bank_coalesced = vera_heap_data_get_bank(s, free_index);
-    vera_heap_bank_t free_offset_coalesced = vera_heap_data_get_offset(s, free_index);
+    vera_heap_offset_t free_offset_coalesced = vera_heap_data_get_offset(s, free_index);
     memset_vram(free_bank_coalesced, free_offset_coalesced, veraheap_color++, free_size_coalesced);
     #endif
 
@@ -825,7 +825,6 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
  */
 void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char veraheap_dx, unsigned char veraheap_dy)
 {
-
 
     vera_heap_index_t list = vera_heap_segment.heap_list[s];
 
@@ -924,8 +923,9 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
  * 
  * @param segment The segment identifier, a value between 0 and 15.
  */
-void vera_heap_dump_stats(vera_heap_segment_index_t s)
+void vera_heap_dump_stats(vera_heap_segment_index_t s, unsigned char x, unsigned char y)
 {
+    vera_heap_dump_xy(x, y);
     gotoxy(veraheap_dx, veraheap_dy++);
 	printf("size  heap:%05x  free:%05x", vera_heap_alloc_size(s), vera_heap_free_size(s));
     gotoxy(veraheap_dx, veraheap_dy++);
@@ -972,7 +972,7 @@ void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char 
 {
     vera_heap_dump_xy(x, y);
 
-	vera_heap_dump_stats(s);
+	vera_heap_dump_stats(s, x, y);
 	vera_heap_dump_index(s);
 }
 
@@ -987,7 +987,7 @@ inline bool vera_heap_has_free(vera_heap_segment_index_t s, vera_heap_size_int_t
 {
     bank_push_set_bram(vera_heap_segment.bram_bank);
 
-	// Adjust given size to 8 bytes boundary (shift right with 3 bits).
+	// Adjust given size to 8 bytes boundary (shift right with 5 bits).
 	vera_heap_size_packed_t packed_size = vera_heap_alloc_size_get(size_requested);
 
     vera_heap_index_t free_index = vera_heap_find_best_fit(s, packed_size);

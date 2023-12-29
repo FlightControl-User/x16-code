@@ -12,7 +12,7 @@
  */
 
 
-#pragma once
+
 
 #include <cx16-vera.h>
 

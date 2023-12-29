@@ -1,4 +1,4 @@
-#pragma once
+
 
 #include "equinoxe.h"
 // #include "equinoxe-types.h"

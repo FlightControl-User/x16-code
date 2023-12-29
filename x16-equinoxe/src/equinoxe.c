@@ -3,7 +3,7 @@
 #pragma link("equinoxe.ld")
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
-#pragma var_model(zp)
+#pragma var_model(mem, local_mem)
 #pragma zp_reserve(0x00..0x21, 0x80..0xa8, 0xfc..0xff)
 
 #include "equinoxe.h"
@@ -16,7 +16,7 @@
 #pragma nobank
 #pragma var_model(mem)
 
-equinoxe_game_t game = {1, 0, 0, 0, 0, 127, 64, 2, 
+equinoxe_game_t game = {1, 0, 0, 0, 0, 127, 64, 1, 
                         0x02, 0x0A, 0x0f, 0x0f, 1, -1 };
 // __mem FILE* music;
 // unsigned char music_buffer[1024];
@@ -33,6 +33,7 @@ void equinoxe_init() {
     flight_init();
 
 #ifdef __PLAYER
+
     bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
 #endif
 
@@ -68,6 +69,8 @@ void irq_vsync() {
 #endif
 
     bank_set_brom(0);
+
+    // asm {.byte $db}
 
     #ifdef __CPULINES
         vera_display_set_border_color(YELLOW);
@@ -252,13 +255,8 @@ void irq_vsync() {
 /// @brief game startup
 void main() {
 
-
-    {kickasm {{
-        jsr bramheap.__start
-        jsr veraheap.__start
-        jsr lru_cache.__start
-    }}}
-
+    cx16_brk_debug();
+    
     cx16_k_screen_set_charset(3, (char *)0);
 
     // We are going to use only the kernal on the X16.
@@ -287,21 +285,25 @@ void main() {
     // We initialize the Commander X16 BRAM heap manager. This manages dynamically the memory space in banked ram as a real heap.
     bram_heap_bram_bank_init(BANK_HEAP_BRAM);
     // BREAKPOINT
-    bram_heap_segment_init(1, 0x10, (bram_ptr_t)0xA000, 0x39, (bram_ptr_t)0xA000);
+    bram_heap_segment_init(0, 0x10, (bram_ptr_t)0xA000, 0x3C, (bram_ptr_t)0xA000);
+
+    bram_heap_segment_init(1, 0x3C, (bram_ptr_t)0xA000, 0x3F, (bram_ptr_t)0xA000);
 
     // We intialize the Commander X16 VERA heap manager. This manages dynamically the memory space in vera ram as a real heap.
     vera_heap_bram_bank_init(BANK_VERA_HEAP);
     vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM); // FLOOR_TILE segment for tiles of various sizes and types
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
 
+#ifdef __DEBUG_HEAP_BRAM
+    bram_heap_dump(0,0,0);
+    while(!kbhit());
+#endif
+
+
 #if defined(__FLIGHT) || defined(__FLOOR)
     stage_reset();
 #endif
 
-#ifdef __DEBUG_HEAP_BRAM
-    heap_print(heap_bram_blocked);
-    while(!kbhit());
-#endif
 
 #ifdef __CPULINES
     // Set border to measure scan lines
@@ -331,18 +333,29 @@ void main() {
         VERA_LAYER_COLOR_DEPTH_4BPP
     );
     vera_layer1_show();
+    #else
+    vera_layer1_mode_tile( 
+        FLOOR_MAP1_BANK_VRAM, (vram_offset_t)FLOOR_MAP1_OFFSET_VRAM, 
+        1, (vram_offset_t)0xF000, 
+        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
+        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
+        VERA_LAYER_COLOR_DEPTH_1BPP
+    );
+    screenlayer1();
+    vera_layer1_show();
+    clrscr();
     #endif
 
+#endif
+
+#ifdef __DEBUG_HEAP_BRAM
+    bram_heap_dump(0,0,0);
+    while(!kbhit());
 #endif
 
 
 #ifdef __FLOOR
     // TILE INITIALIZATION 
-
-#ifdef __DEBUG_HEAP_BRAM
-    heap_print(heap_bram_blocked);
-    while(!kbhit());
-#endif
 
     floor_draw_clear(stage.floor);
 
@@ -362,13 +375,14 @@ void main() {
 
     scroll(0);
 
+    cbm_k_clrchn();
     while(!kbhit());
 
 
 #ifndef __NOVSYNC
     // Enable VSYNC IRQ (also set line bit 8 to 0)
     SEI();
-    cx16_kernal_irq(&irq_vsync);
+    cx16_irq_relay(&irq_vsync);
     // *KERNEL_IRQ = &irq_vsync;
     *VERA_IEN = VERA_VSYNC | 0x80;
     *VERA_IRQLINE_L = 0xFF;
@@ -380,7 +394,7 @@ void main() {
 
     vera_sprites_show();
 
-    unsigned char ch = kbhit();
+    volatile unsigned char ch = kbhit();
     while (ch != 'x') {
         #ifdef __NOVSYNC
             irq_vsync();
@@ -416,29 +430,3 @@ void main() {
 
 }
 
-#ifndef __INTELLISENSE__
-__export char VERAHEAP[] = kickasm(resource "../../target/cx16-veraheap/veraheap.asm") {{
-    #define __veraheap__
-    #import "veraheap.asm"
-}};
-
-__export char BRAMHEAP[] = kickasm(resource "../../target/cx16-bramheap/bramheap.asm") {{
-    #define __bramheap__
-    #import "bramheap.asm" 
-}};
-
-__export char LRU_CACHE[] = kickasm(resource "../../target/cx16-lru-cache/lru-cache.asm") {{
-    #define __lru_cache__
-    #import "lru-cache.asm"
-}};
-
-__export char ANIMATE[] = kickasm(resource "../../target/x16-equinoxe/asm/animate.asm") {{
-    #define __animate__
-    #import "animate.asm"
-}};
-
-__export char PALETTE[] = kickasm(resource "../../target/x16-equinoxe/asm/palette.asm") {{
-    #define __palette__
-    #import "palette.asm"
-}};
-#endif

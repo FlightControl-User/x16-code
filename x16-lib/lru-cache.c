@@ -10,7 +10,7 @@
  *
  */
 
-#define LRU_CACHE_MAX 124
+#define LRU_CACHE_MAX 96
 
 #include <cx16.h>
 #include <lru-cache.h>

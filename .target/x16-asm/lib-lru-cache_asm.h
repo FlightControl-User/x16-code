@@ -1,0 +1,10 @@
+extern __varcall __asm_import("lib-lru-cache") void lru_cache_init();
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve(7, 4) __zp(4) char lru_cache_index(__zp(7) unsigned int key);
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve(5, 2, 2, 6, 2, 6) __zp(2) unsigned int lru_cache_get(__zp(5) char index);
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve(5, $e, 2, 2) __zp(2) unsigned int lru_cache_set(__zp(5) char index, __zp($e) unsigned int data);
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve(9, 2) __zp(2) unsigned int lru_cache_data(__zp(9) char index);
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve(4) __zp(4) bool lru_cache_is_max();
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve(7) __zp(7) unsigned int lru_cache_find_last();
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve($a, 2, 5, 2, 6, 9, 4, $d, 7, 7, 5, 6, $c, 5, 2, 6, 9, $d, 7, 7, 5, 6, 5) __zp(2) unsigned int lru_cache_delete(__zp($a) unsigned int key);
+extern __varcall __asm_import("lib-lru-cache") __zp_reserve($e, $10, 6, 4, 9, $d, 5, 5, 7, 7, 6, $c, 4, 9, $d, 5, 6, 5, 7, 7, 6) __zp(6) char lru_cache_insert(__zp($e) unsigned int key, __zp($10) unsigned int data);
+extern __phicall __asm_import("lib-lru-cache") void __lib_lru_cache_start();

@@ -14,7 +14,7 @@ extern vera_heap_segment_t vera_heap_segment;
 
 
 void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char y);
-void vera_heap_dump_stats(vera_heap_segment_index_t s);
+void vera_heap_dump_stats(vera_heap_segment_index_t s, unsigned char x, unsigned char y);
 void vera_heap_dump_index(vera_heap_segment_index_t s);
 void vera_heap_dump_xy(unsigned char x, unsigned char y);
 void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char veraheap_dx, unsigned char veraheap_dy);

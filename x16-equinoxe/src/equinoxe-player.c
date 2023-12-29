@@ -95,8 +95,8 @@ void player_logic() {
 #endif
 
 
-            flight.xi[p] = cx16_mouse.x;
-            flight.yi[p] = cx16_mouse.y;
+            flight.xi[p] = (unsigned int)cx16_mouse.x;
+            flight.yi[p] = (unsigned int)cx16_mouse.y;
 
             flight_index_t n = flight.engine[p];
             flight.xi[n] = flight.xi[p]+8;

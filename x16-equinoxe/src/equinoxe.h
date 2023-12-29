@@ -1,10 +1,11 @@
-#pragma once
+
 
 #pragma var_model(mem)
 
 #include "equinoxe-defines.h"
 
 #include <cx16.h>
+#include <cx16-irq.h>
 #include "cx16-vera.h"
 #include "cx16-veralib.h"
 #include <cx16-file.h>
@@ -25,34 +26,35 @@
 #pragma var_model(zp)
 
 #include <ht.h>
-#include <lru-cache-lib.h>
+#include <lib-lru-cache_asm.h>
 
 #include "equinoxe-types.h"
 #include "equinoxe-bank.h"
 #include "equinoxe-defines.h"
 
-#include <cx16-bramheap-lib.h>
+#define BRAM_HEAP_SEGMENTS 2
+#include <lib-bramheap_asm.h>
 
 // #pragma bank(cx16_ram, BANK_VERA_HEAP)
-#include <cx16-veraheap-lib.h>
+#include <lib-veraheap_asm.h>
 // #pragma nobank
 
-#include "equinoxe-palette-lib.h"
-#include "equinoxe-animate-lib.h"
-
+#include "lib-palette_asm.h"
+#include "lib-animate_asm.h"
 
 #define VERA_HEAP_SEGMENT_TILES     (vera_heap_segment_index_t)0
 #define VERA_HEAP_SEGMENT_SPRITES   (vera_heap_segment_index_t)1
 
-#pragma var_model(zp)
 #include "equinoxe-math.h"
 #include "equinoxe-levels.h"
+
+#pragma var_model(mem)
+#include "equinoxe-flightengine.h"
 
 #ifdef __FLOOR
 #include "equinoxe-floorengine.h"
 #endif
 
-#include "equinoxe-flightengine.h"
 
 #include "equinoxe-player.h"
 
@@ -69,14 +71,11 @@
 #endif
 
 #include "equinoxe-collision.h"
-#include "equinoxe-stage.h"
 #pragma var_model(mem)
+#include "equinoxe-stage.h"
 
 //extern const heap_structure_t* heap_bram_blocked;
 
 
 extern equinoxe_game_t game;
 // volatile extern char buffer[256];
-
-
-#pragma var_model(zp)

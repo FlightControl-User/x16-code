@@ -359,7 +359,9 @@ void stage_logic()
         
         if(!(game.tickstage & 0x03)) {
 
-            floor_evolve();
+            #ifdef __FLOOR
+                floor_evolve();
+            #endif
 #ifdef __DEBUG_STAGE
 #endif
             // BREAKPOINT

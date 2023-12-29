@@ -1,4 +1,4 @@
-#pragma once
+
 
 #include <cx16-bramheap-typedefs.h>
 #include "equinoxe-palette-types.h"
@@ -25,8 +25,8 @@ typedef struct {
 
 typedef struct {
     unsigned char segments;
-    unsigned char variations[16];
-    unsigned char offsets[16];
+    unsigned char variations[32];
+    unsigned char offsets[32];
 } floor_segment_index_t;
 
 #define FLOOR_TILES 4

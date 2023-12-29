@@ -1,11 +1,11 @@
-#pragma once
 
-#include <cx16-bramheap-lib.h>
+
+#include <cx16-bramheap.h>
 // #include <cx16-vera.h>
 // #include <cx16-veralib.h>
 #include <fp3.h>
 #include <ht.h>
-#include <lru-cache-lib.h>
+#include <lru-cache.h>
 
 #include "equinoxe-flightengine-types.h"
 

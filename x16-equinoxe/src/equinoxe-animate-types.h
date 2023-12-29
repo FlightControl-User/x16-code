@@ -1,4 +1,4 @@
-#pragma once
+
 
 #define SPRITE_ANIMATE 128
 

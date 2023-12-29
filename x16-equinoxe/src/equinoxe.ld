@@ -10,19 +10,19 @@
                                      ", CodeBramHeap" +
                                      ", CodeVeraHeap" +
                                      ", CodeLruCache" + 
+                                     ", CodeEngineFloor" +
                                      ", CodeEngineAnimate" +
                                      ", CodeEngineFlight" +
-                                     ", CodeEngineFloor" +
                                      ", CodeEnginePalette" +
                                      ", DataBramHeap" +
                                      ", DataVeraHeap" +
+                                     ", DataEngineFloor" +
                                      ", DataEngineAnimate" +
                                      ", DataEngineStages" +
                                      ", DataEngineBullets" +
                                      ", DataEnginePlayers" +
                                      ", DataEngineEnemies" +
                                      ", DataEngineFlight" +
-                                     ", DataEngineFloor" +
                                      ", DataEnginePalette" +
 //                                     ", BramEngineFloor" +
                                      ", DataSpriteCache"
@@ -32,18 +32,18 @@
 .segmentdef CodeBramHeap            [startAfter="Code"] 
 .segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
 .segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
-.segmentdef CodeEngineAnimate       [startAfter="CodeLruCache"] 
-.segmentdef CodeEngineFloor         [startAfter="CodeEngineAnimate"] 
-.segmentdef CodeEngineFlight        [startAfter="CodeEngineFloor"] 
-.segmentdef CodeEnginePalette       [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
 
 .segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
 .segmentdef DataBramHeap            [startAfter="Data"] 
 .segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
 .segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
-.segmentdef DataEngineFloor         [startAfter="DataEngineAnimate"] 
-.segmentdef DataEnginePalette       [startAfter="DataEngineFloor"] 
-.segmentdef DataEngineStages        [startAfter="DataEnginePalette"]
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
 .segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
 .segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
 .segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
@@ -60,8 +60,8 @@
 .segmentdef Debug                   [startAfter="Hash", align=$100]
 
 .segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
 
-.segmentdef BramVeraHeap            [start=$A000,               min=$A000, max=$BFFF, align=$100]
 //.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
 //.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
 

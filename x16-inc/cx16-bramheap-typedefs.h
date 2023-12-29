@@ -1,4 +1,4 @@
-#pragma once
+
 
 /**
  * @file cx16-heap.h
@@ -13,7 +13,7 @@
 
 #include <cx16.h>
 
-// #define BRAM_HEAP_WORD
+//#define BRAM_HEAP_WORD
 
 
 typedef unsigned char bram_heap_bank_t;
@@ -63,47 +63,53 @@ typedef unsigned char bram_heap_segment_index_t;
  * Contains condensed pointers to next and previous header blocks.
  */
 typedef struct {
+    #ifdef BRAM_HEAP_WORD
+	bram_heap_data_packed_t data[BRAM_HEAP_INDEXES];
+	bram_heap_size_packed_t size[BRAM_HEAP_INDEXES];
+    #else
 	bram_heap_index_data_packed_t data0[BRAM_HEAP_INDEXES];
 	bram_heap_index_data_packed_t data1[BRAM_HEAP_INDEXES];
 	bram_heap_index_size_packed_t size0[BRAM_HEAP_INDEXES];
 	bram_heap_index_size_packed_t size1[BRAM_HEAP_INDEXES];
+    #endif
 	bram_heap_index_t next[BRAM_HEAP_INDEXES];
 	bram_heap_index_t prev[BRAM_HEAP_INDEXES];
 	bram_heap_index_t right[BRAM_HEAP_INDEXES];
 	bram_heap_index_t left[BRAM_HEAP_INDEXES];
 } bram_heap_map_t;
 
-
-#ifndef VERAHEAP_SEGMENTS
-    #define VERAHEAP_SEGMENTS 4
+#ifndef BRAM_HEAP_SEGMENTS
+    #define BRAM_HEAP_SEGMENTS 1
 #endif
-
 typedef struct {
 
-    bram_heap_bank_t            bram_bank;
+    unsigned char segments;
+
 	bram_heap_index_t           index_position;
+    
+    bram_heap_bank_t            bram_bank_floor[BRAM_HEAP_SEGMENTS];
+    bram_heap_ptr_t             bram_ptr_floor[BRAM_HEAP_SEGMENTS];
+    bram_heap_data_packed_t     floor[BRAM_HEAP_SEGMENTS];
 
-    bram_heap_bank_t            bram_bank_floor[VERAHEAP_SEGMENTS];
-    bram_heap_ptr_t             bram_ptr_floor[VERAHEAP_SEGMENTS];
-    bram_heap_data_packed_t     floor[VERAHEAP_SEGMENTS];
+    bram_heap_bank_t            bram_bank_ceil[BRAM_HEAP_SEGMENTS];
+    bram_heap_ptr_t             bram_ptr_ceil[BRAM_HEAP_SEGMENTS];
+    bram_heap_data_packed_t     ceil[BRAM_HEAP_SEGMENTS];
 
-    bram_heap_bank_t            bram_bank_ceil[VERAHEAP_SEGMENTS];
-    bram_heap_ptr_t             bram_ptr_ceil[VERAHEAP_SEGMENTS];
-    bram_heap_data_packed_t     ceil[VERAHEAP_SEGMENTS];
+    bram_heap_index_t           heap_list[BRAM_HEAP_SEGMENTS];
+    bram_heap_index_t           free_list[BRAM_HEAP_SEGMENTS];
+    bram_heap_index_t           idle_list[BRAM_HEAP_SEGMENTS];
 
-    bram_heap_index_t           heap_list[VERAHEAP_SEGMENTS];
-    bram_heap_index_t           free_list[VERAHEAP_SEGMENTS];
-    bram_heap_index_t           idle_list[VERAHEAP_SEGMENTS];
+	bram_heap_data_packed_t     heap_offset[BRAM_HEAP_SEGMENTS];
 
-	bram_heap_data_packed_t     heap_offset[VERAHEAP_SEGMENTS];
+	unsigned int                heapCount[BRAM_HEAP_SEGMENTS];
+	unsigned int                freeCount[BRAM_HEAP_SEGMENTS];
+    unsigned int                idleCount[BRAM_HEAP_SEGMENTS];
+	unsigned int                heapSize[BRAM_HEAP_SEGMENTS];
+	unsigned int                freeSize[BRAM_HEAP_SEGMENTS];
 
-	unsigned int                heapCount[VERAHEAP_SEGMENTS];
-	unsigned int                freeCount[VERAHEAP_SEGMENTS];
-    unsigned int                idleCount[VERAHEAP_SEGMENTS];
-	unsigned int                heapSize[VERAHEAP_SEGMENTS];
-	unsigned int                freeSize[VERAHEAP_SEGMENTS];
-
-    unsigned char color;
+    bram_heap_bank_t            bram_bank;
+    
+	// bram_heap_index_t           index_position;
 
 } bram_heap_segment_t;
 

@@ -9,7 +9,7 @@
  * 
  */
 
-#pragma once
+
 
 typedef unsigned char const ht_size_t;
 typedef unsigned char ht_key_t;

@@ -9,7 +9,7 @@
  * 
  */
 
-#pragma once
+
 #include <cx16.h>
 
 
