@@ -303,7 +303,7 @@ vera_heap_index_t vera_heap_idle_insert(vera_heap_segment_index_t s, vera_heap_i
 	return vera_heap_segment.idle_list[s];
 }
 
-void heap_idle_remove(vera_heap_segment_index_t s, vera_heap_index_t idle_index) {
+void vera_heap_idle_remove(vera_heap_segment_index_t s, vera_heap_index_t idle_index) {
 	vera_heap_segment.idleCount[s]--;
 	vera_heap_segment.idle_list[s] = vera_heap_list_remove(s, vera_heap_segment.idle_list[s], idle_index);
 }
@@ -325,7 +325,7 @@ vera_heap_index_t vera_heap_index_add(vera_heap_segment_index_t s) {
 	vera_heap_index_t index = vera_heap_segment.idle_list[s];
 
 	if(index != VERAHEAP_NULL) {
-		heap_idle_remove(s, index);
+		vera_heap_idle_remove(s, index);
 	} else {
 		// The current header gets the current heap position handle.
 		index = vera_heap_segment.index_position;
@@ -550,7 +550,7 @@ vera_heap_index_t vera_heap_can_coalesce_left(vera_heap_segment_index_t s, vera_
 /**
  * Whether we should merge this header to the right.
  */
-vera_heap_index_t heap_can_coalesce_right(vera_heap_segment_index_t s, vera_heap_index_t heap_index) {
+vera_heap_index_t vera_heap_can_coalesce_right(vera_heap_segment_index_t s, vera_heap_index_t heap_index) {
 
     vera_heap_data_packed_t heap_offset = vera_heap_get_data_packed(s, heap_index);
 
@@ -788,7 +788,7 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
         free_index = vera_heap_coalesce(s, free_left_index, free_index);
     } 
 
-    vera_heap_index_t free_right_index = heap_can_coalesce_right(s, free_index);
+    vera_heap_index_t free_right_index = vera_heap_can_coalesce_right(s, free_index);
     if(free_right_index != VERAHEAP_NULL) {
         free_index = vera_heap_coalesce(s, free_index, free_right_index);
     }
@@ -825,6 +825,7 @@ void vera_heap_free(vera_heap_segment_index_t s, vera_heap_index_t free_index)
  */
 void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char veraheap_dx, unsigned char veraheap_dy)
 {
+/*     
 
     vera_heap_index_t list = vera_heap_segment.heap_list[s];
 
@@ -881,7 +882,7 @@ void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char ver
 
     
     bank_pull_bram();
-
+ */
 }
 
 
@@ -893,7 +894,7 @@ void vera_heap_dump_graphic_print(vera_heap_segment_index_t s, unsigned char ver
  */
 void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_heap_index_t list, unsigned int heap_count)
 {
-
+/* 
 	if (list == VERAHEAP_NULL) return;
 	vera_heap_index_t index = list;	
     vera_heap_index_t prev_index = list;
@@ -914,7 +915,8 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
             break;
         }
         prev_index = index;
-	} while (index != end_index);
+	} while (index != end_index); 
+*/
 }
 
 
@@ -925,13 +927,14 @@ void vera_heap_dump_index_print(vera_heap_segment_index_t s, char prefix, vera_h
  */
 void vera_heap_dump_stats(vera_heap_segment_index_t s, unsigned char x, unsigned char y)
 {
-    vera_heap_dump_xy(x, y);
+/*     vera_heap_dump_xy(x, y);
     gotoxy(veraheap_dx, veraheap_dy++);
 	printf("size  heap:%05x  free:%05x", vera_heap_alloc_size(s), vera_heap_free_size(s));
     gotoxy(veraheap_dx, veraheap_dy++);
 	printf("count  heap:%04u  free:%04u  idle:%04u", vera_heap_alloc_count(s), vera_heap_free_count(s), vera_heap_idle_count(s));
     gotoxy(veraheap_dx, veraheap_dy++);
 	printf("list   heap:%03x   free:%03x   idle:%03x", vera_heap_segment.heap_list[s], vera_heap_segment.free_list[s], vera_heap_segment.idle_list[s]);
+*/
 }
 
 /**
@@ -941,7 +944,7 @@ void vera_heap_dump_stats(vera_heap_segment_index_t s, unsigned char x, unsigned
  */
 void vera_heap_dump_index(vera_heap_segment_index_t s)
 {
-	bram_bank_t bank_old = bank_get_bram();
+/* 	bram_bank_t bank_old = bank_get_bram();
 
     bank_set_bram(vera_heap_segment.bram_bank);
 
@@ -955,12 +958,15 @@ void vera_heap_dump_index(vera_heap_segment_index_t s)
 	vera_heap_dump_index_print(s, 'H', vera_heap_segment.heap_list[s], vera_heap_segment.heapCount[s]);
 
     bank_set_bram(bank_old);
+*/
 }
+
 
 void vera_heap_dump_xy(unsigned char x, unsigned char y) 
 {
-    veraheap_dx = x;
+/*     veraheap_dx = x;
     veraheap_dy = y;
+*/
 }
 
 /**
@@ -970,10 +976,11 @@ void vera_heap_dump_xy(unsigned char x, unsigned char y)
  */
 void vera_heap_dump(vera_heap_segment_index_t s, unsigned char x, unsigned char y)
 {
-    vera_heap_dump_xy(x, y);
+/*     vera_heap_dump_xy(x, y);
 
 	vera_heap_dump_stats(s, x, y);
 	vera_heap_dump_index(s);
+*/
 }
 
 /**

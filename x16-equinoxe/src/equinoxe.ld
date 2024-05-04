@@ -72,7 +72,7 @@
 .segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
 .segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
 
-.segmentdef BramEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
 .segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
 .segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
 

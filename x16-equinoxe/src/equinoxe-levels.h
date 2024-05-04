@@ -344,44 +344,44 @@ __export volatile stage_player_t stage_player = { p001, &stage_player_engine, &s
 
 #define  action_end                     { 0 }
 
-const stage_flightpath_t action_flightpath_000[] = {
+stage_flightpath_t action_flightpath_000[] = {
     { { .move = {320, 16, 0} },    STAGE_ACTION_MOVE,         0 }
 };
 
-const stage_flightpath_t action_flightpath_001[] = {
+stage_flightpath_t action_flightpath_001[] = {
     { { .move = action_move_00 },    STAGE_ACTION_MOVE,        1 },
     { { .end = action_end },        STAGE_ACTION_END,         0 }
 };
 
-const stage_flightpath_t action_flightpath_left_circle_002[] = {
+stage_flightpath_t action_flightpath_left_circle_002[] = {
     { { .move = action_move_left_480_01 },    STAGE_ACTION_MOVE,        1 },
     { { .turn = action_turn_00 },    STAGE_ACTION_TURN,        2 },
     { { .move = action_move_02 },    STAGE_ACTION_MOVE,        1 }
 };
 
-const stage_flightpath_t action_flightpath_right_circle_003[] = {
+stage_flightpath_t action_flightpath_right_circle_003[] = {
     { { .move = action_move_right_480_03 },    STAGE_ACTION_MOVE,        1 },
     { { .turn = action_turn_01 },    STAGE_ACTION_TURN,        2 },
     { { .move = action_move_02 },    STAGE_ACTION_MOVE,        1 }
 };
 
-const stage_flightpath_t action_flightpath_004[] = {
+stage_flightpath_t action_flightpath_004[] = {
     { { .move = action_move_04 },    STAGE_ACTION_MOVE,        1 },
     { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
 
-const stage_flightpath_t action_flightpath_005[] = {
+stage_flightpath_t action_flightpath_005[] = {
     { { .move = action_move_05 },    STAGE_ACTION_MOVE,        1 },
     { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
-const stage_flightpath_t action_flightpath_006[] = {
+stage_flightpath_t action_flightpath_006[] = {
     { { .move = { 768, 0, 2 } },    STAGE_ACTION_MOVE,        1 },
     { { .end = action_end },        STAGE_ACTION_END,         0 },
 };
 
-const stage_scenario_t stage_scenario_01_b[32] = {
+stage_scenario_t stage_scenario_01_b[32] = {
 //    ct, sp, enemy_xxx,            action_flightpath_xxx,                  xstrt,  ystrt,  xinc,   yinc,   ival,   wait,   prv,    fill    
     {  1,  1, &stage_enemy_e0401,   action_flightpath_000,                  320,    160,    0,      0,      4,      10,     255,    0 }, // 0
     {  1,  1, &stage_enemy_e0701,   action_flightpath_000,                  160,    160,    0,      0,      4,      20,     0,      0 }, // 1

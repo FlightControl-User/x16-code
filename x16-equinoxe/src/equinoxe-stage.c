@@ -1,5 +1,13 @@
 
-#include "equinoxe.h"
+// #include "equinoxe.h"
+
+#include "equinoxe-defines.h"
+
+#include "equinoxe-stage.h"
+#include "equinoxe-player.h"
+#include "equinoxe-bullet.h"
+#include "equinoxe-enemy.h"
+#include "equinoxe-floorengine.h"
 
 #pragma data_seg(DATA_ENGINE_STAGES)
 
@@ -67,6 +75,9 @@ void stage_load_player(stage_player_t* stage_player)
     sprite_index_t player_sprite = stage_player->player_sprite;
         
     stage.sprite_offset = fe_sprite_bram_load(player_sprite, stage.sprite_offset);
+
+    // gotoxy(0,0);
+    // printf("player_sprite = %u", player_sprite);
         
     stage_engine_t* stage_engine = stage_player->stage_engine;
     sprite_index_t engine_sprite = stage_engine->engine_sprite;
@@ -179,10 +190,17 @@ static void stage_load(void)
     stage_scenario_t* stage_scenarios_b = stage_playbook_b->scenarios_b;
     unsigned int stage_scenario_total = stage_playbook_b->scenario_total_b;
 
-#ifdef __FLOOR
-    stage_load_floor(stage_playbook_b->stage_floor);
+#ifdef __PLAYER
+    stage_load_player(stage_playbook_b->stage_player);
 #endif
 
+#if defined(__ENEMY)
+    // Loading the enemy sprites in bram.
+    for(unsigned int scenario = 0; scenario < stage_scenario_total; scenario++) {
+        stage_scenario_t* stage_scenario = &stage_scenarios_b[scenario];
+        stage_load_enemy(stage_scenario->stage_enemy);
+    }
+#endif
 
 #ifdef __TOWER
     // Loading towers tiles and towers sprites in bram.
@@ -193,19 +211,9 @@ static void stage_load(void)
 #endif
 
 
-#ifdef __PLAYER
-    stage_load_player(stage_playbook_b->stage_player);
+#ifdef __FLOOR
+    stage_load_floor(stage_playbook_b->stage_floor);
 #endif
-
-
-#if defined(__ENEMY)
-    // Loading the enemy sprites in bram.
-    for(unsigned int scenario = 0; scenario < stage_scenario_total; scenario++) {
-        stage_scenario_t* stage_scenario = &stage_scenarios_b[scenario];
-        stage_load_enemy(stage_scenario->stage_enemy);
-    }
-#endif
-
 
 }
 
@@ -353,11 +361,11 @@ void stage_bullet_remove(flight_index_t b) {
 #endif
 }
 
-void stage_logic()
+void stage_logic(unsigned char tickstage)
 {
     if(stage.playbook_current < stage.script_b.playbook_total_b) {
         
-        if(!(game.tickstage & 0x03)) {
+        if(!(tickstage & 0x03)) {
 
             #ifdef __FLOOR
                 floor_evolve();

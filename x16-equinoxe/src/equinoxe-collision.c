@@ -7,7 +7,8 @@
 // #include "equinoxe-tower.h"
 // #include "equinoxe-enemy.h"
 // #include "equinoxe-types.h"
-#include "equinoxe.h"
+#include "equinoxe-cx16.h"
+#include "equinoxe-collision.h"
 // #include "stdio.h"
 
 #pragma data_seg(Hash)

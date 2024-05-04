@@ -1,8 +1,21 @@
-#include "../src/equinoxe-animate-types.h"
-#include "../src/equinoxe-stage-types.h"
-// #include "equinoxe-stage.h"
+#pragma link("equinoxe.ld")
+
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+#pragma asm_library
+#pragma calling(__varcall)
+#pragma asm_export(animate_init, animate_add, animate_logic)
+#pragma asm_export(animate_is_waiting, animate_get_image, animate_get_transition)
+#pragma asm_export(animate_del, animate_player, animate_tower)
+#pragma calling(__phicall)
+
 #include <cx16.h>
-// #include "../src/equinoxe-flightengine.h"
+#include "equinoxe-animate-types.h"
+
+#include "equinoxe-animate.h"
+
+#pragma code_seg(CodeEngineAnimate)
+#pragma data_seg(DataEngineAnimate)
 
 sprite_animate_t animate;
 

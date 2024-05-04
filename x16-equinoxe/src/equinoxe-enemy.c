@@ -1,5 +1,4 @@
-#include <cx16.h>
-#include "equinoxe.h"
+#include "equinoxe-cx16.h"
 #include "equinoxe-animate.h"
 
 

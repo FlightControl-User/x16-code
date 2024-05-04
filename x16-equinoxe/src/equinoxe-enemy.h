@@ -1,6 +1,6 @@
 
 
-#include "equinoxe.h"
+#include "equinoxe-cx16.h"
 
 // #include "equinoxe-flightengine.h"
 #include "equinoxe-collision.h"

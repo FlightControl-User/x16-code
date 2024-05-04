@@ -14,6 +14,16 @@
 
 #include "equinoxe-bank.h"
 
+// Global defines
+#define BRAM_HEAP_SEGMENTS 2
+
+#define VERA_HEAP_SEGMENT_TILES     0
+#define VERA_HEAP_SEGMENT_SPRITES   1
+
+// Side constants to determine the coalition.
+#define SIDE_PLAYER 0
+#define SIDE_ENEMY 1
+
 // #define __CONIO_BSOUT
 // #define __LAYER1
 // #define __NOVSYNC
@@ -22,14 +32,14 @@
 #define __PALETTE
 
 #define __FLIGHT
-// #define __STAGE
-// #define __COLLISION
+#define __STAGE
+#define __COLLISION
 
 // #define __FLOOR
 // #define __TOWER
 #define __PLAYER
-// #define __BULLET
-// #define __ENEMY
+#define __BULLET
+#define __ENEMY
 #define __ENGINE
 
 #define __BANKING

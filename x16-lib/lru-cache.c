@@ -14,10 +14,10 @@
 
 #include <cx16.h>
 #include <lru-cache.h>
-#include <conio.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// #include <conio.h>
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <string.h>
 
 lru_cache_table_t lru_cache;
 
@@ -332,6 +332,7 @@ lru_cache_data_t lru_cache_delete(lru_cache_key_t key)
 
 // Only for debugging
 void lru_cache_display(char x, char y) {
+/*
     unsigned char col = 0;
 
     gotoxy(x, y);
@@ -395,4 +396,5 @@ void lru_cache_display(char x, char y) {
         index = lru_cache.next[index];
         count++;
     }
+*/
 }

@@ -1,4 +1,6 @@
-#include "equinoxe.h"
+#include "equinoxe-cx16.h"
+#include "equinoxe-math.h"
+#include "equinoxe-bullet.h"
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_BULLETS)

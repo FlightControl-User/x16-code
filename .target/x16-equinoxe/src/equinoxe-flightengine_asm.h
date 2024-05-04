@@ -1,0 +1,14 @@
+extern __asm_import("equinoxe-flightengine") __mem() fe_sprite_cache_t sprite_cache;
+extern __asm_import("equinoxe-flightengine") __mem() flight_t flight;
+extern __varcall __asm_import("equinoxe-flightengine") void flight_init();
+extern __varcall __asm_import("equinoxe-flightengine") __zp_reserve( 51,52,53,54 ) __mem() char flight_add(__mem() char type, __mem() char side, __mem() char sprite);
+extern __varcall __asm_import("equinoxe-flightengine") void flight_remove(__mem() char type, __mem() char f);
+extern __varcall __asm_import("equinoxe-flightengine") __mem() char flight_root(__mem() char type);
+extern __varcall __asm_import("equinoxe-flightengine") __mem() char flight_next(__mem() char i);
+extern __varcall __asm_import("equinoxe-flightengine") __mem() signed char flight_hit(__mem() char f, __mem() signed char impact);
+extern __varcall __asm_import("equinoxe-flightengine") __mem() signed char flight_impact(__mem() char f);
+extern __varcall __asm_import("equinoxe-flightengine") __mem() char flight_has_collided(__mem() char f);
+extern __varcall __asm_import("equinoxe-flightengine") __zp_reserve( 55,56,57,36,58,37,49,50,51,52 ) void flight_draw();
+extern __varcall __asm_import("equinoxe-flightengine") __zp_reserve( 55,56,57,36,58,37,49,50,51,52 ) __mem() unsigned int sprite_image_cache_vram(__mem() char sprite_cache_index, __mem() char fe_sprite_image_index);
+extern __varcall __asm_import("equinoxe-flightengine") __zp_reserve( 44,55,34,56,35,57,36,58,37,51,52,41,53,42,54,43 ) __mem() unsigned int fe_sprite_bram_load(__mem() char sprite_index, __mem() unsigned int sprite_offset);
+extern __phicall __asm_import("equinoxe-flightengine") void __equinoxe_flightengine_start();

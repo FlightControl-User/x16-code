@@ -7,10 +7,12 @@
 // #include <cx16-veralib.h>
 // #include <cx16-veraheap-typedefs.h>
 
-#include "cx16-bramheap-typedefs.h"
+#include "cx16-bramheap-segments-typedefs.h"
 #include "cx16-veraheap-typedefs.h"
+#include "lru-cache-typedefs.h"
 #include "equinoxe-bank.h"
 #include "equinoxe-palette-types.h"
+#include "equinoxe-collision-types.h"
 #include "equinoxe-flightengine-types.h"
 #include "equinoxe-floorengine-types.h"
 #include "equinoxe-tower-types.h"
@@ -18,20 +20,6 @@
 #include "equinoxe-tower-types.h"
 #include "equinoxe-bullet-types.h"
 #include "equinoxe-stage-types.h"
-
-
-// Side constants to determine the coalition.
-const byte SIDE_PLAYER = 0;
-const byte SIDE_ENEMY = 1;
-
-
-
-// FLOOR
-
-
-// SPRITES
-
-
 
 typedef struct {
     unsigned char layers;

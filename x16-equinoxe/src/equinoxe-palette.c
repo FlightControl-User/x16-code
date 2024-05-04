@@ -9,10 +9,23 @@
  * 
  */
 
+#pragma link("equinoxe.ld")
+
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+
+#pragma asm_library
+#pragma calling(__varcall)
+#pragma asm_export(palette_init, palette_alloc_bram, palette_ptr_bram)
+#pragma asm_export(palette_use_vram, palette_unuse_vram, palette_free_vram)
+#pragma calling(__phicall)
+#pragma code_seg(CodeEnginePalette)
+#pragma data_seg(DataEnginePalette)
+
 #include <cx16.h>
 
 #include <cx16-vera.h>
-#include "../src/equinoxe-palette-types.h"
+#include "equinoxe-palette-types.h"
 
 #pragma data_seg(BramEnginePalette)
 palette_bram_t palette_bram; // List of palettes in bram! Dynamically loaded!

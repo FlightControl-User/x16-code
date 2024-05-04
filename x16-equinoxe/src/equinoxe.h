@@ -4,6 +4,7 @@
 
 #include "equinoxe-defines.h"
 
+
 #include <cx16.h>
 #include <cx16-irq.h>
 #include "cx16-vera.h"
@@ -23,36 +24,30 @@
 #include <cx16-mouse.h>
 
 
-#pragma var_model(zp)
-
 #include <ht.h>
-#include <lib-lru-cache_asm.h>
 
 #include "equinoxe-types.h"
 #include "equinoxe-bank.h"
 #include "equinoxe-defines.h"
 
-#define BRAM_HEAP_SEGMENTS 2
-#include <lib-bramheap_asm.h>
+#include <lib_lru_cache_asm.h>
+#include <lib_bramheap_asm.h>
+#include <lib_veraheap_asm.h>
 
-// #pragma bank(cx16_ram, BANK_VERA_HEAP)
-#include <lib-veraheap_asm.h>
-// #pragma nobank
+#include "equinoxe-palette_asm.h"
 
-#include "lib-palette_asm.h"
-#include "lib-animate_asm.h"
+#include "equinoxe-animate_asm.h"
 
-#define VERA_HEAP_SEGMENT_TILES     (vera_heap_segment_index_t)0
-#define VERA_HEAP_SEGMENT_SPRITES   (vera_heap_segment_index_t)1
+#include <cx16_file_asm.h>
+
 
 #include "equinoxe-math.h"
 #include "equinoxe-levels.h"
 
-#pragma var_model(mem)
-#include "equinoxe-flightengine.h"
+// #include "equinoxe-flightengine.h"
 
 #ifdef __FLOOR
-#include "equinoxe-floorengine.h"
+// #include "equinoxe-floorengine.h"
 #endif
 
 

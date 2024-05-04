@@ -1,11 +1,53 @@
-#include "equinoxe.h"
+#pragma link("equinoxe-lib.ld")
+
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+
+#pragma asm_library
+#pragma calling(__varcall)
+#pragma asm_export(flight_init)
+#pragma asm_export(flight_add)
+#pragma asm_export(flight_remove)
+#pragma asm_export(flight_root)
+#pragma asm_export(flight_next)
+#pragma asm_export(flight_hit)
+#pragma asm_export(flight_impact)
+#pragma asm_export(flight_has_collided)
+#pragma asm_export(flight_draw)
+#pragma asm_export(sprite_image_cache_vram)
+#pragma asm_export(fe_sprite_bram_load)
+
+#pragma asm_export(flight)
+#pragma asm_export(sprite_cache)
+
+#pragma calling(__phicall)
+
+#define BRAM_HEAP_SEGMENTS 2
+
+#include "equinoxe-defines.h"
+#include "equinoxe-types.h"
+#include <stdio-types.h>
+
+#include <lib_conio_asm.h>
+#include <lib_lru_cache_asm.h>
+#include <lib_veraheap_asm.h>
+#include <lib_bramheap_asm.h>
+#include <lib_file_asm.h>
+
+#include "equinoxe-layers_asm.h"
+#include "equinoxe-animate_asm.h"
+#include "equinoxe-palette_asm.h"
+
+#include "equinoxe-flightengine.h"
+#include "equinoxe-levels.h"
+
 
 #pragma data_seg(DATA_SPRITE_CACHE)
 // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
-fe_sprite_cache_t sprite_cache;
+__asm_export fe_sprite_cache_t sprite_cache;
 
 #pragma data_seg(DATA_ENGINE_FLIGHT)
-flight_t flight;
+__asm_export flight_t flight;
 
 volatile fe_t sprite_cache_pool; // Flight engine control.
 vera_sprite_offset flight_sprite_offsets[127] = {0};
@@ -62,11 +104,14 @@ flight_index_t flight_add(flight_type_t type, flight_side_t side, sprite_index_t
     flight.reload[f] = 0;
     flight.delay[f] = 0;
 
-    unsigned char s = fe_sprite_cache_copy(sprite);
-    flight.cache[f] = s;
+    unsigned char si = fe_sprite_cache_copy(sprite);
+    flight.cache[f] = si;
 
     flight.sprite_offset[f] = flight_sprite_next_offset();
-    fe_sprite_configure(flight.sprite_offset[f], s);
+    unsigned int sprite_offset = flight.sprite_offset[f];
+    fe_sprite_configure(flight.sprite_offset[f], si);
+    // gotoxy(0,2);
+    // printf("flight add:sprite offset %u = %x", f, sprite_offset);
 
     return f;
 }
@@ -85,6 +130,15 @@ void flight_remove(flight_type_t type, flight_index_t f) {
         // Remove 4
         // p.r = 3 => f[3].n = 2, f[2].n = 1, f[1].n = -
         //         => f[3].p = -, f[2].p = 3, f[1].p = 2
+
+        vera_sprite_offset sprite_offset = flight.sprite_offset[f];
+        flight_sprite_free_offset(sprite_offset);
+        // gotoxy(0,3);
+        // printf("flight remove:sprite offset %u = %x", f, sprite_offset);
+        vera_sprite_disable(sprite_offset);
+        palette_unuse_vram(sprite_cache.palette_offset[flight.cache[f]]);
+        fe_sprite_cache_free(flight.cache[f]);
+
         flight_index_t r = flight.root[type];
         if(!flight.next[r]) {
             flight.root[type] = NULL;
@@ -103,12 +157,6 @@ void flight_remove(flight_type_t type, flight_index_t f) {
         }
         flight.next[f] = NULL;
         flight.prev[f] = NULL;
-
-        vera_sprite_offset sprite_offset = flight.sprite_offset[f];
-        flight_sprite_free_offset(sprite_offset);
-        vera_sprite_disable(sprite_offset);
-        palette_unuse_vram(sprite_cache.palette_offset[flight.cache[f]]);
-        fe_sprite_cache_free(flight.cache[f]);
     }
 }
 
@@ -139,8 +187,6 @@ unsigned char flight_has_collided(unsigned char f) {
 }
 
 void flight_draw() {
-
-    // BREAKPOINT
 
     for (unsigned char f = 0; f < FLIGHT_OBJECTS; f++) {
 
@@ -207,7 +253,6 @@ vera_sprite_offset flight_sprite_next_offset() {
         flight_sprite_offset_pool = (flight_sprite_offset_pool + 1) % 128;
     }
 
-    stage.sprite_count++;
     vera_sprite_offset sprite_offset = vera_sprite_get_offset(flight_sprite_offset_pool);
     flight_sprite_offsets[flight_sprite_offset_pool] = sprite_offset;
     return sprite_offset;
@@ -216,7 +261,6 @@ vera_sprite_offset flight_sprite_next_offset() {
 void flight_sprite_free_offset(vera_sprite_offset sprite_offset) {
     vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset);
     flight_sprite_offsets[sprite_id] = 0;
-    stage.sprite_count--;
 }
 
 #ifdef __DEBUG_SPRITE_CACHE
@@ -471,11 +515,11 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
         printf("\n%10s : ", filename);
 #endif
 
+
         FILE *fp = fopen(filename, "r");
         if (!fp) {
 #ifdef __INCLUDE_PRINT
-            if (status)
-                printf("error opening file %s\n", filename);
+            printf("error opening file %s\n", filename);
 #endif
         } else {
             sprite_file_header_t sprite_file_header;
@@ -485,9 +529,7 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
 
             if (!read) {
 #ifdef __INCLUDE_PRINT
-                if (end) {
-                    printf("error loading file %s, status = %u\n", filename, status);
-                }
+                printf("error loading file %s\n", filename);
 #endif
 
             } else {
@@ -532,7 +574,7 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
 #ifdef __DEBUG_HEAP_BRAM
                     gotoxy(40,2);
                     printf("sprite_ptr = %p\n", sprite_ptr);
-                    bram_heap_dump(0,0,2);
+                    // bram_heap_dump(0,0,2);
                     // bram_heap_dump_stats(0);
                     while(!kbhit());
 #endif
@@ -543,7 +585,7 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
                     if (!read) {
 #ifdef __INCLUDE_PRINT
                         if (!read) {
-                            printf("error loading file %s, status = %u\n", filename, status);
+                            printf("error loading file %s\n", filename);
                             break;
                         }
 #endif
@@ -557,8 +599,7 @@ unsigned int fe_sprite_bram_load(sprite_index_t sprite_index, unsigned int sprit
                 // Now we have read everything and we close the file.
                 if (fclose(fp)) {
 #ifdef __INCLUDE_PRINT
-                    if (status)
-                        printf("error closing file %s\n", sprites.file);
+                    printf("error closing file %s\n", filename);
 #endif
                 } else {
                     sprites.loaded[sprite_index] = 1;

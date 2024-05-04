@@ -1,5 +1,3 @@
-
-
 #include "equinoxe-types.h"
 
 volatile extern stage_t stage;
@@ -10,7 +8,7 @@ volatile extern stage_wave_t wave;
 void stage_reset();
 void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite);
 void stage_enemy_remove(unsigned char e);
-void stage_logic();
+void stage_logic(unsigned char tickstage);
 
 void stage_impact(unsigned char f, flight_index_t h);
 

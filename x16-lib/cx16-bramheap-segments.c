@@ -849,7 +849,7 @@ void bram_heap_free(bram_heap_segment_index_t s, bram_heap_index_t free_index)
  */
 void bram_heap_dump_graphic_print(bram_heap_segment_index_t s, unsigned char veraheap_dx, unsigned char veraheap_dy)
 {
-
+/*
 
     bram_heap_index_t list = bram_heap_segment.heap_list[s];
 
@@ -907,7 +907,7 @@ void bram_heap_dump_graphic_print(bram_heap_segment_index_t s, unsigned char ver
 
     
     bank_set_bram(bram_bank);
-
+*/
 }
 
 
@@ -919,7 +919,7 @@ void bram_heap_dump_graphic_print(bram_heap_segment_index_t s, unsigned char ver
  */
 void bram_heap_dump_index_print(bram_heap_segment_index_t s, char prefix, bram_heap_index_t list, unsigned int heap_count)
 {
-
+/*
 	if (list == BRAM_HEAP_NULL) return;
 	bram_heap_index_t index = list;	
     bram_heap_index_t prev_index = list;
@@ -941,8 +941,8 @@ void bram_heap_dump_index_print(bram_heap_segment_index_t s, char prefix, bram_h
         }
         prev_index = index;
 	} while (index != end_index);
-}
-
+   
+*/}
 
 /**
  * @brief Print the heap memory manager statistics of the segment.
@@ -951,6 +951,7 @@ void bram_heap_dump_index_print(bram_heap_segment_index_t s, char prefix, bram_h
  */
 void bram_heap_dump_stats(bram_heap_segment_index_t s)
 {
+/*
     bram_heap_size_t alloc_size = bram_heap_alloc_size(s);
     bram_heap_size_t free_size = bram_heap_free_size(s);
     unsigned int alloc_count = bram_heap_alloc_count(s);
@@ -960,12 +961,14 @@ void bram_heap_dump_stats(bram_heap_segment_index_t s)
     bram_heap_index_t free = bram_heap_segment.free_list[s];
     bram_heap_index_t idle = bram_heap_segment.idle_list[s];
 
+    
     gotoxy(bramheap_dx, bramheap_dy++);
 	printf("size  heap:%05x  free:%05x   pos:%03x", alloc_size, free_size, bram_heap_segment.index_position[s]);
     gotoxy(bramheap_dx, bramheap_dy++);
 	printf("count  heap:%04u  free:%04u  idle:%04u", alloc_count, free_count, idle_count);
     gotoxy(bramheap_dx, bramheap_dy++);
 	printf("list   heap:%03x   free:%03x   idle:%03x", bram_heap_segment.heap_list[s], bram_heap_segment.free_list[s], bram_heap_segment.idle_list[s]);
+*/
 }
 
 /**
@@ -975,6 +978,7 @@ void bram_heap_dump_stats(bram_heap_segment_index_t s)
  */
 void bram_heap_dump_index(bram_heap_segment_index_t s)
 {
+/*
 	bram_bank_t bank_old = bank_get_bram();
 
     bank_set_bram(bram_heap_segment.bram_bank);
@@ -989,12 +993,15 @@ void bram_heap_dump_index(bram_heap_segment_index_t s)
 	bram_heap_dump_index_print(s, 'H', bram_heap_segment.heap_list[s], bram_heap_segment.heapCount[s]);
 
     bank_set_bram(bank_old);
+*/
 }
 
-void bram_heap_dump_xy(unsigned char x, unsigned char y) 
+void bram_heap_dump_xy(unsigned char x, unsigned char y)
 {
+/*
     bramheap_dx = x;
     bramheap_dy = y;
+*/
 }
 
 /**
@@ -1004,10 +1011,12 @@ void bram_heap_dump_xy(unsigned char x, unsigned char y)
  */
 void bram_heap_dump(bram_heap_segment_index_t s, unsigned char x, unsigned char y)
 {
+/*
     bram_heap_dump_xy(x, y);
 
 	bram_heap_dump_stats(s);
 	bram_heap_dump_index(s);
+*/
 }
 
 /**

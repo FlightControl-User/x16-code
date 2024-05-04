@@ -15,7 +15,7 @@
 #include <cx16-vera.h>
 #include "../src/equinoxe-palette-types.h"
 
-extern palette_bram_t palette_bram; // List of palette definitions.
+// extern palette_bram_t palette_bram; // List of palette definitions.
 
 void palette_init(bram_bank_t bram_bank);
 

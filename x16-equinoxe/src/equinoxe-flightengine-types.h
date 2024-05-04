@@ -1,15 +1,23 @@
-
-
-
 // #include <cx16-vera.h>
 // #include <cx16-veralib.h>
 #include "cx16-veraheap-typedefs.h"
 // #include <fp3.h>
 // #include <ht.h>
-#include <cx16-bramheap-typedefs.h>
 #include "equinoxe-animate-types.h"
+#include "cx16-bramheap-segments-typedefs.h"
 
 #define FLIGHT_OBJECTS 64
+
+#define FLIGHT_PLAYER       (0x00)
+#define FLIGHT_ENEMY        (0x01)
+#define FLIGHT_TOWER        (0x02)
+#define FLIGHT_BULLET       (0x03)
+#define FLIGHT_ENGINE       (0x04)
+#define FLIGHT_EXPLOSION    (0x05)
+
+#define SIDE_ENEMY          (0x01)
+#define SIDE_PLAYER         (0x02)
+#define SIDE_SCENERY        (0x04)
 
 typedef unsigned char fe_sprite_index_t;
 

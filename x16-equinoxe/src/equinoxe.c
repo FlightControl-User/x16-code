@@ -4,10 +4,25 @@
 #pragma encoding(petscii_mixed)
 // #pragma cpu(mos6502)
 #pragma var_model(mem, local_mem)
-#pragma zp_reserve(0x00..0x21, 0x80..0xa8, 0xfc..0xff)
+
+#include "equinoxe-types.h"
+
+#include <lib_conio_asm.h>
+#include <equinoxe-flightengine_asm.h>
+#include <stdio-types.h>
+#include <lib_file_asm.h>
+#include <lib_lru_cache_asm.h>
+#include <lib_bramheap_asm.h>
+#include <lib_veraheap_asm.h>
 
 #include "equinoxe.h"
-#include "equinoxe-petscii.c"
+
+#include "equinoxe-layers_asm.h"
+#include "equinoxe-animate_asm.h"
+#include "equinoxe-palette_asm.h"
+
+#include "equinoxe-levels.h"
+
 
 #pragma data_seg(Debug)
 // volatile char buffer[256];
@@ -141,7 +156,7 @@ void irq_vsync() {
 
     unsigned char tickupdate = game.ticksync & 0x01;
     if(!tickupdate) {
-        stage_logic();
+        stage_logic(game.tickstage);
         game.tickstage++;
     }
     game.ticksync++;
@@ -255,7 +270,7 @@ void irq_vsync() {
 /// @brief game startup
 void main() {
 
-    cx16_brk_debug();
+    // cx16_brk_debug();
     
     cx16_k_screen_set_charset(3, (char *)0);
 
@@ -266,17 +281,11 @@ void main() {
     vera_layer1_hide();
 
 #ifndef __LAYER1
-    petscii();
+    vera_petscii_init();
 #else
     game.layers++; // This to indicate that two layers are to be drawn in the floor engine!
 #endif
     scroll(1);
-
-    #ifndef __LAYER1
-    textcolor(WHITE);
-    bgcolor(BLACK);
-    clrscr();
-    #endif
 
     // music = fopen("music.bin","r");
 
@@ -295,7 +304,7 @@ void main() {
     vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM); // SPRITES segment for sprites of various sizes
 
 #ifdef __DEBUG_HEAP_BRAM
-    bram_heap_dump(0,0,0);
+    // bram_heap_dump(0,0,0);
     while(!kbhit());
 #endif
 
@@ -314,42 +323,18 @@ void main() {
 #endif
 
 #ifdef __FLOOR
-
-    vera_layer0_mode_tile( 
-        FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
-        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
-        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-        VERA_LAYER_COLOR_DEPTH_4BPP
-    );
-    vera_layer0_show();
+    vera_floor_layer0();
 
     #ifdef __LAYER1
-    vera_layer1_mode_tile( 
-        FLOOR_MAP1_BANK_VRAM, (vram_offset_t)FLOOR_MAP1_OFFSET_VRAM, 
-        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
-        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-        VERA_LAYER_COLOR_DEPTH_4BPP
-    );
-    vera_layer1_show();
+    vera_floor_layer1();
     #else
-    vera_layer1_mode_tile( 
-        FLOOR_MAP1_BANK_VRAM, (vram_offset_t)FLOOR_MAP1_OFFSET_VRAM, 
-        1, (vram_offset_t)0xF000, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
-        VERA_TILEBASE_WIDTH_8, VERA_TILEBASE_HEIGHT_8, 
-        VERA_LAYER_COLOR_DEPTH_1BPP
-    );
-    screenlayer1();
-    vera_layer1_show();
-    clrscr();
-    #endif
+    vera_petscii_layer1();
+#endif
 
 #endif
 
 #ifdef __DEBUG_HEAP_BRAM
-    bram_heap_dump(0,0,0);
+    // bram_heap_dump(0,0,0);
     while(!kbhit());
 #endif
 
@@ -370,7 +355,7 @@ void main() {
 
 
 #if defined(__FLIGHT) || defined(__FLOOR)
-    stage_logic();
+    stage_logic(0);
 #endif
 
     scroll(0);

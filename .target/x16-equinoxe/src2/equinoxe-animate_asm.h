@@ -1,0 +1,10 @@
+extern __varcall __asm_import("equinoxe-animate") void animate_init();
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 44,45,34,37,40,43 ) __zp($25) char animate_add(__zp($25) char count, __zp($2d) char state, __zp($2c) char loop, __zp($22) char speed, __zp($28) signed char direction, __zp($2b) char reverse);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 34 ) void animate_logic(__zp($22) char a);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 34,37 ) __zp($22) char animate_is_waiting(__zp($25) char a);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 44,34 ) __zp($22) char animate_get_image(__zp($2c) char a);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 45,34 ) __zp($22) char animate_get_transition(__zp($2d) char a);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 34,37 ) __zp($22) char animate_del(__zp($25) char a);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 46,47,40,41,42 ) void animate_player(__zp($28) char a, __zp($29) int x, __zp($2e) int px);
+extern __varcall __asm_import("equinoxe-animate") __zp_reserve( 35,36,41,42,43 ) void animate_tower(__zp($2b) char a);
+extern __phicall __asm_import("equinoxe-animate") void __equinoxe_animate_start();

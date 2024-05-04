@@ -1,9 +1,26 @@
 // Space tile scrolling engine for a space game written in kickc for the Commander X16.
 
-#include "equinoxe.h"
+#include "equinoxe-cx16.h"
+#include "equinoxe-floorengine.h"
 
 #pragma data_seg(DATA_ENGINE_FLOOR)
 #pragma code_seg(CODE_ENGINE_FLOOR)
+
+struct floor_s {
+    unsigned char layers; // amount of layers
+    unsigned char wait; // scroll wait
+    unsigned char speed; // scroll speed
+    unsigned char border; // border
+    unsigned char empty; // 
+    unsigned char dborder;
+    unsigned char dempty;
+    unsigned char ticks;
+    unsigned char finterval;
+    unsigned int vscroll; // 
+
+};
+
+struct floor_s floor_config = {1, 64, 1, 2, 10, 15, 15, 1, 1, 0 };
 
 floor_cache_t floor_cache[FLOOR_CACHE_ROWS * FLOOR_CACHE_COLUMNS];
 
@@ -19,7 +36,7 @@ void floor_draw_clear(floor_t *floor) {
     unsigned char palette = 0;
     unsigned char Offset = 0;
 
-    for (unsigned char layer = 0; layer < game.layers; layer++) {
+    for (unsigned char layer = 0; layer < floor_config.layers; layer++) {
 
         unsigned char mapbase_bank = floor_layer_offsets[layer].bank;
         unsigned int mapbase_offset = floor_layer_offsets[layer].offset;
@@ -43,7 +60,7 @@ void floor_clear_row(floor_t *floor, unsigned char x, unsigned char y) {
     floor_composition_t *floor_composition = &floor->floor_compositions[0];
     floor_layer_composition_t *floor_layer_composition = floor_composition->floor_layer_compositions;
 
-    for (unsigned char layer = 0; layer < game.layers; layer++) {
+    for (unsigned char layer = 0; layer < floor_config.layers; layer++) {
 
         floor_layer_t *floor_layer = floor_layer_composition[layer].floor_layer;
 
@@ -105,7 +122,7 @@ void floor_draw_row(floor_t *floor, unsigned char row, unsigned char column) {
 
     floor_composition_t *floor_composition = &floor->floor_compositions[cache_segment];
 
-    for (__mem unsigned char layer = 0; layer < game.layers; layer++) {
+    for (__mem unsigned char layer = 0; layer < floor_config.layers; layer++) {
 
         floor_layer_composition_t *floor_layer_composition = &floor_composition->floor_layer_compositions[layer];
         floor_layer_t *floor_layer = floor_layer_composition->floor_layer;
@@ -225,12 +242,12 @@ void floor_paint(unsigned char column, unsigned char row) {
 
     __mem unsigned char weight = (BYTE0(rand()) & 0x0F);
     __mem unsigned char tile = 0x0F;
-    if (weight < game.floor_border) {
+    if (weight < floor_config.border) {
         // do {
             tile = (BYTE0(rand()) & 0x0F);
         // } while(tile != 0b0110 && tile != 0b1001);
     } else {
-        if (weight < game.floor_empty) {
+        if (weight < floor_config.empty) {
             tile = 0x00;
         }
     }
@@ -586,10 +603,10 @@ unsigned char floor_parts_load_bram(unsigned char part, floor_t *floor, floor_br
 
 void floor_scroll() {
     // We only will execute the scroll logic when a scroll action needs to be done.
-    if (!game.scroll_wait--) {
-        game.scroll_wait = game.scroll_speed;
+    if (!floor_config.wait--) {
+        floor_config.wait = floor_config.speed;
 
-        unsigned char row = (char)((game.screen_vscroll - 16) / 16);
+        unsigned char row = (char)((floor_config.vscroll - 16) / 16);
         row %= 32;
 
         // There are 16 scroll iterations as the height of the tiles is 16 pixels.
@@ -597,7 +614,7 @@ void floor_scroll() {
         // So there are 16 segments to be painted on each row.
         // That allows to paint a segment per scroll action!
         // We decrease the column for tiling, and ensure that we never go above 16.
-        floor_pos.tile_column = (game.screen_vscroll - 16) % 16;
+        floor_pos.tile_column = (floor_config.vscroll - 16) % 16;
         floor_pos.tile_row = row / 4;
 
         // We paint from bottom to top. Each paint segment is 64 pixels on the y axis, so we must paint every 4 rows.
@@ -622,35 +639,35 @@ void floor_scroll() {
         tower_move();
 #endif
 
-        game.screen_vscroll--;
+        floor_config.vscroll--;
     }
 }
 
 void floor_position() {
     // Now we set the vertical scroll to the required scroll position.
-    vera_layer0_set_vertical_scroll(game.screen_vscroll);
+    vera_layer0_set_vertical_scroll(floor_config.vscroll);
 #ifdef __LAYER1
-    vera_layer1_set_vertical_scroll(game.screen_vscroll);
+    vera_layer1_set_vertical_scroll(floor_config.vscroll);
 #endif
 }
 
 void floor_evolve() {
-    if (!game.floor_ticks) {
-        if (!game.floor_border) {
-            game.delta_border = 1;
+    if (!floor_config.ticks) {
+        if (!floor_config.border) {
+            floor_config.dborder = 1;
         }
-        if (game.floor_border == game.floor_empty) {
-            game.delta_border = -1;
-            game.delta_empty = 1;
+        if (floor_config.border == floor_config.empty) {
+            floor_config.dborder = -1;
+            floor_config.dempty = 1;
         }
-        if (game.floor_empty == 0x0f) {
-            game.delta_empty = -1;
+        if (floor_config.empty == 0x0f) {
+            floor_config.dempty = -1;
         }
-        game.floor_border += game.delta_border;
-        game.floor_empty += game.delta_empty;
-        game.floor_ticks = game.floor_interval;
+        floor_config.border += floor_config.dborder;
+        floor_config.empty += floor_config.dempty;
+        floor_config.ticks = floor_config.finterval;
     }
-    game.floor_ticks--;
+    floor_config.ticks--;
 }
 
 #pragma data_seg(Data)

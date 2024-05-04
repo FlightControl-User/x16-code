@@ -1,32 +1,18 @@
 
 
-#include <cx16-bramheap.h>
+// #include <cx16-bramheap-segments.h>
 // #include <cx16-vera.h>
 // #include <cx16-veralib.h>
 #include <fp3.h>
 #include <ht.h>
-#include <lru-cache.h>
 
 #include "equinoxe-flightengine-types.h"
 
 const unsigned char FE_CACHE = 16;
 
+// extern flight_t flight;
 
-#define FLIGHT_PLAYER       (0x00)
-#define FLIGHT_ENEMY        (0x01)
-#define FLIGHT_TOWER        (0x02)
-#define FLIGHT_BULLET       (0x03)
-#define FLIGHT_ENGINE       (0x04)
-#define FLIGHT_EXPLOSION    (0x05)
-
-#define SIDE_ENEMY          (0x01)
-#define SIDE_PLAYER         (0x02)
-#define SIDE_SCENERY        (0x04)
-
-
-extern flight_t flight;
-
-extern fe_sprite_cache_t sprite_cache;
+// extern fe_sprite_cache_t sprite_cache;
 // extern lru_cache_table_t sprite_cache_vram;
 
 extern vera_sprite_offset flight_sprite_offsets[127];

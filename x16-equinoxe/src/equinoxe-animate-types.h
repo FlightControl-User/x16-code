@@ -2,7 +2,7 @@
 
 #define SPRITE_ANIMATE 128
 
-typedef struct {
+typedef struct animate_s {
     unsigned char locked[SPRITE_ANIMATE];
     unsigned char state[SPRITE_ANIMATE];
     unsigned char moved[SPRITE_ANIMATE];

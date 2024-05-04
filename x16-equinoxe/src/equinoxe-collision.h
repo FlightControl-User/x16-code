@@ -1,7 +1,6 @@
 
 
-#include "equinoxe-types.h"
-#include "equinoxe-collision-types.h"
+#include "equinoxe-cx16.h"
 #include "ht.h"
 
 #define COLLISION_PLAYER   (0x00)
