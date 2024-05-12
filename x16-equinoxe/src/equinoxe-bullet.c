@@ -2,6 +2,8 @@
 #include "equinoxe-math.h"
 #include "equinoxe-bullet.h"
 
+#include "equinoxe-stage-flight_asm.h"
+
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_BULLETS)
 #pragma data_seg(DATA_ENGINE_BULLETS)
@@ -50,14 +52,6 @@ flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, uns
     return b;
 }
 
-
-void bullet_remove(flight_index_t b) 
-{
-    if(flight.used[b]) {
-        animate_del(flight.animate[b]);
-        flight_remove(FLIGHT_BULLET, b);
-    }
-}
 
 void bullet_logic()
 {
@@ -134,7 +128,7 @@ void bullet_logic()
 				collision_insert(b);
 #endif
             } else {
-                bullet_remove(b);
+                stage_bullet_remove(b);
             }
         }
         b = bn;

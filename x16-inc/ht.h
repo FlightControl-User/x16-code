@@ -23,6 +23,6 @@ inline void ht_set_data(ht_index_t ht_index, ht_data_t ht_data);
 
 
 ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data);
-void ht_display(ht_item_t* ht);
+// void ht_display(ht_item_t* ht);
 
 #pragma data_seg(Data)

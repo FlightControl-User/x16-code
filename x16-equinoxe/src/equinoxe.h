@@ -53,10 +53,6 @@
 
 #include "equinoxe-player.h"
 
-#ifdef __ENEMY
-#include "equinoxe-enemy.h"
-#endif
-
 #ifdef __TOWER
 #include "equinoxe-tower.h"
 #endif
@@ -65,7 +61,7 @@
 #include "equinoxe-bullet.h"
 #endif
 
-#include "equinoxe-collision.h"
+// #include "equinoxe-collision.h"
 #pragma var_model(mem)
 #include "equinoxe-stage.h"
 

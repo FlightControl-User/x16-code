@@ -1,0 +1,10 @@
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35,36,37 ) __zp($22) stage_action_t * stage_get_flightpath_action(__zp($22) stage_flightpath_t *flightpath, __mem() char action);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35,36,37 ) __mem() char stage_get_flightpath_type(__zp($22) stage_flightpath_t *flightpath, __mem() char action);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35,36,37 ) __mem() char stage_get_flightpath_next(__zp($22) stage_flightpath_t *flightpath, __mem() char action);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35 ) __mem() unsigned int stage_get_flightpath_action_move_flight(__zp($22) stage_action_t *action_move);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35 ) __mem() signed char stage_get_flightpath_action_move_turn(__zp($22) stage_action_t *action_move);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35 ) __mem() char stage_get_flightpath_action_move_speed(__zp($22) stage_action_t *action_move);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35 ) __mem() signed char stage_get_flightpath_action_turn_turn(__zp($22) volatile stage_action_t *action_turn);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35 ) __mem() char stage_get_flightpath_action_turn_radius(__zp($22) stage_action_t *action_turn);
+extern __varcall __asm_import("equinoxe-stage-flightpath") __bank( cx16_ram, 3 ) __zp_reserve( 34,35 ) __mem() char stage_get_flightpath_action_turn_speed(__zp($22) stage_action_t *action_turn);
+extern __phicall __asm_import("equinoxe-stage-flightpath") void __equinoxe_stage_flightpath_start();

@@ -1,4 +1,4 @@
-
+#pragma once
 
 // #include <cx16-typedefs.h>
 // #include <ht-typedefs.h>
@@ -7,6 +7,7 @@
 // #include <cx16-veralib.h>
 // #include <cx16-veraheap-typedefs.h>
 
+#include <stdio-types.h>
 #include "cx16-bramheap-segments-typedefs.h"
 #include "cx16-veraheap-typedefs.h"
 #include "lru-cache-typedefs.h"
@@ -20,6 +21,7 @@
 #include "equinoxe-tower-types.h"
 #include "equinoxe-bullet-types.h"
 #include "equinoxe-stage-types.h"
+#include "equinoxe-waves-types.h"
 
 typedef struct {
     unsigned char layers;
@@ -37,8 +39,5 @@ typedef struct {
     signed char delta_border;
     signed char delta_empty;
 } equinoxe_game_t;
-
-
-
 
 #pragma data_seg(Data)

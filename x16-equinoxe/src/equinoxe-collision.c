@@ -1,15 +1,26 @@
-// #include <cx16-bitmap.h>
-// #include "equinoxe-collision.h"
-// #include "equinoxe-bullet.h"
-// #include "equinoxe-flightengine.h"
-// #include "equinoxe-player.h"
-// #include "equinoxe-stage.h"
-// #include "equinoxe-tower.h"
-// #include "equinoxe-enemy.h"
-// #include "equinoxe-types.h"
-#include "equinoxe-cx16.h"
+#pragma link("equinoxe-lib.ld")
+
+#pragma asm_library
+#pragma calling(__varcall)
+#pragma asm_export(collision_init, collision_insert, collision_detect)
+#pragma calling(__phicall)
+
+#include "equinoxe-defines.h"
+#include "equinoxe-types.h"
+#include "stdio-types.h"
 #include "equinoxe-collision.h"
-// #include "stdio.h"
+#include "equinoxe-layers_asm.h"
+#include "equinoxe-animate_asm.h"
+#include "equinoxe-palette_asm.h"
+#include "equinoxe-flightengine_asm.h"
+#include "equinoxe-waves_asm.h"
+#include "equinoxe-stage-flight_asm.h"
+#include "equinoxe-enemy_asm.h"
+#include "lib_conio_asm.h"
+#include "lib_lru_cache_asm.h"
+#include "lib_veraheap_asm.h"
+#include "lib_bramheap_asm.h"
+#include "lib_file_asm.h"
 
 #pragma data_seg(Hash)
 ht_item_t collision_hash;
@@ -79,6 +90,7 @@ void collision_insert(flight_index_t f) {
 
 inline unsigned char collision_count(unsigned char gx, unsigned char gy) { return collision_quadrant.cell[gx + gy]; }
 
+/*
 inline void collision_debug() {
     gotoxy(0, 0);
     printf("hash root = %04p, ", &collision_hash);
@@ -87,6 +99,7 @@ inline void collision_debug() {
 
     ht_display(&collision_hash);
 }
+*/
 
 unsigned char collision_data(unsigned char collision, collision_decision_t *collision_decision) {
 

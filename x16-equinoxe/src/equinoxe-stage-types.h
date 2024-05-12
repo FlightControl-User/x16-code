@@ -1,32 +1,7 @@
-
-
-// #include <cx16-bramheap-typedefs.h>
-// #include <cx16-veralib.h>
+#pragma once
 
 #include "equinoxe-level-types.h"
 #include "equinoxe-types.h"
-
-#define WAVES 8
-typedef struct {
-    unsigned char enemy_count[WAVES]; // Temporary that holds the total amount of enemies in a scenario.
-    unsigned char enemy_spawn[WAVES]; // Temporary that holds the amount of enemies that can be spawned at the same time.
-    sprite_index_t enemy_sprite[WAVES]; // Temporary that holds the sprite of the enemy to be spawned.
-    stage_flightpath_t* enemy_flightpath[WAVES]; // Temporary that holds the flight path of the enemy to be followed.
-    unsigned char enemy_alive[WAVES];
-    signed int x[WAVES];
-    signed int y[WAVES];
-    signed char dx[WAVES];
-    signed char dy[WAVES];
-    unsigned char interval[WAVES];
-    unsigned char wait[WAVES];
-    unsigned char prev[WAVES];
-    unsigned char used[WAVES];
-    unsigned char finished[WAVES];
-    unsigned int scenario[WAVES];
-    unsigned char animation_speed[WAVES];
-    unsigned char animation_reverse[WAVES];
-} stage_wave_t;
-
 
 #define STAGES 32
 typedef struct {

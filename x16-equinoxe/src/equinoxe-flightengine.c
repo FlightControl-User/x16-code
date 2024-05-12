@@ -10,8 +10,10 @@
 #pragma asm_export(flight_remove)
 #pragma asm_export(flight_root)
 #pragma asm_export(flight_next)
+#pragma asm_export(flight_wave)
 #pragma asm_export(flight_hit)
 #pragma asm_export(flight_impact)
+#pragma asm_export(flight_health)
 #pragma asm_export(flight_has_collided)
 #pragma asm_export(flight_draw)
 #pragma asm_export(sprite_image_cache_vram)
@@ -26,6 +28,7 @@
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
+#include "cx16-veralib.h"
 #include <stdio-types.h>
 
 #include <lib_conio_asm.h>
@@ -119,9 +122,13 @@ flight_index_t flight_add(flight_type_t type, flight_side_t side, sprite_index_t
 void flight_remove(flight_type_t type, flight_index_t f) {
 
     if (flight.used[f]) {
+
+		animate_del(flight.animate[f]);
+
         flight.used[f] = 0;
         flight.enabled[f] = 0;
         flight.collided[f] = 1;
+        flight.wave[f] = 0xFF;
 
         flight.count[type]--;
 
@@ -164,7 +171,7 @@ flight_index_t flight_root(flight_type_t type) { return flight.root[type]; }
 
 flight_index_t flight_next(flight_index_t i) { return flight.next[i]; }
 
-signed char flight_hit(unsigned char f, signed char impact) {
+unsigned char flight_hit(unsigned char f, signed char impact) {
     flight.health[f] += impact;
     if(flight.health[f] <= 0) {
 		flight.collided[f] = 1;
@@ -176,6 +183,15 @@ signed char flight_hit(unsigned char f, signed char impact) {
 signed char flight_impact(unsigned char f) {
     signed char impact = flight.impact[f];
     return impact;
+}
+
+signed char flight_health(unsigned char f) {
+    signed char health = flight.health[f];
+    return health;
+}
+
+wave_index_t flight_wave(flight_index_t f) {
+    return flight.wave[f];
 }
 
 
@@ -202,6 +218,9 @@ void flight_draw() {
             // if( x<640+68 && y<480+68 && (signed int)x>-68 && (signed int)y>-68 ) {
 
             unsigned char a = flight.animate[f];
+#ifdef  __DEBUG_ANIMATE
+            animate_debug(a);
+#endif
             unsigned char s = animate_get_image(a);
             volatile unsigned char i = flight.cache[f]; // This variable needs to be volatile or the kickc optimizer kills it.
             if (animate_is_waiting(a)) {

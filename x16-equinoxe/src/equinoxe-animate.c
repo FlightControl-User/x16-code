@@ -1,18 +1,25 @@
 #pragma link("equinoxe.ld")
 
 #pragma encoding(petscii_mixed)
-#pragma var_model(mem)
+#pragma var_model(zp)
 #pragma asm_library
 #pragma calling(__varcall)
 #pragma asm_export(animate_init, animate_add, animate_logic)
 #pragma asm_export(animate_is_waiting, animate_get_image, animate_get_transition)
 #pragma asm_export(animate_del, animate_player, animate_tower)
+#pragma asm_export(animate_debug)
 #pragma calling(__phicall)
 
 #include <cx16.h>
-#include "equinoxe-animate-types.h"
+#include "equinoxe-types.h"
+#include "lib_conio_asm.h"
+#include "lib_lru_cache_asm.h"
+#include "lib_veraheap_asm.h"
+#include "lib_bramheap_asm.h"
+#include "lib_file_asm.h"
 
 #include "equinoxe-animate.h"
+#include "printf.h"
 
 #pragma code_seg(CodeEngineAnimate)
 #pragma data_seg(DataEngineAnimate)
@@ -249,4 +256,9 @@ void animate_tower(unsigned char a) {
         default:
     }
     animate.image[a] = animate.state[a];
+}
+
+void animate_debug(unsigned char a) {
+    gotoxy(a / 32 * 16 + 2, a % 32);
+    printf("s:%02x", animate.state[a]);
 }

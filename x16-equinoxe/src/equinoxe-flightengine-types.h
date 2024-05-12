@@ -1,3 +1,5 @@
+#pragma once
+
 // #include <cx16-vera.h>
 // #include <cx16-veralib.h>
 #include "cx16-veraheap-typedefs.h"
@@ -5,6 +7,7 @@
 // #include <ht.h>
 #include "equinoxe-animate-types.h"
 #include "cx16-bramheap-segments-typedefs.h"
+#include <cx16-veralib-typedefs.h>
 
 #define FLIGHT_OBJECTS 64
 
@@ -100,8 +103,8 @@ typedef unsigned char flight_index_t;
 typedef unsigned char flight_type_t;
 typedef unsigned char flight_side_t;
 
-#include <cx16-veralib.h>
 #include "equinoxe-level-types.h"
+
 typedef struct {
 
     fe_sprite_index_t cache[FLIGHT_OBJECTS];            // Internal link field.

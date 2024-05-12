@@ -23,6 +23,13 @@
 #pragma data_seg(DataEnginePalette)
 
 #include <cx16.h>
+#include "equinoxe-types.h"
+#include "lib_conio_asm.h"
+#include "lib_lru_cache_asm.h"
+#include "lib_veraheap_asm.h"
+#include "lib_bramheap_asm.h"
+#include "lib_file_asm.h"
+
 
 #include <cx16-vera.h>
 #include "equinoxe-palette-types.h"

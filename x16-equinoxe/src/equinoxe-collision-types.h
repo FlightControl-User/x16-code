@@ -1,4 +1,10 @@
+#pragma once
 
+#define COLLISION_PLAYER   (0x00)
+#define COLLISION_ENEMY    (0x40)
+#define COLLISION_TOWER    (0x80)
+#define COLLISION_BULLET   (0xC0)
+#define COLLISION_MASK     (0xC0)
 
 typedef struct {
     unsigned char cell[256];

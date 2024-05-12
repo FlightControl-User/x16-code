@@ -635,3 +635,23 @@ palette_alloc_vram: {
 .segment DataEnginePalette
   palette: .fill equinoxe_palette.SIZEOF_STRUCT_PALETTE_T, 0
 } // namespace
+ // Asm import library lib_conio:
+#define __asm_import__lib_conio__
+#import "lib_conio.asm"
+
+ // Asm import library lib_lru_cache:
+#define __asm_import__lib_lru_cache__
+#import "lib_lru_cache.asm"
+
+ // Asm import library lib_veraheap:
+#define __asm_import__lib_veraheap__
+#import "lib_veraheap.asm"
+
+ // Asm import library lib_bramheap:
+#define __asm_import__lib_bramheap__
+#import "lib_bramheap.asm"
+
+ // Asm import library lib_file:
+#define __asm_import__lib_file__
+#import "lib_file.asm"
+

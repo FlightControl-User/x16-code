@@ -9,8 +9,6 @@ flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, uns
 
 /*void FireBulletTower(unsigned char t);*/
 
-void bullet_remove(unsigned char b); 
-
 void bullet_logic();
 
 // Unbanked functions

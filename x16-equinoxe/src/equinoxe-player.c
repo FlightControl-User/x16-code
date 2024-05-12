@@ -49,7 +49,7 @@ void player_remove(unsigned char p) {
         flight_remove(FLIGHT_ENGINE, n);
         animate_del(flight.animate[p]); // Remove the animation of the player sprite.
         flight_remove(FLIGHT_PLAYER, p);
-        stage.player_respawn = 8;       // Wait 8 tickes until stage respawns the sprite. This needs rework. TODO.
+        stage.player_respawn = 8;       // Wait 8 ticks until stage respawns the sprite. This needs rework. TODO.
     }
 }
 

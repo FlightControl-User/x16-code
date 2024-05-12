@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef LRU_CACHE_SIZE
     #define LRU_CACHE_SIZE 128
 #endif

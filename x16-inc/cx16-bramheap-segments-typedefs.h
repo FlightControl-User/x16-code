@@ -1,4 +1,4 @@
-
+#pragma once
 
 /**
  * @file cx16-heap.h
@@ -10,6 +10,7 @@
  * @copyright Copyright (c) 2023
  * 
  */
+
 
 #include <cx16.h>
 

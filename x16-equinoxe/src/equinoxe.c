@@ -8,12 +8,20 @@
 #include "equinoxe-types.h"
 
 #include <lib_conio_asm.h>
-#include <equinoxe-flightengine_asm.h>
-#include <stdio-types.h>
-#include <lib_file_asm.h>
 #include <lib_lru_cache_asm.h>
-#include <lib_bramheap_asm.h>
 #include <lib_veraheap_asm.h>
+#include <lib_bramheap_asm.h>
+#include <lib_file_asm.h>
+
+#include "equinoxe-layers_asm.h"
+#include "equinoxe-animate_asm.h"
+#include "equinoxe-palette_asm.h"
+#include "equinoxe-flightengine_asm.h"
+#include "equinoxe-waves_asm.h"
+#include "equinoxe-stage-flight_asm.h"
+#include "equinoxe-enemy_asm.h"
+#include <equinoxe-collision_asm.h>
+
 
 #include "equinoxe.h"
 
@@ -96,24 +104,12 @@ void irq_vsync() {
 #ifdef __FLOOR
 
     #ifdef __LAYER1
-    vera_layer1_mode_tile( 
-        FLOOR_MAP1_BANK_VRAM, (vram_offset_t)FLOOR_MAP1_OFFSET_VRAM, 
-        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
-        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-        VERA_LAYER_COLOR_DEPTH_4BPP
-    );
-    vera_layer1_show();
+    vera_floor_layer1();
+    vera_floor_layer1_show();
     #endif
 
-    vera_layer0_mode_tile( 
-        FLOOR_MAP0_BANK_VRAM, (vram_offset_t)FLOOR_MAP0_OFFSET_VRAM, 
-        FLOOR_TILE_BANK_VRAM, (vram_offset_t)FLOOR_TILE_OFFSET_VRAM, 
-        VERA_LAYER_WIDTH_64, VERA_LAYER_HEIGHT_32,
-        VERA_TILEBASE_WIDTH_16, VERA_TILEBASE_HEIGHT_16, 
-        VERA_LAYER_COLOR_DEPTH_4BPP
-    );
-    vera_layer0_show();
+    vera_floor_layer0();
+    vera_floor_layer0_show();
 
     floor_position();
 #endif

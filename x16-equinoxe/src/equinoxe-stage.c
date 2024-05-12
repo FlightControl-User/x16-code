@@ -3,16 +3,16 @@
 
 #include "equinoxe-defines.h"
 
+#include "equinoxe-waves_asm.h"
+#include "equinoxe-flightengine_asm.h"
+#include "equinoxe-stage-flight_asm.h"
+
 #include "equinoxe-stage.h"
 #include "equinoxe-player.h"
 #include "equinoxe-bullet.h"
-#include "equinoxe-enemy.h"
+// #include "equinoxe-enemy.h"
 #include "equinoxe-floorengine.h"
 
-#pragma data_seg(DATA_ENGINE_STAGES)
-
-volatile stage_wave_t wave;
-volatile stage_t stage;
 
 
 #ifdef __BANKING
@@ -233,9 +233,9 @@ static void stage_reset(void)
     bullet_init();
 #endif
 
-#ifdef __ENEMY
-    enemy_init();
-#endif
+// #ifdef __ENEMY
+//     enemy_init();
+// #endif
 
 
 	memset(&stage, 0, sizeof(stage_t));
@@ -268,13 +268,6 @@ void stage_player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine
 #endif
 }
 
-void stage_player_remove(flight_index_t p) {
-#ifdef __PLAYER
-    player_remove(p);
-    stage.player_count--;
-#endif
-}
-
 void stage_tower_add(unsigned char column, unsigned char row) {
 #ifdef __TOWER
     stage_tower_t* st = stage.current_playbook.stage_towers;
@@ -288,64 +281,18 @@ void stage_tower_add(unsigned char column, unsigned char row) {
 #endif
 }
 
-void stage_tower_remove(unsigned char t)
-{
-#ifdef __TOWER
-    tower_remove(t);
-    stage.tower_count--;
-#endif
-}
-
 void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
 {
 #ifdef __ENEMY
     unsigned char enemies = enemy_add(w, enemy_sprite);
-
-    wave.x[w] += wave.dx[w];
-    wave.y[w] += wave.dy[w];
-    wave.wait[w] = wave.interval[w];
-    wave.enemy_spawn[w] -= enemies;
-    wave.enemy_count[w] -= enemies;
-    wave.enemy_alive[w] += 1;
+    wave_set(w);
     stage.enemy_count++;
 #endif
 }
 
 
-void stage_enemy_remove(unsigned char e)
-{
-#ifdef __ENEMY
-    unsigned char w = enemy_get_wave(e);
-    wave.enemy_spawn[w] += 1;
-    wave.enemy_alive[w] -= 1;
-    enemy_remove(e);
-    stage.enemy_count--;
-#endif
-}
 
 
-void stage_impact(unsigned char f, flight_index_t h)
-{
-    signed char hit = flight_hit(f, flight_impact(h));
-    if(hit) {
-        switch(flight.type[f]) {
-#ifdef __ENEMY
-            case FLIGHT_ENEMY:
-                stage_enemy_remove(f);
-                break;
-#endif
-            case FLIGHT_BULLET:
-                stage_bullet_remove(f);
-                break;
-            case FLIGHT_PLAYER:
-                stage_player_remove(f);
-                break;
-            case FLIGHT_TOWER:
-                stage_tower_remove(f);
-                break;
-        }                
-    }
-}
 
 void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet) {
 #ifdef __BULLET
@@ -354,12 +301,7 @@ void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigne
 #endif
 }
 
-void stage_bullet_remove(flight_index_t b) {
-#ifdef __BULLET
-    bullet_remove(b);
-    stage.bullet_count--;
-#endif
-}
+
 
 void stage_logic(unsigned char tickstage)
 {
@@ -450,48 +392,6 @@ void stage_logic(unsigned char tickstage)
         }
     }
 }
-
-stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action) {
-    stage_action_t* flightpath_action = &flightpath[action].action;
-    return flightpath_action;
-}
-
-unsigned char stage_get_flightpath_type(stage_flightpath_t* flightpath, unsigned char action) {
-    unsigned char type = flightpath[action].type;
-    return type;
-}
-
-unsigned char stage_get_flightpath_next(stage_flightpath_t* flightpath, unsigned char action) {
-    unsigned char next = flightpath[action].next;
-    return next;
-}
-
-
-unsigned int stage_get_flightpath_action_move_flight(stage_action_t* action_move) {
-    return ((stage_action_move_t*)action_move)->flight;
-}
-
-signed char stage_get_flightpath_action_move_turn(stage_action_t* action_move) {
-    return ((stage_action_move_t*)action_move)->turn;
-}
-
-unsigned char stage_get_flightpath_action_move_speed(stage_action_t* action_move) {
-    return ((stage_action_move_t*)action_move)->speed;
-}
-
-
-signed char stage_get_flightpath_action_turn_turn(volatile stage_action_t* action_turn) {
-    return ((stage_action_turn_t*)action_turn)->turn;
-}
-
-unsigned char stage_get_flightpath_action_turn_radius(stage_action_t* action_turn) {
-    return ((stage_action_turn_t*)action_turn)->radius;
-}
-
-unsigned char stage_get_flightpath_action_turn_speed(stage_action_t* action_turn) {
-    return ((stage_action_turn_t*)action_turn)->speed;
-}
-
 
 
 void stage_display()

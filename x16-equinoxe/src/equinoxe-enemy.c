@@ -1,5 +1,37 @@
-#include "equinoxe-cx16.h"
-#include "equinoxe-animate.h"
+#pragma link("equinoxe-lib.ld")
+
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+
+#pragma asm_library
+#pragma calling(__varcall)
+#pragma asm_export(enemy_init)
+#pragma asm_export(enemy_add)
+#pragma asm_export(enemy_remove)
+#pragma asm_export(enemy_move)
+#pragma asm_export(enemy_arc)
+#pragma asm_export(enemy_logic)
+#pragma asm_export(enemy_get_wave)
+#pragma calling(__phicall)
+
+#include "equinoxe-defines.h"
+#include "equinoxe-types.h"
+#include "equinoxe-math.h"
+#include "multiply.h"
+#include "stdio-types.h"
+
+#include "equinoxe-layers_asm.h"
+#include "equinoxe-animate_asm.h"
+#include "equinoxe-palette_asm.h"
+#include "equinoxe-collision_asm.h"
+#include "equinoxe-flightengine_asm.h"
+#include "equinoxe-waves_asm.h"
+#include "equinoxe-stage-flight_asm.h"
+#include "lib_conio_asm.h"
+#include "lib_lru_cache_asm.h"
+#include "lib_veraheap_asm.h"
+#include "lib_bramheap_asm.h"
+#include "lib_file_asm.h"
 
 
 #pragma data_seg(DATA_ENGINE_ENEMIES)
@@ -45,14 +77,6 @@ unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy)
 	
     unsigned char ret = 1;
     return ret;
-}
-
-void enemy_remove(unsigned char e) 
-{
-    if(flight.used[e]) {
-		animate_del(flight.animate[e]);
-		flight_remove(FLIGHT_ENEMY, e);
-    }
 }
 
 
@@ -126,7 +150,7 @@ void enemy_logic() {
         
 
 				case STAGE_ACTION_END:
-                    stage_enemy_remove(e);
+                    stage_enemy_remove(flight.wave[e], e);
 					continue; // After removal, continue with the next enemy.
                     
 				}
@@ -229,7 +253,7 @@ void enemy_logic() {
 #ifdef __BULLET         
 				unsigned int r = rand();
 				if(r>=65300) {
-					stage_bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
+					// stage_bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
 				}
 #endif
 				animate_logic(flight.animate[e]);

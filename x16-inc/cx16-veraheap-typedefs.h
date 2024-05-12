@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @file cx16-heap.h
  * @author Sven VAn de Velde (sven.van.de.velde@outlook.com)

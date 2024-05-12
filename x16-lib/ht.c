@@ -11,10 +11,10 @@
 
 #include <cx16.h>
 #include <ht.h>
-#include <conio.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+// #include <conio.h>
+// #include <stdio.h>
+// #include <string.h>
+// #include <stdlib.h>
 
 #pragma data_seg(Data)
 #pragma code_seg(Code)
@@ -136,6 +136,7 @@ ht_index_t ht_insert(ht_item_t* ht, ht_key_t key, ht_data_t data)
    return ht_index;
 }
 
+/*
 void ht_display(ht_item_t* ht)
 {
    ht_index_t ht_index = 0;
@@ -164,4 +165,4 @@ void ht_display(ht_item_t* ht)
 
    printf("\n");
 }
-
+*/

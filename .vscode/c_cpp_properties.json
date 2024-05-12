@@ -3,9 +3,9 @@
         {
             "name": "KICKC",
             "includePath": [
-                "${workspaceFolder}/x16-inc",
-                "${workspaceFolder}/.target/x16-equinoxe",
-                "${workspaceFolder}/.target/x16-asm",
+                "${workspaceFolder}/x16-inc/**",
+                "${workspaceFolder}/.target/x16-equinoxe/**",
+                "${workspaceFolder}/.target/x16-asm/**",
                 "${env:KICKCDEV}/**"
             ],
             "defines": [

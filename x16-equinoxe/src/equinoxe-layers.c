@@ -10,6 +10,7 @@
 #include <cx16.h>
 #include <cx16-vera.h>
 #include <cx16-veralib.h>
+#include "equinoxe-defines.h"
 #include "equinoxe-bank.h"
 
 typedef struct {

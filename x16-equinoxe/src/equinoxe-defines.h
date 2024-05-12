@@ -54,6 +54,9 @@
 // #define __VERAHEAP_COLOR_FREE
 
 
+// Show information when animating sprites.
+// #define __DEBUG_ANIMATE
+
 // Show information when generating the floor.
 // #define __DEBUG_FLOOR
 

@@ -1,13 +1,5 @@
-
-
-#include "equinoxe-cx16.h"
 #include "ht.h"
-
-#define COLLISION_PLAYER   (0x00)
-#define COLLISION_ENEMY    (0x40)
-#define COLLISION_TOWER    (0x80)
-#define COLLISION_BULLET   (0xC0)
-#define COLLISION_MASK     (0xC0)
+#include "equinoxe-collision-types.h"
 
 #pragma data_seg(hash)
 extern ht_item_t collision_hash;
@@ -19,4 +11,4 @@ void collision_init();
 void collision_insert(flight_index_t f);
 unsigned char collision_count(unsigned char x, unsigned char y);
 unsigned char collision_data(unsigned char collision, collision_decision_t *collision_decision);
-inline void collision_debug();
+// inline void collision_debug();

@@ -26,7 +26,7 @@
 #define BRAM_VERA_HEAP BramVeraHeap
 #define DATA_VERA_HEAP DataVeraHeap
 
-#define __VERAHEAP_COLOR_FREE
+// #define __VERAHEAP_COLOR_FREE
 
 // #define __VERAHEAP_DEBUG
 // #define __VERAHEAP_DUMP

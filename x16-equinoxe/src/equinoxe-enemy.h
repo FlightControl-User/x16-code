@@ -3,7 +3,7 @@
 #include "equinoxe-cx16.h"
 
 // #include "equinoxe-flightengine.h"
-#include "equinoxe-collision.h"
+// #include "equinoxe-collision.h"
 #include "equinoxe-stage.h"
 
 void enemy_init();
