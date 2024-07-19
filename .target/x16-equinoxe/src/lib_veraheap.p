@@ -1,0 +1,10 @@
+extern __varcall __lib_import("lib_veraheap") __mem() char vera_heap_alloc(__mem() char s, __mem() unsigned long size);
+extern __varcall __lib_import("lib_veraheap") void vera_heap_free(__mem() char s, __mem() char free_index);
+extern __varcall __lib_import("lib_veraheap") void vera_heap_bram_bank_init(__mem() char bram_bank);
+extern __varcall __lib_import("lib_veraheap") __mem() char vera_heap_segment_init(__mem() char s, __mem() char vram_bank_floor, __mem() unsigned int vram_offset_floor, __mem() char vram_bank_ceil, __mem() unsigned int vram_offset_ceil);
+extern __varcall __lib_import("lib_veraheap") __mem() unsigned int vera_heap_data_get_offset(__mem() char s, __mem() char index);
+extern __varcall __lib_import("lib_veraheap") __mem() char vera_heap_data_get_bank(__mem() char s, __mem() char index);
+extern __varcall __lib_import("lib_veraheap") __mem() unsigned int vera_heap_get_image(__mem() char s, __mem() char index);
+extern __varcall __lib_import("lib_veraheap") void vera_heap_set_image(__mem() char s, __mem() char index, __mem() unsigned int image);
+extern __varcall __lib_import("lib_veraheap") __mem() bool vera_heap_has_free(__mem() char s, __mem() unsigned int size_requested);
+extern __phicall __lib_import("lib_veraheap") void __lib_veraheap_start();

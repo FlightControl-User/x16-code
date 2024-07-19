@@ -1,26 +1,30 @@
 #pragma link("equinoxe-lib.ld")
 
-#pragma asm_library
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(collision_init, collision_insert, collision_detect)
+#pragma lib_export(collision_init, collision_insert, collision_detect)
 #pragma calling(__phicall)
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
 #include "stdio-types.h"
 #include "equinoxe-collision.h"
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
-#include "equinoxe-flightengine_asm.h"
-#include "equinoxe-waves_asm.h"
-#include "equinoxe-stage-flight_asm.h"
-#include "equinoxe-enemy_asm.h"
-#include "lib_conio_asm.h"
-#include "lib_lru_cache_asm.h"
-#include "lib_veraheap_asm.h"
-#include "lib_bramheap_asm.h"
-#include "lib_file_asm.h"
+
+#include <equinoxe-layers.p>
+// #include <equinoxe-animate.p>
+// #include <equinoxe-palette.p>
+#include <equinoxe-flightengine.p>
+#include <equinoxe-waves.p>
+#include <equinoxe-stage-flight.p>
+// #include <equinoxe-enemy.p>
+#include <lib_conio.p>
+// #include <lib_lru_cache.p>
+// #include <lib_veraheap.p>
+// #include <lib_bramheap.p>
+// #include <lib_file.p>
 
 #pragma data_seg(Hash)
 ht_item_t collision_hash;

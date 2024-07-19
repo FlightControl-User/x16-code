@@ -5,17 +5,17 @@
 
 #pragma library(veraheap)
 
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(vera_heap_alloc)
-#pragma asm_export(vera_heap_free)
-#pragma asm_export(vera_heap_bram_bank_init)
-#pragma asm_export(vera_heap_segment_init)
-#pragma asm_export(vera_heap_data_get_offset)
-#pragma asm_export(vera_heap_data_get_bank)
-#pragma asm_export(vera_heap_get_image)
-#pragma asm_export(vera_heap_set_image)
-#pragma asm_export(vera_heap_has_free)
+#pragma lib_export(vera_heap_alloc)
+#pragma lib_export(vera_heap_free)
+#pragma lib_export(vera_heap_bram_bank_init)
+#pragma lib_export(vera_heap_segment_init)
+#pragma lib_export(vera_heap_data_get_offset)
+#pragma lib_export(vera_heap_data_get_bank)
+#pragma lib_export(vera_heap_get_image)
+#pragma lib_export(vera_heap_set_image)
+#pragma lib_export(vera_heap_has_free)
 
 #pragma calling(__phicall)
 

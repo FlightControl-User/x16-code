@@ -1,0 +1,12 @@
+extern __varcall __lib_import("equinoxe-animate") void animate_init();
+extern __varcall __lib_import("equinoxe-animate") __mem() char animate_add(__mem() char count, __mem() char state, __mem() char loop, __mem() char speed, __mem() signed char direction, __mem() char reverse);
+extern __varcall __lib_import("equinoxe-animate") void animate_logic(__mem() char a);
+extern __varcall __lib_import("equinoxe-animate") __mem() char animate_is_waiting(__mem() char a);
+extern __varcall __lib_import("equinoxe-animate") __mem() char animate_get_image(__mem() char a);
+extern __varcall __lib_import("equinoxe-animate") __mem() char animate_get_transition(__mem() char a);
+extern __varcall __lib_import("equinoxe-animate") __mem() char animate_del(__mem() char a);
+extern __varcall __lib_import("equinoxe-animate") void animate_player(__mem() char a, __mem() int x, __mem() int px);
+extern __varcall __lib_import("equinoxe-animate") void animate_tower(__mem() char a);
+extern __varcall __lib_import("equinoxe-animate") void animate_debug(__mem() char a);
+extern __phicall __lib_import("equinoxe-animate") void conio_x16_init();
+extern __phicall __lib_import("equinoxe-animate") void __equinoxe_animate_start();

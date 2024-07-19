@@ -1,25 +1,27 @@
-#pragma link("equinoxe.ld")
+#pragma link("equinoxe-libraries.ld")
+#pragma struct_model(classic) // This is important or kickc messes up the parameters ...
 
 #pragma encoding(petscii_mixed)
-#pragma var_model(zp)
-#pragma asm_library
+#pragma var_model(mem)
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(animate_init, animate_add, animate_logic)
-#pragma asm_export(animate_is_waiting, animate_get_image, animate_get_transition)
-#pragma asm_export(animate_del, animate_player, animate_tower)
-#pragma asm_export(animate_debug)
+#pragma lib_export(animate_init, animate_add, animate_logic)
+#pragma lib_export(animate_is_waiting, animate_get_image, animate_get_transition)
+#pragma lib_export(animate_del, animate_player, animate_tower)
+#pragma lib_export(animate_debug)
 #pragma calling(__phicall)
 
+#include <printf.h>
 #include <cx16.h>
+
 #include "equinoxe-types.h"
-#include "lib_conio_asm.h"
-#include "lib_lru_cache_asm.h"
-#include "lib_veraheap_asm.h"
-#include "lib_bramheap_asm.h"
-#include "lib_file_asm.h"
+// #include <lib_conio.p>
+#include <lib_lru_cache.p>
+#include <lib_veraheap.p>
+#include <lib_bramheap.p>
+#include <lib_file.p>
 
 #include "equinoxe-animate.h"
-#include "printf.h"
 
 #pragma code_seg(CodeEngineAnimate)
 #pragma data_seg(DataEngineAnimate)

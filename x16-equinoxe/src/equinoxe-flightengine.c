@@ -3,24 +3,26 @@
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(flight_init)
-#pragma asm_export(flight_add)
-#pragma asm_export(flight_remove)
-#pragma asm_export(flight_root)
-#pragma asm_export(flight_next)
-#pragma asm_export(flight_wave)
-#pragma asm_export(flight_hit)
-#pragma asm_export(flight_impact)
-#pragma asm_export(flight_health)
-#pragma asm_export(flight_has_collided)
-#pragma asm_export(flight_draw)
-#pragma asm_export(sprite_image_cache_vram)
-#pragma asm_export(fe_sprite_bram_load)
+#pragma lib_export(flight_init)
+#pragma lib_export(flight_add)
+#pragma lib_export(flight_remove)
+#pragma lib_export(flight_root)
+#pragma lib_export(flight_move)
+#pragma lib_export(flight_arc)
+#pragma lib_export(flight_next)
+#pragma lib_export(flight_wave)
+#pragma lib_export(flight_hit)
+#pragma lib_export(flight_impact)
+#pragma lib_export(flight_health)
+#pragma lib_export(flight_has_collided)
+#pragma lib_export(flight_draw)
+#pragma lib_export(sprite_image_cache_vram)
+#pragma lib_export(fe_sprite_bram_load)
 
-#pragma asm_export(flight)
-#pragma asm_export(sprite_cache)
+#pragma lib_export(flight)
+#pragma lib_export(sprite_cache)
 
 #pragma calling(__phicall)
 
@@ -28,18 +30,21 @@
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
-#include "cx16-veralib.h"
+#include <cx16-veralib.h>
 #include <stdio-types.h>
+#include "equinoxe-math.h"
+#include <multiply.h>
 
-#include <lib_conio_asm.h>
-#include <lib_lru_cache_asm.h>
-#include <lib_veraheap_asm.h>
-#include <lib_bramheap_asm.h>
-#include <lib_file_asm.h>
 
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
+#include <lib_conio.p>
+#include <lib_lru_cache.p>
+#include <lib_veraheap.p>
+#include <lib_bramheap.p>
+#include <lib_file.p>
+
+#include <equinoxe-layers.p>
+#include <equinoxe-animate.p>
+#include <equinoxe-palette.p>
 
 #include "equinoxe-flightengine.h"
 #include "equinoxe-levels.h"
@@ -47,10 +52,10 @@
 
 #pragma data_seg(DATA_SPRITE_CACHE)
 // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
-__asm_export fe_sprite_cache_t sprite_cache;
+__lib_export fe_sprite_cache_t sprite_cache;
 
 #pragma data_seg(DATA_ENGINE_FLIGHT)
-__asm_export flight_t flight;
+__lib_export flight_t flight;
 
 volatile fe_t sprite_cache_pool; // Flight engine control.
 vera_sprite_offset flight_sprite_offsets[127] = {0};
@@ -202,6 +207,26 @@ unsigned char flight_has_collided(unsigned char f) {
 	return collided;
 }
 
+void flight_move( unsigned char e, unsigned int moving, unsigned char turn, unsigned char speed)
+{
+	flight.move[e] = 1;
+	if(speed>1) moving >>= (speed-1);
+	flight.moving[e] = moving;
+	flight.angle[e] = flight.angle[e] + turn;
+	flight.speed[e] = speed;
+}
+
+void flight_arc( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed)
+{
+	flight.move[e] = 2;
+	flight.turn[e] = sgn_u8(turn);
+	flight.radius[e] = radius;
+	flight.delay[e] = 0;
+	flight.moving[e] = mul8u(abs_u8((unsigned char)turn), radius);
+	flight.speed[e] = speed;
+}
+
+
 void flight_draw() {
 
     for (unsigned char f = 0; f < FLIGHT_OBJECTS; f++) {
@@ -253,19 +278,6 @@ void flight_draw() {
         }
     }
 }
-
-// void flight_debug(unsigned char i) {
-//     gotoxy(0,51);
-//     printf("i: %02x ", flight.index);
-//     printf("p: %02x %02x ", flight.root[FLIGHT_PLAYER], flight.count[FLIGHT_PLAYER]);
-//     printf("e: %02x %02x ", flight.root[FLIGHT_ENEMY], flight.count[FLIGHT_ENEMY]);
-//     printf("b: %02x %02x ", flight.root[FLIGHT_BULLET], flight.count[FLIGHT_BULLET]);
-
-//     char x =  (i / 32) * 16;
-//     char y = i % 32;
-//     gotoxy(x, y);
-//     printf("i:%02x n:%02x p:%02x t:%01x", i, flight.next[i], flight.prev[i], flight.type[i]);
-// }
 
 vera_sprite_offset flight_sprite_next_offset() {
     while (!flight_sprite_offset_pool || flight_sprite_offsets[flight_sprite_offset_pool]) {

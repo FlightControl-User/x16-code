@@ -22,6 +22,7 @@
 #include "equinoxe-bullet-types.h"
 #include "equinoxe-stage-types.h"
 #include "equinoxe-waves-types.h"
+#include "equinoxe-level-types.h"
 
 typedef struct {
     unsigned char layers;

@@ -1,0 +1,17 @@
+extern __lib_import("equinoxe-stage-flight") __mem() stage_t stage;
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __zp stage_action_t * stage_get_flightpath_action(__zp stage_flightpath_t *flightpath, __mem() char action);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() char stage_get_flightpath_type(__zp stage_flightpath_t *flightpath, __mem() char action);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() char stage_get_flightpath_next(__zp stage_flightpath_t *flightpath, __mem() char action);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() unsigned int stage_get_flightpath_action_move_flight(__zp stage_action_t *action_move);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() signed char stage_get_flightpath_action_move_turn(__zp stage_action_t *action_move);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() char stage_get_flightpath_action_move_speed(__zp stage_action_t *action_move);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() signed char stage_get_flightpath_action_turn_turn(__zp volatile stage_action_t *action_turn);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() char stage_get_flightpath_action_turn_radius(__zp stage_action_t *action_turn);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) __mem() char stage_get_flightpath_action_turn_speed(__zp stage_action_t *action_turn);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) void stage_player_remove(__mem() char p);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) void stage_enemy_remove(__mem() char w, __mem() char e);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) void stage_bullet_add(__mem() unsigned int sx, __mem() unsigned int sy, __mem() unsigned int tx, __mem() unsigned int ty, __mem() char speed, __mem() char side, __mem() char sprite_bullet);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) void stage_bullet_remove(__mem() char b);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) void stage_tower_remove(__mem() char t);
+extern __varcall __lib_import("equinoxe-stage-flight") __bank( cx16_ram, 3 ) void stage_impact(__mem() char f, __mem() char h);
+extern __phicall __lib_import("equinoxe-stage-flight") void __equinoxe_stage_flight_start();

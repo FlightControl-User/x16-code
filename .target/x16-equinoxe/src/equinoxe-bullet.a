@@ -1,0 +1,1431 @@
+  // Library
+.namespace equinoxe_bullet {
+  // Upstart
+.cpu _65c02
+  .segmentdef Basic                   [start=$0801]
+.segmentdef Code                    [start=$80d]
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
+.segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
+
+.segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
+.segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+
+  // start-assembler
+  // File Comments
+  // Global constants and variables
+  // constants
+  .label WHITE = 1
+  .label BLUE = 6
+  ///< Load a logical file.
+  .label CBM_PLOT = $fff0
+  .label VERA_LAYER_WIDTH_MASK = $30
+  .label VERA_LAYER_HEIGHT_MASK = $c0
+  .label OFFSET_STRUCT_FLIGHT_T_XF = $280
+  .label OFFSET_STRUCT_FLIGHT_T_YF = $2c0
+  .label OFFSET_STRUCT_FLIGHT_T_XI = $300
+  .label OFFSET_STRUCT_FLIGHT_T_YI = $380
+  .label OFFSET_STRUCT_FLIGHT_T_XD = $400
+  .label OFFSET_STRUCT_FLIGHT_T_YD = $480
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET = 3
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK = 5
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT = 9
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH = 8
+  .label OFFSET_STRUCT___CX16_CONIO_S_COLOR = $d
+  .label OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP = $a
+  .label OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y = 1
+  .label OFFSET_STRUCT___CX16_CONIO_S_OFFSET = $13
+  .label OFFSET_STRUCT___CX16_CONIO_S_WIDTH = 6
+  .label OFFSET_STRUCT___CX16_CONIO_S_HEIGHT = 7
+  .label OFFSET_STRUCT___CX16_CONIO_S_OFFSETS = $15
+  .label OFFSET_STRUCT___CX16_CONIO_S_LAYER = 2
+  .label OFFSET_STRUCT___CX16_CONIO_S_SCROLL = $f
+  .label OFFSET_STRUCT___CX16_CONIO_S_CURSOR = $c
+  .label OFFSET_STRUCT_FLIGHT_T_SPEED = $7c0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_COUNT = $20
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_LOOP = $f0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_REVERSE = $d0
+  .label OFFSET_STRUCT_FLIGHT_T_ANIMATE = $900
+  .label OFFSET_STRUCT_FLIGHT_T_HEALTH = $880
+  .label OFFSET_STRUCT_FLIGHT_T_IMPACT = $8c0
+  .label OFFSET_STRUCT_FLIGHT_T_TYPE = $180
+  .label OFFSET_STRUCT_FLIGHT_T_USED = $c0
+  .label SIZEOF_STRUCT___CX16_CONIO_S = $8f
+  /// $9F2A	DC_HSCALE (DCSEL=0)	Active Display H-Scale
+  .label VERA_DC_HSCALE = $9f2a
+  /// $9F2B	DC_VSCALE (DCSEL=0)	Active Display V-Scale
+  .label VERA_DC_VSCALE = $9f2b
+  /// $9F34	L1_CONFIG   Layer 1 Configuration
+  .label VERA_L1_CONFIG = $9f34
+  /// $9F35	L1_MAPBASE	    Layer 1 Map Base Address (16:9)
+  .label VERA_L1_MAPBASE = $9f35
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __equinoxe_bullet_start
+// void equinoxe_bullet.__equinoxe_bullet_start()
+__equinoxe_bullet_start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __equinoxe_bullet_start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // __equinoxe_bullet_start::@return
+    // [3] return 
+    rts
+}
+  // code segment
+.segment CodeEngineBullets
+  // bullet_logic
+// void equinoxe_bullet.bullet_logic()
+// __bank(cx16_ram, 7) 
+bullet_logic: {
+    // constants
+    .label xf = equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XF
+    .label yf = equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YF
+    .label xi = equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI
+    .label yi = equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI
+    .label xd = equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD
+    .label yd = equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD
+    // variables
+    // variables-zero-page
+    // flight_index_t b = flight_root(FLIGHT_BULLET)
+    // [18] flight_root::type = 3 -- vbum1=vbuc1 
+    lda #3
+    sta equinoxe_flightengine.flight_root.type
+    // [19] callexecute flight_root  -- call_var_near 
+    jsr equinoxe_flightengine.flight_root
+    // [20] bullet_logic::b#0 = flight_root::return -- vbum1=vbum2 
+    lda equinoxe_flightengine.flight_root.return
+    sta b
+    // [21] phi from bullet_logic bullet_logic::@3 to bullet_logic::@1 [phi:bullet_logic/bullet_logic::@3->bullet_logic::@1]
+    // [21] phi bullet_logic::b#2 = bullet_logic::b#0 [phi:bullet_logic/bullet_logic::@3->bullet_logic::@1#0] -- register_copy 
+    // bullet_logic::@1
+  __b1:
+    // while(b)
+    // [22] if(0!=bullet_logic::b#2) goto bullet_logic::@2 -- 0_neq_vbum1_then_la1 
+    lda b
+    bne __b2
+    // bullet_logic::@return
+    // }
+    // [23] return 
+    rts
+    // bullet_logic::@2
+  __b2:
+    // flight_index_t bn = flight_next(b)
+    // [24] flight_next::i = bullet_logic::b#2 -- vbum1=vbum2 
+    lda b
+    sta equinoxe_flightengine.flight_next.i
+    // [25] callexecute flight_next  -- call_var_near 
+    jsr equinoxe_flightengine.flight_next
+    // [26] bullet_logic::b#1 = flight_next::return -- vbum1=vbum2 
+    lda equinoxe_flightengine.flight_next.return
+    sta b_1
+    // if(flight.type[b] == FLIGHT_BULLET && flight.used[b])
+    // [27] if(((char *)&flight+OFFSET_STRUCT_FLIGHT_T_TYPE)[bullet_logic::b#2]!=3) goto bullet_logic::@3 -- pbuc1_derefidx_vbum1_neq_vbuc2_then_la1 
+    lda #3
+    ldy b
+    cmp equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_TYPE,y
+    bne __b3
+    // bullet_logic::@7
+    // [28] if(0!=((char *)&flight+OFFSET_STRUCT_FLIGHT_T_USED)[bullet_logic::b#2]) goto bullet_logic::@5 -- 0_neq_pbuc1_derefidx_vbum1_then_la1 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_USED,y
+    cmp #0
+    bne __b5
+    // bullet_logic::@3
+  __b3:
+    // [29] bullet_logic::b#8 = bullet_logic::b#1 -- vbum1=vbum2 
+    lda b_1
+    sta b
+    jmp __b1
+    // bullet_logic::@5
+  __b5:
+    // kickasm
+    // kickasm( uses bullet_logic::xf uses bullet_logic::yf uses bullet_logic::xi uses bullet_logic::yi uses bullet_logic::xd uses bullet_logic::yd) {{ lda b                 asl                 tay                 ldx b                 lda xf,x        // Load the fractional part of the coordinate.                 clc             // For addition, clear the carry.                 adc xd,y        // Add the low byte (=fractional part) of the delta.                 sta xf,x        // Store the low byte of the delta in the fractional part of the coordinate.                 lda xi,y        // Load the low byte of the integer part of the coordinate.                 adc xd+1,y      // Add the high byte (=integer part) of the delta.                 sta xi,y        // Store the result in the low byte of the integer part of the coordinate.                 lda xd+1,y      // Load back the high byte of the axis delta, it may be negative.                 ora #$7f        // We check the sign bit.                 bmi !+          // If it was minus, the result in A will be $FF.                 lda #0          // The result was not minus, so just add carry.                 !:                 adc xi+1,y      // Now do the signed final addition.                 sta xi+1,y      // And store the result, we're done.                  lda yf,x        // Load the fractional part of the coordinate.                 clc             // For addition, clear the carry.                 adc yd,y        // Add the low byte (=fractional part) of the delta.                 sta yf,x        // Store the low byte of the delta in the fractional part of the coordinate.                 lda yi,y        // Load the low byte of the integer part of the coordinate.                 adc yd+1,y      // Add the high byte (=integer part) of the delta.                 sta yi,y        // Store the result in the low byte of the integer part of the coordinate.                 lda yd+1,y      // Load back the high byte of the delta, it may be negative.                 ora #$7f        // We check the sign bit.                 bmi !+          // If it was minus, the result in A will be $FF.                 lda #0          // The result was not minus, so just add carry.                 !:                 adc yi+1,y      // Now do the signed final addition.                 sta yi+1,y      // And store the result, we're done.              }}
+    lda b
+                asl
+                tay
+                ldx b
+                lda xf,x        // Load the fractional part of the coordinate.
+                clc             // For addition, clear the carry.
+                adc xd,y        // Add the low byte (=fractional part) of the delta.
+                sta xf,x        // Store the low byte of the delta in the fractional part of the coordinate.
+                lda xi,y        // Load the low byte of the integer part of the coordinate.
+                adc xd+1,y      // Add the high byte (=integer part) of the delta.
+                sta xi,y        // Store the result in the low byte of the integer part of the coordinate.
+                lda xd+1,y      // Load back the high byte of the axis delta, it may be negative.
+                ora #$7f        // We check the sign bit.
+                bmi !+          // If it was minus, the result in A will be $FF.
+                lda #0          // The result was not minus, so just add carry.
+                !:
+                adc xi+1,y      // Now do the signed final addition.
+                sta xi+1,y      // And store the result, we're done.
+
+                lda yf,x        // Load the fractional part of the coordinate.
+                clc             // For addition, clear the carry.
+                adc yd,y        // Add the low byte (=fractional part) of the delta.
+                sta yf,x        // Store the low byte of the delta in the fractional part of the coordinate.
+                lda yi,y        // Load the low byte of the integer part of the coordinate.
+                adc yd+1,y      // Add the high byte (=integer part) of the delta.
+                sta yi,y        // Store the result in the low byte of the integer part of the coordinate.
+                lda yd+1,y      // Load back the high byte of the delta, it may be negative.
+                ora #$7f        // We check the sign bit.
+                bmi !+          // If it was minus, the result in A will be $FF.
+                lda #0          // The result was not minus, so just add carry.
+                !:
+                adc yi+1,y      // Now do the signed final addition.
+                sta yi+1,y      // And store the result, we're done.
+            
+    // unsigned int x = flight.xi[b]
+    // [31] bullet_logic::$17 = bullet_logic::b#2 << 1 -- vbuxx=vbum1_rol_1 
+    lda b
+    asl
+    tax
+    // [32] bullet_logic::x#0 = ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[bullet_logic::$17] -- vwum1=pwuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,x
+    sta x
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,x
+    sta x+1
+    // unsigned int y = flight.yi[b]
+    // [33] bullet_logic::y#0 = ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[bullet_logic::$17] -- vwum1=pwuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,x
+    sta y
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,x
+    sta y+1
+    // if(x<640 && y<480 && x<0xFFFF-32 && y<0xFFFF-32)
+    // [34] if(bullet_logic::x#0>=$280) goto bullet_logic::@6 -- vwum1_ge_vwuc1_then_la1 
+    lda x+1
+    cmp #>$280
+    bcc !+
+    bne __b6
+    lda x
+    cmp #<$280
+    bcs __b6
+  !:
+    // bullet_logic::@10
+    // [35] if(bullet_logic::y#0<$1e0) goto bullet_logic::@9 -- vwum1_lt_vwuc1_then_la1 
+    lda y+1
+    cmp #>$1e0
+    bcc __b9
+    bne !+
+    lda y
+    cmp #<$1e0
+    bcc __b9
+  !:
+    // bullet_logic::@6
+  __b6:
+    // stage_bullet_remove(b)
+    // [36] stage_bullet_remove::b = bullet_logic::b#2 -- vbum1=vbum2 
+    lda b
+    sta equinoxe_stage_flight.stage_bullet_remove.b
+    // [37] callexecute stage_bullet_remove  -- call_var_far_cx16_ram 
+    jsr $ff6e
+    .byte <equinoxe_stage_flight.stage_bullet_remove
+    .byte >equinoxe_stage_flight.stage_bullet_remove
+    .byte 3
+    jmp __b3
+    // bullet_logic::@9
+  __b9:
+    // if(x<640 && y<480 && x<0xFFFF-32 && y<0xFFFF-32)
+    // [38] if(bullet_logic::x#0>=$ffff-$20) goto bullet_logic::@6 -- vwum1_ge_vwuc1_then_la1 
+    lda x+1
+    cmp #>$ffff-$20
+    bcc !+
+    bne __b6
+    lda x
+    cmp #<$ffff-$20
+    bcs __b6
+  !:
+    // bullet_logic::@8
+    // [39] if(bullet_logic::y#0<$ffff-$20) goto bullet_logic::@4 -- vwum1_lt_vwuc1_then_la1 
+    lda y+1
+    cmp #>$ffff-$20
+    bcc __b4
+    bne !+
+    lda y
+    cmp #<$ffff-$20
+    bcc __b4
+  !:
+    jmp __b6
+    // bullet_logic::@4
+  __b4:
+    // unsigned char volatile a = flight.animate[b]
+    // [40] bullet_logic::a = ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_ANIMATE)[bullet_logic::b#2] -- vbum1=pbuc1_derefidx_vbum2 
+    ldy b
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_ANIMATE,y
+    sta a
+    // animate_logic(a)
+    // [41] animate_logic::a = bullet_logic::a -- vbum1=vbum2 
+    sta equinoxe_animate.animate_logic.a
+    // [42] callexecute animate_logic  -- call_var_near 
+    jsr equinoxe_animate.animate_logic
+    // collision_insert(b)
+    // [43] collision_insert::f = bullet_logic::b#2 -- vbum1=vbum2 
+    lda b
+    sta equinoxe_collision.collision_insert.f
+    // [44] callexecute collision_insert  -- call_var_near 
+    jsr equinoxe_collision.collision_insert
+    jmp __b3
+  .segment DataEngineBullets
+    a: .byte 0
+  .segment DataEngineBullets
+    b: .byte 0
+  .segment DataEngineBullets
+    b_1: .byte 0
+  .segment DataEngineBullets
+    x: .word 0
+  .segment DataEngineBullets
+    y: .word 0
+}
+  // code segment
+.segment CodeEngineBullets
+  // bullet_add
+// __mem() char equinoxe_bullet.bullet_add(__mem() unsigned int sx, __mem() unsigned int sy, __mem() unsigned int tx, __mem() unsigned int ty, __mem() char speed, __mem() char side, __mem() char sprite_bullet)
+// __bank(cx16_ram, 7) 
+bullet_add: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label math_vecy1_return = $22
+    // flight_index_t b = flight_add(FLIGHT_BULLET, side, sprite_bullet)
+    // [45] flight_add::type = 3 -- vbum1=vbuc1 
+    lda #3
+    sta equinoxe_flightengine.flight_add.type
+    // [46] flight_add::side = bullet_add::side -- vbum1=vbum2 
+    lda side
+    sta equinoxe_flightengine.flight_add.side
+    // [47] flight_add::sprite = bullet_add::sprite_bullet -- vbum1=vbum2 
+    lda sprite_bullet
+    sta equinoxe_flightengine.flight_add.sprite
+    // [48] callexecute flight_add  -- call_var_near 
+    jsr equinoxe_flightengine.flight_add
+    // [49] bullet_add::b#0 = flight_add::return -- vbum1=vbum2 
+    lda equinoxe_flightengine.flight_add.return
+    sta b
+    // sx >> 2
+    // [50] bullet_add::$1 = bullet_add::sx >> 2 -- vwum1=vwum2_ror_2 
+    lda sx+1
+    lsr
+    sta bullet_add__1+1
+    lda sx
+    ror
+    sta bullet_add__1
+    lsr bullet_add__1+1
+    ror bullet_add__1
+    // unsigned char asx = BYTE0(sx >> 2)
+    // [51] bullet_add::asx#0 = byte0  bullet_add::$1 -- vbuyy=_byte0_vwum1 
+    ldy bullet_add__1
+    // sy >> 2
+    // [52] bullet_add::$3 = bullet_add::sy >> 2 -- vwum1=vwum2_ror_2 
+    lda sy+1
+    lsr
+    sta bullet_add__3+1
+    lda sy
+    ror
+    sta bullet_add__3
+    lsr bullet_add__3+1
+    ror bullet_add__3
+    // unsigned char asy = BYTE0(sy >> 2)
+    // [53] bullet_add::asy#0 = byte0  bullet_add::$3 -- vbuxx=_byte0_vwum1 
+    ldx bullet_add__3
+    // tx >> 2
+    // [54] bullet_add::$5 = bullet_add::tx >> 2 -- vwum1=vwum2_ror_2 
+    lda tx+1
+    lsr
+    sta bullet_add__5+1
+    lda tx
+    ror
+    sta bullet_add__5
+    lsr bullet_add__5+1
+    ror bullet_add__5
+    // unsigned char atx = BYTE0(tx >> 2)
+    // [55] bullet_add::atx#0 = byte0  bullet_add::$5 -- vbum1=_byte0_vwum2 
+    lda bullet_add__5
+    sta atx
+    // ty >> 2
+    // [56] bullet_add::$7 = bullet_add::ty >> 2 -- vwum1=vwum2_ror_2 
+    lda ty+1
+    lsr
+    sta bullet_add__7+1
+    lda ty
+    ror
+    sta bullet_add__7
+    lsr bullet_add__7+1
+    ror bullet_add__7
+    // unsigned char aty = BYTE0(ty >> 2)
+    // [57] bullet_add::aty#0 = byte0  bullet_add::$7 -- vbum1=_byte0_vwum2 
+    lda bullet_add__7
+    sta aty
+    // unsigned char angle = math_atan2(asx, atx, asy, aty)
+    // [58] bullet_add::math_atan21_x1 = bullet_add::asx#0 -- vbum1=vbuyy 
+    sty math_atan21_x1
+    // [59] bullet_add::math_atan21_x2 = bullet_add::atx#0 -- vbum1=vbum2 
+    lda atx
+    sta math_atan21_x2
+    // [60] bullet_add::math_atan21_y1 = bullet_add::asy#0 -- vbum1=vbuxx 
+    stx math_atan21_y1
+    // [61] bullet_add::math_atan21_y2 = bullet_add::aty#0 -- vbum1=vbum2 
+    lda aty
+    sta math_atan21_y2
+    // bullet_add::math_atan21
+    // unsigned char octant_temp
+    // [62] bullet_add::math_atan21_octant_temp = 0 -- vbum1=vbuc1 
+    lda #0
+    sta math_atan21_octant_temp
+    // unsigned char angle
+    // [63] bullet_add::math_atan21_angle = 0 -- vbum1=vbuc1 
+    sta math_atan21_angle
+    // asm
+    // asm { lday2 sbcy1 bcs!+ eor#$ff !: tax roloctant_temp ldax1 sbcx2 bcs!+ eor#$ff !: tay roloctant_temp ldalogtab,x sbclogtab,y bcc!+ eor#$ff !: tax ldaoctant_temp rol and#%111 tay ldaatantab,x eoradjust_octant,y staangle  }
+    lda math_atan21_y2
+    sbc math_atan21_y1
+    bcs !+
+    eor #$ff
+  !:
+    tax
+    rol math_atan21_octant_temp
+    lda math_atan21_x1
+    sbc math_atan21_x2
+    bcs !+
+    eor #$ff
+  !:
+    tay
+    rol math_atan21_octant_temp
+    lda logtab,x
+    sbc logtab,y
+    bcc !+
+    eor #$ff
+  !:
+    tax
+    lda math_atan21_octant_temp
+    rol
+    and #7
+    tay
+    lda atantab,x
+    eor adjust_octant,y
+    sta math_atan21_angle
+    // return angle;
+    // [65] bullet_add::math_atan21_return#0 = bullet_add::math_atan21_angle -- vbuaa=vbum1 
+    // bullet_add::math_atan21_@return
+    // }
+    // [66] bullet_add::math_atan21_return#1 = bullet_add::math_atan21_return#0
+    // bullet_add::@1
+    // unsigned char angle = math_atan2(asx, atx, asy, aty)
+    // [67] bullet_add::angle#0 = bullet_add::math_atan21_return#1
+    // signed int dx = math_vecx(angle-16, speed)
+    // [68] bullet_add::math_vecy1_angle#0 = bullet_add::angle#0 - $10 -- vbuxx=vbuaa_minus_vbuc1 
+    sec
+    sbc #$10
+    tax
+    // [69] bullet_add::math_vecx1_speed#0 = bullet_add::speed -- vbum1=vbum2 
+    lda speed
+    sta math_vecx1_speed
+    // bullet_add::math_vecx1
+    // if (speed)
+    // [70] if(0==bullet_add::math_vecx1_speed#0) goto bullet_add::math_vecx1_@1 -- 0_eq_vbum1_then_la1 
+    beq __b1
+    // bullet_add::math_vecx1_@2
+    // angle % 64
+    // [71] bullet_add::math_vecx1_$1 = bullet_add::math_vecy1_angle#0 & $40-1 -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #$40-1
+    // dx = math_cos[angle % 64]
+    // [72] bullet_add::math_vecx1_$2 = bullet_add::math_vecx1_$1 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [73] bullet_add::math_vecx1_dx#1 = math_cos[bullet_add::math_vecx1_$2] -- vwsm1=pwsc1_derefidx_vbuaa 
+    tay
+    lda math_cos,y
+    sta math_vecx1_dx
+    lda math_cos+1,y
+    sta math_vecx1_dx+1
+    // dx <<= speed
+    // [74] bullet_add::math_vecx1_dx#2 = bullet_add::math_vecx1_dx#1 << bullet_add::math_vecx1_speed#0 -- vwsm1=vwsm2_rol_vbum3 
+    ldy math_vecx1_speed
+    lda math_vecx1_dx
+    sta math_vecx1_dx_1
+    lda math_vecx1_dx+1
+    sta math_vecx1_dx_1+1
+    cpy #0
+    beq !e+
+  !:
+    asl math_vecx1_dx_1
+    rol math_vecx1_dx_1+1
+    dey
+    bne !-
+  !e:
+    // [75] phi from bullet_add::math_vecx1_@2 to bullet_add::math_vecx1_@1 [phi:bullet_add::math_vecx1_@2->bullet_add::math_vecx1_@1]
+    // [75] phi bullet_add::dx#1 = bullet_add::math_vecx1_dx#2 [phi:bullet_add::math_vecx1_@2->bullet_add::math_vecx1_@1#0] -- register_copy 
+    jmp __b2
+    // [75] phi from bullet_add::math_vecx1 to bullet_add::math_vecx1_@1 [phi:bullet_add::math_vecx1->bullet_add::math_vecx1_@1]
+  __b1:
+    // [75] phi bullet_add::dx#1 = 0 [phi:bullet_add::math_vecx1->bullet_add::math_vecx1_@1#0] -- vwsm1=vwsc1 
+    lda #<0
+    sta dx
+    sta dx+1
+    // bullet_add::math_vecx1_@1
+    // bullet_add::@2
+  __b2:
+    // signed int dy = math_vecy(angle-16, speed)
+    // [76] bullet_add::math_vecy1_speed#0 = bullet_add::speed -- vbum1=vbum2 
+    lda speed
+    sta math_vecy1_speed
+    // bullet_add::math_vecy1
+    // if (speed)
+    // [77] if(0==bullet_add::math_vecy1_speed#0) goto bullet_add::math_vecy1_@1 -- 0_eq_vbum1_then_la1 
+    beq __b4
+    // bullet_add::math_vecy1_@2
+    // angle % 64
+    // [78] bullet_add::math_vecy1_$1 = bullet_add::math_vecy1_angle#0 & $40-1 -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #$40-1
+    // dy = math_sin[angle % 64]
+    // [79] bullet_add::math_vecy1_$2 = bullet_add::math_vecy1_$1 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [80] bullet_add::math_vecy1_dy#1 = math_sin[bullet_add::math_vecy1_$2] -- vwsm1=pwsc1_derefidx_vbuaa 
+    tay
+    lda math_sin,y
+    sta math_vecy1_dy
+    lda math_sin+1,y
+    sta math_vecy1_dy+1
+    // dy <<= speed
+    // [81] bullet_add::math_vecy1_dy#2 = bullet_add::math_vecy1_dy#1 << bullet_add::math_vecy1_speed#0 -- vwsm1=vwsm1_rol_vbum2 
+    ldy math_vecy1_speed
+    beq !e+
+  !:
+    asl math_vecy1_dy
+    rol math_vecy1_dy+1
+    dey
+    bne !-
+  !e:
+    // [82] phi from bullet_add::math_vecy1_@2 to bullet_add::math_vecy1_@1 [phi:bullet_add::math_vecy1_@2->bullet_add::math_vecy1_@1]
+    // [82] phi bullet_add::math_vecy1_return#0 = bullet_add::math_vecy1_dy#2 [phi:bullet_add::math_vecy1_@2->bullet_add::math_vecy1_@1#0] -- vwsz1=vwsm2 
+    lda math_vecy1_dy
+    sta.z math_vecy1_return
+    lda math_vecy1_dy+1
+    sta.z math_vecy1_return+1
+    jmp __b3
+    // [82] phi from bullet_add::math_vecy1 to bullet_add::math_vecy1_@1 [phi:bullet_add::math_vecy1->bullet_add::math_vecy1_@1]
+  __b4:
+    // [82] phi bullet_add::math_vecy1_return#0 = 0 [phi:bullet_add::math_vecy1->bullet_add::math_vecy1_@1#0] -- vwsz1=vwsc1 
+    lda #<0
+    sta.z math_vecy1_return
+    sta.z math_vecy1_return+1
+    // bullet_add::math_vecy1_@1
+    // bullet_add::@3
+  __b3:
+    // flight.xd[b] = (unsigned int)dx
+    // [83] bullet_add::$20 = bullet_add::b#0 << 1 -- vbuxx=vbum1_rol_1 
+    lda b
+    asl
+    tax
+    // [84] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XD)[bullet_add::$20] = (unsigned int)bullet_add::dx#1 -- pwuc1_derefidx_vbuxx=vwum1 
+    lda dx
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
+    lda dx+1
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD+1,x
+    // flight.yd[b] = (unsigned int)dy
+    // [85] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YD)[bullet_add::$20] = (unsigned int)bullet_add::math_vecy1_return#0 -- pwuc1_derefidx_vbuxx=vwuz1 
+    lda.z math_vecy1_return
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
+    lda.z math_vecy1_return+1
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD+1,x
+    // flight.xi[b] = sx
+    // [86] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[bullet_add::$20] = bullet_add::sx -- pwuc1_derefidx_vbuxx=vwum1 
+    lda sx
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,x
+    lda sx+1
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,x
+    // flight.yi[b] = sy
+    // [87] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[bullet_add::$20] = bullet_add::sy -- pwuc1_derefidx_vbuxx=vwum1 
+    lda sy
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,x
+    lda sy+1
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,x
+    // flight.speed[b] = speed
+    // [88] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_SPEED)[bullet_add::b#0] = bullet_add::speed -- pbuc1_derefidx_vbum1=vbum2 
+    lda speed
+    ldy b
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_SPEED,y
+    // animate_add(
+    //         sprite_cache.count[flight.cache[b]], 
+    //         0, 
+    //         sprite_cache.loop[flight.cache[b]], 
+    //         1, 
+    //         1, 
+    //         sprite_cache.reverse[flight.cache[b]]
+    //         )
+    // [89] animate_add::count = ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_COUNT)[((char *)&flight)[bullet_add::b#0]] -- vbum1=pbuc1_derefidx_(pbuc2_derefidx_vbum2) 
+    ldx b
+    ldy equinoxe_flightengine.flight,x
+    ldx equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_COUNT,y
+    stx equinoxe_animate.animate_add.count
+    // [90] animate_add::state = 0 -- vbum1=vbuc1 
+    lda #0
+    sta equinoxe_animate.animate_add.state
+    // [91] animate_add::loop = ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_LOOP)[((char *)&flight)[bullet_add::b#0]] -- vbum1=pbuc1_derefidx_(pbuc2_derefidx_vbum2) 
+    ldx b
+    ldy equinoxe_flightengine.flight,x
+    ldx equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_LOOP,y
+    stx equinoxe_animate.animate_add.loop
+    // [92] animate_add::speed = 1 -- vbum1=vbuc1 
+    lda #1
+    sta equinoxe_animate.animate_add.speed
+    // [93] animate_add::direction = 1 -- vbsm1=vbsc1 
+    sta equinoxe_animate.animate_add.direction
+    // [94] animate_add::reverse = ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_REVERSE)[((char *)&flight)[bullet_add::b#0]] -- vbum1=pbuc1_derefidx_(pbuc2_derefidx_vbum2) 
+    ldx b
+    ldy equinoxe_flightengine.flight,x
+    ldx equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_REVERSE,y
+    stx equinoxe_animate.animate_add.reverse
+    // [95] callexecute animate_add  -- call_var_near 
+    jsr equinoxe_animate.animate_add
+    // [96] bullet_add::$14 = animate_add::return -- vbuaa=vbum1 
+    lda equinoxe_animate.animate_add.return
+    // flight.animate[b] = animate_add(
+    //         sprite_cache.count[flight.cache[b]], 
+    //         0, 
+    //         sprite_cache.loop[flight.cache[b]], 
+    //         1, 
+    //         1, 
+    //         sprite_cache.reverse[flight.cache[b]]
+    //         )
+    // [97] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_ANIMATE)[bullet_add::b#0] = bullet_add::$14 -- pbuc1_derefidx_vbum1=vbuaa 
+    ldy b
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_ANIMATE,y
+    // rand()
+    // [98] call rand
+    jsr rand
+    // [99] rand::return#2 = rand::return#0
+    // bullet_add::@4
+    // [100] bullet_add::$15 = rand::return#2 -- vwum1=vwum2 
+    lda rand.return
+    sta bullet_add__15
+    lda rand.return+1
+    sta bullet_add__15+1
+    // BYTE0(rand())
+    // [101] bullet_add::$16 = byte0  bullet_add::$15 -- vbuaa=_byte0_vwum1 
+    lda bullet_add__15
+    // BYTE0(rand())>>4
+    // [102] bullet_add::impact#0 = bullet_add::$16 >> 4 -- vbuxx=vbuaa_ror_4 
+    lsr
+    lsr
+    lsr
+    lsr
+    tax
+    // flight.health[b] = 0
+    // [103] ((signed char *)&flight+OFFSET_STRUCT_FLIGHT_T_HEALTH)[bullet_add::b#0] = 0 -- pbsc1_derefidx_vbum1=vbsc2 
+    lda #0
+    ldy b
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_HEALTH,y
+    // -impact
+    // [104] bullet_add::$18 = - (signed char)bullet_add::impact#0 -- vbsaa=_neg_vbsxx 
+    txa
+    eor #$ff
+    clc
+    adc #1
+    // flight.impact[b] = -impact
+    // [105] ((signed char *)&flight+OFFSET_STRUCT_FLIGHT_T_IMPACT)[bullet_add::b#0] = bullet_add::$18 -- pbsc1_derefidx_vbum1=vbsaa 
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_IMPACT,y
+    // return b;
+    // [106] bullet_add::return = bullet_add::b#0 -- vbum1=vbum2 
+    tya
+    sta return
+    // bullet_add::@return
+    // }
+    // [107] return 
+    rts
+  .segment Data
+    sx: .word 0
+  .segment Data
+    sy: .word 0
+  .segment Data
+    tx: .word 0
+  .segment Data
+    ty: .word 0
+  .segment Data
+    speed: .byte 0
+  .segment Data
+    side: .byte 0
+  .segment Data
+    sprite_bullet: .byte 0
+  .segment Data
+    return: .byte 0
+  .segment DataEngineBullets
+    bullet_add__1: .word 0
+  .segment DataEngineBullets
+    bullet_add__3: .word 0
+  .segment DataEngineBullets
+    bullet_add__5: .word 0
+  .segment DataEngineBullets
+    bullet_add__7: .word 0
+  .segment DataEngineBullets
+    bullet_add__15: .word 0
+  .segment Data
+    math_atan21_x1: .byte 0
+  .segment Data
+    math_atan21_x2: .byte 0
+  .segment Data
+    math_atan21_y1: .byte 0
+  .segment Data
+    math_atan21_y2: .byte 0
+  .segment Data
+    math_atan21_octant_temp: .byte 0
+  .segment Data
+    math_atan21_angle: .byte 0
+  .segment DataEngineBullets
+    b: .byte 0
+  .segment DataEngineBullets
+    atx: .byte 0
+  .segment DataEngineBullets
+    aty: .byte 0
+  .segment Data
+    math_vecx1_speed: .byte 0
+  .segment Data
+    math_vecx1_dx: .word 0
+  .segment Data
+    .label math_vecx1_dx_1 = dx
+  .segment Data
+    math_vecy1_speed: .byte 0
+  .segment Data
+    math_vecy1_dy: .word 0
+  .segment DataEngineBullets
+    dx: .word 0
+}
+  // code segment
+.segment Code
+  // conio_x16_init
+/// Set initial screen values.
+// void equinoxe_bullet.conio_x16_init()
+conio_x16_init: {
+    // constants
+    // variables
+    // variables-zero-page
+    // screenlayer1()
+    // [109] call screenlayer1
+    jsr screenlayer1
+    // [110] phi from conio_x16_init to conio_x16_init::@1 [phi:conio_x16_init->conio_x16_init::@1]
+    // conio_x16_init::@1
+    // textcolor(CONIO_TEXTCOLOR_DEFAULT)
+    // [111] call textcolor
+    jsr textcolor
+    // [112] phi from conio_x16_init::@1 to conio_x16_init::@2 [phi:conio_x16_init::@1->conio_x16_init::@2]
+    // conio_x16_init::@2
+    // bgcolor(CONIO_BACKCOLOR_DEFAULT)
+    // [113] call bgcolor
+    jsr bgcolor
+    // [114] phi from conio_x16_init::@2 to conio_x16_init::@3 [phi:conio_x16_init::@2->conio_x16_init::@3]
+    // conio_x16_init::@3
+    // cursor(0)
+    // [115] call cursor
+    jsr cursor
+    // [116] phi from conio_x16_init::@3 to conio_x16_init::@4 [phi:conio_x16_init::@3->conio_x16_init::@4]
+    // conio_x16_init::@4
+    // cbm_k_plot_get()
+    // [117] call cbm_k_plot_get
+    jsr cbm_k_plot_get
+    // [118] cbm_k_plot_get::return#2 = cbm_k_plot_get::return#0
+    // conio_x16_init::@5
+    // [119] conio_x16_init::$4 = cbm_k_plot_get::return#2 -- vwum1=vwum2 
+    lda cbm_k_plot_get.return
+    sta conio_x16_init__4
+    lda cbm_k_plot_get.return+1
+    sta conio_x16_init__4+1
+    // BYTE1(cbm_k_plot_get())
+    // [120] conio_x16_init::$5 = byte1  conio_x16_init::$4 -- vbuaa=_byte1_vwum1 
+    // __conio.cursor_x = BYTE1(cbm_k_plot_get())
+    // [121] *((char *)&__conio) = conio_x16_init::$5 -- _deref_pbuc1=vbuaa 
+    sta __conio
+    // cbm_k_plot_get()
+    // [122] call cbm_k_plot_get
+    jsr cbm_k_plot_get
+    // [123] cbm_k_plot_get::return#3 = cbm_k_plot_get::return#0
+    // conio_x16_init::@6
+    // [124] conio_x16_init::$6 = cbm_k_plot_get::return#3 -- vwum1=vwum2 
+    lda cbm_k_plot_get.return
+    sta conio_x16_init__6
+    lda cbm_k_plot_get.return+1
+    sta conio_x16_init__6+1
+    // BYTE0(cbm_k_plot_get())
+    // [125] conio_x16_init::$7 = byte0  conio_x16_init::$6 -- vbuaa=_byte0_vwum1 
+    lda conio_x16_init__6
+    // __conio.cursor_y = BYTE0(cbm_k_plot_get())
+    // [126] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = conio_x16_init::$7 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // gotoxy(__conio.cursor_x, __conio.cursor_y)
+    // [127] gotoxy::x#0 = *((char *)&__conio) -- vbuaa=_deref_pbuc1 
+    lda __conio
+    // [128] gotoxy::y#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) -- vbuyy=_deref_pbuc1 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // [129] call gotoxy
+    jsr gotoxy
+    // conio_x16_init::@7
+    // __conio.scroll[0] = 1
+    // [130] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL) = 1 -- _deref_pbuc1=vbuc2 
+    lda #1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL
+    // __conio.scroll[1] = 1
+    // [131] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL+1) = 1 -- _deref_pbuc1=vbuc2 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL+1
+    // conio_x16_init::@return
+    // }
+    // [132] return 
+    rts
+  .segment Data
+    conio_x16_init__4: .word 0
+  .segment Data
+    conio_x16_init__6: .word 0
+}
+  // code segment
+.segment Code
+  // rand
+// Returns a pseudo-random number in the range of 0 to RAND_MAX (65535)
+// Uses an xorshift pseudorandom number generator that hits all different values
+// Information https://en.wikipedia.org/wiki/Xorshift
+// Source http://www.retroprogramming.com/2017/07/xorshift-pseudorandom-numbers-in-z80.html
+// __mem() unsigned int rand()
+rand: {
+    // constants
+    // variables
+    // variables-zero-page
+    // rand_state << 7
+    // [133] rand::$0 = rand_state << 7 -- vwum1=vwum2_rol_7 
+    lda rand_state+1
+    lsr
+    lda rand_state
+    ror
+    sta rand__0+1
+    lda #0
+    ror
+    sta rand__0
+    // rand_state ^= rand_state << 7
+    // [134] rand_state = rand_state ^ rand::$0 -- vwum1=vwum1_bxor_vwum2 
+    lda rand_state
+    eor rand__0
+    sta rand_state
+    lda rand_state+1
+    eor rand__0+1
+    sta rand_state+1
+    // rand_state >> 9
+    // [135] rand::$1 = rand_state >> 9 -- vwum1=vwum2_ror_9 
+    lsr
+    sta rand__1
+    lda #0
+    sta rand__1+1
+    // rand_state ^= rand_state >> 9
+    // [136] rand_state = rand_state ^ rand::$1 -- vwum1=vwum1_bxor_vwum2 
+    lda rand_state
+    eor rand__1
+    sta rand_state
+    lda rand_state+1
+    eor rand__1+1
+    sta rand_state+1
+    // rand_state << 8
+    // [137] rand::$2 = rand_state << 8 -- vwum1=vwum2_rol_8 
+    lda rand_state
+    sta rand__2+1
+    lda #0
+    sta rand__2
+    // rand_state ^= rand_state << 8
+    // [138] rand_state = rand_state ^ rand::$2 -- vwum1=vwum1_bxor_vwum2 
+    lda rand_state
+    eor rand__2
+    sta rand_state
+    lda rand_state+1
+    eor rand__2+1
+    sta rand_state+1
+    // return rand_state;
+    // [139] rand::return#0 = rand_state -- vwum1=vwum2 
+    lda rand_state
+    sta return
+    lda rand_state+1
+    sta return+1
+    // rand::@return
+    // }
+    // [140] return 
+    rts
+  .segment Data
+    rand__0: .word 0
+  .segment Data
+    rand__1: .word 0
+  .segment Data
+    rand__2: .word 0
+  .segment Data
+    return: .word 0
+}
+  // code segment
+.segment Code
+  // screenlayer1
+// Set the layer with which the conio will interact.
+// void screenlayer1()
+screenlayer1: {
+    // constants
+    // variables
+    // variables-zero-page
+    // screenlayer(1, *VERA_L1_MAPBASE, *VERA_L1_CONFIG)
+    // [141] screenlayer::mapbase#0 = *VERA_L1_MAPBASE -- vbuyy=_deref_pbuc1 
+    ldy VERA_L1_MAPBASE
+    // [142] screenlayer::config#0 = *VERA_L1_CONFIG -- vbuxx=_deref_pbuc1 
+    ldx VERA_L1_CONFIG
+    // [143] call screenlayer
+    jsr screenlayer
+    // screenlayer1::@return
+    // }
+    // [144] return 
+    rts
+}
+  // code segment
+.segment Code
+  // textcolor
+// Set the front color for text output. The old front text color setting is returned.
+// - color: a 4 bit value ( decimal between 0 and 15).
+//   This will only work when the VERA is in 16 color mode!
+//   Note that on the VERA, the transparent color has value 0.
+// char textcolor(char color)
+textcolor: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __conio.color & 0xF0
+    // [145] textcolor::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) & $f0 -- vbuaa=_deref_pbuc1_band_vbuc2 
+    lda #$f0
+    and __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // __conio.color & 0xF0 | color
+    // [146] textcolor::$1 = textcolor::$0 | WHITE -- vbuaa=vbuaa_bor_vbuc1 
+    ora #WHITE
+    // __conio.color = __conio.color & 0xF0 | color
+    // [147] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) = textcolor::$1 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // textcolor::@return
+    // }
+    // [148] return 
+    rts
+}
+  // code segment
+.segment Code
+  // bgcolor
+// Set the back color for text output.
+// - color: a 4 bit value ( decimal between 0 and 15).
+//   This will only work when the VERA is in 16 color mode!
+//   Note that on the VERA, the transparent color has value 0.
+// char bgcolor(char color)
+bgcolor: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __conio.color & 0x0F
+    // [149] bgcolor::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) & $f -- vbuaa=_deref_pbuc1_band_vbuc2 
+    lda #$f
+    and __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // __conio.color & 0x0F | color << 4
+    // [150] bgcolor::$2 = bgcolor::$0 | BLUE<<4 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #BLUE<<4
+    // __conio.color = __conio.color & 0x0F | color << 4
+    // [151] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) = bgcolor::$2 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // bgcolor::@return
+    // }
+    // [152] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cursor
+// If onoff is 1, a cursor is displayed when waiting for keyboard input.
+// If onoff is 0, the cursor is hidden when waiting for keyboard input.
+// The function returns the old cursor setting.
+// char cursor(char onoff)
+cursor: {
+    // constants
+    .const onoff = 0
+    // variables
+    // variables-zero-page
+    // __conio.cursor = onoff
+    // [153] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR) = cursor::onoff#0 -- _deref_pbuc1=vbuc2 
+    lda #onoff
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR
+    // cursor::@return
+    // }
+    // [154] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cbm_k_plot_get
+/**
+ * @brief Get current x and y cursor position.
+ * @return An unsigned int where the hi byte is the x coordinate and the low byte is the y coordinate of the screen position.
+ */
+// __mem() unsigned int cbm_k_plot_get()
+cbm_k_plot_get: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem unsigned char x
+    // [155] cbm_k_plot_get::x = 0 -- vbum1=vbuc1 
+    lda #0
+    sta x
+    // __mem unsigned char y
+    // [156] cbm_k_plot_get::y = 0 -- vbum1=vbuc1 
+    sta y
+    // kickasm
+    // kickasm( uses cbm_k_plot_get::x uses cbm_k_plot_get::y uses CBM_PLOT) {{ sec         jsr CBM_PLOT         stx y         sty x      }}
+    sec
+        jsr CBM_PLOT
+        stx y
+        sty x
+    
+    // MAKEWORD(x,y)
+    // [158] cbm_k_plot_get::return#0 = cbm_k_plot_get::x w= cbm_k_plot_get::y -- vwum1=vbum2_word_vbum3 
+    lda x
+    sta return+1
+    lda y
+    sta return
+    // cbm_k_plot_get::@return
+    // }
+    // [159] return 
+    rts
+  .segment Data
+    x: .byte 0
+  .segment Data
+    y: .byte 0
+  .segment Data
+    return: .word 0
+}
+  // code segment
+.segment Code
+  // gotoxy
+// Set the cursor to the specified position
+// void gotoxy(__register(A) char x, __register(Y) char y)
+gotoxy: {
+    // constants
+    // variables
+    // variables-zero-page
+    // (x>=__conio.width)?__conio.width:x
+    // [160] if(gotoxy::x#0>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH)) goto gotoxy::@1 -- vbuaa_ge__deref_pbuc1_then_la1 
+    cmp __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    bcs __b1
+    // [162] phi from gotoxy gotoxy::@1 to gotoxy::@2 [phi:gotoxy/gotoxy::@1->gotoxy::@2]
+    // [162] phi gotoxy::$3 = gotoxy::x#0 [phi:gotoxy/gotoxy::@1->gotoxy::@2#0] -- register_copy 
+    jmp __b2
+    // gotoxy::@1
+  __b1:
+    // [161] gotoxy::$2 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // gotoxy::@2
+  __b2:
+    // __conio.cursor_x = (x>=__conio.width)?__conio.width:x
+    // [163] *((char *)&__conio) = gotoxy::$3 -- _deref_pbuc1=vbuaa 
+    sta __conio
+    // (y>=__conio.height)?__conio.height:y
+    // [164] if(gotoxy::y#0>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto gotoxy::@3 -- vbuyy_ge__deref_pbuc1_then_la1 
+    cpy __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    bcs __b3
+    // gotoxy::@4
+    // [165] gotoxy::$14 = gotoxy::y#0 -- vbuaa=vbuyy 
+    tya
+    // [166] phi from gotoxy::@3 gotoxy::@4 to gotoxy::@5 [phi:gotoxy::@3/gotoxy::@4->gotoxy::@5]
+    // [166] phi gotoxy::$7 = gotoxy::$6 [phi:gotoxy::@3/gotoxy::@4->gotoxy::@5#0] -- register_copy 
+    // gotoxy::@5
+  __b5:
+    // __conio.cursor_y = (y>=__conio.height)?__conio.height:y
+    // [167] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = gotoxy::$7 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // __conio.cursor_x << 1
+    // [168] gotoxy::$8 = *((char *)&__conio) << 1 -- vbuxx=_deref_pbuc1_rol_1 
+    lda __conio
+    asl
+    tax
+    // __conio.offsets[y] + __conio.cursor_x << 1
+    // [169] gotoxy::$10 = gotoxy::y#0 << 1 -- vbuaa=vbuyy_rol_1 
+    tya
+    asl
+    // [170] gotoxy::$9 = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[gotoxy::$10] + gotoxy::$8 -- vwum1=pwuc1_derefidx_vbuaa_plus_vbuxx 
+    tay
+    txa
+    clc
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    sta gotoxy__9
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    adc #0
+    sta gotoxy__9+1
+    // __conio.offset = __conio.offsets[y] + __conio.cursor_x << 1
+    // [171] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = gotoxy::$9 -- _deref_pwuc1=vwum1 
+    lda gotoxy__9
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    lda gotoxy__9+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // gotoxy::@return
+    // }
+    // [172] return 
+    rts
+    // gotoxy::@3
+  __b3:
+    // (y>=__conio.height)?__conio.height:y
+    // [173] gotoxy::$6 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    jmp __b5
+  .segment Data
+    gotoxy__9: .word 0
+}
+  // code segment
+.segment Code
+  // screenlayer
+// --- layer management in VERA ---
+// void screenlayer(char layer, __register(Y) char mapbase, __register(X) char config)
+screenlayer: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem char vera_dc_hscale_temp = *VERA_DC_HSCALE
+    // [174] screenlayer::vera_dc_hscale_temp#0 = *VERA_DC_HSCALE -- vbum1=_deref_pbuc1 
+    lda VERA_DC_HSCALE
+    sta vera_dc_hscale_temp
+    // __mem char vera_dc_vscale_temp = *VERA_DC_VSCALE
+    // [175] screenlayer::vera_dc_vscale_temp#0 = *VERA_DC_VSCALE -- vbum1=_deref_pbuc1 
+    lda VERA_DC_VSCALE
+    sta vera_dc_vscale_temp
+    // __conio.layer = 0
+    // [176] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    // mapbase >> 7
+    // [177] screenlayer::$0 = screenlayer::mapbase#0 >> 7 -- vbuaa=vbuyy_ror_7 
+    tya
+    rol
+    rol
+    and #1
+    // __conio.mapbase_bank = mapbase >> 7
+    // [178] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) = screenlayer::$0 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // (mapbase)<<1
+    // [179] screenlayer::$1 = screenlayer::mapbase#0 << 1 -- vbuaa=vbuyy_rol_1 
+    tya
+    asl
+    // MAKEWORD((mapbase)<<1,0)
+    // [180] screenlayer::$2 = screenlayer::$1 w= 0 -- vwum1=vbuaa_word_vbuc1 
+    ldy #0
+    sta screenlayer__2+1
+    sty screenlayer__2
+    // __conio.mapbase_offset = MAKEWORD((mapbase)<<1,0)
+    // [181] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) = screenlayer::$2 -- _deref_pwuc1=vwum1 
+    tya
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    lda screenlayer__2+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    // config & VERA_LAYER_WIDTH_MASK
+    // [182] screenlayer::$7 = screenlayer::config#0 & VERA_LAYER_WIDTH_MASK -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #VERA_LAYER_WIDTH_MASK
+    // (config & VERA_LAYER_WIDTH_MASK) >> 4
+    // [183] screenlayer::$8 = screenlayer::$7 >> 4 -- vbum1=vbuaa_ror_4 
+    lsr
+    lsr
+    lsr
+    lsr
+    sta screenlayer__8
+    // __conio.mapwidth = VERA_LAYER_DIM[ (config & VERA_LAYER_WIDTH_MASK) >> 4]
+    // [184] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH) = screenlayer::VERA_LAYER_DIM[screenlayer::$8] -- _deref_pbuc1=pbuc2_derefidx_vbum1 
+    tay
+    lda VERA_LAYER_DIM,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH
+    // config & VERA_LAYER_HEIGHT_MASK
+    // [185] screenlayer::$5 = screenlayer::config#0 & VERA_LAYER_HEIGHT_MASK -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #VERA_LAYER_HEIGHT_MASK
+    // (config & VERA_LAYER_HEIGHT_MASK) >> 6
+    // [186] screenlayer::$6 = screenlayer::$5 >> 6 -- vbuaa=vbuaa_ror_6 
+    rol
+    rol
+    rol
+    and #3
+    // __conio.mapheight = VERA_LAYER_DIM[ (config & VERA_LAYER_HEIGHT_MASK) >> 6]
+    // [187] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT) = screenlayer::VERA_LAYER_DIM[screenlayer::$6] -- _deref_pbuc1=pbuc2_derefidx_vbuaa 
+    tay
+    lda VERA_LAYER_DIM,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT
+    // __conio.rowskip = VERA_LAYER_SKIP[(config & VERA_LAYER_WIDTH_MASK)>>4]
+    // [188] screenlayer::$16 = screenlayer::$8 << 1 -- vbuaa=vbum1_rol_1 
+    lda screenlayer__8
+    asl
+    // [189] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) = screenlayer::VERA_LAYER_SKIP[screenlayer::$16] -- _deref_pwuc1=pwuc2_derefidx_vbuaa 
+    // __conio.rowshift = ((config & VERA_LAYER_WIDTH_MASK)>>4)+6;
+    tay
+    lda VERA_LAYER_SKIP,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    lda VERA_LAYER_SKIP+1,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    // vera_dc_hscale_temp == 0x80
+    // [190] screenlayer::$9 = screenlayer::vera_dc_hscale_temp#0 == $80 -- vboaa=vbum1_eq_vbuc1 
+    lda vera_dc_hscale_temp
+    eor #$80
+    beq !+
+    lda #1
+  !:
+    eor #1
+    // 40 << (char)(vera_dc_hscale_temp == 0x80)
+    // [191] screenlayer::$18 = (char)screenlayer::$9
+    // [192] screenlayer::$10 = $28 << screenlayer::$18 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
+    lda #$28
+    cpy #0
+    beq !e+
+  !:
+    asl
+    dey
+    bne !-
+  !e:
+    // (40 << (char)(vera_dc_hscale_temp == 0x80))-1
+    // [193] screenlayer::$11 = screenlayer::$10 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // __conio.width = (40 << (char)(vera_dc_hscale_temp == 0x80))-1
+    // [194] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) = screenlayer::$11 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // vera_dc_vscale_temp == 0x80
+    // [195] screenlayer::$12 = screenlayer::vera_dc_vscale_temp#0 == $80 -- vboaa=vbum1_eq_vbuc1 
+    lda vera_dc_vscale_temp
+    eor #$80
+    beq !+
+    lda #1
+  !:
+    eor #1
+    // 30 << (char)(vera_dc_vscale_temp == 0x80)
+    // [196] screenlayer::$19 = (char)screenlayer::$12
+    // [197] screenlayer::$13 = $1e << screenlayer::$19 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
+    lda #$1e
+    cpy #0
+    beq !e+
+  !:
+    asl
+    dey
+    bne !-
+  !e:
+    // (30 << (char)(vera_dc_vscale_temp == 0x80))-1
+    // [198] screenlayer::$14 = screenlayer::$13 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // __conio.height = (30 << (char)(vera_dc_vscale_temp == 0x80))-1
+    // [199] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) = screenlayer::$14 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    // unsigned int mapbase_offset = __conio.mapbase_offset
+    // [200] screenlayer::mapbase_offset#0 = *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    sta mapbase_offset
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    sta mapbase_offset+1
+    // [201] phi from screenlayer to screenlayer::@1 [phi:screenlayer->screenlayer::@1]
+    // [201] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#0 [phi:screenlayer->screenlayer::@1#0] -- register_copy 
+    // [201] phi screenlayer::y#2 = 0 [phi:screenlayer->screenlayer::@1#1] -- vbuxx=vbuc1 
+    ldx #0
+    // screenlayer::@1
+  __b1:
+    // for(register char y=0; y<=__conio.height; y++)
+    // [202] if(screenlayer::y#2<=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto screenlayer::@2 -- vbuxx_le__deref_pbuc1_then_la1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    stx.z $ff
+    cmp.z $ff
+    bcs __b2
+    // screenlayer::@return
+    // }
+    // [203] return 
+    rts
+    // screenlayer::@2
+  __b2:
+    // __conio.offsets[y] = mapbase_offset
+    // [204] screenlayer::$17 = screenlayer::y#2 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [205] ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[screenlayer::$17] = screenlayer::mapbase_offset#2 -- pwuc1_derefidx_vbuaa=vwum1 
+    tay
+    lda mapbase_offset
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    lda mapbase_offset+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    // mapbase_offset += __conio.rowskip
+    // [206] screenlayer::mapbase_offset#1 = screenlayer::mapbase_offset#2 + *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda mapbase_offset
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    sta mapbase_offset
+    lda mapbase_offset+1
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    sta mapbase_offset+1
+    // for(register char y=0; y<=__conio.height; y++)
+    // [207] screenlayer::y#1 = ++ screenlayer::y#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [201] phi from screenlayer::@2 to screenlayer::@1 [phi:screenlayer::@2->screenlayer::@1]
+    // [201] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#1 [phi:screenlayer::@2->screenlayer::@1#0] -- register_copy 
+    // [201] phi screenlayer::y#2 = screenlayer::y#1 [phi:screenlayer::@2->screenlayer::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    VERA_LAYER_DIM: .byte $1f, $3f, $7f, $ff
+  .segment Data
+    VERA_LAYER_SKIP: .word $40, $80, $100, $200
+  .segment Data
+    screenlayer__2: .word 0
+  .segment Data
+    screenlayer__8: .byte 0
+  .segment Data
+    vera_dc_hscale_temp: .byte 0
+  .segment Data
+    vera_dc_vscale_temp: .byte 0
+  .segment Data
+    mapbase_offset: .word 0
+}
+  // Exported Global Data
+.segment Data
+  // #pragma data_seg(Math)
+math_sin:
+.fillword 64, 128*sin(toRadians(i*360/64))
+
+.segment Data
+math_cos:
+.fillword 64, 128*cos(toRadians(i*360/64))
+
+.segment Data
+  .align $100
+logtab:
+.fill $100, (log(i)/log(2))*32
+
+.segment Data
+  .align $100
+atantab:
+.for(var i=-256;i<0;i++) {
+    .byte (atan(pow(2.0,(i/32.0)))*64/(PI*2))
+	}
+//    .fill $100, i
+
+.segment Data
+  .align $100
+adjust_octant:
+.byte %00001111		// x+,y+,|x|>|y|
+	.byte %00000000		// x+,y+,|x|<|y|
+	.byte %00110000		// x+,y-,|x|>|y|
+	.byte %00111111		// x+,y-,|x|<|y|
+	.byte %00010000		// x-,y+,|x|>|y|
+	.byte %00011111		// x-,y+,|x|<|y|
+	.byte %00101111		// x-,y-,|x|>|y|
+	.byte %00100000		// x-,y-,|x|<|y|
+
+.segment Data
+  // The random state variable
+  rand_state: .word 1
+.segment Data
+  __conio: .fill SIZEOF_STRUCT___CX16_CONIO_S, 0
+  // end-assembler
+  // End Namespace
+} // namespace
+ // Asm import library equinoxe-animate:
+.namespace equinoxe_animate {
+.label sprite_cache = 0
+.label flight = 0
+animate_add: {
+  .label count = 0
+  .label state = 0
+  .label loop = 0
+  .label speed = 0
+  .label direction = 0
+  .label reverse = 0
+  .label return = 0
+}
+animate_logic: {
+  .label a = 0
+  .label return = 0
+}
+} // namespaceequinoxe_animate
+
+ // Asm import library equinoxe-flightengine:
+.namespace equinoxe_flightengine {
+.label sprite_cache = 0
+.label flight = 0
+flight_add: {
+  .label type = 0
+  .label side = 0
+  .label sprite = 0
+  .label return = 0
+}
+flight_root: {
+  .label type = 0
+  .label return = 0
+}
+flight_next: {
+  .label i = 0
+  .label return = 0
+}
+} // namespaceequinoxe_flightengine
+
+ // Asm import library equinoxe-collision:
+.namespace equinoxe_collision {
+.label sprite_cache = 0
+.label flight = 0
+collision_insert: {
+  .label f = 0
+  .label return = 0
+}
+} // namespaceequinoxe_collision
+
+ // Asm import library equinoxe-stage-flight:
+.namespace equinoxe_stage_flight {
+.label sprite_cache = 0
+.label flight = 0
+stage_bullet_remove: {
+  .label b = 0
+  .label return = 0
+}
+} // namespaceequinoxe_stage_flight
+

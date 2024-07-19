@@ -1,6 +1,6 @@
 #include "equinoxe-types.h"
 
-volatile extern stage_t stage;
+// __lib_export extern stage_t stage;
 
 void stage_impact(flight_index_t f, flight_index_t h);
 
@@ -8,8 +8,11 @@ void stage_impact(flight_index_t f, flight_index_t h);
 void stage_tower_remove(flight_index_t t);
 #endif
 
+#ifdef __BULLET
+// __lib_import("equinoxe-bullet") flight_index_t bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
+void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
 void stage_bullet_remove(flight_index_t b);
-
+#endif
 
 
 stage_action_t* stage_get_flightpath_action(stage_flightpath_t* flightpath, unsigned char action);

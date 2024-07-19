@@ -9,26 +9,26 @@
  * 
  */
 
-#pragma link("equinoxe.ld")
+#pragma link("equinoxe-libraries.ld")
 
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(palette_init, palette_alloc_bram, palette_ptr_bram)
-#pragma asm_export(palette_use_vram, palette_unuse_vram, palette_free_vram)
+#pragma lib_export(palette_init, palette_alloc_bram, palette_ptr_bram)
+#pragma lib_export(palette_use_vram, palette_unuse_vram, palette_free_vram)
 #pragma calling(__phicall)
 #pragma code_seg(CodeEnginePalette)
 #pragma data_seg(DataEnginePalette)
 
 #include <cx16.h>
 #include "equinoxe-types.h"
-#include "lib_conio_asm.h"
-#include "lib_lru_cache_asm.h"
-#include "lib_veraheap_asm.h"
-#include "lib_bramheap_asm.h"
-#include "lib_file_asm.h"
+#include <lib_conio.p>
+#include <lib_lru_cache.p>
+#include <lib_veraheap.p>
+#include <lib_bramheap.p>
+#include <lib_file.p>
 
 
 #include <cx16-vera.h>

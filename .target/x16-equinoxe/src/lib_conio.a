@@ -1,0 +1,4139 @@
+  // Library
+.namespace lib_conio {
+  // Upstart
+.cpu _65c02
+  
+.segmentdef Code
+.segmentdef CodeLruCache
+.segmentdef Data
+
+  // start-assembler
+  // File Comments
+/* Generate a library for printing. */
+  // Global constants and variables
+  // constants
+  .label WHITE = 1
+  .label BLUE = 6
+  ///< Read a character from the current channel for input.
+  .label CBM_GETIN = $ffe4
+  ///< Close a logical file.
+  .label CBM_CLRCHN = $ffcc
+  ///< Load a logical file.
+  .label CBM_PLOT = $fff0
+  .label BINARY = 2
+  .label OCTAL = 8
+  .label DECIMAL = $a
+  .label HEXADECIMAL = $10
+  .label VERA_INC_1 = $10
+  .label VERA_ADDRSEL = 1
+  .label VERA_LAYER_WIDTH_MASK = $30
+  .label VERA_LAYER_HEIGHT_MASK = $c0
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET = 3
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK = 5
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT = 9
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH = 8
+  .label OFFSET_STRUCT___CX16_CONIO_S_COLOR = $d
+  .label OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP = $a
+  .label OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y = 1
+  .label OFFSET_STRUCT___CX16_CONIO_S_OFFSET = $13
+  .label OFFSET_STRUCT___CX16_CONIO_S_WIDTH = 6
+  .label OFFSET_STRUCT___CX16_CONIO_S_HEIGHT = 7
+  .label OFFSET_STRUCT___CX16_CONIO_S_OFFSETS = $15
+  .label OFFSET_STRUCT___CX16_CONIO_S_HSCROLL = $11
+  .label OFFSET_STRUCT___CX16_CONIO_S_LAYER = 2
+  .label OFFSET_STRUCT___CX16_CONIO_S_SCROLL = $f
+  .label OFFSET_STRUCT___CX16_CONIO_S_BORDERCOLOR = $e
+  .label OFFSET_STRUCT___CX16_CONIO_S_CURSOR = $c
+  .label OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS = 1
+  .label STACK_BASE = $103
+  .label SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER = $c
+  .label SIZEOF_STRUCT___CX16_CONIO_S = $8f
+  /// $9F20 VRAM Address (7:0)
+  .label VERA_ADDRX_L = $9f20
+  /// $9F21 VRAM Address (15:8)
+  .label VERA_ADDRX_M = $9f21
+  /// $9F22 VRAM Address (7:0)
+  /// Bit 4-7: Address Increment  The following is the amount incremented per value value:increment
+  ///                             0:0, 1:1, 2:2, 3:4, 4:8, 5:16, 6:32, 7:64, 8:128, 9:256, 10:512, 11:40, 12:80, 13:160, 14:320, 15:640
+  /// Bit 3: DECR Setting the DECR bit, will decrement instead of increment by the value set by the 'Address Increment' field.
+  /// Bit 0: VRAM Address (16)
+  .label VERA_ADDRX_H = $9f22
+  /// $9F23	DATA0	VRAM Data port 0
+  .label VERA_DATA0 = $9f23
+  /// $9F24	DATA1	VRAM Data port 1
+  .label VERA_DATA1 = $9f24
+  /// $9F25	CTRL Control
+  /// Bit 7: Reset
+  /// Bit 1: DCSEL
+  /// Bit 2: ADDRSEL
+  .label VERA_CTRL = $9f25
+  /// $9F2A	DC_HSCALE (DCSEL=0)	Active Display H-Scale
+  .label VERA_DC_HSCALE = $9f2a
+  /// $9F2B	DC_VSCALE (DCSEL=0)	Active Display V-Scale
+  .label VERA_DC_VSCALE = $9f2b
+  /// $9F2C	DC_BORDER (DCSEL=0)	Border Color
+  .label VERA_DC_BORDER = $9f2c
+  /// $9F34	L1_CONFIG   Layer 1 Configuration
+  .label VERA_L1_CONFIG = $9f34
+  /// $9F35	L1_MAPBASE	    Layer 1 Map Base Address (16:9)
+  .label VERA_L1_MAPBASE = $9f35
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __lib_conio_start
+// void lib_conio.__lib_conio_start()
+__lib_conio_start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __lib_conio_start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // #pragma constructor_for(conio_x16_init, cputc, clrscr, cscroll)
+    // [3] call conio_x16_init
+    // [163] phi from __lib_conio_start::__init1 to conio_x16_init [phi:__lib_conio_start::__init1->conio_x16_init]
+    jsr lib_conio.conio_x16_init
+    // __lib_conio_start::@return
+    // [4] return 
+    rts
+}
+  // code segment
+.segment Code
+  // printf_uchar
+// Print an unsigned char using a specific format
+// void lib_conio.printf_uchar(__zp($24) void (*putc)(char), __mem() char uvalue, __mem() char format_min_length, __mem() char format_justify_left, __register(Y) char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, __register(A) char format_radix)
+printf_uchar: {
+    // constants
+    .const OFFSET_STACK_PUTC = 7
+    .const OFFSET_STACK_UVALUE = 6
+    .const OFFSET_STACK_FORMAT_MIN_LENGTH = 5
+    .const OFFSET_STACK_FORMAT_JUSTIFY_LEFT = 4
+    .const OFFSET_STACK_FORMAT_SIGN_ALWAYS = 3
+    .const OFFSET_STACK_FORMAT_ZERO_PADDING = 2
+    .const OFFSET_STACK_FORMAT_UPPER_CASE = 1
+    .const OFFSET_STACK_FORMAT_RADIX = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2e
+    .label putc_1 = $24
+    // [5] printf_uchar::putc#0 = stackidx(void (*)(char),printf_uchar::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [6] printf_uchar::uvalue#0 = stackidx(char,printf_uchar::OFFSET_STACK_UVALUE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_UVALUE,x
+    sta uvalue_1
+    // [7] printf_uchar::format_min_length#0 = stackidx(char,printf_uchar::OFFSET_STACK_FORMAT_MIN_LENGTH) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_MIN_LENGTH,x
+    sta format_min_length_1
+    // [8] printf_uchar::format_justify_left#0 = stackidx(char,printf_uchar::OFFSET_STACK_FORMAT_JUSTIFY_LEFT) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_JUSTIFY_LEFT,x
+    sta format_justify_left_1
+    // [9] printf_uchar::format_sign_always#0 = stackidx(char,printf_uchar::OFFSET_STACK_FORMAT_SIGN_ALWAYS) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_SIGN_ALWAYS,x
+    tay
+    // [10] printf_uchar::format_zero_padding#0 = stackidx(char,printf_uchar::OFFSET_STACK_FORMAT_ZERO_PADDING) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_ZERO_PADDING,x
+    sta format_zero_padding_1
+    // [11] printf_uchar::format_upper_case#0 = stackidx(char,printf_uchar::OFFSET_STACK_FORMAT_UPPER_CASE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_UPPER_CASE,x
+    sta format_upper_case_1
+    // [12] printf_uchar::format_radix#0 = stackidx(char,printf_uchar::OFFSET_STACK_FORMAT_RADIX) -- vbuaa=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
+    // format_sign_always?'+':0
+    // [13] if(0!=printf_uchar::format_sign_always#0) goto printf_uchar::@1 -- 0_neq_vbuyy_then_la1 
+    cpy #0
+    bne __b1
+    // [15] phi from printf_uchar to printf_uchar::@2 [phi:printf_uchar->printf_uchar::@2]
+    // [15] phi printf_uchar::$2 = 0 [phi:printf_uchar->printf_uchar::@2#0] -- vbuxx=vbuc1 
+    ldx #0
+    jmp __b2
+    // [14] phi from printf_uchar to printf_uchar::@1 [phi:printf_uchar->printf_uchar::@1]
+    // printf_uchar::@1
+  __b1:
+    // format_sign_always?'+':0
+    // [15] phi from printf_uchar::@1 to printf_uchar::@2 [phi:printf_uchar::@1->printf_uchar::@2]
+    // [15] phi printf_uchar::$2 = '+' [phi:printf_uchar::@1->printf_uchar::@2#0] -- vbuxx=vbuc1 
+    ldx #'+'
+    // printf_uchar::@2
+  __b2:
+    // printf_buffer.sign = format_sign_always?'+':0
+    // [16] *((char *)&printf_buffer) = printf_uchar::$2 -- _deref_pbuc1=vbuxx 
+    // Handle any sign
+    stx printf_buffer
+    // uctoa(uvalue, printf_buffer.digits, format_radix)
+    // [17] uctoa::value#2 = printf_uchar::uvalue#0 -- vbuxx=vbum1 
+    ldx uvalue_1
+    // [18] uctoa::radix#1 = printf_uchar::format_radix#0
+    // [19] call uctoa
+  // Format number into buffer
+    // [382] phi from printf_uchar::@2 to uctoa [phi:printf_uchar::@2->uctoa]
+    // [382] phi uctoa::value#10 = uctoa::value#2 [phi:printf_uchar::@2->uctoa#0] -- register_copy 
+    // [382] phi uctoa::radix#2 = uctoa::radix#1 [phi:printf_uchar::@2->uctoa#1] -- register_copy 
+    jsr uctoa
+    // printf_uchar::@3
+    // printf_number_buffer(putc, printf_buffer, format_min_length, format_justify_left, format_sign_always, format_zero_padding, format_upper_case, format_radix)
+    // [20] printf_number_buffer::putc#5 = printf_uchar::putc#0
+    // [21] *(&printf_number_buffer::buffer) = memcpy(*(&printf_buffer), struct printf_buffer_number, SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER) -- _deref_pssc1=_deref_pssc2_memcpy_vbuc3 
+    ldy #SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER
+  !:
+    lda printf_buffer-1,y
+    sta printf_number_buffer.buffer-1,y
+    dey
+    bne !-
+    // [22] printf_number_buffer::format_min_length#5 = printf_uchar::format_min_length#0 -- vbuxx=vbum1 
+    ldx format_min_length_1
+    // [23] printf_number_buffer::format_justify_left#5 = printf_uchar::format_justify_left#0 -- vbum1=vbum2 
+    lda format_justify_left_1
+    sta printf_number_buffer.format_justify_left
+    // [24] printf_number_buffer::format_zero_padding#5 = printf_uchar::format_zero_padding#0 -- vbum1=vbum2 
+    lda format_zero_padding_1
+    sta printf_number_buffer.format_zero_padding
+    // [25] printf_number_buffer::format_upper_case#5 = printf_uchar::format_upper_case#0 -- vbum1=vbum2 
+    lda format_upper_case_1
+    sta printf_number_buffer.format_upper_case
+    // [26] call printf_number_buffer
+  // Print using format
+    // [411] phi from printf_uchar::@3 to printf_number_buffer [phi:printf_uchar::@3->printf_number_buffer]
+    // [411] phi printf_number_buffer::format_upper_case#10 = printf_number_buffer::format_upper_case#5 [phi:printf_uchar::@3->printf_number_buffer#0] -- register_copy 
+    // [411] phi printf_number_buffer::putc#10 = printf_number_buffer::putc#5 [phi:printf_uchar::@3->printf_number_buffer#1] -- register_copy 
+    // [411] phi printf_number_buffer::format_zero_padding#10 = printf_number_buffer::format_zero_padding#5 [phi:printf_uchar::@3->printf_number_buffer#2] -- register_copy 
+    // [411] phi printf_number_buffer::format_justify_left#10 = printf_number_buffer::format_justify_left#5 [phi:printf_uchar::@3->printf_number_buffer#3] -- register_copy 
+    // [411] phi printf_number_buffer::format_min_length#10 = printf_number_buffer::format_min_length#5 [phi:printf_uchar::@3->printf_number_buffer#4] -- register_copy 
+    jsr printf_number_buffer
+    // printf_uchar::@return
+    // }
+    // [27] return 
+    rts
+  .segment Data
+    uvalue_1: .byte 0
+  .segment Data
+    format_min_length_1: .byte 0
+  .segment Data
+    format_justify_left_1: .byte 0
+  .segment Data
+    format_zero_padding_1: .byte 0
+  .segment Data
+    format_upper_case_1: .byte 0
+}
+  // code segment
+.segment Code
+  // printf_schar
+// Print a signed char using a specific format
+// void lib_conio.printf_schar(__zp($22) void (*putc)(char), __register(Y) signed char value, __mem() char format_min_length, __mem() char format_justify_left, __mem() char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, __mem() char format_radix)
+printf_schar: {
+    // constants
+    .const OFFSET_STACK_PUTC = 7
+    .const OFFSET_STACK_VALUE = 6
+    .const OFFSET_STACK_FORMAT_MIN_LENGTH = 5
+    .const OFFSET_STACK_FORMAT_JUSTIFY_LEFT = 4
+    .const OFFSET_STACK_FORMAT_SIGN_ALWAYS = 3
+    .const OFFSET_STACK_FORMAT_ZERO_PADDING = 2
+    .const OFFSET_STACK_FORMAT_UPPER_CASE = 1
+    .const OFFSET_STACK_FORMAT_RADIX = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2e
+    .label putc_1 = $22
+    // [28] printf_schar::putc#0 = stackidx(void (*)(char),printf_schar::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [29] printf_schar::value#0 = stackidx(signed char,printf_schar::OFFSET_STACK_VALUE) -- vbsyy=_stackidxsbyte_vbuc1 
+    tsx
+    ldy STACK_BASE+OFFSET_STACK_VALUE,x
+    // [30] printf_schar::format_min_length#0 = stackidx(char,printf_schar::OFFSET_STACK_FORMAT_MIN_LENGTH) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_MIN_LENGTH,x
+    sta format_min_length_1
+    // [31] printf_schar::format_justify_left#0 = stackidx(char,printf_schar::OFFSET_STACK_FORMAT_JUSTIFY_LEFT) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_JUSTIFY_LEFT,x
+    sta format_justify_left_1
+    // [32] printf_schar::format_sign_always#0 = stackidx(char,printf_schar::OFFSET_STACK_FORMAT_SIGN_ALWAYS) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_SIGN_ALWAYS,x
+    sta format_sign_always_1
+    // [33] printf_schar::format_zero_padding#0 = stackidx(char,printf_schar::OFFSET_STACK_FORMAT_ZERO_PADDING) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_ZERO_PADDING,x
+    sta format_zero_padding_1
+    // [34] printf_schar::format_upper_case#0 = stackidx(char,printf_schar::OFFSET_STACK_FORMAT_UPPER_CASE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_UPPER_CASE,x
+    sta format_upper_case_1
+    // [35] printf_schar::format_radix#0 = stackidx(char,printf_schar::OFFSET_STACK_FORMAT_RADIX) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
+    sta format_radix_1
+    // printf_buffer.sign = 0
+    // [36] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // Handle any sign
+    lda #0
+    sta printf_buffer
+    // if(value<0)
+    // [37] if(printf_schar::value#0<0) goto printf_schar::@1 -- vbsyy_lt_0_then_la1 
+    cpy #0
+    bmi __b1
+    // printf_schar::@3
+    // if(format_sign_always)
+    // [38] if(0==printf_schar::format_sign_always#0) goto printf_schar::@2 -- 0_eq_vbum1_then_la1 
+    lda format_sign_always_1
+    beq __b2
+    // printf_schar::@4
+    // printf_buffer.sign = '+'
+    // [39] *((char *)&printf_buffer) = '+' -- _deref_pbuc1=vbuc2 
+    lda #'+'
+    sta printf_buffer
+    // [40] phi from printf_schar::@1 printf_schar::@3 printf_schar::@4 to printf_schar::@2 [phi:printf_schar::@1/printf_schar::@3/printf_schar::@4->printf_schar::@2]
+    // [40] phi printf_schar::value#3 = printf_schar::value#1 [phi:printf_schar::@1/printf_schar::@3/printf_schar::@4->printf_schar::@2#0] -- register_copy 
+    // printf_schar::@2
+  __b2:
+    // uctoa(uvalue, printf_buffer.digits, format_radix)
+    // [41] uctoa::value#1 = (char)printf_schar::value#3 -- vbuxx=vbuyy 
+    tya
+    tax
+    // [42] uctoa::radix#0 = printf_schar::format_radix#0 -- vbuaa=vbum1 
+    lda format_radix_1
+    // [43] call uctoa
+    // [382] phi from printf_schar::@2 to uctoa [phi:printf_schar::@2->uctoa]
+    // [382] phi uctoa::value#10 = uctoa::value#1 [phi:printf_schar::@2->uctoa#0] -- register_copy 
+    // [382] phi uctoa::radix#2 = uctoa::radix#0 [phi:printf_schar::@2->uctoa#1] -- register_copy 
+    jsr uctoa
+    // printf_schar::@5
+    // printf_number_buffer(putc, printf_buffer, format_min_length, format_justify_left, format_sign_always, format_zero_padding, format_upper_case, format_radix)
+    // [44] printf_number_buffer::putc#4 = printf_schar::putc#0 -- pprz1=pprz2 
+    lda.z putc_1
+    sta.z printf_number_buffer.putc
+    lda.z putc_1+1
+    sta.z printf_number_buffer.putc+1
+    // [45] *(&printf_number_buffer::buffer) = memcpy(*(&printf_buffer), struct printf_buffer_number, SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER) -- _deref_pssc1=_deref_pssc2_memcpy_vbuc3 
+    ldy #SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER
+  !:
+    lda printf_buffer-1,y
+    sta printf_number_buffer.buffer-1,y
+    dey
+    bne !-
+    // [46] printf_number_buffer::format_min_length#4 = printf_schar::format_min_length#0 -- vbuxx=vbum1 
+    ldx format_min_length_1
+    // [47] printf_number_buffer::format_justify_left#4 = printf_schar::format_justify_left#0 -- vbum1=vbum2 
+    lda format_justify_left_1
+    sta printf_number_buffer.format_justify_left
+    // [48] printf_number_buffer::format_zero_padding#4 = printf_schar::format_zero_padding#0 -- vbum1=vbum2 
+    lda format_zero_padding_1
+    sta printf_number_buffer.format_zero_padding
+    // [49] printf_number_buffer::format_upper_case#4 = printf_schar::format_upper_case#0 -- vbum1=vbum2 
+    lda format_upper_case_1
+    sta printf_number_buffer.format_upper_case
+    // [50] call printf_number_buffer
+  // Print using format
+    // [411] phi from printf_schar::@5 to printf_number_buffer [phi:printf_schar::@5->printf_number_buffer]
+    // [411] phi printf_number_buffer::format_upper_case#10 = printf_number_buffer::format_upper_case#4 [phi:printf_schar::@5->printf_number_buffer#0] -- register_copy 
+    // [411] phi printf_number_buffer::putc#10 = printf_number_buffer::putc#4 [phi:printf_schar::@5->printf_number_buffer#1] -- register_copy 
+    // [411] phi printf_number_buffer::format_zero_padding#10 = printf_number_buffer::format_zero_padding#4 [phi:printf_schar::@5->printf_number_buffer#2] -- register_copy 
+    // [411] phi printf_number_buffer::format_justify_left#10 = printf_number_buffer::format_justify_left#4 [phi:printf_schar::@5->printf_number_buffer#3] -- register_copy 
+    // [411] phi printf_number_buffer::format_min_length#10 = printf_number_buffer::format_min_length#4 [phi:printf_schar::@5->printf_number_buffer#4] -- register_copy 
+    jsr printf_number_buffer
+    // printf_schar::@return
+    // }
+    // [51] return 
+    rts
+    // printf_schar::@1
+  __b1:
+    // value = -value
+    // [52] printf_schar::value#1 = - printf_schar::value#0 -- vbsyy=_neg_vbsyy 
+    tya
+    eor #$ff
+    clc
+    adc #1
+    tay
+    // printf_buffer.sign = '-'
+    // [53] *((char *)&printf_buffer) = '-' -- _deref_pbuc1=vbuc2 
+    lda #'-'
+    sta printf_buffer
+    jmp __b2
+  .segment Data
+    format_min_length_1: .byte 0
+  .segment Data
+    format_justify_left_1: .byte 0
+  .segment Data
+    format_sign_always_1: .byte 0
+  .segment Data
+    format_zero_padding_1: .byte 0
+  .segment Data
+    format_upper_case_1: .byte 0
+  .segment Data
+    format_radix_1: .byte 0
+}
+  // code segment
+.segment Code
+  // printf_uint
+// Print an unsigned int using a specific format
+// void lib_conio.printf_uint(__zp($24) void (*putc)(char), __mem() unsigned int uvalue, __mem() char format_min_length, __mem() char format_justify_left, __register(Y) char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, __register(X) char format_radix)
+printf_uint: {
+    // constants
+    .const OFFSET_STACK_PUTC = 8
+    .const OFFSET_STACK_UVALUE = 6
+    .const OFFSET_STACK_FORMAT_MIN_LENGTH = 5
+    .const OFFSET_STACK_FORMAT_JUSTIFY_LEFT = 4
+    .const OFFSET_STACK_FORMAT_SIGN_ALWAYS = 3
+    .const OFFSET_STACK_FORMAT_ZERO_PADDING = 2
+    .const OFFSET_STACK_FORMAT_UPPER_CASE = 1
+    .const OFFSET_STACK_FORMAT_RADIX = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2e
+    .label putc_1 = $24
+    // [54] printf_uint::putc#0 = stackidx(void (*)(char),printf_uint::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [55] printf_uint::uvalue#0 = stackidx(unsigned int,printf_uint::OFFSET_STACK_UVALUE) -- vwum1=_stackidxword_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_UVALUE,x
+    sta uvalue_1
+    lda STACK_BASE+OFFSET_STACK_UVALUE+1,x
+    sta uvalue_1+1
+    // [56] printf_uint::format_min_length#0 = stackidx(char,printf_uint::OFFSET_STACK_FORMAT_MIN_LENGTH) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_MIN_LENGTH,x
+    sta format_min_length_1
+    // [57] printf_uint::format_justify_left#0 = stackidx(char,printf_uint::OFFSET_STACK_FORMAT_JUSTIFY_LEFT) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_JUSTIFY_LEFT,x
+    sta format_justify_left_1
+    // [58] printf_uint::format_sign_always#0 = stackidx(char,printf_uint::OFFSET_STACK_FORMAT_SIGN_ALWAYS) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_SIGN_ALWAYS,x
+    tay
+    // [59] printf_uint::format_zero_padding#0 = stackidx(char,printf_uint::OFFSET_STACK_FORMAT_ZERO_PADDING) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_ZERO_PADDING,x
+    sta format_zero_padding_1
+    // [60] printf_uint::format_upper_case#0 = stackidx(char,printf_uint::OFFSET_STACK_FORMAT_UPPER_CASE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_UPPER_CASE,x
+    sta format_upper_case_1
+    // [61] printf_uint::format_radix#0 = stackidx(char,printf_uint::OFFSET_STACK_FORMAT_RADIX) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
+    tax
+    // format_sign_always?'+':0
+    // [62] if(0!=printf_uint::format_sign_always#0) goto printf_uint::@1 -- 0_neq_vbuyy_then_la1 
+    cpy #0
+    bne __b1
+    // [64] phi from printf_uint to printf_uint::@2 [phi:printf_uint->printf_uint::@2]
+    // [64] phi printf_uint::$2 = 0 [phi:printf_uint->printf_uint::@2#0] -- vbuaa=vbuc1 
+    lda #0
+    jmp __b2
+    // [63] phi from printf_uint to printf_uint::@1 [phi:printf_uint->printf_uint::@1]
+    // printf_uint::@1
+  __b1:
+    // format_sign_always?'+':0
+    // [64] phi from printf_uint::@1 to printf_uint::@2 [phi:printf_uint::@1->printf_uint::@2]
+    // [64] phi printf_uint::$2 = '+' [phi:printf_uint::@1->printf_uint::@2#0] -- vbuaa=vbuc1 
+    lda #'+'
+    // printf_uint::@2
+  __b2:
+    // printf_buffer.sign = format_sign_always?'+':0
+    // [65] *((char *)&printf_buffer) = printf_uint::$2 -- _deref_pbuc1=vbuaa 
+    // void printf_uint(void (*putc)(char), unsigned int uvalue, struct printf_format_number format) {
+    // Handle any sign
+    sta printf_buffer
+    // utoa(uvalue, printf_buffer.digits, format_radix)
+    // [66] utoa::value#2 = printf_uint::uvalue#0 -- vwum1=vwum2 
+    lda uvalue_1
+    sta utoa.value
+    lda uvalue_1+1
+    sta utoa.value+1
+    // [67] utoa::radix#1 = printf_uint::format_radix#0 -- vbuaa=vbuxx 
+    txa
+    // [68] call utoa
+  // Format number into buffer
+    // [454] phi from printf_uint::@2 to utoa [phi:printf_uint::@2->utoa]
+    // [454] phi utoa::value#10 = utoa::value#2 [phi:printf_uint::@2->utoa#0] -- register_copy 
+    // [454] phi utoa::radix#2 = utoa::radix#1 [phi:printf_uint::@2->utoa#1] -- register_copy 
+    jsr utoa
+    // printf_uint::@3
+    // printf_number_buffer(putc, printf_buffer, format_min_length, format_justify_left, format_sign_always, format_zero_padding, format_upper_case, format_radix)
+    // [69] printf_number_buffer::putc#3 = printf_uint::putc#0
+    // [70] *(&printf_number_buffer::buffer) = memcpy(*(&printf_buffer), struct printf_buffer_number, SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER) -- _deref_pssc1=_deref_pssc2_memcpy_vbuc3 
+    ldy #SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER
+  !:
+    lda printf_buffer-1,y
+    sta printf_number_buffer.buffer-1,y
+    dey
+    bne !-
+    // [71] printf_number_buffer::format_min_length#3 = printf_uint::format_min_length#0 -- vbuxx=vbum1 
+    ldx format_min_length_1
+    // [72] printf_number_buffer::format_justify_left#3 = printf_uint::format_justify_left#0 -- vbum1=vbum2 
+    lda format_justify_left_1
+    sta printf_number_buffer.format_justify_left
+    // [73] printf_number_buffer::format_zero_padding#3 = printf_uint::format_zero_padding#0 -- vbum1=vbum2 
+    lda format_zero_padding_1
+    sta printf_number_buffer.format_zero_padding
+    // [74] printf_number_buffer::format_upper_case#3 = printf_uint::format_upper_case#0 -- vbum1=vbum2 
+    lda format_upper_case_1
+    sta printf_number_buffer.format_upper_case
+    // [75] call printf_number_buffer
+  // Print using format
+    // [411] phi from printf_uint::@3 to printf_number_buffer [phi:printf_uint::@3->printf_number_buffer]
+    // [411] phi printf_number_buffer::format_upper_case#10 = printf_number_buffer::format_upper_case#3 [phi:printf_uint::@3->printf_number_buffer#0] -- register_copy 
+    // [411] phi printf_number_buffer::putc#10 = printf_number_buffer::putc#3 [phi:printf_uint::@3->printf_number_buffer#1] -- register_copy 
+    // [411] phi printf_number_buffer::format_zero_padding#10 = printf_number_buffer::format_zero_padding#3 [phi:printf_uint::@3->printf_number_buffer#2] -- register_copy 
+    // [411] phi printf_number_buffer::format_justify_left#10 = printf_number_buffer::format_justify_left#3 [phi:printf_uint::@3->printf_number_buffer#3] -- register_copy 
+    // [411] phi printf_number_buffer::format_min_length#10 = printf_number_buffer::format_min_length#3 [phi:printf_uint::@3->printf_number_buffer#4] -- register_copy 
+    jsr printf_number_buffer
+    // printf_uint::@return
+    // }
+    // [76] return 
+    rts
+  .segment Data
+    uvalue_1: .word 0
+  .segment Data
+    format_min_length_1: .byte 0
+  .segment Data
+    format_justify_left_1: .byte 0
+  .segment Data
+    format_zero_padding_1: .byte 0
+  .segment Data
+    format_upper_case_1: .byte 0
+}
+  // code segment
+.segment Code
+  // printf_sint
+// // Print a signed integer using a specific format
+// void lib_conio.printf_sint(__zp($26) void (*putc)(char), __mem() int value, __mem() char format_min_length, __mem() char format_justify_left, __register(Y) char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, __register(X) char format_radix)
+printf_sint: {
+    // constants
+    .const OFFSET_STACK_PUTC = 8
+    .const OFFSET_STACK_VALUE = 6
+    .const OFFSET_STACK_FORMAT_MIN_LENGTH = 5
+    .const OFFSET_STACK_FORMAT_JUSTIFY_LEFT = 4
+    .const OFFSET_STACK_FORMAT_SIGN_ALWAYS = 3
+    .const OFFSET_STACK_FORMAT_ZERO_PADDING = 2
+    .const OFFSET_STACK_FORMAT_UPPER_CASE = 1
+    .const OFFSET_STACK_FORMAT_RADIX = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2e
+    .label putc_1 = $26
+    // [77] printf_sint::putc#0 = stackidx(void (*)(char),printf_sint::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [78] printf_sint::value#0 = stackidx(int,printf_sint::OFFSET_STACK_VALUE) -- vwsm1=_stackidxsword_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_VALUE,x
+    sta value_1
+    lda STACK_BASE+OFFSET_STACK_VALUE+1,x
+    sta value_1+1
+    // [79] printf_sint::format_min_length#0 = stackidx(char,printf_sint::OFFSET_STACK_FORMAT_MIN_LENGTH) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_MIN_LENGTH,x
+    sta format_min_length_1
+    // [80] printf_sint::format_justify_left#0 = stackidx(char,printf_sint::OFFSET_STACK_FORMAT_JUSTIFY_LEFT) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_JUSTIFY_LEFT,x
+    sta format_justify_left_1
+    // [81] printf_sint::format_sign_always#0 = stackidx(char,printf_sint::OFFSET_STACK_FORMAT_SIGN_ALWAYS) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_SIGN_ALWAYS,x
+    tay
+    // [82] printf_sint::format_zero_padding#0 = stackidx(char,printf_sint::OFFSET_STACK_FORMAT_ZERO_PADDING) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_ZERO_PADDING,x
+    sta format_zero_padding_1
+    // [83] printf_sint::format_upper_case#0 = stackidx(char,printf_sint::OFFSET_STACK_FORMAT_UPPER_CASE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_UPPER_CASE,x
+    sta format_upper_case_1
+    // [84] printf_sint::format_radix#0 = stackidx(char,printf_sint::OFFSET_STACK_FORMAT_RADIX) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
+    tax
+    // printf_buffer.sign = 0
+    // [85] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // Handle any sign
+    lda #0
+    sta printf_buffer
+    // if(value<0)
+    // [86] if(printf_sint::value#0<0) goto printf_sint::@1 -- vwsm1_lt_0_then_la1 
+    lda value_1+1
+    bmi __b1
+    // printf_sint::@3
+    // if(format_sign_always)
+    // [87] if(0==printf_sint::format_sign_always#0) goto printf_sint::@2 -- 0_eq_vbuyy_then_la1 
+    cpy #0
+    beq __b2
+    // printf_sint::@4
+    // printf_buffer.sign = '+'
+    // [88] *((char *)&printf_buffer) = '+' -- _deref_pbuc1=vbuc2 
+    lda #'+'
+    sta printf_buffer
+    // [89] phi from printf_sint::@1 printf_sint::@3 printf_sint::@4 to printf_sint::@2 [phi:printf_sint::@1/printf_sint::@3/printf_sint::@4->printf_sint::@2]
+    // [89] phi printf_sint::value#3 = printf_sint::value#1 [phi:printf_sint::@1/printf_sint::@3/printf_sint::@4->printf_sint::@2#0] -- register_copy 
+    // printf_sint::@2
+  __b2:
+    // utoa(uvalue, printf_buffer.digits, format_radix)
+    // [90] utoa::value#1 = (unsigned int)printf_sint::value#3 -- vwum1=vwum2 
+    lda value_1
+    sta utoa.value
+    lda value_1+1
+    sta utoa.value+1
+    // [91] utoa::radix#0 = printf_sint::format_radix#0 -- vbuaa=vbuxx 
+    txa
+    // [92] call utoa
+    // [454] phi from printf_sint::@2 to utoa [phi:printf_sint::@2->utoa]
+    // [454] phi utoa::value#10 = utoa::value#1 [phi:printf_sint::@2->utoa#0] -- register_copy 
+    // [454] phi utoa::radix#2 = utoa::radix#0 [phi:printf_sint::@2->utoa#1] -- register_copy 
+    jsr utoa
+    // printf_sint::@5
+    // printf_number_buffer(putc, printf_buffer, format_min_length, format_justify_left, format_sign_always, format_zero_padding, format_upper_case, format_radix)
+    // [93] printf_number_buffer::putc#2 = printf_sint::putc#0 -- pprz1=pprz2 
+    lda.z putc_1
+    sta.z printf_number_buffer.putc
+    lda.z putc_1+1
+    sta.z printf_number_buffer.putc+1
+    // [94] *(&printf_number_buffer::buffer) = memcpy(*(&printf_buffer), struct printf_buffer_number, SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER) -- _deref_pssc1=_deref_pssc2_memcpy_vbuc3 
+    ldy #SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER
+  !:
+    lda printf_buffer-1,y
+    sta printf_number_buffer.buffer-1,y
+    dey
+    bne !-
+    // [95] printf_number_buffer::format_min_length#2 = printf_sint::format_min_length#0 -- vbuxx=vbum1 
+    ldx format_min_length_1
+    // [96] printf_number_buffer::format_justify_left#2 = printf_sint::format_justify_left#0 -- vbum1=vbum2 
+    lda format_justify_left_1
+    sta printf_number_buffer.format_justify_left
+    // [97] printf_number_buffer::format_zero_padding#2 = printf_sint::format_zero_padding#0 -- vbum1=vbum2 
+    lda format_zero_padding_1
+    sta printf_number_buffer.format_zero_padding
+    // [98] printf_number_buffer::format_upper_case#2 = printf_sint::format_upper_case#0 -- vbum1=vbum2 
+    lda format_upper_case_1
+    sta printf_number_buffer.format_upper_case
+    // [99] call printf_number_buffer
+  // Print using format
+    // [411] phi from printf_sint::@5 to printf_number_buffer [phi:printf_sint::@5->printf_number_buffer]
+    // [411] phi printf_number_buffer::format_upper_case#10 = printf_number_buffer::format_upper_case#2 [phi:printf_sint::@5->printf_number_buffer#0] -- register_copy 
+    // [411] phi printf_number_buffer::putc#10 = printf_number_buffer::putc#2 [phi:printf_sint::@5->printf_number_buffer#1] -- register_copy 
+    // [411] phi printf_number_buffer::format_zero_padding#10 = printf_number_buffer::format_zero_padding#2 [phi:printf_sint::@5->printf_number_buffer#2] -- register_copy 
+    // [411] phi printf_number_buffer::format_justify_left#10 = printf_number_buffer::format_justify_left#2 [phi:printf_sint::@5->printf_number_buffer#3] -- register_copy 
+    // [411] phi printf_number_buffer::format_min_length#10 = printf_number_buffer::format_min_length#2 [phi:printf_sint::@5->printf_number_buffer#4] -- register_copy 
+    jsr printf_number_buffer
+    // printf_sint::@return
+    // }
+    // [100] return 
+    rts
+    // printf_sint::@1
+  __b1:
+    // value = -value
+    // [101] printf_sint::value#1 = - printf_sint::value#0 -- vwsm1=_neg_vwsm1 
+    lda #0
+    sec
+    sbc value_1
+    sta value_1
+    lda #0
+    sbc value_1+1
+    sta value_1+1
+    // printf_buffer.sign = '-'
+    // [102] *((char *)&printf_buffer) = '-' -- _deref_pbuc1=vbuc2 
+    lda #'-'
+    sta printf_buffer
+    jmp __b2
+  .segment Data
+    value_1: .word 0
+  .segment Data
+    format_min_length_1: .byte 0
+  .segment Data
+    format_justify_left_1: .byte 0
+  .segment Data
+    format_zero_padding_1: .byte 0
+  .segment Data
+    format_upper_case_1: .byte 0
+}
+  // code segment
+.segment Code
+  // printf_ulong
+// Print an unsigned int using a specific format
+// void lib_conio.printf_ulong(__zp($24) void (*putc)(char), __mem() unsigned long uvalue, __mem() char format_min_length, __mem() char format_justify_left, __register(Y) char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, __register(X) char format_radix)
+printf_ulong: {
+    // constants
+    .const OFFSET_STACK_PUTC = $a
+    .const OFFSET_STACK_UVALUE = 6
+    .const OFFSET_STACK_FORMAT_MIN_LENGTH = 5
+    .const OFFSET_STACK_FORMAT_JUSTIFY_LEFT = 4
+    .const OFFSET_STACK_FORMAT_SIGN_ALWAYS = 3
+    .const OFFSET_STACK_FORMAT_ZERO_PADDING = 2
+    .const OFFSET_STACK_FORMAT_UPPER_CASE = 1
+    .const OFFSET_STACK_FORMAT_RADIX = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2c
+    .label putc_1 = $24
+    // [103] printf_ulong::putc#0 = stackidx(void (*)(char),printf_ulong::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [104] printf_ulong::uvalue#0 = stackidx(unsigned long,printf_ulong::OFFSET_STACK_UVALUE) -- vdum1=_stackidxdword_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_UVALUE,x
+    sta uvalue_1
+    lda STACK_BASE+OFFSET_STACK_UVALUE+1,x
+    sta uvalue_1+1
+    lda STACK_BASE+OFFSET_STACK_UVALUE+2,x
+    sta uvalue_1+2
+    lda STACK_BASE+OFFSET_STACK_UVALUE+3,x
+    sta uvalue_1+3
+    // [105] printf_ulong::format_min_length#0 = stackidx(char,printf_ulong::OFFSET_STACK_FORMAT_MIN_LENGTH) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_MIN_LENGTH,x
+    sta format_min_length_1
+    // [106] printf_ulong::format_justify_left#0 = stackidx(char,printf_ulong::OFFSET_STACK_FORMAT_JUSTIFY_LEFT) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_JUSTIFY_LEFT,x
+    sta format_justify_left_1
+    // [107] printf_ulong::format_sign_always#0 = stackidx(char,printf_ulong::OFFSET_STACK_FORMAT_SIGN_ALWAYS) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_SIGN_ALWAYS,x
+    tay
+    // [108] printf_ulong::format_zero_padding#0 = stackidx(char,printf_ulong::OFFSET_STACK_FORMAT_ZERO_PADDING) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_ZERO_PADDING,x
+    sta format_zero_padding_1
+    // [109] printf_ulong::format_upper_case#0 = stackidx(char,printf_ulong::OFFSET_STACK_FORMAT_UPPER_CASE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_UPPER_CASE,x
+    sta format_upper_case_1
+    // [110] printf_ulong::format_radix#0 = stackidx(char,printf_ulong::OFFSET_STACK_FORMAT_RADIX) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
+    tax
+    // format_sign_always?'+':0
+    // [111] if(0!=printf_ulong::format_sign_always#0) goto printf_ulong::@1 -- 0_neq_vbuyy_then_la1 
+    cpy #0
+    bne __b1
+    // [113] phi from printf_ulong to printf_ulong::@2 [phi:printf_ulong->printf_ulong::@2]
+    // [113] phi printf_ulong::$2 = 0 [phi:printf_ulong->printf_ulong::@2#0] -- vbuaa=vbuc1 
+    lda #0
+    jmp __b2
+    // [112] phi from printf_ulong to printf_ulong::@1 [phi:printf_ulong->printf_ulong::@1]
+    // printf_ulong::@1
+  __b1:
+    // format_sign_always?'+':0
+    // [113] phi from printf_ulong::@1 to printf_ulong::@2 [phi:printf_ulong::@1->printf_ulong::@2]
+    // [113] phi printf_ulong::$2 = '+' [phi:printf_ulong::@1->printf_ulong::@2#0] -- vbuaa=vbuc1 
+    lda #'+'
+    // printf_ulong::@2
+  __b2:
+    // printf_buffer.sign = format_sign_always?'+':0
+    // [114] *((char *)&printf_buffer) = printf_ulong::$2 -- _deref_pbuc1=vbuaa 
+    // Handle any sign
+    sta printf_buffer
+    // ultoa(uvalue, printf_buffer.digits, format_radix)
+    // [115] ultoa::value#2 = printf_ulong::uvalue#0 -- vdum1=vdum2 
+    lda uvalue_1
+    sta ultoa.value
+    lda uvalue_1+1
+    sta ultoa.value+1
+    lda uvalue_1+2
+    sta ultoa.value+2
+    lda uvalue_1+3
+    sta ultoa.value+3
+    // [116] ultoa::radix#1 = printf_ulong::format_radix#0 -- vbuaa=vbuxx 
+    txa
+    // [117] call ultoa
+  // Format number into buffer
+    // [485] phi from printf_ulong::@2 to ultoa [phi:printf_ulong::@2->ultoa]
+    // [485] phi ultoa::value#10 = ultoa::value#2 [phi:printf_ulong::@2->ultoa#0] -- register_copy 
+    // [485] phi ultoa::radix#2 = ultoa::radix#1 [phi:printf_ulong::@2->ultoa#1] -- register_copy 
+    jsr ultoa
+    // printf_ulong::@3
+    // printf_number_buffer(putc, printf_buffer, format_min_length, format_justify_left, format_sign_always, format_zero_padding, format_upper_case, format_radix)
+    // [118] printf_number_buffer::putc#1 = printf_ulong::putc#0
+    // [119] *(&printf_number_buffer::buffer) = memcpy(*(&printf_buffer), struct printf_buffer_number, SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER) -- _deref_pssc1=_deref_pssc2_memcpy_vbuc3 
+    ldy #SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER
+  !:
+    lda printf_buffer-1,y
+    sta printf_number_buffer.buffer-1,y
+    dey
+    bne !-
+    // [120] printf_number_buffer::format_min_length#1 = printf_ulong::format_min_length#0 -- vbuxx=vbum1 
+    ldx format_min_length_1
+    // [121] printf_number_buffer::format_justify_left#1 = printf_ulong::format_justify_left#0 -- vbum1=vbum2 
+    lda format_justify_left_1
+    sta printf_number_buffer.format_justify_left
+    // [122] printf_number_buffer::format_zero_padding#1 = printf_ulong::format_zero_padding#0 -- vbum1=vbum2 
+    lda format_zero_padding_1
+    sta printf_number_buffer.format_zero_padding
+    // [123] printf_number_buffer::format_upper_case#1 = printf_ulong::format_upper_case#0 -- vbum1=vbum2 
+    lda format_upper_case_1
+    sta printf_number_buffer.format_upper_case
+    // [124] call printf_number_buffer
+  // Print using format
+    // [411] phi from printf_ulong::@3 to printf_number_buffer [phi:printf_ulong::@3->printf_number_buffer]
+    // [411] phi printf_number_buffer::format_upper_case#10 = printf_number_buffer::format_upper_case#1 [phi:printf_ulong::@3->printf_number_buffer#0] -- register_copy 
+    // [411] phi printf_number_buffer::putc#10 = printf_number_buffer::putc#1 [phi:printf_ulong::@3->printf_number_buffer#1] -- register_copy 
+    // [411] phi printf_number_buffer::format_zero_padding#10 = printf_number_buffer::format_zero_padding#1 [phi:printf_ulong::@3->printf_number_buffer#2] -- register_copy 
+    // [411] phi printf_number_buffer::format_justify_left#10 = printf_number_buffer::format_justify_left#1 [phi:printf_ulong::@3->printf_number_buffer#3] -- register_copy 
+    // [411] phi printf_number_buffer::format_min_length#10 = printf_number_buffer::format_min_length#1 [phi:printf_ulong::@3->printf_number_buffer#4] -- register_copy 
+    jsr printf_number_buffer
+    // printf_ulong::@return
+    // }
+    // [125] return 
+    rts
+  .segment Data
+    uvalue_1: .dword 0
+  .segment Data
+    format_min_length_1: .byte 0
+  .segment Data
+    format_justify_left_1: .byte 0
+  .segment Data
+    format_zero_padding_1: .byte 0
+  .segment Data
+    format_upper_case_1: .byte 0
+}
+  // code segment
+.segment Code
+  // printf_slong
+// Print a signed long using a specific format
+// void lib_conio.printf_slong(__zp($26) void (*putc)(char), __mem() long value, __mem() char format_min_length, __mem() char format_justify_left, __register(Y) char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, __register(X) char format_radix)
+printf_slong: {
+    // constants
+    .const OFFSET_STACK_PUTC = $a
+    .const OFFSET_STACK_VALUE = 6
+    .const OFFSET_STACK_FORMAT_MIN_LENGTH = 5
+    .const OFFSET_STACK_FORMAT_JUSTIFY_LEFT = 4
+    .const OFFSET_STACK_FORMAT_SIGN_ALWAYS = 3
+    .const OFFSET_STACK_FORMAT_ZERO_PADDING = 2
+    .const OFFSET_STACK_FORMAT_UPPER_CASE = 1
+    .const OFFSET_STACK_FORMAT_RADIX = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2a
+    .label putc_1 = $26
+    // [126] printf_slong::putc#0 = stackidx(void (*)(char),printf_slong::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [127] printf_slong::value#0 = stackidx(long,printf_slong::OFFSET_STACK_VALUE) -- vdsm1=_stackidxsdword_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_VALUE,x
+    sta value_1
+    lda STACK_BASE+OFFSET_STACK_VALUE+1,x
+    sta value_1+1
+    lda STACK_BASE+OFFSET_STACK_VALUE+2,x
+    sta value_1+2
+    lda STACK_BASE+OFFSET_STACK_VALUE+3,x
+    sta value_1+3
+    // [128] printf_slong::format_min_length#0 = stackidx(char,printf_slong::OFFSET_STACK_FORMAT_MIN_LENGTH) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_MIN_LENGTH,x
+    sta format_min_length_1
+    // [129] printf_slong::format_justify_left#0 = stackidx(char,printf_slong::OFFSET_STACK_FORMAT_JUSTIFY_LEFT) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_JUSTIFY_LEFT,x
+    sta format_justify_left_1
+    // [130] printf_slong::format_sign_always#0 = stackidx(char,printf_slong::OFFSET_STACK_FORMAT_SIGN_ALWAYS) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_SIGN_ALWAYS,x
+    tay
+    // [131] printf_slong::format_zero_padding#0 = stackidx(char,printf_slong::OFFSET_STACK_FORMAT_ZERO_PADDING) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_ZERO_PADDING,x
+    sta format_zero_padding_1
+    // [132] printf_slong::format_upper_case#0 = stackidx(char,printf_slong::OFFSET_STACK_FORMAT_UPPER_CASE) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_UPPER_CASE,x
+    sta format_upper_case_1
+    // [133] printf_slong::format_radix#0 = stackidx(char,printf_slong::OFFSET_STACK_FORMAT_RADIX) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
+    tax
+    // printf_buffer.sign = 0
+    // [134] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // Handle any sign
+    lda #0
+    sta printf_buffer
+    // if(value<0)
+    // [135] if(printf_slong::value#0<0) goto printf_slong::@1 -- vdsm1_lt_0_then_la1 
+    lda value_1+3
+    bmi __b1
+    // printf_slong::@3
+    // if(format_sign_always)
+    // [136] if(0==printf_slong::format_sign_always#0) goto printf_slong::@2 -- 0_eq_vbuyy_then_la1 
+    cpy #0
+    beq __b2
+    // printf_slong::@4
+    // printf_buffer.sign = '+'
+    // [137] *((char *)&printf_buffer) = '+' -- _deref_pbuc1=vbuc2 
+    lda #'+'
+    sta printf_buffer
+    // [138] phi from printf_slong::@1 printf_slong::@3 printf_slong::@4 to printf_slong::@2 [phi:printf_slong::@1/printf_slong::@3/printf_slong::@4->printf_slong::@2]
+    // [138] phi printf_slong::value#3 = printf_slong::value#1 [phi:printf_slong::@1/printf_slong::@3/printf_slong::@4->printf_slong::@2#0] -- register_copy 
+    // printf_slong::@2
+  __b2:
+    // unsigned long uvalue = (unsigned long)value
+    // [139] printf_slong::uvalue#0 = (unsigned long)printf_slong::value#3
+  // Format number into buffer
+    // ultoa(uvalue, printf_buffer.digits, format_radix)
+    // [140] ultoa::value#1 = printf_slong::uvalue#0 -- vdum1=vdum2 
+    lda uvalue
+    sta ultoa.value
+    lda uvalue+1
+    sta ultoa.value+1
+    lda uvalue+2
+    sta ultoa.value+2
+    lda uvalue+3
+    sta ultoa.value+3
+    // [141] ultoa::radix#0 = printf_slong::format_radix#0 -- vbuaa=vbuxx 
+    txa
+    // [142] call ultoa
+    // [485] phi from printf_slong::@2 to ultoa [phi:printf_slong::@2->ultoa]
+    // [485] phi ultoa::value#10 = ultoa::value#1 [phi:printf_slong::@2->ultoa#0] -- register_copy 
+    // [485] phi ultoa::radix#2 = ultoa::radix#0 [phi:printf_slong::@2->ultoa#1] -- register_copy 
+    jsr ultoa
+    // printf_slong::@5
+    // printf_number_buffer(putc, printf_buffer, format_min_length, format_justify_left, format_sign_always, format_zero_padding, format_upper_case, format_radix)
+    // [143] printf_number_buffer::putc#0 = printf_slong::putc#0 -- pprz1=pprz2 
+    lda.z putc_1
+    sta.z printf_number_buffer.putc
+    lda.z putc_1+1
+    sta.z printf_number_buffer.putc+1
+    // [144] *(&printf_number_buffer::buffer) = memcpy(*(&printf_buffer), struct printf_buffer_number, SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER) -- _deref_pssc1=_deref_pssc2_memcpy_vbuc3 
+    ldy #SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER
+  !:
+    lda printf_buffer-1,y
+    sta printf_number_buffer.buffer-1,y
+    dey
+    bne !-
+    // [145] printf_number_buffer::format_min_length#0 = printf_slong::format_min_length#0 -- vbuxx=vbum1 
+    ldx format_min_length_1
+    // [146] printf_number_buffer::format_justify_left#0 = printf_slong::format_justify_left#0 -- vbum1=vbum2 
+    lda format_justify_left_1
+    sta printf_number_buffer.format_justify_left
+    // [147] printf_number_buffer::format_zero_padding#0 = printf_slong::format_zero_padding#0 -- vbum1=vbum2 
+    lda format_zero_padding_1
+    sta printf_number_buffer.format_zero_padding
+    // [148] printf_number_buffer::format_upper_case#0 = printf_slong::format_upper_case#0 -- vbum1=vbum2 
+    lda format_upper_case_1
+    sta printf_number_buffer.format_upper_case
+    // [149] call printf_number_buffer
+  // Print using format
+    // [411] phi from printf_slong::@5 to printf_number_buffer [phi:printf_slong::@5->printf_number_buffer]
+    // [411] phi printf_number_buffer::format_upper_case#10 = printf_number_buffer::format_upper_case#0 [phi:printf_slong::@5->printf_number_buffer#0] -- register_copy 
+    // [411] phi printf_number_buffer::putc#10 = printf_number_buffer::putc#0 [phi:printf_slong::@5->printf_number_buffer#1] -- register_copy 
+    // [411] phi printf_number_buffer::format_zero_padding#10 = printf_number_buffer::format_zero_padding#0 [phi:printf_slong::@5->printf_number_buffer#2] -- register_copy 
+    // [411] phi printf_number_buffer::format_justify_left#10 = printf_number_buffer::format_justify_left#0 [phi:printf_slong::@5->printf_number_buffer#3] -- register_copy 
+    // [411] phi printf_number_buffer::format_min_length#10 = printf_number_buffer::format_min_length#0 [phi:printf_slong::@5->printf_number_buffer#4] -- register_copy 
+    jsr printf_number_buffer
+    // printf_slong::@return
+    // }
+    // [150] return 
+    rts
+    // printf_slong::@1
+  __b1:
+    // value = -value
+    // [151] printf_slong::value#1 = - printf_slong::value#0 -- vdsm1=_neg_vdsm1 
+    sec
+    lda value_1
+    eor #$ff
+    adc #0
+    sta value_1
+    lda value_1+1
+    eor #$ff
+    adc #0
+    sta value_1+1
+    lda value_1+2
+    eor #$ff
+    adc #0
+    sta value_1+2
+    lda value_1+3
+    eor #$ff
+    adc #0
+    sta value_1+3
+    // printf_buffer.sign = '-'
+    // [152] *((char *)&printf_buffer) = '-' -- _deref_pbuc1=vbuc2 
+    lda #'-'
+    sta printf_buffer
+    jmp __b2
+  .segment Data
+    value_1: .dword 0
+  .segment Data
+    format_min_length_1: .byte 0
+  .segment Data
+    format_justify_left_1: .byte 0
+  .segment Data
+    format_zero_padding_1: .byte 0
+  .segment Data
+    format_upper_case_1: .byte 0
+  .segment Data
+    .label uvalue = value_1
+}
+  // code segment
+.segment Code
+  // printf_str
+/// Print a NUL-terminated string
+// void lib_conio.printf_str(__zp($28) void (*putc)(char), __zp($2e) const char *s)
+printf_str: {
+    // constants
+    .const OFFSET_STACK_PUTC = 2
+    .const OFFSET_STACK_S = 0
+    // variables
+    // variables-zero-page
+    .label putc = $2a
+    .label s = $2c
+    .label putc_1 = $28
+    .label s_1 = $2e
+    // [153] printf_str::putc#0 = stackidx(void (*)(char),printf_str::OFFSET_STACK_PUTC) -- pprz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_PUTC,x
+    sta.z putc_1
+    lda STACK_BASE+OFFSET_STACK_PUTC+1,x
+    sta.z putc_1+1
+    // [154] printf_str::s#0 = stackidx(const char *,printf_str::OFFSET_STACK_S) -- pbuz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_S,x
+    sta.z s_1
+    lda STACK_BASE+OFFSET_STACK_S+1,x
+    sta.z s_1+1
+    // [155] phi from printf_str printf_str::@2 to printf_str::@1 [phi:printf_str/printf_str::@2->printf_str::@1]
+    // [155] phi printf_str::s#2 = printf_str::s#0 [phi:printf_str/printf_str::@2->printf_str::@1#0] -- register_copy 
+    // printf_str::@1
+  __b1:
+    // while(c=*s++)
+    // [156] printf_str::c#1 = *printf_str::s#2 -- vbuaa=_deref_pbuz1 
+    ldy #0
+    lda (s_1),y
+    // [157] printf_str::s#1 = ++ printf_str::s#2 -- pbuz1=_inc_pbuz1 
+    inc.z s_1
+    bne !+
+    inc.z s_1+1
+  !:
+    // [158] if(0!=printf_str::c#1) goto printf_str::@2 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b2
+    // printf_str::@return
+    // }
+    // [159] return 
+    rts
+    // printf_str::@2
+  __b2:
+    // putc(c)
+    // [160] stackpush(char) = printf_str::c#1 -- _stackpushbyte_=vbuaa 
+    pha
+    // [161] callexecute *printf_str::putc#0  -- call__deref_pprz1 
+    jsr icall1
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    jmp __b1
+  icall1:
+    jmp (putc_1)
+}
+  // code segment
+.segment Code
+  // conio_x16_init
+/// Set initial screen values.
+// void lib_conio.conio_x16_init()
+conio_x16_init: {
+    // constants
+    // variables
+    // variables-zero-page
+    // screenlayer1()
+    // [164] callexecute screenlayer1  -- call_stack_near 
+    jsr lib_conio.screenlayer1
+    // textcolor(CONIO_TEXTCOLOR_DEFAULT)
+    // [165] stackpush(char) = WHITE -- _stackpushbyte_=vbuc1 
+    lda #WHITE
+    pha
+    // [166] callexecute textcolor  -- call_stack_near 
+    jsr lib_conio.textcolor
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // bgcolor(CONIO_BACKCOLOR_DEFAULT)
+    // [168] stackpush(char) = BLUE -- _stackpushbyte_=vbuc1 
+    lda #BLUE
+    pha
+    // [169] callexecute bgcolor  -- call_stack_near 
+    jsr lib_conio.bgcolor
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // cursor(0)
+    // [171] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    lda #0
+    pha
+    // [172] callexecute cursor  -- call_stack_near 
+    jsr lib_conio.cursor
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // cbm_k_plot_get()
+    // [174] call cbm_k_plot_get
+    jsr cbm_k_plot_get
+    // [175] cbm_k_plot_get::return#2 = cbm_k_plot_get::return#0
+    // conio_x16_init::@1
+    // [176] conio_x16_init::$4 = cbm_k_plot_get::return#2 -- vwum1=vwum2 
+    lda cbm_k_plot_get.return
+    sta conio_x16_init__4
+    lda cbm_k_plot_get.return+1
+    sta conio_x16_init__4+1
+    // BYTE1(cbm_k_plot_get())
+    // [177] conio_x16_init::$5 = byte1  conio_x16_init::$4 -- vbuaa=_byte1_vwum1 
+    // __conio.cursor_x = BYTE1(cbm_k_plot_get())
+    // [178] *((char *)&__conio) = conio_x16_init::$5 -- _deref_pbuc1=vbuaa 
+    sta __conio
+    // cbm_k_plot_get()
+    // [179] call cbm_k_plot_get
+    jsr cbm_k_plot_get
+    // [180] cbm_k_plot_get::return#3 = cbm_k_plot_get::return#0
+    // conio_x16_init::@2
+    // [181] conio_x16_init::$6 = cbm_k_plot_get::return#3 -- vwum1=vwum2 
+    lda cbm_k_plot_get.return
+    sta conio_x16_init__6
+    lda cbm_k_plot_get.return+1
+    sta conio_x16_init__6+1
+    // BYTE0(cbm_k_plot_get())
+    // [182] conio_x16_init::$7 = byte0  conio_x16_init::$6 -- vbuaa=_byte0_vwum1 
+    lda conio_x16_init__6
+    // __conio.cursor_y = BYTE0(cbm_k_plot_get())
+    // [183] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = conio_x16_init::$7 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // gotoxy(__conio.cursor_x, __conio.cursor_y)
+    // [184] stackpush(char) = *((char *)&__conio) -- _stackpushbyte_=_deref_pbuc1 
+    lda __conio
+    pha
+    // [185] stackpush(char) = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) -- _stackpushbyte_=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    pha
+    // [186] callexecute gotoxy  -- call_stack_near 
+    jsr lib_conio.gotoxy
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // __conio.scroll[0] = 1
+    // [188] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL) = 1 -- _deref_pbuc1=vbuc2 
+    lda #1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL
+    // __conio.scroll[1] = 1
+    // [189] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL+1) = 1 -- _deref_pbuc1=vbuc2 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL+1
+    // conio_x16_init::@return
+    // }
+    // [190] return 
+    rts
+  .segment Data
+    conio_x16_init__4: .word 0
+  .segment Data
+    conio_x16_init__6: .word 0
+}
+  // code segment
+.segment Code
+  // cpeekcxy
+// __register(A) char lib_conio.cpeekcxy(__register(Y) char x, __register(X) char y)
+cpeekcxy: {
+    // constants
+    .const OFFSET_STACK_X = 1
+    .const OFFSET_STACK_Y = 0
+    .const OFFSET_STACK_RETURN_1 = 1
+    // variables
+    // variables-zero-page
+    // [191] cpeekcxy::x#0 = stackidx(char,cpeekcxy::OFFSET_STACK_X) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_X,x
+    tay
+    // [192] cpeekcxy::y#0 = stackidx(char,cpeekcxy::OFFSET_STACK_Y) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_Y,x
+    tax
+    // gotoxy(x,y)
+    // [193] stackpush(char) = cpeekcxy::x#0 -- _stackpushbyte_=vbuyy 
+    tya
+    pha
+    // [194] stackpush(char) = cpeekcxy::y#0 -- _stackpushbyte_=vbuxx 
+    txa
+    pha
+    // [195] callexecute gotoxy  -- call_stack_near 
+    jsr lib_conio.gotoxy
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // cpeekc()
+    // sideeffect stackpushpadding(1) -- _stackpushpadding_1 
+    pha
+    // [198] callexecute cpeekc  -- call_stack_near 
+    jsr lib_conio.cpeekc
+    // return cpeekc();
+    // [199] cpeekcxy::return#0 = stackpull(char) -- vbuaa=_stackpullbyte_ 
+    pla
+    // cpeekcxy::@return
+    // }
+    // [200] stackidx(char,cpeekcxy::OFFSET_STACK_RETURN_1) = cpeekcxy::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_1,x
+    // [201] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cpeekc
+// __register(A) char lib_conio.cpeekc()
+cpeekc: {
+    // constants
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [202] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // BYTE0(__conio.offset)
+    // [203] cpeekc::$0 = byte0  *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- vbuaa=_byte0__deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    // *VERA_ADDRX_L = BYTE0(__conio.offset)
+    // [204] *VERA_ADDRX_L = cpeekc::$0 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_L
+    // BYTE1(__conio.offset)
+    // [205] cpeekc::$1 = byte1  *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- vbuaa=_byte1__deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // *VERA_ADDRX_M = BYTE1(__conio.offset)
+    // [206] *VERA_ADDRX_M = cpeekc::$1 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // __conio.mapbase_bank | VERA_INC_0
+    // [207] cpeekc::$2 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // *VERA_ADDRX_H = __conio.mapbase_bank | VERA_INC_0
+    // [208] *VERA_ADDRX_H = cpeekc::$2 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // return *VERA_DATA0;
+    // [209] cpeekc::return#0 = *VERA_DATA0 -- vbuaa=_deref_pbuc1 
+    lda VERA_DATA0
+    // cpeekc::@return
+    // }
+    // [210] stackidx(char,cpeekc::OFFSET_STACK_RETURN_0) = cpeekc::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [211] return 
+    rts
+}
+  // code segment
+.segment Code
+  // screenlayer1
+// Set the layer with which the conio will interact.
+// void lib_conio.screenlayer1()
+screenlayer1: {
+    // constants
+    // variables
+    // variables-zero-page
+    // screenlayer(1, *VERA_L1_MAPBASE, *VERA_L1_CONFIG)
+    // [212] screenlayer::mapbase#0 = *VERA_L1_MAPBASE -- vbuyy=_deref_pbuc1 
+    ldy VERA_L1_MAPBASE
+    // [213] screenlayer::config#0 = *VERA_L1_CONFIG -- vbuxx=_deref_pbuc1 
+    ldx VERA_L1_CONFIG
+    // [214] call screenlayer
+    jsr screenlayer
+    // screenlayer1::@return
+    // }
+    // [215] return 
+    rts
+}
+  // code segment
+.segment Code
+  // scroll
+// If onoff is 1, scrolling is enabled when outputting past the end of the screen
+// If onoff is 0, scrolling is disabled and the cursor instead moves to (0,0)
+// The function returns the old scroll setting.
+// __register(X) char lib_conio.scroll(__register(A) char onoff)
+scroll: {
+    // constants
+    .const OFFSET_STACK_ONOFF = 0
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // [216] scroll::onoff#0 = stackidx(char,scroll::OFFSET_STACK_ONOFF) -- vbuaa=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_ONOFF,x
+    // char old = __conio.scroll[__conio.layer]
+    // [217] scroll::return#0 = ((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL)[*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER)] -- vbuxx=pbuc1_derefidx_(_deref_pbuc2) 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    ldx __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL,y
+    // __conio.scroll[__conio.layer] = onoff
+    // [218] ((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL)[*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER)] = scroll::onoff#0 -- pbuc1_derefidx_(_deref_pbuc2)=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL,y
+    // scroll::@return
+    // }
+    // [219] stackidx(char,scroll::OFFSET_STACK_RETURN_0) = scroll::return#0 -- _stackidxbyte_vbuc1=vbuxx 
+    txa
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [220] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cursor
+// If onoff is 1, a cursor is displayed when waiting for keyboard input.
+// If onoff is 0, the cursor is hidden when waiting for keyboard input.
+// The function returns the old cursor setting.
+// __register(A) char lib_conio.cursor(__register(X) char onoff)
+cursor: {
+    // constants
+    .const OFFSET_STACK_ONOFF = 0
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // [221] cursor::onoff#0 = stackidx(char,cursor::OFFSET_STACK_ONOFF) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_ONOFF,x
+    tax
+    // char old = __conio.cursor
+    // [222] cursor::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR) -- vbuaa=_deref_pbuc1 
+    // not supported in CX16
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR
+    // __conio.cursor = onoff
+    // [223] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR) = cursor::onoff#0 -- _deref_pbuc1=vbuxx 
+    stx __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR
+    // cursor::@return
+    // }
+    // [224] stackidx(char,cursor::OFFSET_STACK_RETURN_0) = cursor::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [225] return 
+    rts
+}
+  // code segment
+.segment Code
+  // kbhit
+// Returns a value if a key is pressed.
+// __register(A) char lib_conio.kbhit()
+kbhit: {
+    // constants
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // kbhit::cbm_k_clrchn1
+    // asm
+    // asm { jsrCBM_CLRCHN  }
+    jsr CBM_CLRCHN
+    // [228] phi from kbhit::cbm_k_clrchn1 to kbhit::@1 [phi:kbhit::cbm_k_clrchn1->kbhit::@1]
+    // kbhit::@1
+    // cbm_k_getin()
+    // [229] call cbm_k_getin
+    jsr cbm_k_getin
+    // [230] cbm_k_getin::return#0 = cbm_k_getin::return#2
+    // kbhit::@2
+    // return cbm_k_getin();
+    // [231] kbhit::return#0 = cbm_k_getin::return#0
+    // kbhit::@return
+    // }
+    // [232] stackidx(char,kbhit::OFFSET_STACK_RETURN_0) = kbhit::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [233] return 
+    rts
+}
+  // code segment
+.segment Code
+  // bordercolor
+// Set the color for the border.
+// __register(A) char lib_conio.bordercolor(__register(A) char color)
+bordercolor: {
+    // constants
+    .const OFFSET_STACK_COLOR = 0
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // [234] bordercolor::color#0 = stackidx(char,bordercolor::OFFSET_STACK_COLOR) -- vbuaa=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_COLOR,x
+    // __conio.bordercolor = *VERA_DC_BORDER
+    // [235] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_BORDERCOLOR) = *VERA_DC_BORDER -- _deref_pbuc1=_deref_pbuc2 
+    lda VERA_DC_BORDER
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_BORDERCOLOR
+    // return __conio.bordercolor = *VERA_DC_BORDER;
+    // [236] bordercolor::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_BORDERCOLOR) -- vbuaa=_deref_pbuc1 
+    // bordercolor::@return
+    // }
+    // [237] stackidx(char,bordercolor::OFFSET_STACK_RETURN_0) = bordercolor::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [238] return 
+    rts
+}
+  // code segment
+.segment Code
+  // bgcolor
+// Set the back color for text output.
+// - color: a 4 bit value ( decimal between 0 and 15).
+//   This will only work when the VERA is in 16 color mode!
+//   Note that on the VERA, the transparent color has value 0.
+// __register(A) char lib_conio.bgcolor(__register(X) char color)
+bgcolor: {
+    // constants
+    .const OFFSET_STACK_COLOR = 0
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // [239] bgcolor::color#0 = stackidx(char,bgcolor::OFFSET_STACK_COLOR) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_COLOR,x
+    tax
+    // __conio.color & 0x0F
+    // [240] bgcolor::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) & $f -- vbum1=_deref_pbuc1_band_vbuc2 
+    lda #$f
+    and __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    sta bgcolor__0
+    // color << 4
+    // [241] bgcolor::$1 = bgcolor::color#0 << 4 -- vbuaa=vbuxx_rol_4 
+    txa
+    asl
+    asl
+    asl
+    asl
+    // __conio.color & 0x0F | color << 4
+    // [242] bgcolor::$2 = bgcolor::$0 | bgcolor::$1 -- vbuaa=vbum1_bor_vbuaa 
+    ora bgcolor__0
+    // __conio.color = __conio.color & 0x0F | color << 4
+    // [243] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) = bgcolor::$2 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // return __conio.color = __conio.color & 0x0F | color << 4;
+    // [244] bgcolor::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) -- vbuaa=_deref_pbuc1 
+    // bgcolor::@return
+    // }
+    // [245] stackidx(char,bgcolor::OFFSET_STACK_RETURN_0) = bgcolor::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [246] return 
+    rts
+  .segment Data
+    bgcolor__0: .byte 0
+}
+  // code segment
+.segment Code
+  // textcolor
+// Set the front color for text output. The old front text color setting is returned.
+// - color: a 4 bit value ( decimal between 0 and 15).
+//   This will only work when the VERA is in 16 color mode!
+//   Note that on the VERA, the transparent color has value 0.
+// __register(A) char lib_conio.textcolor(__mem() char color)
+textcolor: {
+    // constants
+    .const OFFSET_STACK_COLOR = 0
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // [247] textcolor::color#0 = stackidx(char,textcolor::OFFSET_STACK_COLOR) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_COLOR,x
+    sta color_1
+    // __conio.color & 0xF0
+    // [248] textcolor::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) & $f0 -- vbuaa=_deref_pbuc1_band_vbuc2 
+    lda #$f0
+    and __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // __conio.color & 0xF0 | color
+    // [249] textcolor::$1 = textcolor::$0 | textcolor::color#0 -- vbuaa=vbuaa_bor_vbum1 
+    ora color_1
+    // __conio.color = __conio.color & 0xF0 | color
+    // [250] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) = textcolor::$1 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // return __conio.color = __conio.color & 0xF0 | color;
+    // [251] textcolor::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) -- vbuaa=_deref_pbuc1 
+    // textcolor::@return
+    // }
+    // [252] stackidx(char,textcolor::OFFSET_STACK_RETURN_0) = textcolor::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [253] return 
+    rts
+  .segment Data
+    color_1: .byte 0
+}
+  // code segment
+.segment Code
+  // cputsxy
+// Move cursor and output a NUL-terminated string
+// Same as "gotoxy (x, y); puts (s);"
+// void lib_conio.cputsxy(__register(Y) char x, __mem() char y, __zp($24) const char *s)
+cputsxy: {
+    // constants
+    .const OFFSET_STACK_X = 3
+    .const OFFSET_STACK_Y = 2
+    .const OFFSET_STACK_S = 0
+    // variables
+    // variables-zero-page
+    .label s = $2c
+    .label s_1 = $24
+    // [254] cputsxy::x#0 = stackidx(char,cputsxy::OFFSET_STACK_X) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_X,x
+    tay
+    // [255] cputsxy::y#0 = stackidx(char,cputsxy::OFFSET_STACK_Y) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_Y,x
+    sta y_1
+    // [256] cputsxy::s#0 = stackidx(const char *,cputsxy::OFFSET_STACK_S) -- pbuz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_S,x
+    sta.z s_1
+    lda STACK_BASE+OFFSET_STACK_S+1,x
+    sta.z s_1+1
+    // gotoxy(x, y)
+    // [257] stackpush(char) = cputsxy::x#0 -- _stackpushbyte_=vbuyy 
+    tya
+    pha
+    // [258] stackpush(char) = cputsxy::y#0 -- _stackpushbyte_=vbum1 
+    lda y_1
+    pha
+    // [259] callexecute gotoxy  -- call_stack_near 
+    jsr lib_conio.gotoxy
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // cputs(s)
+    // [261] stackpush(const char *) = cputsxy::s#0 -- _stackpushptr_=pbuz1 
+    lda.z s_1+1
+    pha
+    lda.z s_1
+    pha
+    // [262] callexecute cputs  -- call_stack_near 
+    jsr lib_conio.cputs
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // cputsxy::@return
+    // }
+    // [264] return 
+    rts
+  .segment Data
+    y_1: .byte 0
+}
+  // code segment
+.segment Code
+  // cputs
+// Output a NUL-terminated string at the current cursor position
+// void lib_conio.cputs(__zp($2e) const char *s)
+cputs: {
+    // constants
+    .const OFFSET_STACK_S = 0
+    // variables
+    // variables-zero-page
+    .label s = $2a
+    .label s_1 = $2e
+    // [265] cputs::s#0 = stackidx(const char *,cputs::OFFSET_STACK_S) -- pbuz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_S,x
+    sta.z s_1
+    lda STACK_BASE+OFFSET_STACK_S+1,x
+    sta.z s_1+1
+    // [266] phi from cputs cputs::@2 to cputs::@1 [phi:cputs/cputs::@2->cputs::@1]
+    // [266] phi cputs::s#2 = cputs::s#0 [phi:cputs/cputs::@2->cputs::@1#0] -- register_copy 
+    // cputs::@1
+  __b1:
+    // while(c=*s++)
+    // [267] cputs::c#1 = *cputs::s#2 -- vbuaa=_deref_pbuz1 
+    ldy #0
+    lda (s_1),y
+    // [268] cputs::s#1 = ++ cputs::s#2 -- pbuz1=_inc_pbuz1 
+    inc.z s_1
+    bne !+
+    inc.z s_1+1
+  !:
+    // [269] if(0!=cputs::c#1) goto cputs::@2 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b2
+    // cputs::@return
+    // }
+    // [270] return 
+    rts
+    // cputs::@2
+  __b2:
+    // cputc(c)
+    // [271] stackpush(char) = cputs::c#1 -- _stackpushbyte_=vbuaa 
+    pha
+    // [272] callexecute cputc  -- call_stack_near 
+    jsr lib_conio.cputc
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    jmp __b1
+}
+  // code segment
+.segment Code
+  // cputcxy
+// Move cursor and output one character
+// Same as "gotoxy (x, y); cputc (c);"
+// void lib_conio.cputcxy(__register(Y) char x, __mem() char y, __mem() char c)
+cputcxy: {
+    // constants
+    .const OFFSET_STACK_X = 2
+    .const OFFSET_STACK_Y = 1
+    .const OFFSET_STACK_C = 0
+    // variables
+    // variables-zero-page
+    // [274] cputcxy::x#0 = stackidx(char,cputcxy::OFFSET_STACK_X) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_X,x
+    tay
+    // [275] cputcxy::y#0 = stackidx(char,cputcxy::OFFSET_STACK_Y) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_Y,x
+    sta y_1
+    // [276] cputcxy::c#0 = stackidx(char,cputcxy::OFFSET_STACK_C) -- vbum1=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_C,x
+    sta c_1
+    // gotoxy(x, y)
+    // [277] stackpush(char) = cputcxy::x#0 -- _stackpushbyte_=vbuyy 
+    tya
+    pha
+    // [278] stackpush(char) = cputcxy::y#0 -- _stackpushbyte_=vbum1 
+    lda y_1
+    pha
+    // [279] callexecute gotoxy  -- call_stack_near 
+    jsr lib_conio.gotoxy
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // cputc(c)
+    // [281] stackpush(char) = cputcxy::c#0 -- _stackpushbyte_=vbum1 
+    lda c_1
+    pha
+    // [282] callexecute cputc  -- call_stack_near 
+    jsr lib_conio.cputc
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // cputcxy::@return
+    // }
+    // [284] return 
+    rts
+  .segment Data
+    y_1: .byte 0
+  .segment Data
+    c_1: .byte 0
+}
+  // code segment
+.segment Code
+  // cputln
+// Print a newline
+// void lib_conio.cputln()
+cputln: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __conio.cursor_x = 0
+    // [285] *((char *)&__conio) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta __conio
+    // __conio.cursor_y++;
+    // [286] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = ++ *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // __conio.offset = __conio.offsets[__conio.cursor_y]
+    // [287] cputln::$3 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) << 1 -- vbuaa=_deref_pbuc1_rol_1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    asl
+    // [288] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[cputln::$3] -- _deref_pwuc1=pwuc2_derefidx_vbuaa 
+    tay
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // if(__conio.scroll[__conio.layer])
+    // [289] if(0==((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL)[*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER)]) goto cputln::@return -- 0_eq_pbuc1_derefidx_(_deref_pbuc2)_then_la1 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL,y
+    cmp #0
+    beq __breturn
+    // [290] phi from cputln to cputln::@1 [phi:cputln->cputln::@1]
+    // cputln::@1
+    // cscroll()
+    // [291] call cscroll
+    jsr cscroll
+    // cputln::@return
+  __breturn:
+    // }
+    // [292] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cputc
+// Output one character at the current cursor position
+// Moves the cursor forward. Scrolls the entire screen if needed
+// void lib_conio.cputc(__register(X) char c)
+cputc: {
+    // constants
+    .const OFFSET_STACK_C = 0
+    // variables
+    // variables-zero-page
+    // [293] cputc::c#0 = stackidx(char,cputc::OFFSET_STACK_C) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_C,x
+    tax
+    // if(c!='\n')
+    // [294] if(cputc::c#0!=' ') goto cputc::@1 -- vbuxx_neq_vbuc1_then_la1 
+    cpx #'\n'
+    bne __b1
+    // [295] phi from cputc to cputc::@2 [phi:cputc->cputc::@2]
+    // cputc::@2
+    // cputln()
+    // [296] callexecute cputln  -- call_stack_near 
+    jsr lib_conio.cputln
+    // cputc::@return
+    // }
+    // [297] return 
+    rts
+    // cputc::@1
+  __b1:
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [298] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // BYTE0(__conio.offset)
+    // [299] cputc::$2 = byte0  *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- vbuaa=_byte0__deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    // *VERA_ADDRX_L = BYTE0(__conio.offset)
+    // [300] *VERA_ADDRX_L = cputc::$2 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_L
+    // BYTE1(__conio.offset)
+    // [301] cputc::$3 = byte1  *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- vbuaa=_byte1__deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // *VERA_ADDRX_M = BYTE1(__conio.offset)
+    // [302] *VERA_ADDRX_M = cputc::$3 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // __conio.mapbase_bank | VERA_INC_1
+    // [303] cputc::$4 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) | VERA_INC_1 -- vbuaa=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_INC_1
+    ora __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // *VERA_ADDRX_H = __conio.mapbase_bank | VERA_INC_1
+    // [304] *VERA_ADDRX_H = cputc::$4 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // *VERA_DATA0 = c
+    // [305] *VERA_DATA0 = cputc::c#0 -- _deref_pbuc1=vbuxx 
+    stx VERA_DATA0
+    // *VERA_DATA0 = __conio.color
+    // [306] *VERA_DATA0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) -- _deref_pbuc1=_deref_pbuc2 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    sta VERA_DATA0
+    // if(!__conio.hscroll[__conio.layer])
+    // [307] if(0==((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HSCROLL)[*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER)]) goto cputc::@5 -- 0_eq_pbuc1_derefidx_(_deref_pbuc2)_then_la1 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HSCROLL,y
+    cmp #0
+    beq __b5
+    // cputc::@3
+    // if(__conio.cursor_x >= __conio.mapwidth)
+    // [308] if(*((char *)&__conio)>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH)) goto cputc::@6 -- _deref_pbuc1_ge__deref_pbuc2_then_la1 
+    lda __conio
+    cmp __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH
+    bcs __b6
+    // cputc::@4
+    // __conio.cursor_x++;
+    // [309] *((char *)&__conio) = ++ *((char *)&__conio) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc __conio
+    // __conio.offset++;
+    // [310] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = ++ *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- _deref_pwuc1=_inc__deref_pwuc1 
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    bne !+
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+  !:
+    // [311] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = ++ *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- _deref_pwuc1=_inc__deref_pwuc1 
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    bne !+
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+  !:
+    rts
+    // [312] phi from cputc::@3 to cputc::@6 [phi:cputc::@3->cputc::@6]
+    // cputc::@6
+  __b6:
+    // cputln()
+    // [313] callexecute cputln  -- call_stack_near 
+    jsr lib_conio.cputln
+    rts
+    // cputc::@5
+  __b5:
+    // if(__conio.cursor_x >= __conio.width)
+    // [314] if(*((char *)&__conio)>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH)) goto cputc::@7 -- _deref_pbuc1_ge__deref_pbuc2_then_la1 
+    lda __conio
+    cmp __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    bcs __b7
+    // cputc::@8
+    // __conio.cursor_x++;
+    // [315] *((char *)&__conio) = ++ *((char *)&__conio) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc __conio
+    // __conio.offset++;
+    // [316] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = ++ *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- _deref_pwuc1=_inc__deref_pwuc1 
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    bne !+
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+  !:
+    // [317] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = ++ *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) -- _deref_pwuc1=_inc__deref_pwuc1 
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    bne !+
+    inc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+  !:
+    rts
+    // [318] phi from cputc::@5 to cputc::@7 [phi:cputc::@5->cputc::@7]
+    // cputc::@7
+  __b7:
+    // cputln()
+    // [319] callexecute cputln  -- call_stack_near 
+    jsr lib_conio.cputln
+    rts
+}
+  // code segment
+.segment Code
+  // screensizey
+// Return the current screen size y height.
+// __register(A) char lib_conio.screensizey()
+screensizey: {
+    // constants
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // return __conio.height;
+    // [320] screensizey::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    // screensizey::@return
+    // }
+    // [321] stackidx(char,screensizey::OFFSET_STACK_RETURN_0) = screensizey::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [322] return 
+    rts
+}
+  // code segment
+.segment Code
+  // screensizex
+// Return the current screen size x width.
+// __register(A) char lib_conio.screensizex()
+screensizex: {
+    // constants
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // return __conio.width;
+    // [323] screensizex::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // screensizex::@return
+    // }
+    // [324] stackidx(char,screensizex::OFFSET_STACK_RETURN_0) = screensizex::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [325] return 
+    rts
+}
+  // code segment
+.segment Code
+  // screensize
+// Return the current screen size.
+// void lib_conio.screensize(__zp($28) char *x, __zp($26) char *y)
+screensize: {
+    // constants
+    .const OFFSET_STACK_X = 2
+    .const OFFSET_STACK_Y = 0
+    // variables
+    // variables-zero-page
+    .label x = $2a
+    .label y = $2c
+    .label x_1 = $28
+    .label y_1 = $26
+    // [326] screensize::x#0 = stackidx(char *,screensize::OFFSET_STACK_X) -- pbuz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_X,x
+    sta.z x_1
+    lda STACK_BASE+OFFSET_STACK_X+1,x
+    sta.z x_1+1
+    // [327] screensize::y#0 = stackidx(char *,screensize::OFFSET_STACK_Y) -- pbuz1=_stackidxptr_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_Y,x
+    sta.z y_1
+    lda STACK_BASE+OFFSET_STACK_Y+1,x
+    sta.z y_1+1
+    // char hscale = (*VERA_DC_HSCALE) >> 7
+    // [328] screensize::hscale#0 = *VERA_DC_HSCALE >> 7 -- vbuaa=_deref_pbuc1_ror_7 
+    // VERA returns in VERA_DC_HSCALE the value of 128 when 80 columns is used in text mode,
+    // and the value of 64 when 40 columns is used in text mode.
+    // Basically, 40 columns mode in the VERA is a double scan mode.
+    // Same for the VERA_DC_VSCALE mode, but then the subdivision is 60 or 30 rows.
+    // I still need to test the other modes, but this will suffice for now for the pure text modes.
+    lda VERA_DC_HSCALE
+    rol
+    rol
+    and #1
+    // 40 << hscale
+    // [329] screensize::$1 = $28 << screensize::hscale#0 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
+    lda #$28
+    cpy #0
+    beq !e+
+  !:
+    asl
+    dey
+    bne !-
+  !e:
+    // (40 << hscale)-1
+    // [330] screensize::$2 = screensize::$1 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // *x = (40 << hscale)-1
+    // [331] *screensize::x#0 = screensize::$2 -- _deref_pbuz1=vbuaa 
+    ldy #0
+    sta (x_1),y
+    // char vscale = (*VERA_DC_VSCALE) >> 7
+    // [332] screensize::vscale#0 = *VERA_DC_VSCALE >> 7 -- vbuaa=_deref_pbuc1_ror_7 
+    lda VERA_DC_VSCALE
+    rol
+    rol
+    and #1
+    // 30 << vscale
+    // [333] screensize::$4 = $1e << screensize::vscale#0 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
+    lda #$1e
+    cpy #0
+    beq !e+
+  !:
+    asl
+    dey
+    bne !-
+  !e:
+    // (30 << vscale)-1
+    // [334] screensize::$5 = screensize::$4 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // *y = (30 << vscale)-1
+    // [335] *screensize::y#0 = screensize::$5 -- _deref_pbuz1=vbuaa 
+    ldy #0
+    sta (y_1),y
+    // screensize::@return
+    // }
+    // [336] return 
+    rts
+}
+  // code segment
+.segment Code
+  // wherey
+// Return the y position of the cursor
+// __register(A) char lib_conio.wherey()
+wherey: {
+    // constants
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // return __conio.cursor_y;
+    // [337] wherey::return#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // wherey::@return
+    // }
+    // [338] stackidx(char,wherey::OFFSET_STACK_RETURN_0) = wherey::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [339] return 
+    rts
+}
+  // code segment
+.segment Code
+  // wherex
+// Return the x position of the cursor
+// __register(A) char lib_conio.wherex()
+wherex: {
+    // constants
+    .const OFFSET_STACK_RETURN_0 = 0
+    // variables
+    // variables-zero-page
+    // return __conio.cursor_x;
+    // [340] wherex::return#0 = *((char *)&__conio) -- vbuaa=_deref_pbuc1 
+    lda __conio
+    // wherex::@return
+    // }
+    // [341] stackidx(char,wherex::OFFSET_STACK_RETURN_0) = wherex::return#0 -- _stackidxbyte_vbuc1=vbuaa 
+    tsx
+    sta STACK_BASE+OFFSET_STACK_RETURN_0,x
+    // [342] return 
+    rts
+}
+  // code segment
+.segment Code
+  // gotoxy
+// Set the cursor to the specified position
+// void lib_conio.gotoxy(__register(Y) char x, __register(X) char y)
+gotoxy: {
+    // constants
+    .const OFFSET_STACK_X = 1
+    .const OFFSET_STACK_Y = 0
+    // variables
+    // variables-zero-page
+    // (x>=__conio.width)?__conio.width:x
+    // [343] gotoxy::x#0 = stackidx(char,gotoxy::OFFSET_STACK_X) -- vbuyy=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_X,x
+    tay
+    // [344] gotoxy::y#0 = stackidx(char,gotoxy::OFFSET_STACK_Y) -- vbuxx=_stackidxbyte_vbuc1 
+    tsx
+    lda STACK_BASE+OFFSET_STACK_Y,x
+    tax
+    // [345] if(gotoxy::x#0>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH)) goto gotoxy::@1 -- vbuyy_ge__deref_pbuc1_then_la1 
+    cpy __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    bcs __b1
+    // [347] phi from gotoxy gotoxy::@1 to gotoxy::@2 [phi:gotoxy/gotoxy::@1->gotoxy::@2]
+    // [347] phi gotoxy::$3 = gotoxy::x#0 [phi:gotoxy/gotoxy::@1->gotoxy::@2#0] -- register_copy 
+    jmp __b2
+    // gotoxy::@1
+  __b1:
+    // [346] gotoxy::$2 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) -- vbuyy=_deref_pbuc1 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // gotoxy::@2
+  __b2:
+    // __conio.cursor_x = (x>=__conio.width)?__conio.width:x
+    // [348] *((char *)&__conio) = gotoxy::$3 -- _deref_pbuc1=vbuyy 
+    sty __conio
+    // (y>=__conio.height)?__conio.height:y
+    // [349] if(gotoxy::y#0>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto gotoxy::@3 -- vbuxx_ge__deref_pbuc1_then_la1 
+    cpx __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    bcs __b3
+    // gotoxy::@4
+    // [350] gotoxy::$14 = gotoxy::y#0 -- vbuaa=vbuxx 
+    txa
+    // [351] phi from gotoxy::@3 gotoxy::@4 to gotoxy::@5 [phi:gotoxy::@3/gotoxy::@4->gotoxy::@5]
+    // [351] phi gotoxy::$7 = gotoxy::$6 [phi:gotoxy::@3/gotoxy::@4->gotoxy::@5#0] -- register_copy 
+    // gotoxy::@5
+  __b5:
+    // __conio.cursor_y = (y>=__conio.height)?__conio.height:y
+    // [352] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = gotoxy::$7 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // __conio.cursor_x << 1
+    // [353] gotoxy::$8 = *((char *)&__conio) << 1 -- vbuyy=_deref_pbuc1_rol_1 
+    lda __conio
+    asl
+    tay
+    // __conio.offsets[y] + __conio.cursor_x << 1
+    // [354] gotoxy::$10 = gotoxy::y#0 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [355] gotoxy::$9 = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[gotoxy::$10] + gotoxy::$8 -- vwum1=pwuc1_derefidx_vbuaa_plus_vbuyy 
+    tax
+    tya
+    clc
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,x
+    sta gotoxy__9
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,x
+    adc #0
+    sta gotoxy__9+1
+    // __conio.offset = __conio.offsets[y] + __conio.cursor_x << 1
+    // [356] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = gotoxy::$9 -- _deref_pwuc1=vwum1 
+    lda gotoxy__9
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    lda gotoxy__9+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // gotoxy::@return
+    // }
+    // [357] return 
+    rts
+    // gotoxy::@3
+  __b3:
+    // (y>=__conio.height)?__conio.height:y
+    // [358] gotoxy::$6 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    jmp __b5
+  .segment Data
+    gotoxy__9: .word 0
+}
+  // code segment
+.segment Code
+  // clrscr
+// clears the screen and moves the cursor to the upper left-hand corner of the screen.
+// void lib_conio.clrscr()
+clrscr: {
+    // constants
+    // variables
+    // variables-zero-page
+    // unsigned int line_text = __conio.mapbase_offset
+    // [359] clrscr::line_text#0 = *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    sta line_text
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    sta line_text+1
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [360] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // __conio.mapbase_bank | VERA_INC_1
+    // [361] clrscr::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) | VERA_INC_1 -- vbuaa=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_INC_1
+    ora __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // *VERA_ADDRX_H = __conio.mapbase_bank | VERA_INC_1
+    // [362] *VERA_ADDRX_H = clrscr::$0 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // unsigned char l = __conio.mapheight
+    // [363] clrscr::l#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT) -- vbuyy=_deref_pbuc1 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT
+    // [364] phi from clrscr clrscr::@3 to clrscr::@1 [phi:clrscr/clrscr::@3->clrscr::@1]
+    // [364] phi clrscr::l#4 = clrscr::l#0 [phi:clrscr/clrscr::@3->clrscr::@1#0] -- register_copy 
+    // [364] phi clrscr::ch#0 = clrscr::line_text#0 [phi:clrscr/clrscr::@3->clrscr::@1#1] -- register_copy 
+    // clrscr::@1
+  __b1:
+    // BYTE0(ch)
+    // [365] clrscr::$1 = byte0  clrscr::ch#0 -- vbuaa=_byte0_vwum1 
+    lda ch
+    // *VERA_ADDRX_L = BYTE0(ch)
+    // [366] *VERA_ADDRX_L = clrscr::$1 -- _deref_pbuc1=vbuaa 
+    // Set address
+    sta VERA_ADDRX_L
+    // BYTE1(ch)
+    // [367] clrscr::$2 = byte1  clrscr::ch#0 -- vbuaa=_byte1_vwum1 
+    lda ch+1
+    // *VERA_ADDRX_M = BYTE1(ch)
+    // [368] *VERA_ADDRX_M = clrscr::$2 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // unsigned char c = __conio.mapwidth+1
+    // [369] clrscr::c#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH) + 1 -- vbuxx=_deref_pbuc1_plus_1 
+    ldx __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH
+    inx
+    // [370] phi from clrscr::@1 clrscr::@2 to clrscr::@2 [phi:clrscr::@1/clrscr::@2->clrscr::@2]
+    // [370] phi clrscr::c#2 = clrscr::c#0 [phi:clrscr::@1/clrscr::@2->clrscr::@2#0] -- register_copy 
+    // clrscr::@2
+  __b2:
+    // *VERA_DATA0 = ' '
+    // [371] *VERA_DATA0 = ' ' -- _deref_pbuc1=vbuc2 
+    lda #' '
+    sta VERA_DATA0
+    // *VERA_DATA0 = __conio.color
+    // [372] *VERA_DATA0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) -- _deref_pbuc1=_deref_pbuc2 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    sta VERA_DATA0
+    // c--;
+    // [373] clrscr::c#1 = -- clrscr::c#2 -- vbuxx=_dec_vbuxx 
+    dex
+    // while(c)
+    // [374] if(0!=clrscr::c#1) goto clrscr::@2 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne __b2
+    // clrscr::@3
+    // line_text += __conio.rowskip
+    // [375] clrscr::line_text#1 = clrscr::ch#0 + *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda line_text
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    sta line_text
+    lda line_text+1
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    sta line_text+1
+    // l--;
+    // [376] clrscr::l#1 = -- clrscr::l#4 -- vbuyy=_dec_vbuyy 
+    dey
+    // while(l)
+    // [377] if(0!=clrscr::l#1) goto clrscr::@1 -- 0_neq_vbuyy_then_la1 
+    cpy #0
+    bne __b1
+    // clrscr::@4
+    // __conio.cursor_x = 0
+    // [378] *((char *)&__conio) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta __conio
+    // __conio.cursor_y = 0
+    // [379] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = 0 -- _deref_pbuc1=vbuc2 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // __conio.offset = __conio.mapbase_offset
+    // [380] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) -- _deref_pwuc1=_deref_pwuc2 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // clrscr::@return
+    // }
+    // [381] return 
+    rts
+  .segment Data
+    .label line_text = ch
+  .segment Data
+    ch: .word 0
+}
+  // code segment
+.segment Code
+  // uctoa
+// Converts unsigned number value to a string representing it in RADIX format.
+// If the leading digits are zero they are not included in the string.
+// - value : The number to be converted to RADIX
+// - buffer : receives the string representing the number and zero-termination.
+// - radix : The radix to convert the number to (from the enum RADIX)
+// void uctoa(__register(X) char value, __zp($2a) char *buffer, __register(A) char radix)
+uctoa: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label buffer = $2a
+    .label digit_values = $2e
+    // if(radix==DECIMAL)
+    // [383] if(uctoa::radix#2==DECIMAL) goto uctoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #DECIMAL
+    beq __b2
+    // uctoa::@2
+    // if(radix==HEXADECIMAL)
+    // [384] if(uctoa::radix#2==HEXADECIMAL) goto uctoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #HEXADECIMAL
+    beq __b3
+    // uctoa::@3
+    // if(radix==OCTAL)
+    // [385] if(uctoa::radix#2==OCTAL) goto uctoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #OCTAL
+    beq __b4
+    // uctoa::@4
+    // if(radix==BINARY)
+    // [386] if(uctoa::radix#2==BINARY) goto uctoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #BINARY
+    beq __b5
+    // uctoa::@5
+    // *buffer++ = 'e'
+    // [387] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS) = 'e' -- _deref_pbuc1=vbuc2 
+    // Unknown radix
+    lda #'e'
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    // *buffer++ = 'r'
+    // [388] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1) = 'r' -- _deref_pbuc1=vbuc2 
+    lda #'r'
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1
+    // [389] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
+    // *buffer = 0
+    // [390] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
+    // uctoa::@return
+    // }
+    // [391] return 
+    rts
+    // [392] phi from uctoa to uctoa::@1 [phi:uctoa->uctoa::@1]
+  __b2:
+    // [392] phi uctoa::digit_values#8 = RADIX_DECIMAL_VALUES_CHAR [phi:uctoa->uctoa::@1#0] -- pbuz1=pbuc1 
+    lda #<RADIX_DECIMAL_VALUES_CHAR
+    sta.z digit_values
+    lda #>RADIX_DECIMAL_VALUES_CHAR
+    sta.z digit_values+1
+    // [392] phi uctoa::max_digits#7 = 3 [phi:uctoa->uctoa::@1#1] -- vbum1=vbuc1 
+    lda #3
+    sta max_digits
+    jmp __b1
+    // [392] phi from uctoa::@2 to uctoa::@1 [phi:uctoa::@2->uctoa::@1]
+  __b3:
+    // [392] phi uctoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES_CHAR [phi:uctoa::@2->uctoa::@1#0] -- pbuz1=pbuc1 
+    lda #<RADIX_HEXADECIMAL_VALUES_CHAR
+    sta.z digit_values
+    lda #>RADIX_HEXADECIMAL_VALUES_CHAR
+    sta.z digit_values+1
+    // [392] phi uctoa::max_digits#7 = 2 [phi:uctoa::@2->uctoa::@1#1] -- vbum1=vbuc1 
+    lda #2
+    sta max_digits
+    jmp __b1
+    // [392] phi from uctoa::@3 to uctoa::@1 [phi:uctoa::@3->uctoa::@1]
+  __b4:
+    // [392] phi uctoa::digit_values#8 = RADIX_OCTAL_VALUES_CHAR [phi:uctoa::@3->uctoa::@1#0] -- pbuz1=pbuc1 
+    lda #<RADIX_OCTAL_VALUES_CHAR
+    sta.z digit_values
+    lda #>RADIX_OCTAL_VALUES_CHAR
+    sta.z digit_values+1
+    // [392] phi uctoa::max_digits#7 = 3 [phi:uctoa::@3->uctoa::@1#1] -- vbum1=vbuc1 
+    lda #3
+    sta max_digits
+    jmp __b1
+    // [392] phi from uctoa::@4 to uctoa::@1 [phi:uctoa::@4->uctoa::@1]
+  __b5:
+    // [392] phi uctoa::digit_values#8 = RADIX_BINARY_VALUES_CHAR [phi:uctoa::@4->uctoa::@1#0] -- pbuz1=pbuc1 
+    lda #<RADIX_BINARY_VALUES_CHAR
+    sta.z digit_values
+    lda #>RADIX_BINARY_VALUES_CHAR
+    sta.z digit_values+1
+    // [392] phi uctoa::max_digits#7 = 8 [phi:uctoa::@4->uctoa::@1#1] -- vbum1=vbuc1 
+    lda #8
+    sta max_digits
+    // uctoa::@1
+  __b1:
+    // [393] phi from uctoa::@1 to uctoa::@6 [phi:uctoa::@1->uctoa::@6]
+    // [393] phi uctoa::buffer#10 = (char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:uctoa::@1->uctoa::@6#0] -- pbuz1=pbuc1 
+    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer
+    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer+1
+    // [393] phi uctoa::started#2 = 0 [phi:uctoa::@1->uctoa::@6#1] -- vbum1=vbuc1 
+    lda #0
+    sta started
+    // [393] phi uctoa::value#3 = uctoa::value#10 [phi:uctoa::@1->uctoa::@6#2] -- register_copy 
+    // [393] phi uctoa::digit#2 = 0 [phi:uctoa::@1->uctoa::@6#3] -- vbum1=vbuc1 
+    sta digit
+    // uctoa::@6
+  __b6:
+    // max_digits-1
+    // [394] uctoa::$4 = uctoa::max_digits#7 - 1 -- vbuaa=vbum1_minus_1 
+    lda max_digits
+    sec
+    sbc #1
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [395] if(uctoa::digit#2<uctoa::$4) goto uctoa::@7 -- vbum1_lt_vbuaa_then_la1 
+    cmp digit
+    beq !+
+    bcs __b7
+  !:
+    // uctoa::@8
+    // *buffer++ = DIGITS[(char)value]
+    // [396] *uctoa::buffer#10 = DIGITS[uctoa::value#3] -- _deref_pbuz1=pbuc1_derefidx_vbuxx 
+    lda DIGITS,x
+    ldy #0
+    sta (buffer),y
+    // *buffer++ = DIGITS[(char)value];
+    // [397] uctoa::buffer#3 = ++ uctoa::buffer#10 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // *buffer = 0
+    // [398] *uctoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    lda #0
+    tay
+    sta (buffer),y
+    rts
+    // uctoa::@7
+  __b7:
+    // unsigned char digit_value = digit_values[digit]
+    // [399] uctoa::digit_value#0 = uctoa::digit_values#8[uctoa::digit#2] -- vbuyy=pbuz1_derefidx_vbum2 
+    ldy digit
+    lda (digit_values),y
+    tay
+    // if (started || value >= digit_value)
+    // [400] if(0!=uctoa::started#2) goto uctoa::@10 -- 0_neq_vbum1_then_la1 
+    lda started
+    bne __b10
+    // uctoa::@12
+    // [401] if(uctoa::value#3>=uctoa::digit_value#0) goto uctoa::@10 -- vbuxx_ge_vbuyy_then_la1 
+    sty.z $ff
+    cpx.z $ff
+    bcs __b10
+    // [402] phi from uctoa::@12 to uctoa::@9 [phi:uctoa::@12->uctoa::@9]
+    // [402] phi uctoa::buffer#15 = uctoa::buffer#10 [phi:uctoa::@12->uctoa::@9#0] -- register_copy 
+    // [402] phi uctoa::started#4 = uctoa::started#2 [phi:uctoa::@12->uctoa::@9#1] -- register_copy 
+    // [402] phi uctoa::value#7 = uctoa::value#3 [phi:uctoa::@12->uctoa::@9#2] -- register_copy 
+    // uctoa::@9
+  __b9:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [403] uctoa::digit#1 = ++ uctoa::digit#2 -- vbum1=_inc_vbum1 
+    inc digit
+    // [393] phi from uctoa::@9 to uctoa::@6 [phi:uctoa::@9->uctoa::@6]
+    // [393] phi uctoa::buffer#10 = uctoa::buffer#15 [phi:uctoa::@9->uctoa::@6#0] -- register_copy 
+    // [393] phi uctoa::started#2 = uctoa::started#4 [phi:uctoa::@9->uctoa::@6#1] -- register_copy 
+    // [393] phi uctoa::value#3 = uctoa::value#7 [phi:uctoa::@9->uctoa::@6#2] -- register_copy 
+    // [393] phi uctoa::digit#2 = uctoa::digit#1 [phi:uctoa::@9->uctoa::@6#3] -- register_copy 
+    jmp __b6
+    // uctoa::@10
+  __b10:
+    // uctoa_append(buffer++, value, digit_value)
+    // [404] uctoa_append::buffer#0 = uctoa::buffer#10 -- pbuz1=pbuz2 
+    lda.z buffer
+    sta.z uctoa_append.buffer
+    lda.z buffer+1
+    sta.z uctoa_append.buffer+1
+    // [405] uctoa_append::value#0 = uctoa::value#3
+    // [406] uctoa_append::sub#0 = uctoa::digit_value#0 -- vbum1=vbuyy 
+    sty uctoa_append.sub
+    // [407] call uctoa_append
+    // [575] phi from uctoa::@10 to uctoa_append [phi:uctoa::@10->uctoa_append]
+    jsr uctoa_append
+    // uctoa_append(buffer++, value, digit_value)
+    // [408] uctoa_append::return#0 = uctoa_append::value#2
+    // uctoa::@11
+    // value = uctoa_append(buffer++, value, digit_value)
+    // [409] uctoa::value#0 = uctoa_append::return#0
+    // value = uctoa_append(buffer++, value, digit_value);
+    // [410] uctoa::buffer#4 = ++ uctoa::buffer#10 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // [402] phi from uctoa::@11 to uctoa::@9 [phi:uctoa::@11->uctoa::@9]
+    // [402] phi uctoa::buffer#15 = uctoa::buffer#4 [phi:uctoa::@11->uctoa::@9#0] -- register_copy 
+    // [402] phi uctoa::started#4 = 1 [phi:uctoa::@11->uctoa::@9#1] -- vbum1=vbuc1 
+    lda #1
+    sta started
+    // [402] phi uctoa::value#7 = uctoa::value#0 [phi:uctoa::@11->uctoa::@9#2] -- register_copy 
+    jmp __b9
+  .segment Data
+    digit: .byte 0
+  .segment Data
+    started: .byte 0
+  .segment Data
+    max_digits: .byte 0
+}
+  // code segment
+.segment Code
+  // printf_number_buffer
+// Print the contents of the number buffer using a specific format.
+// This handles minimum length, zero-filling, and left/right justification from the format
+// void printf_number_buffer(__zp($24) void (*putc)(char), __mem() struct printf_buffer_number buffer, __register(X) char format_min_length, __mem() char format_justify_left, char format_sign_always, __mem() char format_zero_padding, __mem() char format_upper_case, char format_radix)
+printf_number_buffer: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label putc = $24
+    // if(format_min_length)
+    // [412] if(0==printf_number_buffer::format_min_length#10) goto printf_number_buffer::@1 -- 0_eq_vbuxx_then_la1 
+    cpx #0
+    beq __b6
+    // [413] phi from printf_number_buffer to printf_number_buffer::@6 [phi:printf_number_buffer->printf_number_buffer::@6]
+    // printf_number_buffer::@6
+    // strlen(buffer.digits)
+    // [414] call strlen
+    // [582] phi from printf_number_buffer::@6 to strlen [phi:printf_number_buffer::@6->strlen]
+    jsr strlen
+    // strlen(buffer.digits)
+    // [415] strlen::return#2 = strlen::len#2
+    // printf_number_buffer::@14
+    // [416] printf_number_buffer::$19 = strlen::return#2
+    // signed char len = (signed char)strlen(buffer.digits)
+    // [417] printf_number_buffer::len#0 = (signed char)printf_number_buffer::$19 -- vbsyy=_sbyte_vwum1 
+    // There is a minimum length - work out the padding
+    ldy printf_number_buffer__19
+    // if(buffer.sign)
+    // [418] if(0==*((char *)&printf_number_buffer::buffer)) goto printf_number_buffer::@13 -- 0_eq__deref_pbuc1_then_la1 
+    lda buffer
+    beq __b13
+    // printf_number_buffer::@7
+    // len++;
+    // [419] printf_number_buffer::len#1 = ++ printf_number_buffer::len#0 -- vbsyy=_inc_vbsyy 
+    iny
+    // [420] phi from printf_number_buffer::@14 printf_number_buffer::@7 to printf_number_buffer::@13 [phi:printf_number_buffer::@14/printf_number_buffer::@7->printf_number_buffer::@13]
+    // [420] phi printf_number_buffer::len#2 = printf_number_buffer::len#0 [phi:printf_number_buffer::@14/printf_number_buffer::@7->printf_number_buffer::@13#0] -- register_copy 
+    // printf_number_buffer::@13
+  __b13:
+    // padding = (signed char)format_min_length - len
+    // [421] printf_number_buffer::padding#1 = (signed char)printf_number_buffer::format_min_length#10 - printf_number_buffer::len#2 -- vbsm1=vbsxx_minus_vbsyy 
+    txa
+    sty.z $ff
+    sec
+    sbc.z $ff
+    sta padding
+    // if(padding<0)
+    // [422] if(printf_number_buffer::padding#1>=0) goto printf_number_buffer::@20 -- vbsm1_ge_0_then_la1 
+    cmp #0
+    bpl __b1
+    // [424] phi from printf_number_buffer printf_number_buffer::@13 to printf_number_buffer::@1 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1]
+  __b6:
+    // [424] phi printf_number_buffer::padding#10 = 0 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1#0] -- vbsm1=vbsc1 
+    lda #0
+    sta padding
+    // [423] phi from printf_number_buffer::@13 to printf_number_buffer::@20 [phi:printf_number_buffer::@13->printf_number_buffer::@20]
+    // printf_number_buffer::@20
+    // [424] phi from printf_number_buffer::@20 to printf_number_buffer::@1 [phi:printf_number_buffer::@20->printf_number_buffer::@1]
+    // [424] phi printf_number_buffer::padding#10 = printf_number_buffer::padding#1 [phi:printf_number_buffer::@20->printf_number_buffer::@1#0] -- register_copy 
+    // printf_number_buffer::@1
+  __b1:
+    // if(!format_justify_left && !format_zero_padding && padding)
+    // [425] if(0!=printf_number_buffer::format_justify_left#10) goto printf_number_buffer::@2 -- 0_neq_vbum1_then_la1 
+    lda format_justify_left
+    bne __b2
+    // printf_number_buffer::@16
+    // [426] if(0!=printf_number_buffer::format_zero_padding#10) goto printf_number_buffer::@2 -- 0_neq_vbum1_then_la1 
+    lda format_zero_padding
+    bne __b2
+    // printf_number_buffer::@15
+    // [427] if(0!=printf_number_buffer::padding#10) goto printf_number_buffer::@8 -- 0_neq_vbsm1_then_la1 
+    lda padding
+    cmp #0
+    bne __b8
+    jmp __b2
+    // printf_number_buffer::@8
+  __b8:
+    // printf_padding(putc, ' ',(char)padding)
+    // [428] printf_padding::putc#0 = printf_number_buffer::putc#10 -- pprz1=pprz2 
+    lda.z putc
+    sta.z printf_padding.putc
+    lda.z putc+1
+    sta.z printf_padding.putc+1
+    // [429] printf_padding::length#0 = (char)printf_number_buffer::padding#10 -- vbum1=vbum2 
+    lda padding
+    sta printf_padding.length
+    // [430] call printf_padding
+    // [588] phi from printf_number_buffer::@8 to printf_padding [phi:printf_number_buffer::@8->printf_padding]
+    // [588] phi printf_padding::putc#5 = printf_padding::putc#0 [phi:printf_number_buffer::@8->printf_padding#0] -- register_copy 
+    // [588] phi printf_padding::pad#5 = ' ' [phi:printf_number_buffer::@8->printf_padding#1] -- vbum1=vbuc1 
+    lda #' '
+    sta printf_padding.pad
+    // [588] phi printf_padding::length#4 = printf_padding::length#0 [phi:printf_number_buffer::@8->printf_padding#2] -- register_copy 
+    jsr printf_padding
+    // printf_number_buffer::@2
+  __b2:
+    // if(buffer.sign)
+    // [431] if(0==*((char *)&printf_number_buffer::buffer)) goto printf_number_buffer::@3 -- 0_eq__deref_pbuc1_then_la1 
+    lda buffer
+    beq __b3
+    // printf_number_buffer::@9
+    // putc(buffer.sign)
+    // [432] stackpush(char) = *((char *)&printf_number_buffer::buffer) -- _stackpushbyte_=_deref_pbuc1 
+    pha
+    // [433] callexecute *printf_number_buffer::putc#10  -- call__deref_pprz1 
+    jsr icall2
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // printf_number_buffer::@3
+  __b3:
+    // if(format_zero_padding && padding)
+    // [435] if(0==printf_number_buffer::format_zero_padding#10) goto printf_number_buffer::@4 -- 0_eq_vbum1_then_la1 
+    lda format_zero_padding
+    beq __b4
+    // printf_number_buffer::@17
+    // [436] if(0!=printf_number_buffer::padding#10) goto printf_number_buffer::@10 -- 0_neq_vbsm1_then_la1 
+    lda padding
+    cmp #0
+    bne __b10
+    jmp __b4
+    // printf_number_buffer::@10
+  __b10:
+    // printf_padding(putc, '0',(char)padding)
+    // [437] printf_padding::putc#1 = printf_number_buffer::putc#10 -- pprz1=pprz2 
+    lda.z putc
+    sta.z printf_padding.putc
+    lda.z putc+1
+    sta.z printf_padding.putc+1
+    // [438] printf_padding::length#1 = (char)printf_number_buffer::padding#10 -- vbum1=vbum2 
+    lda padding
+    sta printf_padding.length
+    // [439] call printf_padding
+    // [588] phi from printf_number_buffer::@10 to printf_padding [phi:printf_number_buffer::@10->printf_padding]
+    // [588] phi printf_padding::putc#5 = printf_padding::putc#1 [phi:printf_number_buffer::@10->printf_padding#0] -- register_copy 
+    // [588] phi printf_padding::pad#5 = '0' [phi:printf_number_buffer::@10->printf_padding#1] -- vbum1=vbuc1 
+    lda #'0'
+    sta printf_padding.pad
+    // [588] phi printf_padding::length#4 = printf_padding::length#1 [phi:printf_number_buffer::@10->printf_padding#2] -- register_copy 
+    jsr printf_padding
+    // printf_number_buffer::@4
+  __b4:
+    // if(format_upper_case)
+    // [440] if(0==printf_number_buffer::format_upper_case#10) goto printf_number_buffer::@5 -- 0_eq_vbum1_then_la1 
+    lda format_upper_case
+    beq __b5
+    // [441] phi from printf_number_buffer::@4 to printf_number_buffer::@11 [phi:printf_number_buffer::@4->printf_number_buffer::@11]
+    // printf_number_buffer::@11
+    // strupr(buffer.digits)
+    // [442] call strupr
+    // [596] phi from printf_number_buffer::@11 to strupr [phi:printf_number_buffer::@11->strupr]
+    jsr strupr
+    // printf_number_buffer::@5
+  __b5:
+    // printf_str(putc, buffer.digits)
+    // [443] stackpush(void (*)(char)) = printf_number_buffer::putc#10 -- _stackpushptr_=pprz1 
+    lda.z putc+1
+    pha
+    lda.z putc
+    pha
+    // [444] stackpush(const char *) = (char *)&printf_number_buffer::buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS -- _stackpushptr_=pbuc1 
+    lda #>buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    pha
+    lda #<buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    pha
+    // [445] callexecute printf_str  -- call_stack_near 
+    jsr lib_conio.printf_str
+    // sideeffect stackpullpadding(4) -- _stackpullpadding_4 
+    pla
+    pla
+    pla
+    pla
+    // if(format_justify_left && !format_zero_padding && padding)
+    // [447] if(0==printf_number_buffer::format_justify_left#10) goto printf_number_buffer::@return -- 0_eq_vbum1_then_la1 
+    lda format_justify_left
+    beq __breturn
+    // printf_number_buffer::@19
+    // [448] if(0!=printf_number_buffer::format_zero_padding#10) goto printf_number_buffer::@return -- 0_neq_vbum1_then_la1 
+    lda format_zero_padding
+    bne __breturn
+    // printf_number_buffer::@18
+    // [449] if(0!=printf_number_buffer::padding#10) goto printf_number_buffer::@12 -- 0_neq_vbsm1_then_la1 
+    lda padding
+    cmp #0
+    bne __b12
+    rts
+    // printf_number_buffer::@12
+  __b12:
+    // printf_padding(putc, ' ',(char)padding)
+    // [450] printf_padding::putc#2 = printf_number_buffer::putc#10 -- pprz1=pprz2 
+    lda.z putc
+    sta.z printf_padding.putc
+    lda.z putc+1
+    sta.z printf_padding.putc+1
+    // [451] printf_padding::length#2 = (char)printf_number_buffer::padding#10 -- vbum1=vbum2 
+    lda padding
+    sta printf_padding.length
+    // [452] call printf_padding
+    // [588] phi from printf_number_buffer::@12 to printf_padding [phi:printf_number_buffer::@12->printf_padding]
+    // [588] phi printf_padding::putc#5 = printf_padding::putc#2 [phi:printf_number_buffer::@12->printf_padding#0] -- register_copy 
+    // [588] phi printf_padding::pad#5 = ' ' [phi:printf_number_buffer::@12->printf_padding#1] -- vbum1=vbuc1 
+    lda #' '
+    sta printf_padding.pad
+    // [588] phi printf_padding::length#4 = printf_padding::length#2 [phi:printf_number_buffer::@12->printf_padding#2] -- register_copy 
+    jsr printf_padding
+    // printf_number_buffer::@return
+  __breturn:
+    // }
+    // [453] return 
+    rts
+  icall2:
+    jmp (putc)
+  .segment Data
+    buffer: .fill SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER, 0
+  .segment Data
+    .label printf_number_buffer__19 = strlen.len
+  .segment Data
+    format_justify_left: .byte 0
+  .segment Data
+    format_zero_padding: .byte 0
+  .segment Data
+    format_upper_case: .byte 0
+  .segment Data
+    padding: .byte 0
+}
+  // code segment
+.segment Code
+  // utoa
+// Converts unsigned number value to a string representing it in RADIX format.
+// If the leading digits are zero they are not included in the string.
+// - value : The number to be converted to RADIX
+// - buffer : receives the string representing the number and zero-termination.
+// - radix : The radix to convert the number to (from the enum RADIX)
+// void utoa(__mem() unsigned int value, __zp($2a) char *buffer, __register(A) char radix)
+utoa: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label buffer = $2a
+    .label digit_values = $2e
+    // if(radix==DECIMAL)
+    // [455] if(utoa::radix#2==DECIMAL) goto utoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #DECIMAL
+    beq __b2
+    // utoa::@2
+    // if(radix==HEXADECIMAL)
+    // [456] if(utoa::radix#2==HEXADECIMAL) goto utoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #HEXADECIMAL
+    beq __b3
+    // utoa::@3
+    // if(radix==OCTAL)
+    // [457] if(utoa::radix#2==OCTAL) goto utoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #OCTAL
+    beq __b4
+    // utoa::@4
+    // if(radix==BINARY)
+    // [458] if(utoa::radix#2==BINARY) goto utoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #BINARY
+    beq __b5
+    // utoa::@5
+    // *buffer++ = 'e'
+    // [459] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS) = 'e' -- _deref_pbuc1=vbuc2 
+    // Unknown radix
+    lda #'e'
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    // *buffer++ = 'r'
+    // [460] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1) = 'r' -- _deref_pbuc1=vbuc2 
+    lda #'r'
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1
+    // [461] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
+    // *buffer = 0
+    // [462] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
+    // utoa::@return
+    // }
+    // [463] return 
+    rts
+    // [464] phi from utoa to utoa::@1 [phi:utoa->utoa::@1]
+  __b2:
+    // [464] phi utoa::digit_values#8 = RADIX_DECIMAL_VALUES [phi:utoa->utoa::@1#0] -- pwuz1=pwuc1 
+    lda #<RADIX_DECIMAL_VALUES
+    sta.z digit_values
+    lda #>RADIX_DECIMAL_VALUES
+    sta.z digit_values+1
+    // [464] phi utoa::max_digits#7 = 5 [phi:utoa->utoa::@1#1] -- vbum1=vbuc1 
+    lda #5
+    sta max_digits
+    jmp __b1
+    // [464] phi from utoa::@2 to utoa::@1 [phi:utoa::@2->utoa::@1]
+  __b3:
+    // [464] phi utoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES [phi:utoa::@2->utoa::@1#0] -- pwuz1=pwuc1 
+    lda #<RADIX_HEXADECIMAL_VALUES
+    sta.z digit_values
+    lda #>RADIX_HEXADECIMAL_VALUES
+    sta.z digit_values+1
+    // [464] phi utoa::max_digits#7 = 4 [phi:utoa::@2->utoa::@1#1] -- vbum1=vbuc1 
+    lda #4
+    sta max_digits
+    jmp __b1
+    // [464] phi from utoa::@3 to utoa::@1 [phi:utoa::@3->utoa::@1]
+  __b4:
+    // [464] phi utoa::digit_values#8 = RADIX_OCTAL_VALUES [phi:utoa::@3->utoa::@1#0] -- pwuz1=pwuc1 
+    lda #<RADIX_OCTAL_VALUES
+    sta.z digit_values
+    lda #>RADIX_OCTAL_VALUES
+    sta.z digit_values+1
+    // [464] phi utoa::max_digits#7 = 6 [phi:utoa::@3->utoa::@1#1] -- vbum1=vbuc1 
+    lda #6
+    sta max_digits
+    jmp __b1
+    // [464] phi from utoa::@4 to utoa::@1 [phi:utoa::@4->utoa::@1]
+  __b5:
+    // [464] phi utoa::digit_values#8 = RADIX_BINARY_VALUES [phi:utoa::@4->utoa::@1#0] -- pwuz1=pwuc1 
+    lda #<RADIX_BINARY_VALUES
+    sta.z digit_values
+    lda #>RADIX_BINARY_VALUES
+    sta.z digit_values+1
+    // [464] phi utoa::max_digits#7 = $10 [phi:utoa::@4->utoa::@1#1] -- vbum1=vbuc1 
+    lda #$10
+    sta max_digits
+    // utoa::@1
+  __b1:
+    // [465] phi from utoa::@1 to utoa::@6 [phi:utoa::@1->utoa::@6]
+    // [465] phi utoa::buffer#10 = (char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:utoa::@1->utoa::@6#0] -- pbuz1=pbuc1 
+    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer
+    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer+1
+    // [465] phi utoa::started#2 = 0 [phi:utoa::@1->utoa::@6#1] -- vbum1=vbuc1 
+    lda #0
+    sta started
+    // [465] phi utoa::value#3 = utoa::value#10 [phi:utoa::@1->utoa::@6#2] -- register_copy 
+    // [465] phi utoa::digit#2 = 0 [phi:utoa::@1->utoa::@6#3] -- vbuxx=vbuc1 
+    tax
+    // utoa::@6
+  __b6:
+    // max_digits-1
+    // [466] utoa::$4 = utoa::max_digits#7 - 1 -- vbuaa=vbum1_minus_1 
+    lda max_digits
+    sec
+    sbc #1
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [467] if(utoa::digit#2<utoa::$4) goto utoa::@7 -- vbuxx_lt_vbuaa_then_la1 
+    sta.z $ff
+    cpx.z $ff
+    bcc __b7
+    // utoa::@8
+    // *buffer++ = DIGITS[(char)value]
+    // [468] utoa::$11 = (char)utoa::value#3 -- vbuxx=_byte_vwum1 
+    ldx value
+    // [469] *utoa::buffer#10 = DIGITS[utoa::$11] -- _deref_pbuz1=pbuc1_derefidx_vbuxx 
+    lda DIGITS,x
+    ldy #0
+    sta (buffer),y
+    // *buffer++ = DIGITS[(char)value];
+    // [470] utoa::buffer#3 = ++ utoa::buffer#10 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // *buffer = 0
+    // [471] *utoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    lda #0
+    tay
+    sta (buffer),y
+    rts
+    // utoa::@7
+  __b7:
+    // unsigned int digit_value = digit_values[digit]
+    // [472] utoa::$10 = utoa::digit#2 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [473] utoa::digit_value#0 = utoa::digit_values#8[utoa::$10] -- vwum1=pwuz2_derefidx_vbuaa 
+    tay
+    lda (digit_values),y
+    sta digit_value
+    iny
+    lda (digit_values),y
+    sta digit_value+1
+    // if (started || value >= digit_value)
+    // [474] if(0!=utoa::started#2) goto utoa::@10 -- 0_neq_vbum1_then_la1 
+    lda started
+    bne __b10
+    // utoa::@12
+    // [475] if(utoa::value#3>=utoa::digit_value#0) goto utoa::@10 -- vwum1_ge_vwum2_then_la1 
+    lda digit_value+1
+    cmp value+1
+    bne !+
+    lda digit_value
+    cmp value
+    beq __b10
+  !:
+    bcc __b10
+    // [476] phi from utoa::@12 to utoa::@9 [phi:utoa::@12->utoa::@9]
+    // [476] phi utoa::buffer#15 = utoa::buffer#10 [phi:utoa::@12->utoa::@9#0] -- register_copy 
+    // [476] phi utoa::started#4 = utoa::started#2 [phi:utoa::@12->utoa::@9#1] -- register_copy 
+    // [476] phi utoa::value#7 = utoa::value#3 [phi:utoa::@12->utoa::@9#2] -- register_copy 
+    // utoa::@9
+  __b9:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [477] utoa::digit#1 = ++ utoa::digit#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [465] phi from utoa::@9 to utoa::@6 [phi:utoa::@9->utoa::@6]
+    // [465] phi utoa::buffer#10 = utoa::buffer#15 [phi:utoa::@9->utoa::@6#0] -- register_copy 
+    // [465] phi utoa::started#2 = utoa::started#4 [phi:utoa::@9->utoa::@6#1] -- register_copy 
+    // [465] phi utoa::value#3 = utoa::value#7 [phi:utoa::@9->utoa::@6#2] -- register_copy 
+    // [465] phi utoa::digit#2 = utoa::digit#1 [phi:utoa::@9->utoa::@6#3] -- register_copy 
+    jmp __b6
+    // utoa::@10
+  __b10:
+    // utoa_append(buffer++, value, digit_value)
+    // [478] utoa_append::buffer#0 = utoa::buffer#10 -- pbuz1=pbuz2 
+    lda.z buffer
+    sta.z utoa_append.buffer
+    lda.z buffer+1
+    sta.z utoa_append.buffer+1
+    // [479] utoa_append::value#0 = utoa::value#3
+    // [480] utoa_append::sub#0 = utoa::digit_value#0
+    // [481] call utoa_append
+    // [606] phi from utoa::@10 to utoa_append [phi:utoa::@10->utoa_append]
+    jsr utoa_append
+    // utoa_append(buffer++, value, digit_value)
+    // [482] utoa_append::return#0 = utoa_append::value#2
+    // utoa::@11
+    // value = utoa_append(buffer++, value, digit_value)
+    // [483] utoa::value#0 = utoa_append::return#0
+    // value = utoa_append(buffer++, value, digit_value);
+    // [484] utoa::buffer#4 = ++ utoa::buffer#10 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // [476] phi from utoa::@11 to utoa::@9 [phi:utoa::@11->utoa::@9]
+    // [476] phi utoa::buffer#15 = utoa::buffer#4 [phi:utoa::@11->utoa::@9#0] -- register_copy 
+    // [476] phi utoa::started#4 = 1 [phi:utoa::@11->utoa::@9#1] -- vbum1=vbuc1 
+    lda #1
+    sta started
+    // [476] phi utoa::value#7 = utoa::value#0 [phi:utoa::@11->utoa::@9#2] -- register_copy 
+    jmp __b9
+  .segment Data
+    digit_value: .word 0
+  .segment Data
+    value: .word 0
+  .segment Data
+    started: .byte 0
+  .segment Data
+    max_digits: .byte 0
+}
+  // code segment
+.segment Code
+  // ultoa
+// Converts unsigned number value to a string representing it in RADIX format.
+// If the leading digits are zero they are not included in the string.
+// - value : The number to be converted to RADIX
+// - buffer : receives the string representing the number and zero-termination.
+// - radix : The radix to convert the number to (from the enum RADIX)
+// void ultoa(__mem() unsigned long value, __zp($22) char *buffer, __register(A) char radix)
+ultoa: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label buffer = $22
+    .label digit_values = $2a
+    // if(radix==DECIMAL)
+    // [486] if(ultoa::radix#2==DECIMAL) goto ultoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #DECIMAL
+    beq __b2
+    // ultoa::@2
+    // if(radix==HEXADECIMAL)
+    // [487] if(ultoa::radix#2==HEXADECIMAL) goto ultoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #HEXADECIMAL
+    beq __b3
+    // ultoa::@3
+    // if(radix==OCTAL)
+    // [488] if(ultoa::radix#2==OCTAL) goto ultoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #OCTAL
+    beq __b4
+    // ultoa::@4
+    // if(radix==BINARY)
+    // [489] if(ultoa::radix#2==BINARY) goto ultoa::@1 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #BINARY
+    beq __b5
+    // ultoa::@5
+    // *buffer++ = 'e'
+    // [490] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS) = 'e' -- _deref_pbuc1=vbuc2 
+    // Unknown radix
+    lda #'e'
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    // *buffer++ = 'r'
+    // [491] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1) = 'r' -- _deref_pbuc1=vbuc2 
+    lda #'r'
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+1
+    // [492] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
+    // *buffer = 0
+    // [493] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
+    // ultoa::@return
+    // }
+    // [494] return 
+    rts
+    // [495] phi from ultoa to ultoa::@1 [phi:ultoa->ultoa::@1]
+  __b2:
+    // [495] phi ultoa::digit_values#8 = RADIX_DECIMAL_VALUES_LONG [phi:ultoa->ultoa::@1#0] -- pduz1=pduc1 
+    lda #<RADIX_DECIMAL_VALUES_LONG
+    sta.z digit_values
+    lda #>RADIX_DECIMAL_VALUES_LONG
+    sta.z digit_values+1
+    // [495] phi ultoa::max_digits#7 = $a [phi:ultoa->ultoa::@1#1] -- vbum1=vbuc1 
+    lda #$a
+    sta max_digits
+    jmp __b1
+    // [495] phi from ultoa::@2 to ultoa::@1 [phi:ultoa::@2->ultoa::@1]
+  __b3:
+    // [495] phi ultoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES_LONG [phi:ultoa::@2->ultoa::@1#0] -- pduz1=pduc1 
+    lda #<RADIX_HEXADECIMAL_VALUES_LONG
+    sta.z digit_values
+    lda #>RADIX_HEXADECIMAL_VALUES_LONG
+    sta.z digit_values+1
+    // [495] phi ultoa::max_digits#7 = 8 [phi:ultoa::@2->ultoa::@1#1] -- vbum1=vbuc1 
+    lda #8
+    sta max_digits
+    jmp __b1
+    // [495] phi from ultoa::@3 to ultoa::@1 [phi:ultoa::@3->ultoa::@1]
+  __b4:
+    // [495] phi ultoa::digit_values#8 = RADIX_OCTAL_VALUES_LONG [phi:ultoa::@3->ultoa::@1#0] -- pduz1=pduc1 
+    lda #<RADIX_OCTAL_VALUES_LONG
+    sta.z digit_values
+    lda #>RADIX_OCTAL_VALUES_LONG
+    sta.z digit_values+1
+    // [495] phi ultoa::max_digits#7 = $b [phi:ultoa::@3->ultoa::@1#1] -- vbum1=vbuc1 
+    lda #$b
+    sta max_digits
+    jmp __b1
+    // [495] phi from ultoa::@4 to ultoa::@1 [phi:ultoa::@4->ultoa::@1]
+  __b5:
+    // [495] phi ultoa::digit_values#8 = RADIX_BINARY_VALUES_LONG [phi:ultoa::@4->ultoa::@1#0] -- pduz1=pduc1 
+    lda #<RADIX_BINARY_VALUES_LONG
+    sta.z digit_values
+    lda #>RADIX_BINARY_VALUES_LONG
+    sta.z digit_values+1
+    // [495] phi ultoa::max_digits#7 = $20 [phi:ultoa::@4->ultoa::@1#1] -- vbum1=vbuc1 
+    lda #$20
+    sta max_digits
+    // ultoa::@1
+  __b1:
+    // [496] phi from ultoa::@1 to ultoa::@6 [phi:ultoa::@1->ultoa::@6]
+    // [496] phi ultoa::buffer#10 = (char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:ultoa::@1->ultoa::@6#0] -- pbuz1=pbuc1 
+    lda #<printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer
+    lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z buffer+1
+    // [496] phi ultoa::started#2 = 0 [phi:ultoa::@1->ultoa::@6#1] -- vbum1=vbuc1 
+    lda #0
+    sta started
+    // [496] phi ultoa::value#3 = ultoa::value#10 [phi:ultoa::@1->ultoa::@6#2] -- register_copy 
+    // [496] phi ultoa::digit#2 = 0 [phi:ultoa::@1->ultoa::@6#3] -- vbuxx=vbuc1 
+    tax
+    // ultoa::@6
+  __b6:
+    // max_digits-1
+    // [497] ultoa::$4 = ultoa::max_digits#7 - 1 -- vbuaa=vbum1_minus_1 
+    lda max_digits
+    sec
+    sbc #1
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [498] if(ultoa::digit#2<ultoa::$4) goto ultoa::@7 -- vbuxx_lt_vbuaa_then_la1 
+    sta.z $ff
+    cpx.z $ff
+    bcc __b7
+    // ultoa::@8
+    // *buffer++ = DIGITS[(char)value]
+    // [499] ultoa::$11 = (char)ultoa::value#3 -- vbuaa=_byte_vdum1 
+    lda value
+    // [500] *ultoa::buffer#10 = DIGITS[ultoa::$11] -- _deref_pbuz1=pbuc1_derefidx_vbuaa 
+    tay
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // *buffer++ = DIGITS[(char)value];
+    // [501] ultoa::buffer#3 = ++ ultoa::buffer#10 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // *buffer = 0
+    // [502] *ultoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    lda #0
+    tay
+    sta (buffer),y
+    rts
+    // ultoa::@7
+  __b7:
+    // unsigned long digit_value = digit_values[digit]
+    // [503] ultoa::$10 = ultoa::digit#2 << 2 -- vbuaa=vbuxx_rol_2 
+    txa
+    asl
+    asl
+    // [504] ultoa::digit_value#0 = ultoa::digit_values#8[ultoa::$10] -- vdum1=pduz2_derefidx_vbuaa 
+    tay
+    lda (digit_values),y
+    sta digit_value
+    iny
+    lda (digit_values),y
+    sta digit_value+1
+    iny
+    lda (digit_values),y
+    sta digit_value+2
+    iny
+    lda (digit_values),y
+    sta digit_value+3
+    // if (started || value >= digit_value)
+    // [505] if(0!=ultoa::started#2) goto ultoa::@10 -- 0_neq_vbum1_then_la1 
+    lda started
+    bne __b10
+    // ultoa::@12
+    // [506] if(ultoa::value#3>=ultoa::digit_value#0) goto ultoa::@10 -- vdum1_ge_vdum2_then_la1 
+    lda value+3
+    cmp digit_value+3
+    bcc !+
+    bne __b10
+    lda value+2
+    cmp digit_value+2
+    bcc !+
+    bne __b10
+    lda value+1
+    cmp digit_value+1
+    bcc !+
+    bne __b10
+    lda value
+    cmp digit_value
+    bcs __b10
+  !:
+    // [507] phi from ultoa::@12 to ultoa::@9 [phi:ultoa::@12->ultoa::@9]
+    // [507] phi ultoa::buffer#15 = ultoa::buffer#10 [phi:ultoa::@12->ultoa::@9#0] -- register_copy 
+    // [507] phi ultoa::started#4 = ultoa::started#2 [phi:ultoa::@12->ultoa::@9#1] -- register_copy 
+    // [507] phi ultoa::value#7 = ultoa::value#3 [phi:ultoa::@12->ultoa::@9#2] -- register_copy 
+    // ultoa::@9
+  __b9:
+    // for( char digit=0; digit<max_digits-1; digit++ )
+    // [508] ultoa::digit#1 = ++ ultoa::digit#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [496] phi from ultoa::@9 to ultoa::@6 [phi:ultoa::@9->ultoa::@6]
+    // [496] phi ultoa::buffer#10 = ultoa::buffer#15 [phi:ultoa::@9->ultoa::@6#0] -- register_copy 
+    // [496] phi ultoa::started#2 = ultoa::started#4 [phi:ultoa::@9->ultoa::@6#1] -- register_copy 
+    // [496] phi ultoa::value#3 = ultoa::value#7 [phi:ultoa::@9->ultoa::@6#2] -- register_copy 
+    // [496] phi ultoa::digit#2 = ultoa::digit#1 [phi:ultoa::@9->ultoa::@6#3] -- register_copy 
+    jmp __b6
+    // ultoa::@10
+  __b10:
+    // ultoa_append(buffer++, value, digit_value)
+    // [509] ultoa_append::buffer#0 = ultoa::buffer#10 -- pbuz1=pbuz2 
+    lda.z buffer
+    sta.z ultoa_append.buffer
+    lda.z buffer+1
+    sta.z ultoa_append.buffer+1
+    // [510] ultoa_append::value#0 = ultoa::value#3
+    // [511] ultoa_append::sub#0 = ultoa::digit_value#0
+    // [512] call ultoa_append
+    // [613] phi from ultoa::@10 to ultoa_append [phi:ultoa::@10->ultoa_append]
+    jsr ultoa_append
+    // ultoa_append(buffer++, value, digit_value)
+    // [513] ultoa_append::return#0 = ultoa_append::value#2
+    // ultoa::@11
+    // value = ultoa_append(buffer++, value, digit_value)
+    // [514] ultoa::value#0 = ultoa_append::return#0
+    // value = ultoa_append(buffer++, value, digit_value);
+    // [515] ultoa::buffer#4 = ++ ultoa::buffer#10 -- pbuz1=_inc_pbuz1 
+    inc.z buffer
+    bne !+
+    inc.z buffer+1
+  !:
+    // [507] phi from ultoa::@11 to ultoa::@9 [phi:ultoa::@11->ultoa::@9]
+    // [507] phi ultoa::buffer#15 = ultoa::buffer#4 [phi:ultoa::@11->ultoa::@9#0] -- register_copy 
+    // [507] phi ultoa::started#4 = 1 [phi:ultoa::@11->ultoa::@9#1] -- vbum1=vbuc1 
+    lda #1
+    sta started
+    // [507] phi ultoa::value#7 = ultoa::value#0 [phi:ultoa::@11->ultoa::@9#2] -- register_copy 
+    jmp __b9
+  .segment Data
+    digit_value: .dword 0
+  .segment Data
+    value: .dword 0
+  .segment Data
+    started: .byte 0
+  .segment Data
+    max_digits: .byte 0
+}
+  // code segment
+.segment Code
+  // cbm_k_plot_get
+/**
+ * @brief Get current x and y cursor position.
+ * @return An unsigned int where the hi byte is the x coordinate and the low byte is the y coordinate of the screen position.
+ */
+// __mem() unsigned int cbm_k_plot_get()
+cbm_k_plot_get: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem unsigned char x
+    // [516] cbm_k_plot_get::x = 0 -- vbum1=vbuc1 
+    lda #0
+    sta x
+    // __mem unsigned char y
+    // [517] cbm_k_plot_get::y = 0 -- vbum1=vbuc1 
+    sta y
+    // kickasm
+    // kickasm( uses cbm_k_plot_get::x uses cbm_k_plot_get::y uses CBM_PLOT) {{ sec         jsr CBM_PLOT         stx y         sty x      }}
+    sec
+        jsr CBM_PLOT
+        stx y
+        sty x
+    
+    // MAKEWORD(x,y)
+    // [519] cbm_k_plot_get::return#0 = cbm_k_plot_get::x w= cbm_k_plot_get::y -- vwum1=vbum2_word_vbum3 
+    lda x
+    sta return+1
+    lda y
+    sta return
+    // cbm_k_plot_get::@return
+    // }
+    // [520] return 
+    rts
+  .segment Data
+    x: .byte 0
+  .segment Data
+    y: .byte 0
+  .segment Data
+    return: .word 0
+}
+  // code segment
+.segment Code
+  // screenlayer
+// --- layer management in VERA ---
+// void screenlayer(char layer, __register(Y) char mapbase, __register(X) char config)
+screenlayer: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem char vera_dc_hscale_temp = *VERA_DC_HSCALE
+    // [521] screenlayer::vera_dc_hscale_temp#0 = *VERA_DC_HSCALE -- vbum1=_deref_pbuc1 
+    lda VERA_DC_HSCALE
+    sta vera_dc_hscale_temp
+    // __mem char vera_dc_vscale_temp = *VERA_DC_VSCALE
+    // [522] screenlayer::vera_dc_vscale_temp#0 = *VERA_DC_VSCALE -- vbum1=_deref_pbuc1 
+    lda VERA_DC_VSCALE
+    sta vera_dc_vscale_temp
+    // __conio.layer = 0
+    // [523] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER) = 0 -- _deref_pbuc1=vbuc2 
+    lda #0
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    // mapbase >> 7
+    // [524] screenlayer::$0 = screenlayer::mapbase#0 >> 7 -- vbuaa=vbuyy_ror_7 
+    tya
+    rol
+    rol
+    and #1
+    // __conio.mapbase_bank = mapbase >> 7
+    // [525] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) = screenlayer::$0 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // (mapbase)<<1
+    // [526] screenlayer::$1 = screenlayer::mapbase#0 << 1 -- vbuaa=vbuyy_rol_1 
+    tya
+    asl
+    // MAKEWORD((mapbase)<<1,0)
+    // [527] screenlayer::$2 = screenlayer::$1 w= 0 -- vwum1=vbuaa_word_vbuc1 
+    ldy #0
+    sta screenlayer__2+1
+    sty screenlayer__2
+    // __conio.mapbase_offset = MAKEWORD((mapbase)<<1,0)
+    // [528] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) = screenlayer::$2 -- _deref_pwuc1=vwum1 
+    tya
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    lda screenlayer__2+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    // config & VERA_LAYER_WIDTH_MASK
+    // [529] screenlayer::$7 = screenlayer::config#0 & VERA_LAYER_WIDTH_MASK -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #VERA_LAYER_WIDTH_MASK
+    // (config & VERA_LAYER_WIDTH_MASK) >> 4
+    // [530] screenlayer::$8 = screenlayer::$7 >> 4 -- vbum1=vbuaa_ror_4 
+    lsr
+    lsr
+    lsr
+    lsr
+    sta screenlayer__8
+    // __conio.mapwidth = VERA_LAYER_DIM[ (config & VERA_LAYER_WIDTH_MASK) >> 4]
+    // [531] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH) = screenlayer::VERA_LAYER_DIM[screenlayer::$8] -- _deref_pbuc1=pbuc2_derefidx_vbum1 
+    tay
+    lda VERA_LAYER_DIM,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH
+    // config & VERA_LAYER_HEIGHT_MASK
+    // [532] screenlayer::$5 = screenlayer::config#0 & VERA_LAYER_HEIGHT_MASK -- vbuaa=vbuxx_band_vbuc1 
+    txa
+    and #VERA_LAYER_HEIGHT_MASK
+    // (config & VERA_LAYER_HEIGHT_MASK) >> 6
+    // [533] screenlayer::$6 = screenlayer::$5 >> 6 -- vbuaa=vbuaa_ror_6 
+    rol
+    rol
+    rol
+    and #3
+    // __conio.mapheight = VERA_LAYER_DIM[ (config & VERA_LAYER_HEIGHT_MASK) >> 6]
+    // [534] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT) = screenlayer::VERA_LAYER_DIM[screenlayer::$6] -- _deref_pbuc1=pbuc2_derefidx_vbuaa 
+    tay
+    lda VERA_LAYER_DIM,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT
+    // __conio.rowskip = VERA_LAYER_SKIP[(config & VERA_LAYER_WIDTH_MASK)>>4]
+    // [535] screenlayer::$16 = screenlayer::$8 << 1 -- vbuaa=vbum1_rol_1 
+    lda screenlayer__8
+    asl
+    // [536] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) = screenlayer::VERA_LAYER_SKIP[screenlayer::$16] -- _deref_pwuc1=pwuc2_derefidx_vbuaa 
+    // __conio.rowshift = ((config & VERA_LAYER_WIDTH_MASK)>>4)+6;
+    tay
+    lda VERA_LAYER_SKIP,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    lda VERA_LAYER_SKIP+1,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    // vera_dc_hscale_temp == 0x80
+    // [537] screenlayer::$9 = screenlayer::vera_dc_hscale_temp#0 == $80 -- vboaa=vbum1_eq_vbuc1 
+    lda vera_dc_hscale_temp
+    eor #$80
+    beq !+
+    lda #1
+  !:
+    eor #1
+    // 40 << (char)(vera_dc_hscale_temp == 0x80)
+    // [538] screenlayer::$18 = (char)screenlayer::$9
+    // [539] screenlayer::$10 = $28 << screenlayer::$18 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
+    lda #$28
+    cpy #0
+    beq !e+
+  !:
+    asl
+    dey
+    bne !-
+  !e:
+    // (40 << (char)(vera_dc_hscale_temp == 0x80))-1
+    // [540] screenlayer::$11 = screenlayer::$10 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // __conio.width = (40 << (char)(vera_dc_hscale_temp == 0x80))-1
+    // [541] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) = screenlayer::$11 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // vera_dc_vscale_temp == 0x80
+    // [542] screenlayer::$12 = screenlayer::vera_dc_vscale_temp#0 == $80 -- vboaa=vbum1_eq_vbuc1 
+    lda vera_dc_vscale_temp
+    eor #$80
+    beq !+
+    lda #1
+  !:
+    eor #1
+    // 30 << (char)(vera_dc_vscale_temp == 0x80)
+    // [543] screenlayer::$19 = (char)screenlayer::$12
+    // [544] screenlayer::$13 = $1e << screenlayer::$19 -- vbuaa=vbuc1_rol_vbuaa 
+    tay
+    lda #$1e
+    cpy #0
+    beq !e+
+  !:
+    asl
+    dey
+    bne !-
+  !e:
+    // (30 << (char)(vera_dc_vscale_temp == 0x80))-1
+    // [545] screenlayer::$14 = screenlayer::$13 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // __conio.height = (30 << (char)(vera_dc_vscale_temp == 0x80))-1
+    // [546] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) = screenlayer::$14 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    // unsigned int mapbase_offset = __conio.mapbase_offset
+    // [547] screenlayer::mapbase_offset#0 = *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    sta mapbase_offset
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    sta mapbase_offset+1
+    // [548] phi from screenlayer to screenlayer::@1 [phi:screenlayer->screenlayer::@1]
+    // [548] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#0 [phi:screenlayer->screenlayer::@1#0] -- register_copy 
+    // [548] phi screenlayer::y#2 = 0 [phi:screenlayer->screenlayer::@1#1] -- vbuxx=vbuc1 
+    ldx #0
+    // screenlayer::@1
+  __b1:
+    // for(register char y=0; y<=__conio.height; y++)
+    // [549] if(screenlayer::y#2<=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto screenlayer::@2 -- vbuxx_le__deref_pbuc1_then_la1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    stx.z $ff
+    cmp.z $ff
+    bcs __b2
+    // screenlayer::@return
+    // }
+    // [550] return 
+    rts
+    // screenlayer::@2
+  __b2:
+    // __conio.offsets[y] = mapbase_offset
+    // [551] screenlayer::$17 = screenlayer::y#2 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [552] ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[screenlayer::$17] = screenlayer::mapbase_offset#2 -- pwuc1_derefidx_vbuaa=vwum1 
+    tay
+    lda mapbase_offset
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    lda mapbase_offset+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    // mapbase_offset += __conio.rowskip
+    // [553] screenlayer::mapbase_offset#1 = screenlayer::mapbase_offset#2 + *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda mapbase_offset
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    sta mapbase_offset
+    lda mapbase_offset+1
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    sta mapbase_offset+1
+    // for(register char y=0; y<=__conio.height; y++)
+    // [554] screenlayer::y#1 = ++ screenlayer::y#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [548] phi from screenlayer::@2 to screenlayer::@1 [phi:screenlayer::@2->screenlayer::@1]
+    // [548] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#1 [phi:screenlayer::@2->screenlayer::@1#0] -- register_copy 
+    // [548] phi screenlayer::y#2 = screenlayer::y#1 [phi:screenlayer::@2->screenlayer::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    VERA_LAYER_DIM: .byte $1f, $3f, $7f, $ff
+  .segment Data
+    VERA_LAYER_SKIP: .word $40, $80, $100, $200
+  .segment Data
+    screenlayer__2: .word 0
+  .segment Data
+    screenlayer__8: .byte 0
+  .segment Data
+    vera_dc_hscale_temp: .byte 0
+  .segment Data
+    vera_dc_vscale_temp: .byte 0
+  .segment Data
+    mapbase_offset: .word 0
+}
+  // code segment
+.segment Code
+  // cbm_k_getin
+/**
+ * @brief Scan a character from keyboard without pressing enter.
+ * 
+ * @return char The character read.
+ */
+// __register(A) char cbm_k_getin()
+cbm_k_getin: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem unsigned char ch
+    // [555] cbm_k_getin::ch = 0 -- vbum1=vbuc1 
+    lda #0
+    sta ch
+    // asm
+    // asm { jsrCBM_GETIN stach  }
+    jsr CBM_GETIN
+    sta ch
+    // return ch;
+    // [557] cbm_k_getin::return#1 = cbm_k_getin::ch -- vbuaa=vbum1 
+    // cbm_k_getin::@return
+    // }
+    // [558] cbm_k_getin::return#2 = cbm_k_getin::return#1
+    // [559] return 
+    rts
+  .segment Data
+    ch: .byte 0
+}
+  // code segment
+.segment Code
+  // cscroll
+// Scroll the entire screen if the cursor is beyond the last line
+// void cscroll()
+cscroll: {
+    // constants
+    // variables
+    // variables-zero-page
+    // if(__conio.cursor_y>__conio.height)
+    // [560] if(*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y)<=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto cscroll::@return -- _deref_pbuc1_le__deref_pbuc2_then_la1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    cmp __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    bcs __breturn
+    // cscroll::@1
+    // if(__conio.scroll[__conio.layer])
+    // [561] if(0!=((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL)[*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER)]) goto cscroll::@4 -- 0_neq_pbuc1_derefidx_(_deref_pbuc2)_then_la1 
+    ldy __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL,y
+    cmp #0
+    bne __b4
+    // cscroll::@2
+    // if(__conio.cursor_y>__conio.height)
+    // [562] if(*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y)<=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto cscroll::@return -- _deref_pbuc1_le__deref_pbuc2_then_la1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    cmp __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    bcs __breturn
+    // cscroll::@3
+    // gotoxy(0,0)
+    // [563] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    lda #0
+    pha
+    // [564] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    pha
+    // [565] callexecute gotoxy  -- call_stack_near 
+    jsr lib_conio.gotoxy
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // cscroll::@return
+  __breturn:
+    // }
+    // [567] return 
+    rts
+    // [568] phi from cscroll::@1 to cscroll::@4 [phi:cscroll::@1->cscroll::@4]
+    // cscroll::@4
+  __b4:
+    // insertup(1)
+    // [569] call insertup
+    jsr insertup
+    // cscroll::@5
+    // gotoxy( 0, __conio.height)
+    // [570] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    lda #0
+    pha
+    // [571] stackpush(char) = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- _stackpushbyte_=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    pha
+    // [572] callexecute gotoxy  -- call_stack_near 
+    jsr lib_conio.gotoxy
+    // sideeffect stackpullpadding(2) -- _stackpullpadding_2 
+    pla
+    pla
+    // clearline()
+    // [574] call clearline
+    jsr clearline
+    rts
+}
+  // code segment
+.segment Code
+  // uctoa_append
+// Used to convert a single digit of an unsigned number value to a string representation
+// Counts a single digit up from '0' as long as the value is larger than sub.
+// Each time the digit is increased sub is subtracted from value.
+// - buffer : pointer to the char that receives the digit
+// - value : The value where the digit will be derived from
+// - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
+//        (For decimal the subs used are 10000, 1000, 100, 10, 1)
+// returns : the value reduced by sub * digit so that it is less than sub.
+// __register(X) char uctoa_append(__zp($26) char *buffer, __register(X) char value, __mem() char sub)
+uctoa_append: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label buffer = $26
+    // [576] phi from uctoa_append to uctoa_append::@1 [phi:uctoa_append->uctoa_append::@1]
+    // [576] phi uctoa_append::digit#2 = 0 [phi:uctoa_append->uctoa_append::@1#0] -- vbuyy=vbuc1 
+    ldy #0
+    // [576] phi uctoa_append::value#2 = uctoa_append::value#0 [phi:uctoa_append->uctoa_append::@1#1] -- register_copy 
+    // uctoa_append::@1
+  __b1:
+    // while (value >= sub)
+    // [577] if(uctoa_append::value#2>=uctoa_append::sub#0) goto uctoa_append::@2 -- vbuxx_ge_vbum1_then_la1 
+    cpx sub
+    bcs __b2
+    // uctoa_append::@3
+    // *buffer = DIGITS[digit]
+    // [578] *uctoa_append::buffer#0 = DIGITS[uctoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuyy 
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // uctoa_append::@return
+    // }
+    // [579] return 
+    rts
+    // uctoa_append::@2
+  __b2:
+    // digit++;
+    // [580] uctoa_append::digit#1 = ++ uctoa_append::digit#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // value -= sub
+    // [581] uctoa_append::value#1 = uctoa_append::value#2 - uctoa_append::sub#0 -- vbuxx=vbuxx_minus_vbum1 
+    txa
+    sec
+    sbc sub
+    tax
+    // [576] phi from uctoa_append::@2 to uctoa_append::@1 [phi:uctoa_append::@2->uctoa_append::@1]
+    // [576] phi uctoa_append::digit#2 = uctoa_append::digit#1 [phi:uctoa_append::@2->uctoa_append::@1#0] -- register_copy 
+    // [576] phi uctoa_append::value#2 = uctoa_append::value#1 [phi:uctoa_append::@2->uctoa_append::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    sub: .byte 0
+}
+  // code segment
+.segment Code
+  // strlen
+// Computes the length of the string str up to but not including the terminating null character.
+// __mem() unsigned int strlen(__zp($2a) char *str)
+strlen: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label str = $2a
+    // [583] phi from strlen to strlen::@1 [phi:strlen->strlen::@1]
+    // [583] phi strlen::len#2 = 0 [phi:strlen->strlen::@1#0] -- vwum1=vwuc1 
+    lda #<0
+    sta len
+    sta len+1
+    // [583] phi strlen::str#2 = (char *)&printf_number_buffer::buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:strlen->strlen::@1#1] -- pbuz1=pbuc1 
+    lda #<printf_number_buffer.buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z str
+    lda #>printf_number_buffer.buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    sta.z str+1
+    // strlen::@1
+  __b1:
+    // while(*str)
+    // [584] if(0!=*strlen::str#2) goto strlen::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (str),y
+    cmp #0
+    bne __b2
+    // strlen::@return
+    // }
+    // [585] return 
+    rts
+    // strlen::@2
+  __b2:
+    // len++;
+    // [586] strlen::len#1 = ++ strlen::len#2 -- vwum1=_inc_vwum1 
+    inc len
+    bne !+
+    inc len+1
+  !:
+    // str++;
+    // [587] strlen::str#0 = ++ strlen::str#2 -- pbuz1=_inc_pbuz1 
+    inc.z str
+    bne !+
+    inc.z str+1
+  !:
+    // [583] phi from strlen::@2 to strlen::@1 [phi:strlen::@2->strlen::@1]
+    // [583] phi strlen::len#2 = strlen::len#1 [phi:strlen::@2->strlen::@1#0] -- register_copy 
+    // [583] phi strlen::str#2 = strlen::str#0 [phi:strlen::@2->strlen::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    len: .word 0
+  .segment Data
+    .label return = len
+}
+  // code segment
+.segment Code
+  // printf_padding
+// Print a padding char a number of times
+// void printf_padding(__zp($22) void (*putc)(char), __mem() char pad, __mem() char length)
+printf_padding: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label putc = $22
+    // [589] phi from printf_padding to printf_padding::@1 [phi:printf_padding->printf_padding::@1]
+    // [589] phi printf_padding::i#2 = 0 [phi:printf_padding->printf_padding::@1#0] -- vbum1=vbuc1 
+    lda #0
+    sta i
+    // printf_padding::@1
+  __b1:
+    // for(char i=0;i<length; i++)
+    // [590] if(printf_padding::i#2<printf_padding::length#4) goto printf_padding::@2 -- vbum1_lt_vbum2_then_la1 
+    lda i
+    cmp length
+    bcc __b2
+    // printf_padding::@return
+    // }
+    // [591] return 
+    rts
+    // printf_padding::@2
+  __b2:
+    // putc(pad)
+    // [592] stackpush(char) = printf_padding::pad#5 -- _stackpushbyte_=vbum1 
+    lda pad
+    pha
+    // [593] callexecute *printf_padding::putc#5  -- call__deref_pprz1 
+    jsr icall3
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // printf_padding::@3
+    // for(char i=0;i<length; i++)
+    // [595] printf_padding::i#1 = ++ printf_padding::i#2 -- vbum1=_inc_vbum1 
+    inc i
+    // [589] phi from printf_padding::@3 to printf_padding::@1 [phi:printf_padding::@3->printf_padding::@1]
+    // [589] phi printf_padding::i#2 = printf_padding::i#1 [phi:printf_padding::@3->printf_padding::@1#0] -- register_copy 
+    jmp __b1
+  icall3:
+    jmp (putc)
+  .segment Data
+    i: .byte 0
+  .segment Data
+    length: .byte 0
+  .segment Data
+    pad: .byte 0
+}
+  // code segment
+.segment Code
+  // strupr
+// Converts a string to uppercase.
+// char * strupr(char *str)
+strupr: {
+    // constants
+    .label str = printf_number_buffer.buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
+    // variables
+    // variables-zero-page
+    .label src = $22
+    // [597] phi from strupr to strupr::@1 [phi:strupr->strupr::@1]
+    // [597] phi strupr::src#2 = strupr::str#0 [phi:strupr->strupr::@1#0] -- pbuz1=pbuc1 
+    lda #<str
+    sta.z src
+    lda #>str
+    sta.z src+1
+    // strupr::@1
+  __b1:
+    // while(*src)
+    // [598] if(0!=*strupr::src#2) goto strupr::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (src),y
+    cmp #0
+    bne __b2
+    // strupr::@return
+    // }
+    // [599] return 
+    rts
+    // strupr::@2
+  __b2:
+    // toupper(*src)
+    // [600] toupper::ch#0 = *strupr::src#2 -- vbuaa=_deref_pbuz1 
+    ldy #0
+    lda (src),y
+    // [601] call toupper
+    jsr toupper
+    // [602] toupper::return#3 = toupper::return#2
+    // strupr::@3
+    // [603] strupr::$0 = toupper::return#3
+    // *src = toupper(*src)
+    // [604] *strupr::src#2 = strupr::$0 -- _deref_pbuz1=vbuaa 
+    ldy #0
+    sta (src),y
+    // src++;
+    // [605] strupr::src#1 = ++ strupr::src#2 -- pbuz1=_inc_pbuz1 
+    inc.z src
+    bne !+
+    inc.z src+1
+  !:
+    // [597] phi from strupr::@3 to strupr::@1 [phi:strupr::@3->strupr::@1]
+    // [597] phi strupr::src#2 = strupr::src#1 [phi:strupr::@3->strupr::@1#0] -- register_copy 
+    jmp __b1
+}
+  // code segment
+.segment Code
+  // utoa_append
+// Used to convert a single digit of an unsigned number value to a string representation
+// Counts a single digit up from '0' as long as the value is larger than sub.
+// Each time the digit is increased sub is subtracted from value.
+// - buffer : pointer to the char that receives the digit
+// - value : The value where the digit will be derived from
+// - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
+//        (For decimal the subs used are 10000, 1000, 100, 10, 1)
+// returns : the value reduced by sub * digit so that it is less than sub.
+// __mem() unsigned int utoa_append(__zp($28) char *buffer, __mem() unsigned int value, __mem() unsigned int sub)
+utoa_append: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label buffer = $28
+    // [607] phi from utoa_append to utoa_append::@1 [phi:utoa_append->utoa_append::@1]
+    // [607] phi utoa_append::digit#2 = 0 [phi:utoa_append->utoa_append::@1#0] -- vbuyy=vbuc1 
+    ldy #0
+    // [607] phi utoa_append::value#2 = utoa_append::value#0 [phi:utoa_append->utoa_append::@1#1] -- register_copy 
+    // utoa_append::@1
+  __b1:
+    // while (value >= sub)
+    // [608] if(utoa_append::value#2>=utoa_append::sub#0) goto utoa_append::@2 -- vwum1_ge_vwum2_then_la1 
+    lda sub+1
+    cmp value+1
+    bne !+
+    lda sub
+    cmp value
+    beq __b2
+  !:
+    bcc __b2
+    // utoa_append::@3
+    // *buffer = DIGITS[digit]
+    // [609] *utoa_append::buffer#0 = DIGITS[utoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuyy 
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // utoa_append::@return
+    // }
+    // [610] return 
+    rts
+    // utoa_append::@2
+  __b2:
+    // digit++;
+    // [611] utoa_append::digit#1 = ++ utoa_append::digit#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // value -= sub
+    // [612] utoa_append::value#1 = utoa_append::value#2 - utoa_append::sub#0 -- vwum1=vwum1_minus_vwum2 
+    lda value
+    sec
+    sbc sub
+    sta value
+    lda value+1
+    sbc sub+1
+    sta value+1
+    // [607] phi from utoa_append::@2 to utoa_append::@1 [phi:utoa_append::@2->utoa_append::@1]
+    // [607] phi utoa_append::digit#2 = utoa_append::digit#1 [phi:utoa_append::@2->utoa_append::@1#0] -- register_copy 
+    // [607] phi utoa_append::value#2 = utoa_append::value#1 [phi:utoa_append::@2->utoa_append::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    .label value = utoa.value
+  .segment Data
+    .label sub = utoa.digit_value
+  .segment Data
+    .label return = utoa.value
+}
+  // code segment
+.segment Code
+  // ultoa_append
+// Used to convert a single digit of an unsigned number value to a string representation
+// Counts a single digit up from '0' as long as the value is larger than sub.
+// Each time the digit is increased sub is subtracted from value.
+// - buffer : pointer to the char that receives the digit
+// - value : The value where the digit will be derived from
+// - sub : the value of a '1' in the digit. Subtracted continually while the digit is increased.
+//        (For decimal the subs used are 10000, 1000, 100, 10, 1)
+// returns : the value reduced by sub * digit so that it is less than sub.
+// __mem() unsigned long ultoa_append(__zp($28) char *buffer, __mem() unsigned long value, __mem() unsigned long sub)
+ultoa_append: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label buffer = $28
+    // [614] phi from ultoa_append to ultoa_append::@1 [phi:ultoa_append->ultoa_append::@1]
+    // [614] phi ultoa_append::digit#2 = 0 [phi:ultoa_append->ultoa_append::@1#0] -- vbuyy=vbuc1 
+    ldy #0
+    // [614] phi ultoa_append::value#2 = ultoa_append::value#0 [phi:ultoa_append->ultoa_append::@1#1] -- register_copy 
+    // ultoa_append::@1
+  __b1:
+    // while (value >= sub)
+    // [615] if(ultoa_append::value#2>=ultoa_append::sub#0) goto ultoa_append::@2 -- vdum1_ge_vdum2_then_la1 
+    lda value+3
+    cmp sub+3
+    bcc !+
+    bne __b2
+    lda value+2
+    cmp sub+2
+    bcc !+
+    bne __b2
+    lda value+1
+    cmp sub+1
+    bcc !+
+    bne __b2
+    lda value
+    cmp sub
+    bcs __b2
+  !:
+    // ultoa_append::@3
+    // *buffer = DIGITS[digit]
+    // [616] *ultoa_append::buffer#0 = DIGITS[ultoa_append::digit#2] -- _deref_pbuz1=pbuc1_derefidx_vbuyy 
+    lda DIGITS,y
+    ldy #0
+    sta (buffer),y
+    // ultoa_append::@return
+    // }
+    // [617] return 
+    rts
+    // ultoa_append::@2
+  __b2:
+    // digit++;
+    // [618] ultoa_append::digit#1 = ++ ultoa_append::digit#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // value -= sub
+    // [619] ultoa_append::value#1 = ultoa_append::value#2 - ultoa_append::sub#0 -- vdum1=vdum1_minus_vdum2 
+    lda value
+    sec
+    sbc sub
+    sta value
+    lda value+1
+    sbc sub+1
+    sta value+1
+    lda value+2
+    sbc sub+2
+    sta value+2
+    lda value+3
+    sbc sub+3
+    sta value+3
+    // [614] phi from ultoa_append::@2 to ultoa_append::@1 [phi:ultoa_append::@2->ultoa_append::@1]
+    // [614] phi ultoa_append::digit#2 = ultoa_append::digit#1 [phi:ultoa_append::@2->ultoa_append::@1#0] -- register_copy 
+    // [614] phi ultoa_append::value#2 = ultoa_append::value#1 [phi:ultoa_append::@2->ultoa_append::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    .label value = ultoa.value
+  .segment Data
+    .label sub = ultoa.digit_value
+  .segment Data
+    .label return = ultoa.value
+}
+  // code segment
+.segment Code
+  // insertup
+// Insert a new line, and scroll the upper part of the screen up.
+// void insertup(char rows)
+insertup: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __conio.width+1
+    // [620] insertup::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) + 1 -- vbuaa=_deref_pbuc1_plus_1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    inc
+    // unsigned char width = (__conio.width+1) * 2
+    // [621] insertup::width#0 = insertup::$0 << 1 -- vbum1=vbuaa_rol_1 
+    // {asm{.byte $db}}
+    asl
+    sta width
+    // [622] phi from insertup to insertup::@1 [phi:insertup->insertup::@1]
+    // [622] phi insertup::y#2 = 0 [phi:insertup->insertup::@1#0] -- vbum1=vbuc1 
+    lda #0
+    sta y
+    // insertup::@1
+  __b1:
+    // for(unsigned char y=0; y<__conio.cursor_y; y++)
+    // [623] if(insertup::y#2<*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y)) goto insertup::@2 -- vbum1_lt__deref_pbuc1_then_la1 
+    lda y
+    cmp __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    bcc __b2
+    // [624] phi from insertup::@1 to insertup::@3 [phi:insertup::@1->insertup::@3]
+    // insertup::@3
+    // clearline()
+    // [625] call clearline
+    jsr clearline
+    // insertup::@return
+    // }
+    // [626] return 
+    rts
+    // insertup::@2
+  __b2:
+    // y+1
+    // [627] insertup::$4 = insertup::y#2 + 1 -- vbuxx=vbum1_plus_1 
+    ldx y
+    inx
+    // memcpy8_vram_vram(__conio.mapbase_bank, __conio.offsets[y], __conio.mapbase_bank, __conio.offsets[y+1], width)
+    // [628] insertup::$6 = insertup::y#2 << 1 -- vbuyy=vbum1_rol_1 
+    lda y
+    asl
+    tay
+    // [629] insertup::$7 = insertup::$4 << 1 -- vbum1=vbuxx_rol_1 
+    txa
+    asl
+    sta insertup__7
+    // [630] memcpy8_vram_vram::dbank_vram#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) -- vbuxx=_deref_pbuc1 
+    ldx __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // [631] memcpy8_vram_vram::doffset_vram#0 = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[insertup::$6] -- vwum1=pwuc1_derefidx_vbuyy 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    sta memcpy8_vram_vram.doffset_vram
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    sta memcpy8_vram_vram.doffset_vram+1
+    // [632] memcpy8_vram_vram::sbank_vram#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) -- vbum1=_deref_pbuc1 
+    txa
+    sta memcpy8_vram_vram.sbank_vram
+    // [633] memcpy8_vram_vram::soffset_vram#0 = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[insertup::$7] -- vwum1=pwuc1_derefidx_vbum2 
+    ldy insertup__7
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    sta memcpy8_vram_vram.soffset_vram
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    sta memcpy8_vram_vram.soffset_vram+1
+    // [634] memcpy8_vram_vram::num8#1 = insertup::width#0 -- vbum1=vbum2 
+    lda width
+    sta memcpy8_vram_vram.num8
+    // [635] call memcpy8_vram_vram
+    jsr memcpy8_vram_vram
+    // insertup::@4
+    // for(unsigned char y=0; y<__conio.cursor_y; y++)
+    // [636] insertup::y#1 = ++ insertup::y#2 -- vbum1=_inc_vbum1 
+    inc y
+    // [622] phi from insertup::@4 to insertup::@1 [phi:insertup::@4->insertup::@1]
+    // [622] phi insertup::y#2 = insertup::y#1 [phi:insertup::@4->insertup::@1#0] -- register_copy 
+    jmp __b1
+  .segment Data
+    insertup__7: .byte 0
+  .segment Data
+    width: .byte 0
+  .segment Data
+    y: .byte 0
+}
+  // code segment
+.segment Code
+  // clearline
+// void clearline()
+clearline: {
+    // constants
+    // variables
+    // variables-zero-page
+    // unsigned int addr = __conio.offsets[__conio.cursor_y]
+    // [637] clearline::$3 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) << 1 -- vbuaa=_deref_pbuc1_rol_1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    asl
+    // [638] clearline::addr#0 = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[clearline::$3] -- vwum1=pwuc1_derefidx_vbuaa 
+    tay
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    sta addr
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    sta addr+1
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [639] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // BYTE0(addr)
+    // [640] clearline::$0 = byte0  clearline::addr#0 -- vbuaa=_byte0_vwum1 
+    lda addr
+    // *VERA_ADDRX_L = BYTE0(addr)
+    // [641] *VERA_ADDRX_L = clearline::$0 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_L
+    // BYTE1(addr)
+    // [642] clearline::$1 = byte1  clearline::addr#0 -- vbuaa=_byte1_vwum1 
+    lda addr+1
+    // *VERA_ADDRX_M = BYTE1(addr)
+    // [643] *VERA_ADDRX_M = clearline::$1 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // __conio.mapbase_bank | VERA_INC_1
+    // [644] clearline::$2 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) | VERA_INC_1 -- vbuaa=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_INC_1
+    ora __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // *VERA_ADDRX_H = __conio.mapbase_bank | VERA_INC_1
+    // [645] *VERA_ADDRX_H = clearline::$2 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // register unsigned char c=__conio.width
+    // [646] clearline::c#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) -- vbuxx=_deref_pbuc1 
+    ldx __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // [647] phi from clearline clearline::@1 to clearline::@1 [phi:clearline/clearline::@1->clearline::@1]
+    // [647] phi clearline::c#2 = clearline::c#0 [phi:clearline/clearline::@1->clearline::@1#0] -- register_copy 
+    // clearline::@1
+  __b1:
+    // *VERA_DATA0 = ' '
+    // [648] *VERA_DATA0 = ' ' -- _deref_pbuc1=vbuc2 
+    lda #' '
+    sta VERA_DATA0
+    // *VERA_DATA0 = __conio.color
+    // [649] *VERA_DATA0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) -- _deref_pbuc1=_deref_pbuc2 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    sta VERA_DATA0
+    // c--;
+    // [650] clearline::c#1 = -- clearline::c#2 -- vbuxx=_dec_vbuxx 
+    dex
+    // while(c)
+    // [651] if(0!=clearline::c#1) goto clearline::@1 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne __b1
+    // clearline::@return
+    // }
+    // [652] return 
+    rts
+  .segment Data
+    addr: .word 0
+}
+  // code segment
+.segment Code
+  // toupper
+// Convert lowercase alphabet to uppercase
+// Returns uppercase equivalent to c, if such value exists, else c remains unchanged
+// __register(A) char toupper(__register(A) char ch)
+toupper: {
+    // constants
+    // variables
+    // variables-zero-page
+    // if(ch>='a' && ch<='z')
+    // [653] if(toupper::ch#0<'a') goto toupper::@return -- vbuaa_lt_vbuc1_then_la1 
+    cmp #'a'
+    bcc __breturn
+    // toupper::@2
+    // [654] if(toupper::ch#0<='z') goto toupper::@1 -- vbuaa_le_vbuc1_then_la1 
+    cmp #'z'
+    bcc __b1
+    beq __b1
+    // [656] phi from toupper toupper::@1 toupper::@2 to toupper::@return [phi:toupper/toupper::@1/toupper::@2->toupper::@return]
+    // [656] phi toupper::return#2 = toupper::ch#0 [phi:toupper/toupper::@1/toupper::@2->toupper::@return#0] -- register_copy 
+    rts
+    // toupper::@1
+  __b1:
+    // return ch + ('A'-'a');
+    // [655] toupper::return#0 = toupper::ch#0 + 'A'-'a' -- vbuaa=vbuaa_plus_vbuc1 
+    clc
+    adc #'A'-'a'
+    // toupper::@return
+  __breturn:
+    // }
+    // [657] return 
+    rts
+}
+  // code segment
+.segment Code
+  // memcpy8_vram_vram
+/**
+ * @brief Copy a block of memory in VRAM from a source to a target destination.
+ * This function is designed to copy maximum 255 bytes of memory in one step.
+ * If more than 255 bytes need to be copied, use the memcpy_vram_vram function.
+ *
+ * @see memcpy_vram_vram
+ *
+ * @param dbank_vram Bank of the destination location in vram.
+ * @param doffset_vram Offset of the destination location in vram.
+ * @param sbank_vram Bank of the source location in vram.
+ * @param soffset_vram Offset of the source location in vram.
+ * @param num16 Specified the amount of bytes to be copied.
+ */
+// void memcpy8_vram_vram(__register(X) char dbank_vram, __mem() unsigned int doffset_vram, __mem() char sbank_vram, __mem() unsigned int soffset_vram, __register(X) char num8)
+memcpy8_vram_vram: {
+    // constants
+    // variables
+    // variables-zero-page
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [658] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // BYTE0(soffset_vram)
+    // [659] memcpy8_vram_vram::$0 = byte0  memcpy8_vram_vram::soffset_vram#0 -- vbuaa=_byte0_vwum1 
+    lda soffset_vram
+    // *VERA_ADDRX_L = BYTE0(soffset_vram)
+    // [660] *VERA_ADDRX_L = memcpy8_vram_vram::$0 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_L
+    // BYTE1(soffset_vram)
+    // [661] memcpy8_vram_vram::$1 = byte1  memcpy8_vram_vram::soffset_vram#0 -- vbuaa=_byte1_vwum1 
+    lda soffset_vram+1
+    // *VERA_ADDRX_M = BYTE1(soffset_vram)
+    // [662] *VERA_ADDRX_M = memcpy8_vram_vram::$1 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // sbank_vram | VERA_INC_1
+    // [663] memcpy8_vram_vram::$2 = memcpy8_vram_vram::sbank_vram#0 | VERA_INC_1 -- vbuaa=vbum1_bor_vbuc1 
+    lda #VERA_INC_1
+    ora sbank_vram
+    // *VERA_ADDRX_H = sbank_vram | VERA_INC_1
+    // [664] *VERA_ADDRX_H = memcpy8_vram_vram::$2 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // *VERA_CTRL |= VERA_ADDRSEL
+    // [665] *VERA_CTRL = *VERA_CTRL | VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_ADDRSEL
+    ora VERA_CTRL
+    sta VERA_CTRL
+    // BYTE0(doffset_vram)
+    // [666] memcpy8_vram_vram::$3 = byte0  memcpy8_vram_vram::doffset_vram#0 -- vbuaa=_byte0_vwum1 
+    lda doffset_vram
+    // *VERA_ADDRX_L = BYTE0(doffset_vram)
+    // [667] *VERA_ADDRX_L = memcpy8_vram_vram::$3 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_L
+    // BYTE1(doffset_vram)
+    // [668] memcpy8_vram_vram::$4 = byte1  memcpy8_vram_vram::doffset_vram#0 -- vbuaa=_byte1_vwum1 
+    lda doffset_vram+1
+    // *VERA_ADDRX_M = BYTE1(doffset_vram)
+    // [669] *VERA_ADDRX_M = memcpy8_vram_vram::$4 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // dbank_vram | VERA_INC_1
+    // [670] memcpy8_vram_vram::$5 = memcpy8_vram_vram::dbank_vram#0 | VERA_INC_1 -- vbuaa=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_INC_1
+    // *VERA_ADDRX_H = dbank_vram | VERA_INC_1
+    // [671] *VERA_ADDRX_H = memcpy8_vram_vram::$5 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // [672] phi from memcpy8_vram_vram memcpy8_vram_vram::@2 to memcpy8_vram_vram::@1 [phi:memcpy8_vram_vram/memcpy8_vram_vram::@2->memcpy8_vram_vram::@1]
+  __b1:
+    // [672] phi memcpy8_vram_vram::num8#2 = memcpy8_vram_vram::num8#1 [phi:memcpy8_vram_vram/memcpy8_vram_vram::@2->memcpy8_vram_vram::@1#0] -- register_copy 
+  // the size is only a byte, this is the fastest loop!
+    // memcpy8_vram_vram::@1
+    // while (num8--)
+    // [673] memcpy8_vram_vram::num8#0 = -- memcpy8_vram_vram::num8#2 -- vbuxx=_dec_vbum1 
+    ldx num8
+    dex
+    // [674] if(0!=memcpy8_vram_vram::num8#2) goto memcpy8_vram_vram::@2 -- 0_neq_vbum1_then_la1 
+    lda num8
+    bne __b2
+    // memcpy8_vram_vram::@return
+    // }
+    // [675] return 
+    rts
+    // memcpy8_vram_vram::@2
+  __b2:
+    // *VERA_DATA1 = *VERA_DATA0
+    // [676] *VERA_DATA1 = *VERA_DATA0 -- _deref_pbuc1=_deref_pbuc2 
+    lda VERA_DATA0
+    sta VERA_DATA1
+    // [677] memcpy8_vram_vram::num8#6 = memcpy8_vram_vram::num8#0 -- vbum1=vbuxx 
+    stx num8
+    jmp __b1
+  .segment Data
+    doffset_vram: .word 0
+  .segment Data
+    sbank_vram: .byte 0
+  .segment Data
+    soffset_vram: .word 0
+  .segment Data
+    num8: .byte 0
+}
+  // Exported Global Data
+.segment Data
+  // The digits used for numbers
+  DIGITS: .text "0123456789abcdef"
+.segment Data
+  // Values of binary digits
+  RADIX_BINARY_VALUES_CHAR: .byte $80, $40, $20, $10, 8, 4, 2
+.segment Data
+  // Values of octal digits
+  RADIX_OCTAL_VALUES_CHAR: .byte $40, 8
+.segment Data
+  // Values of decimal digits
+  RADIX_DECIMAL_VALUES_CHAR: .byte $64, $a
+.segment Data
+  // Values of hexadecimal digits
+  RADIX_HEXADECIMAL_VALUES_CHAR: .byte $10
+.segment Data
+  // Values of binary digits
+  RADIX_BINARY_VALUES: .word $8000, $4000, $2000, $1000, $800, $400, $200, $100, $80, $40, $20, $10, 8, 4, 2
+.segment Data
+  // Values of octal digits
+  RADIX_OCTAL_VALUES: .word $8000, $1000, $200, $40, 8
+.segment Data
+  // Values of decimal digits
+  RADIX_DECIMAL_VALUES: .word $2710, $3e8, $64, $a
+.segment Data
+  // Values of hexadecimal digits
+  RADIX_HEXADECIMAL_VALUES: .word $1000, $100, $10
+.segment Data
+  // Values of binary digits
+  RADIX_BINARY_VALUES_LONG: .dword $80000000, $40000000, $20000000, $10000000, $8000000, $4000000, $2000000, $1000000, $800000, $400000, $200000, $100000, $80000, $40000, $20000, $10000, $8000, $4000, $2000, $1000, $800, $400, $200, $100, $80, $40, $20, $10, 8, 4, 2
+.segment Data
+  // Values of octal digits
+  RADIX_OCTAL_VALUES_LONG: .dword $40000000, $8000000, $1000000, $200000, $40000, $8000, $1000, $200, $40, 8
+.segment Data
+  // Values of decimal digits
+  RADIX_DECIMAL_VALUES_LONG: .dword $3b9aca00, $5f5e100, $989680, $f4240, $186a0, $2710, $3e8, $64, $a
+.segment Data
+  // Values of hexadecimal digits
+  RADIX_HEXADECIMAL_VALUES_LONG: .dword $10000000, $1000000, $100000, $10000, $1000, $100, $10
+.segment Data
+  __conio: .fill SIZEOF_STRUCT___CX16_CONIO_S, 0
+.segment Data
+  // Buffer used for stringified number being printed
+  printf_buffer: .fill SIZEOF_STRUCT_PRINTF_BUFFER_NUMBER, 0
+  // end-assembler
+  // End Namespace
+} // namespace

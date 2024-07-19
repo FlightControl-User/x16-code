@@ -1,12 +1,12 @@
 #pragma encoding(screencode_mixed)
 #pragma var_model(mem)
 
-#pragma asm_library
+#pragma lib_configure
 
 #pragma calling(__varcall)
-#pragma asm_export(fopen)
-#pragma asm_export(fclose)
-#pragma asm_export(fgets)
+#pragma lib_export(fopen)
+#pragma lib_export(fclose)
+#pragma lib_export(fgets)
 
 #pragma calling(__phicall)
 

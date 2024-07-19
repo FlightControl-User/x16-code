@@ -16,7 +16,6 @@
 #include <cx16-veralib.h>
 
 
-
 // --- VERA function encapsulation ---
 
 // --- VERA layer management ---

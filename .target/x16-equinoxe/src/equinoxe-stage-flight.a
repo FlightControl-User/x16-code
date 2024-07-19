@@ -1,0 +1,1685 @@
+  // Library
+.namespace equinoxe_stage_flight {
+  // Upstart
+.cpu _65c02
+  .segmentdef Basic                   [start=$0801]
+.segmentdef Code                    [start=$80d]
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
+.segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
+
+.segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
+.segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+
+  // start-assembler
+  // File Comments
+  // Global constants and variables
+  // constants
+  // The different flight object types.
+  .label t001 = 0
+  .label p001 = 1
+  .label n001 = 2
+  .label e0701 = 3
+  .label e0102 = 4
+  .label e0201 = 5
+  .label e0202 = 6
+  .label e0301 = 7
+  .label e0302 = 8
+  .label e0401 = 9
+  .label e0501 = $a
+  .label e0502 = $b
+  .label e0601 = $c
+  .label e0602 = $d
+  .label e0702 = $f
+  .label e0703 = $10
+  .label b001 = $11
+  .label b002 = $12
+  .label b003 = $13
+  .label STAGE_ACTION_MOVE = 2
+  .label STAGE_ACTION_TURN = 3
+  .label STAGE_ACTION_END = $ff
+  .label OFFSET_STRUCT_FLIGHT_T_TYPE = $180
+  .label OFFSET_STRUCT_STAGE_T_BULLET_COUNT = $11
+  .label OFFSET_STRUCT_STAGE_FLIGHTPATH_T_TYPE = 4
+  .label OFFSET_STRUCT_STAGE_FLIGHTPATH_T_NEXT = 5
+  .label OFFSET_STRUCT_STAGE_ACTION_MOVE_T_TURN = 2
+  .label OFFSET_STRUCT_STAGE_ACTION_MOVE_T_SPEED = 3
+  .label OFFSET_STRUCT_STAGE_ACTION_TURN_T_RADIUS = 1
+  .label OFFSET_STRUCT_STAGE_ACTION_TURN_T_SPEED = 2
+  .label OFFSET_STRUCT_FLIGHT_T_ENGINE = $6c0
+  .label OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN = $35
+  .label OFFSET_STRUCT_STAGE_T_PLAYER_COUNT = $12
+  .label OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN = 8
+  .label OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE = $28
+  .label OFFSET_STRUCT_STAGE_T_ENEMY_COUNT = $13
+  .label OFFSET_STRUCT_STAGE_T_TOWER_COUNT = $14
+  .label SIZEOF_STRUCT_STAGE_SCENARIO_T = $10
+  .label SIZEOF_STRUCT_AABB_T = 4
+  .label SIZEOF_STRUCT_FLOOR_SEGMENT_T = 5
+  .label SIZEOF_STRUCT_FLOOR_COMPOSITION_T = $c
+  .label SIZEOF_STRUCT_STAGE_T = $38
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __equinoxe_stage_flight_start
+// void equinoxe_stage_flight.__equinoxe_stage_flight_start()
+__equinoxe_stage_flight_start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __equinoxe_stage_flight_start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // __equinoxe_stage_flight_start::@return
+    // [3] return 
+    rts
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_tower_remove
+// void equinoxe_stage_flight.stage_tower_remove(__mem() char t)
+// __bank(cx16_ram, 3) 
+stage_tower_remove: {
+    // constants
+    // variables
+    // variables-zero-page
+    // flight_remove(FLIGHT_TOWER, t)
+    // [4] flight_remove::type = 2 -- vbum1=vbuc1 
+    lda #2
+    sta equinoxe_flightengine.flight_remove.type
+    // [5] flight_remove::f = stage_tower_remove::t -- vbum1=vbum2 
+    lda t
+    sta equinoxe_flightengine.flight_remove.f
+    // [6] callexecute flight_remove  -- call_var_near 
+    jsr equinoxe_flightengine.flight_remove
+    // stage.tower_count--;
+    // [7] *((char *)&stage+OFFSET_STRUCT_STAGE_T_TOWER_COUNT) = -- *((char *)&stage+OFFSET_STRUCT_STAGE_T_TOWER_COUNT) -- _deref_pbuc1=_dec__deref_pbuc1 
+    dec stage+OFFSET_STRUCT_STAGE_T_TOWER_COUNT
+    // stage_tower_remove::@return
+    // }
+    // [8] return 
+    rts
+  .segment Data
+    t: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_enemy_remove
+// void equinoxe_stage_flight.stage_enemy_remove(__mem() char w, __mem() char e)
+// __bank(cx16_ram, 3) 
+stage_enemy_remove: {
+    // constants
+    // variables
+    // variables-zero-page
+    // wave.enemy_spawn[w] += 1
+    // [9] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN)[stage_enemy_remove::w] = ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN)[stage_enemy_remove::w] + 1 -- pbuc1_derefidx_vbum1=pbuc1_derefidx_vbum1_plus_1 
+    ldy w
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN,y
+    inc
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN,y
+    // wave.enemy_alive[w] -= 1
+    // [10] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE)[stage_enemy_remove::w] = ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE)[stage_enemy_remove::w] - 1 -- pbuc1_derefidx_vbum1=pbuc1_derefidx_vbum1_minus_1 
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE,y
+    sec
+    sbc #1
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE,y
+    // flight_remove(FLIGHT_ENEMY, e)
+    // [11] flight_remove::type = 1 -- vbum1=vbuc1 
+    lda #1
+    sta equinoxe_flightengine.flight_remove.type
+    // [12] flight_remove::f = stage_enemy_remove::e -- vbum1=vbum2 
+    lda e
+    sta equinoxe_flightengine.flight_remove.f
+    // [13] callexecute flight_remove  -- call_var_near 
+    jsr equinoxe_flightengine.flight_remove
+    // stage.enemy_count--;
+    // [14] *((char *)&stage+OFFSET_STRUCT_STAGE_T_ENEMY_COUNT) = -- *((char *)&stage+OFFSET_STRUCT_STAGE_T_ENEMY_COUNT) -- _deref_pbuc1=_dec__deref_pbuc1 
+    dec stage+OFFSET_STRUCT_STAGE_T_ENEMY_COUNT
+    // stage_enemy_remove::@return
+    // }
+    // [15] return 
+    rts
+  .segment Data
+    w: .byte 0
+  .segment Data
+    e: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_player_remove
+// void equinoxe_stage_flight.stage_player_remove(__mem() char p)
+// __bank(cx16_ram, 3) 
+stage_player_remove: {
+    // constants
+    // variables
+    // variables-zero-page
+    // flight_index_t n = flight.engine[p]
+    // [16] stage_player_remove::n#0 = ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_ENGINE)[stage_player_remove::p] -- vbuxx=pbuc1_derefidx_vbum1 
+    ldy p
+    ldx equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_ENGINE,y
+    // flight_remove(FLIGHT_ENGINE, n)
+    // [17] flight_remove::type = 4 -- vbum1=vbuc1 
+    lda #4
+    sta equinoxe_flightengine.flight_remove.type
+    // [18] flight_remove::f = stage_player_remove::n#0 -- vbum1=vbuxx 
+    stx equinoxe_flightengine.flight_remove.f
+    // [19] callexecute flight_remove  -- call_var_near 
+    jsr equinoxe_flightengine.flight_remove
+    // flight_remove(FLIGHT_PLAYER, p)
+    // [20] flight_remove::type = 0 -- vbum1=vbuc1 
+    lda #0
+    sta equinoxe_flightengine.flight_remove.type
+    // [21] flight_remove::f = stage_player_remove::p -- vbum1=vbum2 
+    lda p
+    sta equinoxe_flightengine.flight_remove.f
+    // [22] callexecute flight_remove  -- call_var_near 
+    jsr equinoxe_flightengine.flight_remove
+    // stage.player_respawn = 8
+    // [23] *((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN) = 8 -- _deref_pbuc1=vbuc2 
+    lda #8
+    sta stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN
+    // stage.player_count--;
+    // [24] *((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_COUNT) = -- *((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_COUNT) -- _deref_pbuc1=_dec__deref_pbuc1 
+    dec stage+OFFSET_STRUCT_STAGE_T_PLAYER_COUNT
+    // stage_player_remove::@return
+    // }
+    // [25] return 
+    rts
+  .segment Data
+    p: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action_turn_speed
+// __mem() char equinoxe_stage_flight.stage_get_flightpath_action_turn_speed(__zp($26) stage_action_t *action_turn)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action_turn_speed: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label action_turn = $26
+    // return ((stage_action_turn_t*)action_turn)->speed;
+    // [36] stage_get_flightpath_action_turn_speed::return = ((char *)(stage_action_turn_t *)stage_get_flightpath_action_turn_speed::action_turn)[OFFSET_STRUCT_STAGE_ACTION_TURN_T_SPEED] -- vbum1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_ACTION_TURN_T_SPEED
+    lda (action_turn),y
+    sta return
+    // stage_get_flightpath_action_turn_speed::@return
+    // }
+    // [37] return 
+    rts
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action_turn_radius
+// __mem() char equinoxe_stage_flight.stage_get_flightpath_action_turn_radius(__zp($26) stage_action_t *action_turn)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action_turn_radius: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label action_turn = $26
+    // return ((stage_action_turn_t*)action_turn)->radius;
+    // [38] stage_get_flightpath_action_turn_radius::return = ((char *)(stage_action_turn_t *)stage_get_flightpath_action_turn_radius::action_turn)[OFFSET_STRUCT_STAGE_ACTION_TURN_T_RADIUS] -- vbum1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_ACTION_TURN_T_RADIUS
+    lda (action_turn),y
+    sta return
+    // stage_get_flightpath_action_turn_radius::@return
+    // }
+    // [39] return 
+    rts
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action_turn_turn
+// __mem() signed char equinoxe_stage_flight.stage_get_flightpath_action_turn_turn(__zp($24) volatile stage_action_t *action_turn)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action_turn_turn: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label action_turn = $24
+    // return ((stage_action_turn_t*)action_turn)->turn;
+    // [40] stage_get_flightpath_action_turn_turn::return = *((signed char *)(stage_action_turn_t *)stage_get_flightpath_action_turn_turn::action_turn) -- vbsm1=_deref_pbsz2 
+    ldy #0
+    lda (action_turn),y
+    sta return
+    // stage_get_flightpath_action_turn_turn::@return
+    // }
+    // [41] return 
+    rts
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action_move_speed
+// __mem() char equinoxe_stage_flight.stage_get_flightpath_action_move_speed(__zp($24) stage_action_t *action_move)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action_move_speed: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label action_move = $24
+    // return ((stage_action_move_t*)action_move)->speed;
+    // [42] stage_get_flightpath_action_move_speed::return = ((char *)(stage_action_move_t *)stage_get_flightpath_action_move_speed::action_move)[OFFSET_STRUCT_STAGE_ACTION_MOVE_T_SPEED] -- vbum1=pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_ACTION_MOVE_T_SPEED
+    lda (action_move),y
+    sta return
+    // stage_get_flightpath_action_move_speed::@return
+    // }
+    // [43] return 
+    rts
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action_move_turn
+// __mem() signed char equinoxe_stage_flight.stage_get_flightpath_action_move_turn(__zp($26) stage_action_t *action_move)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action_move_turn: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label action_move = $26
+    // return ((stage_action_move_t*)action_move)->turn;
+    // [44] stage_get_flightpath_action_move_turn::return = ((signed char *)(stage_action_move_t *)stage_get_flightpath_action_move_turn::action_move)[OFFSET_STRUCT_STAGE_ACTION_MOVE_T_TURN] -- vbsm1=pbsz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_ACTION_MOVE_T_TURN
+    lda (action_move),y
+    sta return
+    // stage_get_flightpath_action_move_turn::@return
+    // }
+    // [45] return 
+    rts
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action_move_flight
+// __mem() unsigned int equinoxe_stage_flight.stage_get_flightpath_action_move_flight(__zp($26) stage_action_t *action_move)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action_move_flight: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label action_move = $26
+    // return ((stage_action_move_t*)action_move)->flight;
+    // [46] stage_get_flightpath_action_move_flight::return = *((unsigned int *)(stage_action_move_t *)stage_get_flightpath_action_move_flight::action_move) -- vwum1=_deref_pwuz2 
+    ldy #0
+    lda (action_move),y
+    sta return
+    iny
+    lda (action_move),y
+    sta return+1
+    // stage_get_flightpath_action_move_flight::@return
+    // }
+    // [47] return 
+    rts
+  .segment Data
+    return: .word 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_next
+// __mem() char equinoxe_stage_flight.stage_get_flightpath_next(__zp($24) stage_flightpath_t *flightpath, __mem() char action)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_next: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label flightpath = $24
+    .label stage_get_flightpath_next__1 = $22
+    // unsigned char next = flightpath[action].next
+    // [48] stage_get_flightpath_next::$3 = stage_get_flightpath_next::action << 1 -- vbuaa=vbum1_rol_1 
+    lda action
+    asl
+    // [49] stage_get_flightpath_next::$4 = stage_get_flightpath_next::$3 + stage_get_flightpath_next::action -- vbuaa=vbuaa_plus_vbum1 
+    clc
+    adc action
+    // [50] stage_get_flightpath_next::$0 = stage_get_flightpath_next::$4 << 1 -- vbuyy=vbuaa_rol_1 
+    asl
+    tay
+    // [51] stage_get_flightpath_next::$1 = (char *)stage_get_flightpath_next::flightpath + OFFSET_STRUCT_STAGE_FLIGHTPATH_T_NEXT -- pbuz1=pbuz2_plus_vbuc1 
+    lda #OFFSET_STRUCT_STAGE_FLIGHTPATH_T_NEXT
+    clc
+    adc.z flightpath
+    sta.z stage_get_flightpath_next__1
+    lda #0
+    adc.z flightpath+1
+    sta.z stage_get_flightpath_next__1+1
+    // [52] stage_get_flightpath_next::next#0 = stage_get_flightpath_next::$1[stage_get_flightpath_next::$0] -- vbuaa=pbuz1_derefidx_vbuyy 
+    lda (stage_get_flightpath_next__1),y
+    // return next;
+    // [53] stage_get_flightpath_next::return = stage_get_flightpath_next::next#0 -- vbum1=vbuaa 
+    sta return
+    // stage_get_flightpath_next::@return
+    // }
+    // [54] return 
+    rts
+  .segment Data
+    action: .byte 0
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_type
+// __mem() char equinoxe_stage_flight.stage_get_flightpath_type(__zp($26) stage_flightpath_t *flightpath, __mem() char action)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_type: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label flightpath = $26
+    .label stage_get_flightpath_type__1 = $22
+    // unsigned char type = flightpath[action].type
+    // [55] stage_get_flightpath_type::$3 = stage_get_flightpath_type::action << 1 -- vbuaa=vbum1_rol_1 
+    lda action
+    asl
+    // [56] stage_get_flightpath_type::$4 = stage_get_flightpath_type::$3 + stage_get_flightpath_type::action -- vbuaa=vbuaa_plus_vbum1 
+    clc
+    adc action
+    // [57] stage_get_flightpath_type::$0 = stage_get_flightpath_type::$4 << 1 -- vbuyy=vbuaa_rol_1 
+    asl
+    tay
+    // [58] stage_get_flightpath_type::$1 = (char *)stage_get_flightpath_type::flightpath + OFFSET_STRUCT_STAGE_FLIGHTPATH_T_TYPE -- pbuz1=pbuz2_plus_vbuc1 
+    lda #OFFSET_STRUCT_STAGE_FLIGHTPATH_T_TYPE
+    clc
+    adc.z flightpath
+    sta.z stage_get_flightpath_type__1
+    lda #0
+    adc.z flightpath+1
+    sta.z stage_get_flightpath_type__1+1
+    // [59] stage_get_flightpath_type::type#0 = stage_get_flightpath_type::$1[stage_get_flightpath_type::$0] -- vbuaa=pbuz1_derefidx_vbuyy 
+    lda (stage_get_flightpath_type__1),y
+    // return type;
+    // [60] stage_get_flightpath_type::return = stage_get_flightpath_type::type#0 -- vbum1=vbuaa 
+    sta return
+    // stage_get_flightpath_type::@return
+    // }
+    // [61] return 
+    rts
+  .segment Data
+    action: .byte 0
+  .segment Data
+    return: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_get_flightpath_action
+// __zp($26) stage_action_t * equinoxe_stage_flight.stage_get_flightpath_action(__zp($24) stage_flightpath_t *flightpath, __mem() char action)
+// __bank(cx16_ram, 3) 
+stage_get_flightpath_action: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label flightpath = $24
+    .label return = $26
+    .label flightpath_action = $22
+    // stage_action_t* flightpath_action = &flightpath[action].action
+    // [62] stage_get_flightpath_action::$4 = stage_get_flightpath_action::action << 1 -- vbuaa=vbum1_rol_1 
+    lda action
+    asl
+    // [63] stage_get_flightpath_action::$5 = stage_get_flightpath_action::$4 + stage_get_flightpath_action::action -- vbuaa=vbuaa_plus_vbum1 
+    clc
+    adc action
+    // [64] stage_get_flightpath_action::$1 = stage_get_flightpath_action::$5 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [65] stage_get_flightpath_action::flightpath_action#0 = (stage_action_t *)stage_get_flightpath_action::flightpath + stage_get_flightpath_action::$1 -- pssz1=pssz2_plus_vbuaa 
+    clc
+    adc.z flightpath
+    sta.z flightpath_action
+    lda #0
+    adc.z flightpath+1
+    sta.z flightpath_action+1
+    // return flightpath_action;
+    // [66] stage_get_flightpath_action::return = stage_get_flightpath_action::flightpath_action#0 -- pssz1=pssz2 
+    lda.z flightpath_action
+    sta.z return
+    lda.z flightpath_action+1
+    sta.z return+1
+    // stage_get_flightpath_action::@return
+    // }
+    // [67] return 
+    rts
+  .segment Data
+    action: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_bullet_remove
+// void equinoxe_stage_flight.stage_bullet_remove(__mem() char b)
+// __bank(cx16_ram, 3) 
+stage_bullet_remove: {
+    // constants
+    // variables
+    // variables-zero-page
+    // flight_remove(FLIGHT_BULLET, b)
+    // [68] flight_remove::type = 3 -- vbum1=vbuc1 
+    lda #3
+    sta equinoxe_flightengine.flight_remove.type
+    // [69] flight_remove::f = stage_bullet_remove::b -- vbum1=vbum2 
+    lda b
+    sta equinoxe_flightengine.flight_remove.f
+    // [70] callexecute flight_remove  -- call_var_near 
+    jsr equinoxe_flightengine.flight_remove
+    // stage.bullet_count--;
+    // [71] *((char *)&stage+OFFSET_STRUCT_STAGE_T_BULLET_COUNT) = -- *((char *)&stage+OFFSET_STRUCT_STAGE_T_BULLET_COUNT) -- _deref_pbuc1=_dec__deref_pbuc1 
+    dec stage+OFFSET_STRUCT_STAGE_T_BULLET_COUNT
+    // stage_bullet_remove::@return
+    // }
+    // [72] return 
+    rts
+  .segment Data
+    b: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_bullet_add
+// void equinoxe_stage_flight.stage_bullet_add(__mem() unsigned int sx, __mem() unsigned int sy, __mem() unsigned int tx, __mem() unsigned int ty, __mem() char speed, __mem() char side, __mem() char sprite_bullet)
+// __bank(cx16_ram, 3) 
+stage_bullet_add: {
+    // constants
+    // variables
+    // variables-zero-page
+    // bullet_add(sx, sy, tx, ty, speed, side, sprite_bullet)
+    // [73] bullet_add::sx = stage_bullet_add::sx -- vwum1=vwum2 
+    lda sx
+    sta equinoxe_bullet.bullet_add.sx
+    lda sx+1
+    sta equinoxe_bullet.bullet_add.sx+1
+    // [74] bullet_add::sy = stage_bullet_add::sy -- vwum1=vwum2 
+    lda sy
+    sta equinoxe_bullet.bullet_add.sy
+    lda sy+1
+    sta equinoxe_bullet.bullet_add.sy+1
+    // [75] bullet_add::tx = stage_bullet_add::tx -- vwum1=vwum2 
+    lda tx
+    sta equinoxe_bullet.bullet_add.tx
+    lda tx+1
+    sta equinoxe_bullet.bullet_add.tx+1
+    // [76] bullet_add::ty = stage_bullet_add::ty -- vwum1=vwum2 
+    lda ty
+    sta equinoxe_bullet.bullet_add.ty
+    lda ty+1
+    sta equinoxe_bullet.bullet_add.ty+1
+    // [77] bullet_add::speed = stage_bullet_add::speed -- vbum1=vbum2 
+    lda speed
+    sta equinoxe_bullet.bullet_add.speed
+    // [78] bullet_add::side = stage_bullet_add::side -- vbum1=vbum2 
+    lda side
+    sta equinoxe_bullet.bullet_add.side
+    // [79] bullet_add::sprite_bullet = stage_bullet_add::sprite_bullet -- vbum1=vbum2 
+    lda sprite_bullet
+    sta equinoxe_bullet.bullet_add.sprite_bullet
+    // [80] callexecute bullet_add  -- call_var_far_cx16_ram 
+    jsr $ff6e
+    .byte <equinoxe_bullet.bullet_add
+    .byte >equinoxe_bullet.bullet_add
+    .byte 7
+    // stage.bullet_count++;
+    // [81] *((char *)&stage+OFFSET_STRUCT_STAGE_T_BULLET_COUNT) = ++ *((char *)&stage+OFFSET_STRUCT_STAGE_T_BULLET_COUNT) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc stage+OFFSET_STRUCT_STAGE_T_BULLET_COUNT
+    // stage_bullet_add::@return
+    // }
+    // [82] return 
+    rts
+  .segment Data
+    sx: .word 0
+  .segment Data
+    sy: .word 0
+  .segment Data
+    tx: .word 0
+  .segment Data
+    ty: .word 0
+  .segment Data
+    speed: .byte 0
+  .segment Data
+    side: .byte 0
+  .segment Data
+    sprite_bullet: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_impact
+// void equinoxe_stage_flight.stage_impact(__mem() char f, __mem() char h)
+// __bank(cx16_ram, 3) 
+stage_impact: {
+    // constants
+    // variables
+    // variables-zero-page
+    // flight_impact(h)
+    // [83] flight_impact::f = stage_impact::h -- vbum1=vbum2 
+    lda h
+    sta equinoxe_flightengine.flight_impact.f
+    // [84] callexecute flight_impact  -- call_var_near 
+    jsr equinoxe_flightengine.flight_impact
+    // [85] stage_impact::$0 = flight_impact::return -- vbsxx=vbsm1 
+    ldx equinoxe_flightengine.flight_impact.return
+    // unsigned char hit = flight_hit(f, flight_impact(h))
+    // [86] flight_hit::f = stage_impact::f -- vbum1=vbum2 
+    lda f
+    sta equinoxe_flightengine.flight_hit.f
+    // [87] flight_hit::impact = stage_impact::$0 -- vbsm1=vbsxx 
+    stx equinoxe_flightengine.flight_hit.impact
+    // [88] callexecute flight_hit  -- call_var_near 
+    jsr equinoxe_flightengine.flight_hit
+    // [89] stage_impact::hit#0 = flight_hit::return -- vbuaa=vbum1 
+    lda equinoxe_flightengine.flight_hit.return
+    // if(hit)
+    // [90] if(0==stage_impact::hit#0) goto stage_impact::@return -- 0_eq_vbuaa_then_la1 
+    cmp #0
+    beq __breturn
+    // stage_impact::@1
+    // case FLIGHT_ENEMY:
+    //                 stage_enemy_remove(flight_wave(f), f);
+    //                 break;
+    // [91] if(((char *)&flight+OFFSET_STRUCT_FLIGHT_T_TYPE)[stage_impact::f]==1) goto stage_impact::@5 -- pbuc1_derefidx_vbum1_eq_vbuc2_then_la1 
+    ldy f
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_TYPE,y
+    cmp #1
+    beq __b5
+    // stage_impact::@2
+    // case FLIGHT_BULLET:
+    //                 stage_bullet_remove(f);
+    //                 break;
+    // [92] if(((char *)&flight+OFFSET_STRUCT_FLIGHT_T_TYPE)[stage_impact::f]==3) goto stage_impact::@6 -- pbuc1_derefidx_vbum1_eq_vbuc2_then_la1 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_TYPE,y
+    cmp #3
+    beq __b6
+    // stage_impact::@3
+    // case FLIGHT_PLAYER:
+    //                 stage_player_remove(f);
+    //                 break;
+    // [93] if(((char *)&flight+OFFSET_STRUCT_FLIGHT_T_TYPE)[stage_impact::f]==0) goto stage_impact::@7 -- pbuc1_derefidx_vbum1_eq_0_then_la1 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_TYPE,y
+    cmp #0
+    beq __b7
+    // stage_impact::@4
+    // case FLIGHT_TOWER:
+    //                 stage_tower_remove(f);
+    //                 break;
+    // [94] if(((char *)&flight+OFFSET_STRUCT_FLIGHT_T_TYPE)[stage_impact::f]!=2) goto stage_impact::@return -- pbuc1_derefidx_vbum1_neq_vbuc2_then_la1 
+    lda #2
+    cmp equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_TYPE,y
+    bne __breturn
+    // stage_impact::@8
+    // stage_tower_remove(f)
+    // [95] stage_tower_remove::t = stage_impact::f -- vbum1=vbum2 
+    tya
+    sta stage_tower_remove.t
+    // [96] callexecute stage_tower_remove  -- call_var_near 
+    jsr equinoxe_stage_flight.stage_tower_remove
+    // stage_impact::@return
+  __breturn:
+    // }
+    // [97] return 
+    rts
+    // stage_impact::@7
+  __b7:
+    // stage_player_remove(f)
+    // [98] stage_player_remove::p = stage_impact::f -- vbum1=vbum2 
+    lda f
+    sta stage_player_remove.p
+    // [99] callexecute stage_player_remove  -- call_var_near 
+    jsr equinoxe_stage_flight.stage_player_remove
+    rts
+    // stage_impact::@6
+  __b6:
+    // stage_bullet_remove(f)
+    // [100] stage_bullet_remove::b = stage_impact::f -- vbum1=vbum2 
+    lda f
+    sta stage_bullet_remove.b
+    // [101] callexecute stage_bullet_remove  -- call_var_near 
+    jsr equinoxe_stage_flight.stage_bullet_remove
+    rts
+    // stage_impact::@5
+  __b5:
+    // flight_wave(f)
+    // [102] flight_wave::f = stage_impact::f -- vbum1=vbum2 
+    lda f
+    sta equinoxe_flightengine.flight_wave.f
+    // [103] callexecute flight_wave  -- call_var_near 
+    jsr equinoxe_flightengine.flight_wave
+    // [104] stage_impact::$3 = flight_wave::return -- vbuaa=vbum1 
+    lda equinoxe_flightengine.flight_wave.return
+    // stage_enemy_remove(flight_wave(f), f)
+    // [105] stage_enemy_remove::w = stage_impact::$3 -- vbum1=vbuaa 
+    sta stage_enemy_remove.w
+    // [106] stage_enemy_remove::e = stage_impact::f -- vbum1=vbum2 
+    lda f
+    sta stage_enemy_remove.e
+    // [107] callexecute stage_enemy_remove  -- call_var_near 
+    jsr equinoxe_stage_flight.stage_enemy_remove
+    rts
+  .segment Data
+    f: .byte 0
+  .segment Data
+    h: .byte 0
+}
+  // Exported Global Data
+.segment BramEngineStages
+  action_flightpath_000: .word $140
+  .byte $10, 0, STAGE_ACTION_MOVE, 0
+.segment BramEngineStages
+  action_flightpath_left_circle_002: .word $140+$a0
+  .byte $20, 3, STAGE_ACTION_MOVE, 1, -$18, 4, 3
+  .fill 1, 0
+  .byte STAGE_ACTION_TURN, 2
+  .word $50
+  .byte 0, 3, STAGE_ACTION_MOVE, 1
+.segment BramEngineStages
+  action_flightpath_right_circle_003: .word $140+$a0
+  .byte 0, 3, STAGE_ACTION_MOVE, 1, $18, 4, 3
+  .fill 1, 0
+  .byte STAGE_ACTION_TURN, 2
+  .word $50
+  .byte 0, 3, STAGE_ACTION_MOVE, 1
+.segment BramEngineStages
+  action_flightpath_005: .word $300
+  .byte $20, 2, STAGE_ACTION_MOVE, 1, 0
+  .fill 3, 0
+  .byte STAGE_ACTION_END, 0
+.segment BramEngineStages
+  action_flightpath_006: .word $300
+  .byte 0, 2, STAGE_ACTION_MOVE, 1, 0
+  .fill 3, 0
+  .byte STAGE_ACTION_END, 0
+.segment BramEngineStages
+  stage_scenario_01_b: .byte 1, 1
+  .word stage_enemy_e0401, action_flightpath_000, $140, $a0
+  .byte 0, 0, 4, $a, $ff, 0, 1, 1
+  .word stage_enemy_e0701, action_flightpath_000, $a0, $a0
+  .byte 0, 0, 4, $14, 0, 0, 1, 1
+  .word stage_enemy_e0702, action_flightpath_000, $1e0, $a0
+  .byte 0, 0, 4, $1e, 0, 0, 4, 4
+  .word stage_enemy_e0201, action_flightpath_005, $2c0, $20
+  .byte 0, 0, $e, $14, 2, 0, 4, 4
+  .word stage_enemy_e0201, action_flightpath_006, $40, $60
+  .byte 0, 0, $10, $14, 2, 0, 4, 4
+  .word stage_enemy_e0201, action_flightpath_005, $2c0, $a0
+  .byte 0, 0, $12, $14, 2, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_006, -$40, $20
+  .byte 0, 0, 8, $14, 5, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_005, $2c0, $60
+  .byte 0, 0, 8, $14, 5, 0, 8, 8
+  .word stage_enemy_e0301, action_flightpath_006, -$40, $a0
+  .byte 0, 0, 8, $14, 5, 0, 8, 8
+  .word stage_enemy_e0302, action_flightpath_005, $2c0, $e0
+  .byte 0, 0, 8, $14, 8, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_006, -$40, $20
+  .byte 0, $20, 4, $14, 8, 0, 8, 8
+  .word stage_enemy_e0501, action_flightpath_005, $2c0, $20
+  .byte 0, $20, 2, $14, $a, 0, 8, 8
+  .word stage_enemy_e0601, action_flightpath_006, -$40, $20
+  .byte 0, $20, 2, $14, $a, 0, 8, 8
+  .word stage_enemy_e0701, action_flightpath_005, $2c0, $20
+  .byte 0, $20, 6, $14, $c, 0, 8, 8
+  .word stage_enemy_e0702, action_flightpath_006, -$40, $20
+  .byte 0, $20, 8, $14, $c, 0, 8, 8
+  .word stage_enemy_e0703, action_flightpath_005, $2c0, $20
+  .byte 0, $20, $a, $14, $c, 0, 8, 8
+  .word stage_enemy_e0101, action_flightpath_left_circle_002, $2c0, $20
+  .byte 0, $20, 6, $14, $f, 0, 8, 8
+  .word stage_enemy_e0202, action_flightpath_right_circle_003, -$40, $20
+  .byte 0, $20, 8, $14, $f, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_right_circle_003, $2c0, $20
+  .byte 0, $20, $a, $14, $11, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_left_circle_002, $2c0, $20
+  .byte 0, $20, $a, $14, $11, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+.segment BramEngineStages
+  // const stage_action_end_t      action_end                      = { 0 };
+  stage_floor_bram_tiles_01: .word mars_land_bram, mars_sand_bram, mars_sea_bram, metal_yellow_bram, metal_red_bram, metal_grey_bram
+.segment BramEngineStages
+  stage_tower_bram_tiles_01: .word tower_bram, mars_sea_bram
+.segment BramEngineStages
+  // This models the playbook of all the different levels in the game.
+  // The embedded level field in the playbook is a pointer to a level composition.
+  stage_playbooks_b: .byte $13
+  .word stage_scenario_01_b, stage_player, stage_floor_01
+  .byte 1
+  .word stage_towers_01
+.segment Data
+  __45: .text "t001"
+  .byte 0
+.segment Data
+  __46: .text "p001"
+  .byte 0
+.segment Data
+  __47: .text "n001"
+  .byte 0
+.segment Data
+  __48: .text "e0701"
+  .byte 0
+.segment Data
+  __49: .text "e0102"
+  .byte 0
+.segment Data
+  __50: .text "e0201"
+  .byte 0
+.segment Data
+  __51: .text "e0202"
+  .byte 0
+.segment Data
+  __52: .text "e0301"
+  .byte 0
+.segment Data
+  __53: .text "e0302"
+  .byte 0
+.segment Data
+  __54: .text "e0401"
+  .byte 0
+.segment Data
+  __55: .text "e0501"
+  .byte 0
+.segment Data
+  __56: .text "e0502"
+  .byte 0
+.segment Data
+  __57: .text "e0601"
+  .byte 0
+.segment Data
+  __58: .text "e0602"
+  .byte 0
+.segment Data
+  __59: .text "e0101"
+  .byte 0
+.segment Data
+  __60: .text "e0702"
+  .byte 0
+.segment Data
+  __61: .text "e0703"
+  .byte 0
+.segment Data
+  __62: .text "b001"
+  .byte 0
+.segment Data
+  __63: .text "b002"
+  .byte 0
+.segment Data
+  __64: .text "b003"
+  .byte 0
+.segment Data
+  __65: .text "b004"
+  .byte 0
+.segment BramEngineFlight
+  // __export volatile sprite_bram_t sprite_t001 = { "t001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_n001 = { "n001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0101 = { "e0101", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0102 = { "e0102", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0201 = { "e0201", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0202 = { "e0202", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0301 = { "e0301", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0302 = { "e0302", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0401 = { "e0401", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0501 = { "e0501", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0502 = { "e0502", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0601 = { "e0601", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0602 = { "e0602", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0701 = { "e0701", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0702 = { "e0702", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0703 = { "e0703", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  sprites: .word __45, __46, __47, __48, __49, __50, __51, __52, __53, __54, __55, __56, __57, __58, __59, __60, __61, __62, __63, __64, __65
+  .fill 2*$b, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .word 0
+  .fill 2*$1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .word 0
+  .fill 2*$1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+.segment BramEngineFloor
+  // FLOOR
+  mars_land_bram: .byte 0
+  .text "marsland"
+  .byte 0
+  .fill 7, 0
+  .byte $5e
+  .word $10*$10*$5e, $80, 0
+.segment BramEngineFloor
+  mars_sand_bram: .byte 0
+  .text "marssand"
+  .byte 0
+  .fill 7, 0
+  .byte 4
+  .word $10*$10*4, $80, 0
+.segment BramEngineFloor
+  mars_sea_bram: .byte 0
+  .text "marssea"
+  .byte 0
+  .fill 8, 0
+  .byte $10
+  .word $10*$10*$10, $80, 0
+.segment BramEngineFloor
+  metal_yellow_bram: .byte 0
+  .text "metalyellow"
+  .byte 0
+  .fill 4, 0
+  .byte $2a
+  .word $10*$10*$2d, $80, 0
+.segment BramEngineFloor
+  metal_red_bram: .byte 0
+  .text "metalred"
+  .byte 0
+  .fill 7, 0
+  .byte 1
+  .word $10*$10*1, $80, 0
+.segment BramEngineFloor
+  metal_grey_bram: .byte 0
+  .text "metalgrey"
+  .byte 0
+  .fill 6, 0
+  .byte 1
+  .word $10*$10*1, $80, 0
+.segment BramEngineFloor
+  mars_parts: .word 0
+  .fill 2*$9f, 0
+  .word 0
+  .fill 2*$9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+.segment BramEngineFloor
+  mars_land: .byte 0, $23, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, 1, 0, $1a, 8, $1b, 1, $54, 0, $55, $56, 2, 0, 0, $1c, 0, 3, 0, 0, $16, $17, 3, 0, 0, $2c, $2d, 3, 0, 0, $4e, $4f, 3, $52, $53, $50, $51, 4, 0, $20, 0, 0, 4, 0, $2e, 0, 0, 5, $48, $46, $49, $47, 5, $2a, $2b, $2f, $30, 5, $b, $c, $e, $f, 5, $4a, $4b, $4c, $4d, 6, $27, $22, $28, $29, 7, $12, $13, $18, $19, 7, $57, $58, $59, $5a, 8, $21, 0, 0, 0, 8, $31, 0, 0, 0, 9, $23, $24, $25, $26, $a, $a, 0, $d, 0, $a, $32, 0, $33, 0, $a, $5b, 0, $5c, 0, $a, $5d, 0, $5e, 0, $b, $10, $11, $14, $15, $c, 3, 4, 0, 0, $c, $34, $35, 0, 0, $d, 5, 6, 8, 9, $d, 5, 6, 0, $39, $e, 1, 2, 7, 0, $e, 1, $36, $3a, $3b, $f, $1d, $1e, $1f, $1d, $f, $37, $38, $3c, $3d, $f, $3e, $3f, $40, $41, $f, $45, $42, $43, $44
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  mars_sand: .byte $5e, 2, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, $f, 1, 2, 3, 4
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  mars_sea: .byte $62, 5, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, $f, 1, 2, 5, 1, $f, 3, 4, 7, 8, $f, 9, $a, $d, $e, $f, $b, $c, $f, $10
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  metal_yellow: .byte $72, $20, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, 1, $1d, $2a, $2a, $29, 2, $29, $16, $2a, $29, 3, $19, $1a, $2a, $29, 4, $29, $2a, $b, $29, 5, $11, $2a, $13, $29, 6, $25, $22, $23, $28, 7, $2a, $e, 7, $25, 8, $29, $2a, $2a, 4, 9, $29, $e, $2a, $10, $a, $d, $e, $f, $10, $b, $11, $29, $26, 8, $c, $2a, $29, 7, 8, $d, $19, $27, $29, $10, $e, $28, $1a, $13, $2a, $f, $29, $2a, $2a, $29, $10, 0, 0, 0, 0, $11, $29, $1e, $1f, $20, $12, $15, $2a, $17, $18, $13, $29, $2a, $1b, $1c, $14, 9, $a, $2a, $c, $15, $29, $12, $2a, $14, $16, $25, $22, $23, $28, $17, $21, $2a, $2a, $29, $18, 1, 2, 3, $29, $19, $d, $2a, $f, $29, $1a, $d, $2a, $f, $29, $1b, $2a, $22, $2a, $29, $1c, 5, 6, $2a, $29, $1d, $29, $2a, $23, $29, $1e, $29, $2a, $2a, $24, $1f, $29, $2a, $2a, $29
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  metal_red: .byte $86, 2, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, $f, 1, 1, 1, 1
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  mars: .word mars_parts, mars_land, mars_sea, mars_sand, metal_yellow, metal_red
+  .fill 2*5, 0
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 1, 3, 5, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 2, $f, $a
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 3, $f, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 4, $c
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 5, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $e
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $c, 8
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $d, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $f, $a
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $f, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $c, $c
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $d, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $e
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 1, 3, 5, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 2, $f, $a
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 3, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 4, $c
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 5, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $e
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $c, 8
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $d, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $f, $a
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $c, $c
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $d, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $e
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $f
+  .word metal_yellow
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .word metal_yellow
+  .byte $1e, $13, $15, $e
+  .word mars_land
+  .byte 0, 0, 0, 1
+  .word metal_yellow
+  .byte $13, $1b, $d, $1a
+  .word mars_land
+  .byte 0, 0, 2, 0
+  .word metal_yellow
+  .byte $13, $13, 3, 3
+  .word mars_land
+  .byte 0, 0, 3, 3
+  .word metal_yellow
+  .byte $15, $b, $1b, $1c
+  .word mars_land
+  .byte 0, 4, 0, 0
+  .word metal_yellow
+  .byte $15, 5, $15, 5
+  .word mars_land
+  .byte 0, 5, 0, 5
+  .word metal_yellow
+  .byte $11, $b, $d, $18
+  .word mars_land
+  .byte 0, 4, 2, 0
+  .word metal_yellow
+  .byte $11, 5, 3, 1
+  .word mars_land
+  .byte 0, 5, 3, 7
+  .word metal_yellow
+  .byte 7, $1a, $1c, $17
+  .word mars_land
+  .byte 8, 0, 0, 0
+  .word metal_yellow
+  .byte 7, $12, $14, $e
+  .word mars_land
+  .byte 8, 0, 0, 1
+  .word metal_yellow
+  .byte $a, $1a, $a, $1a
+  .word mars_land
+  .byte $a, 0, $a, 0
+  .word metal_yellow
+  .byte $a, $12, 2, 3
+  .word mars_land
+  .byte $a, 0, $b, 3
+  .word metal_yellow
+  .byte $c, $c, $1c, $1c
+  .word mars_land
+  .byte $c, $c, 0, 0
+  .word metal_yellow
+  .byte $c, 4, $14, 5
+  .word mars_land
+  .byte $c, $d, 0, 5
+  .word metal_yellow
+  .byte 8, $c, $a, $18
+  .word mars_land
+  .byte $e, $c, $a, 0
+  .word metal_yellow
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $f
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .byte 0
+.segment BramEngineFloor
+  // TOWER
+  tower_bram: .byte 0
+  .text "tower01"
+  .byte 0
+  .fill 8, 0
+  .byte $10
+  .word $10*$10*$10, $80, 0
+.segment BramEngineFloor
+  tower_parts_01: .word 0
+  .fill 2*$9f, 0
+  .word 0
+  .fill 2*$9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+.segment BramEngineFloor
+  tower: .byte 0, 5, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, 1, 1, 2, 5, 6, 2, 3, 4, 7, 8, 3, 9, $a, $d, $e, 4, $b, $c, $f, $10
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  tower_01: .word tower_parts_01, mars_sea, mars_land
+  .fill 2*8, 0
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .byte 0
+.segment BramEngineStages
+  stage_bullet_fireball: .byte b002
+.segment BramEngineStages
+  stage_bullet_vertical_laser: .byte b003
+.segment BramEngineStages
+  stage_enemy_e0101: .byte e0701, e0701
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0102: .byte e0102, e0102
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0201: .byte e0201, e0201
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0202: .byte e0202, e0202
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0301: .byte e0301, e0301
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0302: .byte e0302, e0302
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0401: .byte e0401, e0401
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0501: .byte e0501, e0501
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0502: .byte e0502, e0502
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0601: .byte e0601, e0601
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0602: .byte e0602, e0602
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0701: .byte e0701, e0701
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0702: .byte e0702, e0702
+  .word stage_bullet_fireball
+  .byte 4, 1
+.segment BramEngineStages
+  stage_enemy_e0703: .byte e0703, e0703
+  .word stage_bullet_fireball
+  .byte 4, 1
+.segment BramEngineStages
+  stage_player_engine: .byte n001
+.segment BramEngineStages
+  stage_player_bullet: .byte b001
+.segment BramEngineStages
+  stage_player: .byte p001
+  .word stage_player_engine, stage_player_bullet
+.segment BramEngineStages
+  stage_floor_01: .byte 6
+  .word stage_floor_bram_tiles_01, mars
+.segment BramEngineStages
+  stage_towers_01: .byte 2
+  .word stage_tower_bram_tiles_01, tower_01
+  .byte t001, $10, $10, 8, 8
+  .word stage_bullet_vertical_laser
+.segment BramEngineStages
+  stage_script_b: .byte 1
+  .word stage_playbooks_b
+.segment DataEngineStages
+  stage: .fill SIZEOF_STRUCT_STAGE_T, 0
+  // end-assembler
+  // End Namespace
+} // namespace
+ // Asm import library equinoxe-flightengine:
+.namespace equinoxe_flightengine {
+.label flight = 0
+.label wave = 0
+flight_remove: {
+  .label type = 0
+  .label f = 0
+  .label return = 0
+}
+flight_wave: {
+  .label f = 0
+  .label return = 0
+}
+flight_hit: {
+  .label f = 0
+  .label impact = 0
+  .label return = 0
+}
+flight_impact: {
+  .label f = 0
+  .label return = 0
+}
+} // namespaceequinoxe_flightengine
+
+ // Asm import library equinoxe-waves:
+.namespace equinoxe_waves {
+.label flight = 0
+.label wave = 0
+} // namespaceequinoxe_waves
+
+ // Asm import library equinoxe-bullet:
+.namespace equinoxe_bullet {
+.label flight = 0
+.label wave = 0
+bullet_add: {
+  .label sx = 0
+  .label sy = 0
+  .label tx = 0
+  .label ty = 0
+  .label speed = 0
+  .label side = 0
+  .label sprite_bullet = 0
+  .label return = 0
+}
+} // namespaceequinoxe_bullet
+

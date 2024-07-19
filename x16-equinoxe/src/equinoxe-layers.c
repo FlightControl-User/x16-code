@@ -1,10 +1,10 @@
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(vera_petscii_init, vera_floor_layer0, vera_floor_layer1, vera_petscii_layer1)
-#pragma asm_export(vera_floor_layer0_show, vera_floor_layer1_show) 
-#pragma asm_export(vera_floor_layer0_hide, vera_floor_layer1_hide) 
+#pragma lib_export(vera_petscii_init, vera_floor_layer0, vera_floor_layer1, vera_petscii_layer1)
+#pragma lib_export(vera_floor_layer0_show, vera_floor_layer1_show) 
+#pragma lib_export(vera_floor_layer0_hide, vera_floor_layer1_hide) 
 #pragma calling(__phicall)
 
 #include <cx16.h>
@@ -36,7 +36,7 @@ typedef struct {
     unsigned int offsets[61];           ///< Calculated offsets per line according the mapbase and the row width (scale).
 } cx16_conio_t;
 
-#include <lib_conio_asm.h>
+#include <lib_conio.p>
 
 void vera_petscii_init() {
     cx16_k_screen_set_charset(3, (char *)0);

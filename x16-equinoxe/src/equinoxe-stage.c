@@ -1,16 +1,20 @@
 
 // #include "equinoxe.h"
 
+#pragma var_model(mem)
+
 #include "equinoxe-defines.h"
 
-#include "equinoxe-waves_asm.h"
-#include "equinoxe-flightengine_asm.h"
-#include "equinoxe-stage-flight_asm.h"
+#include "equinoxe-waves.p"
+#include "equinoxe-flightengine.p"
+#include "equinoxe-stage-flight.p"
 
 #include "equinoxe-stage.h"
-#include "equinoxe-player.h"
-#include "equinoxe-bullet.h"
-// #include "equinoxe-enemy.h"
+#include <equinoxe-player.p>
+#include <equinoxe-bullet.p>
+#include "equinoxe-levels.h"
+#include <equinoxe-enemy.p>
+#include <equinoxe-bullet.p>
 #include "equinoxe-floorengine.h"
 
 
@@ -230,7 +234,7 @@ static void stage_reset(void)
 #endif
 
 #ifdef __BULLET
-    bullet_init();
+    // bullet_init();
 #endif
 
 // #ifdef __ENEMY
@@ -287,17 +291,6 @@ void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite)
     unsigned char enemies = enemy_add(w, enemy_sprite);
     wave_set(w);
     stage.enemy_count++;
-#endif
-}
-
-
-
-
-
-void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet) {
-#ifdef __BULLET
-    bullet_add(sx, sy, tx, ty, speed, side, sprite_bullet);
-    stage.bullet_count++;
 #endif
 }
 

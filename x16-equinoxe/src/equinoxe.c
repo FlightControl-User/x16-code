@@ -5,29 +5,33 @@
 // #pragma cpu(mos6502)
 #pragma var_model(mem, local_mem)
 
+#include <lib_conio.p>
+
 #include "equinoxe-types.h"
 
-#include <lib_conio_asm.h>
-#include <lib_lru_cache_asm.h>
-#include <lib_veraheap_asm.h>
-#include <lib_bramheap_asm.h>
-#include <lib_file_asm.h>
+#include <lib_lru_cache.p>
+#include <lib_veraheap.p>
+#include <lib_bramheap.p>
 
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
-#include "equinoxe-flightengine_asm.h"
-#include "equinoxe-waves_asm.h"
-#include "equinoxe-stage-flight_asm.h"
-#include "equinoxe-enemy_asm.h"
-#include <equinoxe-collision_asm.h>
+#include <stdio-types.h>
+#include <lib_file.p>
 
+#include <equinoxe-layers.p>
+#include <equinoxe-animate.p>
+#include <equinoxe-palette.p>
+#include <equinoxe-flightengine.p>
+#include <equinoxe-waves.p>
+#include <equinoxe-stage-flight.p>
+#include <equinoxe-enemy.p>
+#include <equinoxe-collision.p>
+#include <equinoxe-player.p>
 
 #include "equinoxe.h"
+#include "cx16-mouse.h"
 
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
+#include <equinoxe-layers.p>
+#include <equinoxe-animate.p>
+#include <equinoxe-palette.p>
 
 #include "equinoxe-levels.h"
 
@@ -44,32 +48,34 @@ equinoxe_game_t game = {1, 0, 0, 0, 0, 127, 64, 1,
 // __mem FILE* music;
 // unsigned char music_buffer[1024];
 
+#pragma calling(__phicall)
+
 void equinoxe_init() {
 
     // Load all banks with data and code!
     unsigned bytes = 0;
-    bytes = fload_bram("stages.bin", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000);
-    bytes = fload_bram("bramflight1.bin", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
-    bytes = fload_bram("bramfloor1.bin", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
-    bytes = fload_bram("veraheap.bin", BANK_VERA_HEAP, (bram_ptr_t)0xA000);
+    bytes = fload_bram("STAGES.BIN", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("BRAMFLIGHT1.BIN", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("BRAMFLOOR1.BIN", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000);
+    bytes = fload_bram("VERAHEAP.BIN", BANK_VERA_HEAP, (bram_ptr_t)0xA000);
 
     flight_init();
 
 #ifdef __PLAYER
 
-    bytes = fload_bram("players.bin", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
+    bytes = fload_bram("PLAYERS.BIN", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000);
 #endif
 
 #ifdef __ENEMY
-    bytes = fload_bram("enemies.bin", BANK_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
+    bytes = fload_bram("ENEMIES.BIN", BANK_ENGINE_ENEMIES, (bram_ptr_t)0xA000);
 #endif
 
 #ifdef __TOWER
-    bytes = fload_bram("towers.bin", BANK_ENGINE_TOWERS, (bram_ptr_t)0xA000);
+    bytes = fload_bram("TOWERS.BIN", BANK_ENGINE_TOWERS, (bram_ptr_t)0xA000);
 #endif
 
 #ifdef __BULLET
-    bytes = fload_bram("bullets.bin", BANK_ENGINE_BULLETS, (bram_ptr_t)0xA000);
+    bytes = fload_bram("BULLETS.BIN", BANK_ENGINE_BULLETS, (bram_ptr_t)0xA000);
 #endif
 
     animate_init();
@@ -162,7 +168,7 @@ void irq_vsync() {
         #ifdef __CPULINES
             vera_display_set_border_color(LIGHT_BLUE);
         #endif
-        player_logic();
+        player_logic(cx16_mouse.x, cx16_mouse.px, cx16_mouse.y, cx16_mouse.status);
     #endif
 
     #ifdef __BULLET

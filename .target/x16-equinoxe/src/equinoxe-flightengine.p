@@ -1,0 +1,18 @@
+extern __lib_import("equinoxe-flightengine") __mem() fe_sprite_cache_t sprite_cache;
+extern __lib_import("equinoxe-flightengine") __mem() flight_t flight;
+extern __varcall __lib_import("equinoxe-flightengine") void flight_init();
+extern __varcall __lib_import("equinoxe-flightengine") __mem() char flight_add(__mem() char type, __mem() char side, __mem() char sprite);
+extern __varcall __lib_import("equinoxe-flightengine") void flight_remove(__mem() char type, __mem() char f);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() char flight_root(__mem() char type);
+extern __varcall __lib_import("equinoxe-flightengine") void flight_move(__mem() char e, __mem() unsigned int moving, __mem() char turn, __mem() char speed);
+extern __varcall __lib_import("equinoxe-flightengine") void flight_arc(__mem() char e, __mem() char turn, __mem() char radius, __mem() char speed);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() char flight_next(__mem() char i);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() char flight_wave(__mem() char f);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() char flight_hit(__mem() char f, __mem() signed char impact);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() signed char flight_impact(__mem() char f);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() signed char flight_health(__mem() char f);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() char flight_has_collided(__mem() char f);
+extern __varcall __lib_import("equinoxe-flightengine") void flight_draw();
+extern __varcall __lib_import("equinoxe-flightengine") __mem() unsigned int sprite_image_cache_vram(__mem() char sprite_cache_index, __mem() char fe_sprite_image_index);
+extern __varcall __lib_import("equinoxe-flightengine") __mem() unsigned int fe_sprite_bram_load(__mem() char sprite_index, __mem() unsigned int sprite_offset);
+extern __phicall __lib_import("equinoxe-flightengine") void __equinoxe_flightengine_start();

@@ -4,6 +4,30 @@
 #include "equinoxe-floorengine-types.h"
 #include "cx16-veraheap-typedefs.h"
 
+// The different flight object types.
+char const t001 = 0;
+char const p001 = 1;
+char const n001 = 2;
+char const e0701 = 3;
+char const e0102 = 4;
+char const e0201 = 5;
+char const e0202 = 6;
+char const e0301 = 7;
+char const e0302 = 8;
+char const e0401 = 9;
+char const e0501 = 10;
+char const e0502 = 11;
+char const e0601 = 12;
+char const e0602 = 13;
+char const e0101 = 14;
+char const e0702 = 15;
+char const e0703 = 16;
+char const b001 = 17;
+char const b002 = 18;
+char const b003 = 19;
+char const b004 = 20;
+
+
 typedef struct {
     char file[16];
 } stage_file_t;

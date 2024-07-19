@@ -20,7 +20,7 @@
 #define BRAM_HEAP_SEGMENTS 2
 // #define BRAM_BRAM_HEAP
 
-#include <lib-bramheap_asm.h>
+#include <lib-bramheap.p>
 
 #include <cx16-bramheap-segments.h>
 

@@ -1,0 +1,10 @@
+extern __varcall __lib_import("lib_lru_cache") void lru_cache_init();
+extern __varcall __lib_import("lib_lru_cache") __mem() char lru_cache_index(__mem() unsigned int key);
+extern __varcall __lib_import("lib_lru_cache") __mem() unsigned int lru_cache_get(__mem() char index);
+extern __varcall __lib_import("lib_lru_cache") __mem() unsigned int lru_cache_set(__mem() char index, __mem() unsigned int data);
+extern __varcall __lib_import("lib_lru_cache") __mem() unsigned int lru_cache_data(__mem() char index);
+extern __varcall __lib_import("lib_lru_cache") __mem() bool lru_cache_is_max();
+extern __varcall __lib_import("lib_lru_cache") __mem() unsigned int lru_cache_find_last();
+extern __varcall __lib_import("lib_lru_cache") __mem() unsigned int lru_cache_delete(__mem() unsigned int key);
+extern __varcall __lib_import("lib_lru_cache") __mem() char lru_cache_insert(__mem() unsigned int key, __mem() unsigned int data);
+extern __phicall __lib_import("lib_lru_cache") void __lib_lru_cache_start();

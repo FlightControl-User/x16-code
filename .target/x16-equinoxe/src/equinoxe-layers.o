@@ -1,0 +1,272 @@
+
+{
+    "target_platform": {
+        "platform": "CX16",
+        "cpu": "wdc65c02"
+    },
+    "library": "equinoxe_layers",
+    "asm_upstart": ".cpu _65c02.segmentdef Code \r\n.segmentdef CodeBramHeap \r\n.segmentdef CodeVeraHeap \r\n.segmentdef CodeLruCache \r\n.segmentdef CodeEngineFlight \r\n.segmentdef CodeEngineFloor \r\n.segmentdef CodeEngineAnimate \r\n.segmentdef CodeEnginePalette \r\n\r\n.segmentdef Data\r\n.segmentdef DataBramHeap \r\n.segmentdef DataVeraHeap \r\n.segmentdef DataEngineAnimate \r\n.segmentdef DataEnginePalette \r\n.segmentdef DataEngineFloor \r\n.segmentdef DataEngineStages\r\n.segmentdef DataEngineBullets\r\n.segmentdef DataEnginePlayers\r\n.segmentdef DataEngineEnemies\r\n.segmentdef DataEngineTowers\r\n.segmentdef DataEngineFlight \r\n.segmentdef DataSpriteCache\r\n\r\n\r\n//.segmentdef BramEngineFloor \r\n\r\n\r\n.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]\r\n\r\n.segmentdef Debug                   [startAfter=\"Hash\", align=$100]\r\n\r\n.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n\r\n//.segmentdef CodeVeraHeap            [startAfter=\"BramVeraHeap\", min=$A000, max=$BFFF, align=$100] \r\n//.segmentdef DataVeraHeap            [startAfter=\"CodeVeraHeap\", min=$A000, max=$BFFF, align=$100] \r\n\r\n.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n.segmentdef BramEngineStages        [startAfter=\"CodeEngineStages\", min=$A000, max=$BFFF, align=$100]\r\n.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n\r\n.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]\r\n.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]\r\n.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n\r\n//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]\r\n//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]\r\n",
+    "zp_reserved": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        252,
+        253,
+        254,
+        255
+    ],
+    "call_graph": {
+        "__equinoxe_layers_start": [
+        ],
+        "vera_floor_layer1_show": [
+        ],
+        "vera_floor_layer0_show": [
+        ],
+        "vera_floor_layer1_hide": [
+            "vera_layer1_hide"
+        ],
+        "vera_floor_layer0_hide": [
+        ],
+        "vera_petscii_layer1": [
+            "vera_layer1_mode_tile",
+            "lib_conio.screenlayer1",
+            "lib_conio.clrscr",
+            "equinoxe_layers.vera_floor_layer1_show"
+        ],
+        "vera_floor_layer1": [
+            "vera_layer1_mode_tile",
+            "equinoxe_layers.vera_floor_layer1_show"
+        ],
+        "vera_floor_layer0": [
+            "vera_layer0_mode_tile",
+            "equinoxe_layers.vera_floor_layer0_show"
+        ],
+        "vera_petscii_init": [
+            "vera_layer1_mode_tile",
+            "lib_conio.screenlayer1",
+            "lib_conio.textcolor",
+            "lib_conio.bgcolor",
+            "lib_conio.clrscr",
+            "lib_conio.scroll",
+            "equinoxe_layers.vera_floor_layer1_show",
+            "equinoxe_layers.vera_floor_layer0_hide"
+        ],
+        "vera_layer1_hide": [
+        ],
+        "vera_layer1_mode_tile": [
+        ],
+        "vera_layer0_mode_tile": [
+        ]
+    },
+    "globals": {
+        "zp": {
+            "zp_fields": {
+            }
+        },
+        "asm_begin": "  // File Comments\n  // Global constants and variables\n",
+        "asm_constants": "  // constants\n  /// The colors of the C64\n  .label BLACK = 0\n  .label WHITE = 1\n  ///< CX16 Set/Get screen mode.\n  .label CX16_SCREEN_SET_CHARSET = $ff62\n  .label VERA_DCSEL = 2\n  .label VERA_LAYER1_ENABLE = $20\n  .label VERA_LAYER0_ENABLE = $10\n  .label VERA_LAYER_WIDTH_64 = $10\n  .label VERA_LAYER_WIDTH_128 = $20\n  .label VERA_LAYER_WIDTH_MASK = $30\n  /// Bit 6-7: Map Height\t(0:32 tiles, 1:64 tiles, 2:128 tiles, 3:256 tiles)\n  .label VERA_LAYER_HEIGHT_32 = 0\n  .label VERA_LAYER_HEIGHT_64 = $40\n  .label VERA_LAYER_HEIGHT_MASK = $c0\n  /// Bit 0-1: Color Depth (0: 1 bpp, 1: 2 bpp, 2: 4 bpp, 3: 8 bpp)\n  .label VERA_LAYER_COLOR_DEPTH_1BPP = 0\n  .label VERA_LAYER_COLOR_DEPTH_4BPP = 2\n  .label VERA_LAYER_COLOR_DEPTH_MASK = 3\n  /// $9F2F\tL0_TILEBASE\t    Layer 0 Tile Base\n  /// Bit 2-7: Tile Base Address (16:11)\n  /// Bit 1:   Tile Height (0:8 pixels, 1:16 pixels)\n  .label VERA_TILEBASE_WIDTH_8 = 0\n  .label VERA_TILEBASE_WIDTH_16 = 1\n  .label VERA_TILEBASE_WIDTH_MASK = 1\n  .label VERA_TILEBASE_HEIGHT_8 = 0\n  .label VERA_TILEBASE_HEIGHT_16 = 2\n  .label VERA_TILEBASE_HEIGHT_MASK = 2\n  .label VERA_LAYER_TILEBASE_MASK = $fc\n  .label STACK_BASE = $103\n  /// $9F25\tCTRL Control\n  /// Bit 7: Reset\n  /// Bit 1: DCSEL\n  /// Bit 2: ADDRSEL\n  .label VERA_CTRL = $9f25\n  /// $9F29\tDC_VIDEO (DCSEL=0)\n  /// Bit 7: Current Field     Read-only bit which reflects the active interlaced field in composite and RGB modes. (0: even, 1: odd)\n  /// Bit 6: Sprites Enable\tEnable output from the Sprites renderer\n  /// Bit 5: Layer1 Enable\t    Enable output from the Layer1 renderer\n  /// Bit 4: Layer0 Enable\t    Enable output from the Layer0 renderer\n  /// Bit 2: Chroma Disable    Setting 'Chroma Disable' disables output of chroma in NTSC composite mode and will give a better picture on a monochrome display. (Setting this bit will also disable the chroma output on the S-video output.)\n  /// Bit 0-1: Output Mode     0: Video disabled, 1: VGA output, 2: NTSC composite, 3: RGB interlaced, composite sync (via VGA connector)\n  .label VERA_DC_VIDEO = $9f29\n  /// $9F2D\tL0_CONFIG   Layer 0 Configuration\n  .label VERA_L0_CONFIG = $9f2d\n  /// $9F2E\tL0_MAPBASE\t    Layer 0 Map Base Address (16:9)\n  .label VERA_L0_MAPBASE = $9f2e\n  /// Bit 0:\tTile Width (0:8 pixels, 1:16 pixels)\n  .label VERA_L0_TILEBASE = $9f2f\n  /// $9F34\tL1_CONFIG   Layer 1 Configuration\n  .label VERA_L1_CONFIG = $9f34\n  /// $9F35\tL1_MAPBASE\t    Layer 1 Map Base Address (16:9)\n  .label VERA_L1_MAPBASE = $9f35\n  /// $9F36\tL1_TILEBASE\t    Layer 1 Tile Base\n  /// Bit 2-7: Tile Base Address (16:11)\n  /// Bit 1:   Tile Height (0:8 pixels, 1:16 pixels)\n  /// Bit 0:\tTile Width (0:8 pixels, 1:16 pixels)\n  .label VERA_L1_TILEBASE = $9f36\n",
+        "asm_variables": "  // variables\n  .label BRAM = 0\n  .label BROM = 1\n",
+        "asm_end": "  // Exported Global Data\n"
+    },
+    "procedures": {
+        "vera_layer0_mode_tile": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": false,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_layer0_mode_tile\n// void vera_layer0_mode_tile(char mapbase_bank, unsigned int mapbase_offset, char tilebase_bank, unsigned int tilebase_offset, char mapwidth, char mapheight, char tilewidth, char tileheight, char bpp)\nvera_layer0_mode_tile: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // vera_layer0_mode_tile::vera_layer0_set_color_depth1\n  // [92] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_COLOR_DEPTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_COLOR_DEPTH_MASK^$ff\n  and VERA_L0_CONFIG\n  sta VERA_L0_CONFIG\n  // [93] *VERA_L0_CONFIG = *VERA_L0_CONFIG | VERA_LAYER_COLOR_DEPTH_4BPP -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 \n  lda #VERA_LAYER_COLOR_DEPTH_4BPP\n  ora VERA_L0_CONFIG\n  sta VERA_L0_CONFIG\n  // vera_layer0_mode_tile::vera_layer0_set_width1\n  // [94] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_WIDTH_MASK^$ff\n  and VERA_L0_CONFIG\n  sta VERA_L0_CONFIG\n  // [95] *VERA_L0_CONFIG = *VERA_L0_CONFIG | VERA_LAYER_WIDTH_64 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 \n  lda #VERA_LAYER_WIDTH_64\n  ora VERA_L0_CONFIG\n  sta VERA_L0_CONFIG\n  // vera_layer0_mode_tile::vera_layer0_set_height1\n  // [96] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_HEIGHT_MASK^$ff\n  and VERA_L0_CONFIG\n  sta VERA_L0_CONFIG\n  // [97] *VERA_L0_CONFIG = *VERA_L0_CONFIG -- _deref_pbuc1=_deref_pbuc1 \n  sta VERA_L0_CONFIG\n  // vera_layer0_mode_tile::vera_layer0_set_mapbase1\n  // [98] *VERA_L0_MAPBASE = 0 -- _deref_pbuc1=vbuc2 \n  lda #0\n  sta VERA_L0_MAPBASE\n  // vera_layer0_mode_tile::vera_layer0_set_tilebase1\n  // [99] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_LAYER_TILEBASE_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_TILEBASE_MASK^$ff\n  and VERA_L0_TILEBASE\n  sta VERA_L0_TILEBASE\n  // [100] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE -- _deref_pbuc1=_deref_pbuc1 \n  sta VERA_L0_TILEBASE\n  // vera_layer0_mode_tile::vera_layer0_set_tile_width1\n  // [101] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_TILEBASE_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_TILEBASE_WIDTH_MASK^$ff\n  and VERA_L0_TILEBASE\n  sta VERA_L0_TILEBASE\n  // [102] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE | VERA_TILEBASE_WIDTH_16 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 \n  lda #VERA_TILEBASE_WIDTH_16\n  ora VERA_L0_TILEBASE\n  sta VERA_L0_TILEBASE\n  // vera_layer0_mode_tile::vera_layer0_set_tile_height1\n  // [103] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_TILEBASE_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_TILEBASE_HEIGHT_MASK^$ff\n  and VERA_L0_TILEBASE\n  sta VERA_L0_TILEBASE\n  // [104] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE | VERA_TILEBASE_HEIGHT_16 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 \n  lda #VERA_TILEBASE_HEIGHT_16\n  ora VERA_L0_TILEBASE\n  sta VERA_L0_TILEBASE\n  // vera_layer0_mode_tile::@return\n  // [105] return \n  rts\n}\n"
+        },
+        "vera_layer1_mode_tile": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": false,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_layer1_mode_tile\n// void vera_layer1_mode_tile(char mapbase_bank, unsigned int mapbase_offset, __mem() char tilebase_bank, __mem() unsigned int tilebase_offset, __mem() char mapwidth, __mem() char mapheight, __mem() char tilewidth, __mem() char tileheight, char bpp)\nvera_layer1_mode_tile: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // vera_layer1_mode_tile::vera_layer1_set_color_depth1\n  // [73] *VERA_L1_CONFIG = *VERA_L1_CONFIG & ~VERA_LAYER_COLOR_DEPTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_COLOR_DEPTH_MASK^$ff\n  and VERA_L1_CONFIG\n  sta VERA_L1_CONFIG\n  // [74] *VERA_L1_CONFIG = *VERA_L1_CONFIG | vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 \n  ora vera_layer1_set_color_depth1_bpp\n  sta VERA_L1_CONFIG\n  // vera_layer1_mode_tile::vera_layer1_set_width1\n  // [75] *VERA_L1_CONFIG = *VERA_L1_CONFIG & ~VERA_LAYER_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_WIDTH_MASK^$ff\n  and VERA_L1_CONFIG\n  sta VERA_L1_CONFIG\n  // [76] *VERA_L1_CONFIG = *VERA_L1_CONFIG | vera_layer1_mode_tile::mapwidth#3 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 \n  ora mapwidth\n  sta VERA_L1_CONFIG\n  // vera_layer1_mode_tile::vera_layer1_set_height1\n  // [77] *VERA_L1_CONFIG = *VERA_L1_CONFIG & ~VERA_LAYER_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_HEIGHT_MASK^$ff\n  and VERA_L1_CONFIG\n  sta VERA_L1_CONFIG\n  // [78] *VERA_L1_CONFIG = *VERA_L1_CONFIG | vera_layer1_mode_tile::mapheight#3 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 \n  ora mapheight\n  sta VERA_L1_CONFIG\n  // vera_layer1_mode_tile::vera_layer1_set_mapbase1\n  // [79] *VERA_L1_MAPBASE = 1<<7|byte1 $b000>>1 -- _deref_pbuc1=vbuc2 \n  lda #1<<7|(>$b000)>>1\n  sta VERA_L1_MAPBASE\n  // vera_layer1_mode_tile::vera_layer1_set_tilebase1\n  // [80] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_LAYER_TILEBASE_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER_TILEBASE_MASK^$ff\n  and VERA_L1_TILEBASE\n  sta VERA_L1_TILEBASE\n  // [81] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$0 = vera_layer1_mode_tile::tilebase_bank#10 << 7 -- vbum1=vbum2_rol_7 \n  lda tilebase_bank\n  asl\n  asl\n  asl\n  asl\n  asl\n  asl\n  asl\n  sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__0\n  // [82] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$1 = byte1  vera_layer1_mode_tile::tilebase_offset#10 -- vbum1=_byte1_vwum2 \n  lda tilebase_offset+1\n  sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__1\n  // [83] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$2 = vera_layer1_mode_tile::vera_layer1_set_tilebase1_$1 >> 1 -- vbum1=vbum2_ror_1 \n  lsr\n  sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__2\n  // [84] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$3 = vera_layer1_mode_tile::vera_layer1_set_tilebase1_$0 | vera_layer1_mode_tile::vera_layer1_set_tilebase1_$2 -- vbum1=vbum2_bor_vbum3 \n  lda vera_layer1_set_tilebase1_vera_layer1_mode_tile__0\n  ora vera_layer1_set_tilebase1_vera_layer1_mode_tile__2\n  sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__3\n  // [85] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::vera_layer1_set_tilebase1_$3 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 \n  lda VERA_L1_TILEBASE\n  ora vera_layer1_set_tilebase1_vera_layer1_mode_tile__3\n  sta VERA_L1_TILEBASE\n  // vera_layer1_mode_tile::vera_layer1_set_tile_width1\n  // [86] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_TILEBASE_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_TILEBASE_WIDTH_MASK^$ff\n  and VERA_L1_TILEBASE\n  sta VERA_L1_TILEBASE\n  // [87] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::tilewidth#10 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 \n  ora tilewidth\n  sta VERA_L1_TILEBASE\n  // vera_layer1_mode_tile::vera_layer1_set_tile_height1\n  // [88] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_TILEBASE_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_TILEBASE_HEIGHT_MASK^$ff\n  and VERA_L1_TILEBASE\n  sta VERA_L1_TILEBASE\n  // [89] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::tileheight#10 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 \n  ora tileheight\n  sta VERA_L1_TILEBASE\n  // vera_layer1_mode_tile::@return\n  // [90] return \n  rts\n.segment Data\n  vera_layer1_set_tilebase1_vera_layer1_mode_tile__0: .byte 0\n.segment Data\n  vera_layer1_set_tilebase1_vera_layer1_mode_tile__1: .byte 0\n.segment Data\n  vera_layer1_set_tilebase1_vera_layer1_mode_tile__2: .byte 0\n.segment Data\n  vera_layer1_set_tilebase1_vera_layer1_mode_tile__3: .byte 0\n.segment Data\n  vera_layer1_set_color_depth1_bpp: .byte 0\n.segment Data\n  mapwidth: .byte 0\n.segment Data\n  mapheight: .byte 0\n.segment Data\n  tilebase_bank: .byte 0\n.segment Data\n  tilebase_offset: .word 0\n.segment Data\n  tilewidth: .byte 0\n.segment Data\n  tileheight: .byte 0\n}\n"
+        },
+        "vera_layer1_hide": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": false,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_layer1_hide\n/**\r\n * @brief Hide the layer 1 to be displayed from the screen.\r\n */\n// void vera_layer1_hide()\nvera_layer1_hide: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // [69] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_DCSEL^$ff\n  and VERA_CTRL\n  sta VERA_CTRL\n  // [70] *VERA_DC_VIDEO = *VERA_DC_VIDEO & ~VERA_LAYER1_ENABLE -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER1_ENABLE^$ff\n  and VERA_DC_VIDEO\n  sta VERA_DC_VIDEO\n  // vera_layer1_hide::@return\n  // [71] return \n  rts\n}\n"
+        },
+        "vera_petscii_init": {
+            "zp": {
+                "zp_fields": {
+                    "cx16_k_screen_set_charset1_offset": [
+                        34,
+                        2,
+                        false
+                    ]
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_petscii_init\n// void equinoxe_layers.vera_petscii_init()\nvera_petscii_init: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // [36] vera_petscii_init::cx16_k_screen_set_charset1_charset = 3 -- vbum1=vbuc1 \n  lda #3\n  sta cx16_k_screen_set_charset1_charset\n  // [37] vera_petscii_init::cx16_k_screen_set_charset1_offset = (char *) 0 -- pbuz1=pbuc1 \n  lda #<0\n  sta.z cx16_k_screen_set_charset1_offset\n  sta.z cx16_k_screen_set_charset1_offset+1\n  // vera_petscii_init::cx16_k_screen_set_charset1\n  // asm { ldacharset ldx<offset ldy>offset jsrCX16_SCREEN_SET_CHARSET  }\n  lda cx16_k_screen_set_charset1_charset\n  ldx.z <cx16_k_screen_set_charset1_offset\n  ldy.z >cx16_k_screen_set_charset1_offset\n  jsr CX16_SCREEN_SET_CHARSET\n  // [39] phi from vera_petscii_init::cx16_k_screen_set_charset1 to vera_petscii_init::@1 [phi:vera_petscii_init::cx16_k_screen_set_charset1->vera_petscii_init::@1]\n  // vera_petscii_init::@1\n  // [40] call vera_layer1_mode_tile\n  // [72] phi from vera_petscii_init::@1 to vera_layer1_mode_tile [phi:vera_petscii_init::@1->vera_layer1_mode_tile]\n  // [72] phi vera_layer1_mode_tile::tileheight#10 = VERA_TILEBASE_HEIGHT_8 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#0] -- vbum1=vbuc1 \n  lda #VERA_TILEBASE_HEIGHT_8\n  sta vera_layer1_mode_tile.tileheight\n  // [72] phi vera_layer1_mode_tile::tilewidth#10 = VERA_TILEBASE_WIDTH_8 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#1] -- vbum1=vbuc1 \n  lda #VERA_TILEBASE_WIDTH_8\n  sta vera_layer1_mode_tile.tilewidth\n  // [72] phi vera_layer1_mode_tile::tilebase_offset#10 = $f000 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#2] -- vwum1=vwuc1 \n  lda #<$f000\n  sta vera_layer1_mode_tile.tilebase_offset\n  lda #>$f000\n  sta vera_layer1_mode_tile.tilebase_offset+1\n  // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 1 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 \n  lda #1\n  sta vera_layer1_mode_tile.tilebase_bank\n  // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_64 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#4] -- vbum1=vbuc1 \n  lda #VERA_LAYER_HEIGHT_64\n  sta vera_layer1_mode_tile.mapheight\n  // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_128 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 \n  lda #VERA_LAYER_WIDTH_128\n  sta vera_layer1_mode_tile.mapwidth\n  // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_petscii_init::@1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 \n  lda #VERA_LAYER_COLOR_DEPTH_1BPP\n  sta vera_layer1_mode_tile.vera_layer1_set_color_depth1_bpp\n  jsr vera_layer1_mode_tile\n  // [41] phi from vera_petscii_init::@1 to vera_petscii_init::@2 [phi:vera_petscii_init::@1->vera_petscii_init::@2]\n  // vera_petscii_init::@2\n  // [42] callexecute screenlayer1  -- call_stack_near \n  jsr lib_conio.screenlayer1\n  // [43] stackpush(char) = WHITE -- _stackpushbyte_=vbuc1 \n  lda #WHITE\n  pha\n  // [44] callexecute textcolor  -- call_stack_near \n  jsr lib_conio.textcolor\n  // sideeffect stackpullpadding(1) -- _stackpullpadding_1 \n  pla\n  // [46] stackpush(char) = BLACK -- _stackpushbyte_=vbuc1 \n  lda #BLACK\n  pha\n  // [47] callexecute bgcolor  -- call_stack_near \n  jsr lib_conio.bgcolor\n  // sideeffect stackpullpadding(1) -- _stackpullpadding_1 \n  pla\n  // [49] callexecute clrscr  -- call_stack_near \n  jsr lib_conio.clrscr\n  // [50] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 \n  lda #0\n  pha\n  // [51] callexecute scroll  -- call_stack_near \n  jsr lib_conio.scroll\n  // sideeffect stackpullpadding(1) -- _stackpullpadding_1 \n  pla\n  // [53] callexecute vera_floor_layer1_show  -- call_var_near \n  jsr equinoxe_layers.vera_floor_layer1_show\n  // [54] callexecute vera_floor_layer0_hide  -- call_var_near \n  jsr equinoxe_layers.vera_floor_layer0_hide\n  // vera_petscii_init::@return\n  // [55] return \n  rts\n.segment Data\n  cx16_k_screen_set_charset1_charset: .byte 0\n}\n"
+        },
+        "vera_floor_layer0": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_floor_layer0\n// void equinoxe_layers.vera_floor_layer0()\nvera_floor_layer0: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // [32] call vera_layer0_mode_tile\n  // [91] phi from vera_floor_layer0 to vera_layer0_mode_tile [phi:vera_floor_layer0->vera_layer0_mode_tile]\n  jsr vera_layer0_mode_tile\n  // [33] phi from vera_floor_layer0 to vera_floor_layer0::@1 [phi:vera_floor_layer0->vera_floor_layer0::@1]\n  // vera_floor_layer0::@1\n  // [34] callexecute vera_floor_layer0_show  -- call_var_near \n  jsr equinoxe_layers.vera_floor_layer0_show\n  // vera_floor_layer0::@return\n  // [35] return \n  rts\n}\n"
+        },
+        "vera_floor_layer1": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_floor_layer1\n// void equinoxe_layers.vera_floor_layer1()\nvera_floor_layer1: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // [27] call vera_layer1_mode_tile\n  // [72] phi from vera_floor_layer1 to vera_layer1_mode_tile [phi:vera_floor_layer1->vera_layer1_mode_tile]\n  // [72] phi vera_layer1_mode_tile::tileheight#10 = VERA_TILEBASE_HEIGHT_16 [phi:vera_floor_layer1->vera_layer1_mode_tile#0] -- vbum1=vbuc1 \n  lda #VERA_TILEBASE_HEIGHT_16\n  sta vera_layer1_mode_tile.tileheight\n  // [72] phi vera_layer1_mode_tile::tilewidth#10 = VERA_TILEBASE_WIDTH_16 [phi:vera_floor_layer1->vera_layer1_mode_tile#1] -- vbum1=vbuc1 \n  lda #VERA_TILEBASE_WIDTH_16\n  sta vera_layer1_mode_tile.tilewidth\n  // [72] phi vera_layer1_mode_tile::tilebase_offset#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#2] -- vwum1=vwuc1 \n  lda #<0\n  sta vera_layer1_mode_tile.tilebase_offset\n  sta vera_layer1_mode_tile.tilebase_offset+1\n  // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 \n  sta vera_layer1_mode_tile.tilebase_bank\n  // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_32 [phi:vera_floor_layer1->vera_layer1_mode_tile#4] -- vbum1=vbuc1 \n  lda #VERA_LAYER_HEIGHT_32\n  sta vera_layer1_mode_tile.mapheight\n  // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_64 [phi:vera_floor_layer1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 \n  lda #VERA_LAYER_WIDTH_64\n  sta vera_layer1_mode_tile.mapwidth\n  // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_4BPP [phi:vera_floor_layer1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 \n  lda #VERA_LAYER_COLOR_DEPTH_4BPP\n  sta vera_layer1_mode_tile.vera_layer1_set_color_depth1_bpp\n  jsr vera_layer1_mode_tile\n  // [28] phi from vera_floor_layer1 to vera_floor_layer1::@1 [phi:vera_floor_layer1->vera_floor_layer1::@1]\n  // vera_floor_layer1::@1\n  // [29] callexecute vera_floor_layer1_show  -- call_var_near \n  jsr equinoxe_layers.vera_floor_layer1_show\n  // vera_floor_layer1::@return\n  // [30] return \n  rts\n}\n"
+        },
+        "vera_petscii_layer1": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_petscii_layer1\n// void equinoxe_layers.vera_petscii_layer1()\nvera_petscii_layer1: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // [20] call vera_layer1_mode_tile\n  // [72] phi from vera_petscii_layer1 to vera_layer1_mode_tile [phi:vera_petscii_layer1->vera_layer1_mode_tile]\n  // [72] phi vera_layer1_mode_tile::tileheight#10 = VERA_TILEBASE_HEIGHT_8 [phi:vera_petscii_layer1->vera_layer1_mode_tile#0] -- vbum1=vbuc1 \n  lda #VERA_TILEBASE_HEIGHT_8\n  sta vera_layer1_mode_tile.tileheight\n  // [72] phi vera_layer1_mode_tile::tilewidth#10 = VERA_TILEBASE_WIDTH_8 [phi:vera_petscii_layer1->vera_layer1_mode_tile#1] -- vbum1=vbuc1 \n  lda #VERA_TILEBASE_WIDTH_8\n  sta vera_layer1_mode_tile.tilewidth\n  // [72] phi vera_layer1_mode_tile::tilebase_offset#10 = $f000 [phi:vera_petscii_layer1->vera_layer1_mode_tile#2] -- vwum1=vwuc1 \n  lda #<$f000\n  sta vera_layer1_mode_tile.tilebase_offset\n  lda #>$f000\n  sta vera_layer1_mode_tile.tilebase_offset+1\n  // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 1 [phi:vera_petscii_layer1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 \n  lda #1\n  sta vera_layer1_mode_tile.tilebase_bank\n  // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_32 [phi:vera_petscii_layer1->vera_layer1_mode_tile#4] -- vbum1=vbuc1 \n  lda #VERA_LAYER_HEIGHT_32\n  sta vera_layer1_mode_tile.mapheight\n  // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_64 [phi:vera_petscii_layer1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 \n  lda #VERA_LAYER_WIDTH_64\n  sta vera_layer1_mode_tile.mapwidth\n  // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_petscii_layer1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 \n  lda #VERA_LAYER_COLOR_DEPTH_1BPP\n  sta vera_layer1_mode_tile.vera_layer1_set_color_depth1_bpp\n  jsr vera_layer1_mode_tile\n  // [21] phi from vera_petscii_layer1 to vera_petscii_layer1::@1 [phi:vera_petscii_layer1->vera_petscii_layer1::@1]\n  // vera_petscii_layer1::@1\n  // [22] callexecute screenlayer1  -- call_stack_near \n  jsr lib_conio.screenlayer1\n  // [23] callexecute clrscr  -- call_stack_near \n  jsr lib_conio.clrscr\n  // [24] callexecute vera_floor_layer1_show  -- call_var_near \n  jsr equinoxe_layers.vera_floor_layer1_show\n  // vera_petscii_layer1::@return\n  // [25] return \n  rts\n}\n"
+        },
+        "vera_floor_layer0_hide": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_floor_layer0_hide\n// void equinoxe_layers.vera_floor_layer0_hide()\nvera_floor_layer0_hide: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // vera_floor_layer0_hide::vera_layer0_hide1\n  // [16] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_DCSEL^$ff\n  and VERA_CTRL\n  sta VERA_CTRL\n  // [17] *VERA_DC_VIDEO = *VERA_DC_VIDEO & ~VERA_LAYER0_ENABLE -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_LAYER0_ENABLE^$ff\n  and VERA_DC_VIDEO\n  sta VERA_DC_VIDEO\n  // vera_floor_layer0_hide::@return\n  // [18] return \n  rts\n}\n"
+        },
+        "vera_floor_layer1_hide": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_floor_layer1_hide\n// void equinoxe_layers.vera_floor_layer1_hide()\nvera_floor_layer1_hide: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // [13] call vera_layer1_hide\n  jsr vera_layer1_hide\n  // vera_floor_layer1_hide::@return\n  // [14] return \n  rts\n}\n"
+        },
+        "vera_floor_layer0_show": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_floor_layer0_show\n// void equinoxe_layers.vera_floor_layer0_show()\nvera_floor_layer0_show: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // vera_floor_layer0_show::vera_layer0_show1\n  // [9] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_DCSEL^$ff\n  and VERA_CTRL\n  sta VERA_CTRL\n  // [10] *VERA_DC_VIDEO = *VERA_DC_VIDEO | VERA_LAYER0_ENABLE -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 \n  lda #VERA_LAYER0_ENABLE\n  ora VERA_DC_VIDEO\n  sta VERA_DC_VIDEO\n  // vera_floor_layer0_show::@return\n  // [11] return \n  rts\n}\n"
+        },
+        "vera_floor_layer1_show": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // vera_floor_layer1_show\n// void equinoxe_layers.vera_floor_layer1_show()\nvera_floor_layer1_show: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // vera_floor_layer1_show::vera_layer1_show1\n  // [5] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 \n  lda #VERA_DCSEL^$ff\n  and VERA_CTRL\n  sta VERA_CTRL\n  // [6] *VERA_DC_VIDEO = *VERA_DC_VIDEO | VERA_LAYER1_ENABLE -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 \n  lda #VERA_LAYER1_ENABLE\n  ora VERA_DC_VIDEO\n  sta VERA_DC_VIDEO\n  // vera_floor_layer1_show::@return\n  // [7] return \n  rts\n}\n"
+        },
+        "__equinoxe_layers_start": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": true,
+            "asm_begin": "  // code segment\n.segment Code\n  // __equinoxe_layers_start\n// void equinoxe_layers.__equinoxe_layers_start()\n__equinoxe_layers_start: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // __equinoxe_layers_start::__init1\n  // [1] BRAM = 0 -- vbuz1=vbuc1 \n  lda #0\n  sta.z BRAM\n  // [2] BROM = 4 -- vbuz1=vbuc1 \n  lda #4\n  sta.z BROM\n  // __equinoxe_layers_start::@return\n  // [3] return \n  rts\n}\n"
+        }
+    },
+    "resources": [
+    ]
+}

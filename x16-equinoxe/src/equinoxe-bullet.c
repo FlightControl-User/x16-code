@@ -1,14 +1,30 @@
+#pragma link("equinoxe-lib.ld")
+
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+
+#pragma lib_configure
+#pragma lib_export(__varcall, bullet_init, bullet_add, bullet_logic)
+
+#pragma calling(__phicall)
+
 #include "equinoxe-cx16.h"
 #include "equinoxe-math.h"
 #include "equinoxe-bullet.h"
 
-#include "equinoxe-stage-flight_asm.h"
+#include <equinoxe-animate.p>
+#include <equinoxe-flightengine.p>
+#include <equinoxe-collision.p>
+
+#include "equinoxe-stage-flight.p"
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_BULLETS)
 #pragma data_seg(DATA_ENGINE_BULLETS)
 #pragma bank(cx16_ram,BANK_ENGINE_BULLETS)
 #endif
+
+#ifdef __BULLET
 
 void bullet_init()
 {
@@ -110,18 +126,7 @@ void bullet_logic()
 
             if(x<640 && y<480 && x<0xFFFF-32 && y<0xFFFF-32) {
 
-            //     if(!flight.enabled[b]) {
-                    // vera_sprite_zdepth(sprite_offset, sprite_cache.zdepth[flight.sprite[b]]);
-            //         flight.enabled[b] = 1;
-            //     }
-
                 unsigned char volatile a = flight.animate[b];
-			// 	if(animate_is_waiting(a)) {
-			// 		vera_sprite_set_xy(sprite_offset, (signed int)x, (signed int)y);
-			// 	} else {
-			// 		// vera_sprite_set_xy_and_image_offset(sprite_offset, x, y, sprite_cache.vram_image_offset[(unsigned int)flight.sprite[b]*16+flight.state_animation[b]]);
-			// 		vera_sprite_set_xy_and_image_offset(sprite_offset, (signed int)x, (signed int)y, sprite_image_cache_vram(flight.sprite[b], animate_get_state(a)));
-			// 	}
                 animate_logic(a);
 
 #ifdef __COLLISION
@@ -149,3 +154,5 @@ inline void bullet_bank() {
 inline void bullet_unbank() {
     bank_pull_bram();
 }
+
+#endif

@@ -1,4 +1,5 @@
 
+#ifdef __ENEMY
 
 #include "equinoxe-cx16.h"
 
@@ -19,3 +20,4 @@ unsigned char enemy_get_wave(unsigned char e);
 void enemy_bank();
 void enemy_unbank();
 
+#endif

@@ -1,29 +1,29 @@
-#pragma link("equinoxe-lib.ld")
+#pragma link("equinoxe-libraries.ld")
 
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(wave_add)
-#pragma asm_export(wave_set)
+#pragma lib_export(wave_add)
+#pragma lib_export(wave_set)
 #pragma calling(__phicall)
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
 #include "stdio-types.h"
-#include "lib_conio_asm.h"
-#include "lib_lru_cache_asm.h"
-#include "lib_veraheap_asm.h"
-#include "lib_bramheap_asm.h"
-#include "lib_file_asm.h"
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
-#include "equinoxe-flightengine_asm.h"
+#include <lib_conio.p>
+#include <lib_lru_cache.p>
+#include <lib_veraheap.p>
+#include <lib_bramheap.p>
+#include <lib_file.p>
+#include <equinoxe-layers.p>
+#include <equinoxe-animate.p>
+#include <equinoxe-palette.p>
+// #include <equinoxe-flightengine.p>
 
 
-__asm_export wave_t wave;
+__lib_export wave_t wave;
 
 wave_index_t wave_add(wave_index_t w) {
     return (w+1) & (WAVE_COUNT-1);

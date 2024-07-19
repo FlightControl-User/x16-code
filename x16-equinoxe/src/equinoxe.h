@@ -14,10 +14,11 @@
 #include <kernal.h>
 #include <6502.h>
 #include <mos6522.h>
-#include <stdio.h>
+// #include <stdio.h>
+#include <stdio-types.h>
 #include <stdlib.h>
-#include <printf.h>
-#include <sprintf.h>
+// // #include <printf.h>
+// #include <sprintf.h>
 #include <division.h>
 #include <multiply.h>
 #include <cx16-veralib.h>
@@ -30,15 +31,15 @@
 #include "equinoxe-bank.h"
 #include "equinoxe-defines.h"
 
-#include <lib_lru_cache_asm.h>
-#include <lib_bramheap_asm.h>
-#include <lib_veraheap_asm.h>
+#include <lib_lru_cache.p>
+#include <lib_bramheap.p>
+#include <lib_veraheap.p>
 
-#include "equinoxe-palette_asm.h"
+#include <equinoxe-palette.p>
 
-#include "equinoxe-animate_asm.h"
+#include <equinoxe-animate.p>
 
-#include <cx16_file_asm.h>
+// #include "cx16_file.h"
 
 
 #include "equinoxe-math.h"
@@ -51,14 +52,14 @@
 #endif
 
 
-#include "equinoxe-player.h"
+#include <equinoxe-player.p>
 
 #ifdef __TOWER
 #include "equinoxe-tower.h"
 #endif
 
 #ifdef __BULLET
-#include "equinoxe-bullet.h"
+#include <equinoxe-bullet.p>
 #endif
 
 // #include "equinoxe-collision.h"

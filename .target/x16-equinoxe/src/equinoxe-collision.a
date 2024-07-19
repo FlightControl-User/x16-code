@@ -1,0 +1,1355 @@
+  // Library
+.namespace equinoxe_collision {
+  // Upstart
+.cpu _65c02
+  .segmentdef Basic                   [start=$0801]
+.segmentdef Code                    [start=$80d]
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
+.segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
+
+.segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
+.segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+
+  // start-assembler
+  // File Comments
+  // Global constants and variables
+  // constants
+  .label SIZEOF_STRUCT_COLLISION_DECISION_T = $a
+  .label OFFSET_STRUCT_HT_ITEM_T_NEXT = $100
+  .label OFFSET_STRUCT_HT_LIST_S_NEXT = $100
+  .label OFFSET_STRUCT_FLIGHT_T_XI = $300
+  .label OFFSET_STRUCT_FLIGHT_T_YI = $380
+  .label OFFSET_STRUCT_FLIGHT_T_CX = $200
+  .label OFFSET_STRUCT_FLIGHT_T_CY = $240
+  .label OFFSET_STRUCT_FLIGHT_T_COLLIDED = $140
+  .label OFFSET_STRUCT_FLIGHT_T_TYPE = $180
+  .label OFFSET_STRUCT_FLIGHT_T_SIDE = $1c0
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_S = 1
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_X = 2
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_Y = 3
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_SIDE = 5
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_TYPE = 4
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMIN = $210
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X = 6
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMIN = $220
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y = 7
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMAX = $230
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X = 8
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMAX = $240
+  .label OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y = 9
+  .label SIZEOF_STRUCT_HT_LIST_S = $200
+  .label SIZEOF_STRUCT_HT_ITEM_T = $200
+  .label SIZEOF_STRUCT_COLLISION_QUADRANT_T = $100
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __equinoxe_collision_start
+// void equinoxe_collision.__equinoxe_collision_start()
+__equinoxe_collision_start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __equinoxe_collision_start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // __equinoxe_collision_start::@return
+    // [3] return 
+    rts
+}
+  // code segment
+.segment Code
+  // collision_detect
+/**
+ * @brief Equinoxe main collision detection routine.
+ *
+ * A spacial grid approach is implemented in the equinoxe gaming engine, to ensure
+ * blazing performance during collision detection between all the game objects on the screen.
+ *
+ * Previously, at each frame, we have executed the during the object logic,
+ * the movement calculations and image animations for the screen.
+ * As part of this object logic, we have also created a spacial grid, using the collision_insert routines.
+ * The grid_ routines uses the routine set ht.h, which is a set of routines to create a has table.
+ *
+ * This collision_detect detection routine, uses the created spacial grid to efficiently compare the positions of each
+ * object relative to each other, and will only compare those objects which have opposite party sides.
+ *
+ * Each cell in the spacial grid is 64x64 pixels wide in terms of screen dimensions.
+ * The dimensions of our screen is 640x480, so there are 10 spacial grid cells on the x axis and 8 spacial grid cells on the y axis.
+ * For efficiency reasons to store the spacial grid into memory and to optimize the utilization of the byte architecture of the 6502,
+ * we reduced the spacial grid resolution with 2 bits to the right, so we divided by 4 both the x and y coordinates,
+ * resulting in the spacial grid dimension to be 160x120. Now the spacial grid has table can
+ * be built up using only byte values, not integers. So the x and y coordinate in the spacial grid can now be stored in 4 bits each,
+ * where the x coordinate takes the lower nibble of the coordinate byte, and the y coordinate the higher nibble of the coordinate byte.
+ *
+ * So the spacial grid coordinate system **is stored in a hash table** with the x and y coordinates as the key, which is one byte wide!
+ * This results in a very fast calculation algorithm for the 6502, where searching through the has table only requires one byte to be hashed.
+ * For further efficiency reasons, the has table implements for duplicate keys a linked list, where the links are stored in a pre-defined
+ * array of again only byte sized indexes. Again very efficient for the 6502! the spacial grid uses only absolute addressiing,
+ * so pointers are completely avoided, which results in fast processing on the 6502.
+ *
+ * Because the coordinates in the spacial grid are they in the spacial grid hash table,
+ * each object stored in the grid cell will result in a linked list to be built up in the spacial grid hash table!
+ * So again very efficient, as now we can take the first element of a spacial grid cell linked list, and iterate through that list to
+ * verify each object in that list!
+ *
+ * The collision detection loops through each cell in the spacial grid. Thus, it will loop horizontally 10 cells and vertically 8 cells.
+ * 80 cells in total, however this loop is very efficient as it is only on byte level.
+ *
+ * During each spacial grid cell evaluation, it performs an outer and an inner loop,
+ * where it compares the positions and the properties of the objects in the spacial grid cell against each other
+ * using the linked list in the spacial grid hash table.
+ *
+ * And it does it in a special way, so that no object will be compared twice!
+ * The outer loop will loop the complete linked list of the hashed grid cell.
+ * The inner loop will only loop from the start position of the outer loop and taking the next element in that list as the start.
+ *
+ * For example, consider we have in the spacial grid cell the following objects A, B, C, D, E.
+ * Then the outer loop will loop from A to E, while the inner loop will take for each element of the outer loop the next starting position.
+ * So it will loop as follows:
+ *
+ *   | LOOP ITERATION | 1       | 2     | 3   | 4 |
+ *   | -------------: | :-----: | :---: | :-: | - |
+ *   | OUTER LOOP     | A       | B     | C   | D |
+ *   | INNER LOOP     | B C D E | C D E | D E | E |
+ *
+ * This results in the minimal sets of objects to be compared wit? each other, and thus, the most optimizal performance!
+ *
+ * On top of this comparison the properties of each object are evaluated. Each object as a coalition side,
+ * which can be SIDE_FRIENDLY or SIDE_ENEMY. The game setup will only require objects to be compared with different coalitions.
+ * So objects of the same coalition are never compared. SIDE_FRIENDLY is never compared with SIDE_FRIENDLY and SIDE_ENEMY is never compared with SIDE_ENEMY.
+ *
+ * Each object has an AABB or bounding box defined, that contains the dimensions of each object to be taken into account when comparing
+ * the bounding box overlap between the objects in the spacial grid cell.
+ *
+ *
+ */
+// void equinoxe_collision.collision_detect()
+collision_detect: {
+    // constants
+    // variables
+    // variables-zero-page
+    // [5] phi from collision_detect to collision_detect::@1 [phi:collision_detect->collision_detect::@1]
+    // [5] phi collision_detect::gy#2 = 0 [phi:collision_detect->collision_detect::@1#0] -- vbum1=vbuc1 
+    lda #0
+    sta gy
+  // The collision key needs the gx and gy so that the key can be calculated using a simple addition.
+  // We walk each row on the grid on the y-asis using the gy variable. There are in total 8 rows (480+64)/64.
+  // However, we ensure that gy contains the sum of all the cells of each row considered,
+  // so gy is incremented with a precision of 16, assuming that each row contains 16 cells.
+    // collision_detect::@1
+  __b1:
+    // for (unsigned char gy = 0; gy < ((480 + 64) >> 2); gy += (64 >> 2))
+    // [6] if(collision_detect::gy#2<(char)$1e0+$40>>2) goto collision_detect::@2 -- vbum1_lt_vbuc1_then_la1 
+    lda gy
+    cmp #$1e0+$40>>2
+    bcc __b3
+    // collision_detect::@return
+    // }
+    // [7] return 
+    rts
+  // we walk each column on the row using the gx variable. Each row has 11 (640+64)/64 cells, (to deal with border collisions too).
+  // We consider gx to be incremented for each cell in the column/row combination, so gx is incremented by 1!
+    // [8] phi from collision_detect::@1 to collision_detect::@2 [phi:collision_detect::@1->collision_detect::@2]
+  __b3:
+    // [8] phi collision_detect::gx#10 = 0 [phi:collision_detect::@1->collision_detect::@2#0] -- vbum1=vbuc1 
+    lda #0
+    sta gx
+    // collision_detect::@2
+  __b2:
+    // for (unsigned char gx = 0; gx < ((640 + 64) >> (2 + 4)); gx += (64 >> (2 + 4)))
+    // [9] if(collision_detect::gx#10<(char)$280+$40>>2+4) goto collision_detect::collision_count1 -- vbum1_lt_vbuc1_then_la1 
+    lda gx
+    cmp #$280+$40>>2+4
+    bcc collision_count1
+    // collision_detect::@3
+    // gy += (64 >> 2)
+    // [10] collision_detect::gy#1 = collision_detect::gy#2 + $40>>2 -- vbum1=vbum1_plus_vbuc1 
+    lda #$40>>2
+    clc
+    adc gy
+    sta gy
+    // [5] phi from collision_detect::@3 to collision_detect::@1 [phi:collision_detect::@3->collision_detect::@1]
+    // [5] phi collision_detect::gy#2 = collision_detect::gy#1 [phi:collision_detect::@3->collision_detect::@1#0] -- register_copy 
+    jmp __b1
+    // collision_detect::collision_count1
+  collision_count1:
+    // gx + gy
+    // [11] collision_detect::collision_count1_$0 = collision_detect::gx#10 + collision_detect::gy#2 -- vbuaa=vbum1_plus_vbum2 
+    lda gx
+    clc
+    adc gy
+    // return collision_quadrant.cell[gx + gy];
+    // [12] collision_detect::collision_count1_return#0 = ((char *)&collision_quadrant)[collision_detect::collision_count1_$0] -- vbuaa=pbuc1_derefidx_vbuaa 
+    tay
+    lda collision_quadrant,y
+    // collision_detect::@36
+    // if (collision_count(gx, gy))
+    // [13] if(0==collision_detect::collision_count1_return#0) goto collision_detect::@4 -- 0_eq_vbuaa_then_la1 
+    cmp #0
+    beq __b4
+    // collision_detect::@35
+    // ht_key_t ht_key_outer = collision_key(gx, gy)
+    // [14] collision_key::gx#1 = collision_detect::gx#10 -- vbuaa=vbum1 
+    lda gx
+    // [15] collision_key::gy#1 = collision_detect::gy#2 -- vbuxx=vbum1 
+    ldx gy
+    // [16] call collision_key
+    // [134] phi from collision_detect::@35 to collision_key [phi:collision_detect::@35->collision_key]
+    // [134] phi collision_key::gx#2 = collision_key::gx#1 [phi:collision_detect::@35->collision_key#0] -- register_copy 
+    // [134] phi collision_key::gy#2 = collision_key::gy#1 [phi:collision_detect::@35->collision_key#1] -- register_copy 
+    jsr collision_key
+    // ht_key_t ht_key_outer = collision_key(gx, gy)
+    // [17] collision_key::return#3 = collision_key::return#0
+    // collision_detect::@40
+    // [18] collision_detect::ht_key_outer#0 = collision_key::return#3
+    // ht_index_t ht_index_outer = ht_get(&collision_hash, ht_key_outer)
+    // [19] ht_get::key#0 = collision_detect::ht_key_outer#0 -- vbuxx=vbuaa 
+    tax
+    // [20] call ht_get
+    // [137] phi from collision_detect::@40 to ht_get [phi:collision_detect::@40->ht_get]
+    jsr ht_get
+    // ht_index_t ht_index_outer = ht_get(&collision_hash, ht_key_outer)
+    // [21] ht_get::return#3 = ht_get::return#2
+    // collision_detect::@41
+    // [22] collision_detect::ht_index_outer#0 = ht_get::return#3 -- vbum1=vbuaa 
+    sta ht_index_outer
+    // [23] phi from collision_detect::@41 collision_detect::ht_get_next2 to collision_detect::@5 [phi:collision_detect::@41/collision_detect::ht_get_next2->collision_detect::@5]
+    // [23] phi collision_detect::ht_index_outer#10 = collision_detect::ht_index_outer#0 [phi:collision_detect::@41/collision_detect::ht_get_next2->collision_detect::@5#0] -- register_copy 
+    // collision_detect::@5
+  __b5:
+    // while (ht_index_outer)
+    // [24] if(0!=collision_detect::ht_index_outer#10) goto collision_detect::ht_get_next1 -- 0_neq_vbum1_then_la1 
+    lda ht_index_outer
+    bne ht_get_next1
+    // collision_detect::@4
+  __b4:
+    // gx += (64 >> (2 + 4))
+    // [25] collision_detect::gx#1 = collision_detect::gx#10 + $40>>2+4 -- vbum1=vbum1_plus_vbuc1 
+    lda #$40>>2+4
+    clc
+    adc gx
+    sta gx
+    // [8] phi from collision_detect::@4 to collision_detect::@2 [phi:collision_detect::@4->collision_detect::@2]
+    // [8] phi collision_detect::gx#10 = collision_detect::gx#1 [phi:collision_detect::@4->collision_detect::@2#0] -- register_copy 
+    jmp __b2
+    // collision_detect::ht_get_next1
+  ht_get_next1:
+    // return ht_list.next[ht_index];
+    // [26] collision_detect::ht_index_inner#0 = ((char *)&ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT)[collision_detect::ht_index_outer#10] -- vbum1=pbuc1_derefidx_vbum2 
+    ldy ht_index_outer
+    lda ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT,y
+    sta ht_index_inner
+    // collision_detect::@37
+    // if (ht_index_inner)
+    // [27] if(0==collision_detect::ht_index_inner#0) goto collision_detect::ht_get_next2 -- 0_eq_vbum1_then_la1 
+    beq ht_get_next2
+    // collision_detect::@34
+    // collision_decision_t collision_outer
+    // [28] *(&collision_detect::collision_outer) = memset(collision_decision_t, SIZEOF_STRUCT_COLLISION_DECISION_T) -- _deref_pssc1=_memset_vbuc2 
+    ldy #SIZEOF_STRUCT_COLLISION_DECISION_T
+    lda #0
+  !:
+    dey
+    sta collision_outer,y
+    bne !-
+    // collision_detect::ht_get_data1
+    // return ht_list.data[ht_index];
+    // [29] collision_detect::ht_get_data1_return#0 = ((char *)&ht_list)[collision_detect::ht_index_outer#10] -- vbuxx=pbuc1_derefidx_vbum1 
+    ldy ht_index_outer
+    ldx ht_list,y
+    // collision_detect::@38
+    // collision_data(outer, &collision_outer)
+    // [30] collision_data::collision#0 = collision_detect::ht_get_data1_return#0
+    // [31] call collision_data
+    // [149] phi from collision_detect::@38 to collision_data [phi:collision_detect::@38->collision_data]
+    // [149] phi collision_data::collision_decision#2 = &collision_detect::collision_outer [phi:collision_detect::@38->collision_data#0] -- pssz1=pssc1 
+    lda #<collision_outer
+    sta.z collision_data.collision_decision
+    lda #>collision_outer
+    sta.z collision_data.collision_decision+1
+    // [149] phi collision_data::return#0 = collision_data::collision#0 [phi:collision_detect::@38->collision_data#1] -- register_copy 
+    jsr collision_data
+    // collision_data(outer, &collision_outer)
+    // [32] collision_data::return#2 = collision_data::return#0
+    // collision_detect::@42
+    // outer = collision_data(outer, &collision_outer)
+    // [33] collision_detect::outer#1 = collision_data::return#2 -- vbum1=vbuxx 
+    stx outer
+    // [34] phi from collision_detect::@42 collision_detect::ht_get_next3 to collision_detect::@6 [phi:collision_detect::@42/collision_detect::ht_get_next3->collision_detect::@6]
+    // [34] phi collision_detect::ht_get_next3_ht_index#0 = collision_detect::ht_index_inner#0 [phi:collision_detect::@42/collision_detect::ht_get_next3->collision_detect::@6#0] -- register_copy 
+    // collision_detect::@6
+  __b6:
+    // while (ht_index_inner)
+    // [35] if(0!=collision_detect::ht_get_next3_ht_index#0) goto collision_detect::@7 -- 0_neq_vbum1_then_la1 
+    lda ht_get_next3_ht_index
+    bne __b7
+    // collision_detect::ht_get_next2
+  ht_get_next2:
+    // return ht_list.next[ht_index];
+    // [36] collision_detect::ht_get_next2_return#0 = ((char *)&ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT)[collision_detect::ht_index_outer#10] -- vbum1=pbuc1_derefidx_vbum1 
+    ldy ht_get_next2_return
+    lda ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT,y
+    sta ht_get_next2_return
+    jmp __b5
+    // collision_detect::@7
+  __b7:
+    // collision_decision_t collision_inner
+    // [37] *(&collision_detect::collision_inner) = memset(collision_decision_t, SIZEOF_STRUCT_COLLISION_DECISION_T) -- _deref_pssc1=_memset_vbuc2 
+    ldy #SIZEOF_STRUCT_COLLISION_DECISION_T
+    lda #0
+  !:
+    dey
+    sta collision_inner,y
+    bne !-
+    // collision_detect::ht_get_data2
+    // return ht_list.data[ht_index];
+    // [38] collision_detect::ht_get_data2_return#0 = ((char *)&ht_list)[collision_detect::ht_get_next3_ht_index#0] -- vbuxx=pbuc1_derefidx_vbum1 
+    ldy ht_get_next3_ht_index
+    ldx ht_list,y
+    // collision_detect::@39
+    // collision_data(inner, &collision_inner)
+    // [39] collision_data::collision#1 = collision_detect::ht_get_data2_return#0
+    // [40] call collision_data
+    // [149] phi from collision_detect::@39 to collision_data [phi:collision_detect::@39->collision_data]
+    // [149] phi collision_data::collision_decision#2 = &collision_detect::collision_inner [phi:collision_detect::@39->collision_data#0] -- pssz1=pssc1 
+    lda #<collision_inner
+    sta.z collision_data.collision_decision
+    lda #>collision_inner
+    sta.z collision_data.collision_decision+1
+    // [149] phi collision_data::return#0 = collision_data::collision#1 [phi:collision_detect::@39->collision_data#1] -- register_copy 
+    jsr collision_data
+    // collision_data(inner, &collision_inner)
+    // [41] collision_data::return#3 = collision_data::return#0
+    // collision_detect::@43
+    // inner = collision_data(inner, &collision_inner)
+    // [42] collision_detect::inner#1 = collision_data::return#3 -- vbum1=vbuxx 
+    stx inner
+    // if (collision_outer.side != collision_inner.side)
+    // [43] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_SIDE)==*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_SIDE)) goto collision_detect::ht_get_next3 -- _deref_pbuc1_eq__deref_pbuc2_then_la1 
+    lda collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_SIDE
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_SIDE
+    bne !ht_get_next3+
+    jmp ht_get_next3
+  !ht_get_next3:
+    // collision_detect::@30
+    // if (collision_inner.min_x > collision_outer.max_x || collision_inner.min_y > collision_outer.max_y ||
+    //                                     collision_inner.max_x < collision_outer.min_x || collision_inner.max_y < collision_outer.min_y)
+    // [44] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X)>*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X)) goto collision_detect::ht_get_next3 -- _deref_pbuc1_gt__deref_pbuc2_then_la1 
+    lda collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X
+    bcs !ht_get_next3+
+    jmp ht_get_next3
+  !ht_get_next3:
+    // collision_detect::@46
+    // [45] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y)>*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y)) goto collision_detect::ht_get_next3 -- _deref_pbuc1_gt__deref_pbuc2_then_la1 
+    lda collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y
+    bcc ht_get_next3
+    // collision_detect::@45
+    // [46] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X)<*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X)) goto collision_detect::ht_get_next3 -- _deref_pbuc1_lt__deref_pbuc2_then_la1 
+    lda collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X
+    bcc ht_get_next3
+    // collision_detect::@44
+    // [47] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y)<*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y)) goto collision_detect::ht_get_next3 -- _deref_pbuc1_lt__deref_pbuc2_then_la1 
+    lda collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y
+    bcc ht_get_next3
+    // collision_detect::@31
+    // if (collision_outer.side == SIDE_ENEMY)
+    // [48] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_SIDE)==1) goto collision_detect::@8 -- _deref_pbuc1_eq_vbuc2_then_la1 
+    lda #1
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_SIDE
+    bne !__b8+
+    jmp __b8
+  !__b8:
+    // collision_detect::@32
+    // case FLIGHT_BULLET:
+    //                                             if (collision_inner.type == FLIGHT_ENEMY) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             if (collision_inner.type == FLIGHT_TOWER) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             break;
+    // [49] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)==3) goto collision_detect::@9 -- _deref_pbuc1_eq_vbuc2_then_la1 
+    lda #3
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq __b9
+    // collision_detect::@33
+    // case FLIGHT_PLAYER:
+    //                                             if (collision_inner.type == FLIGHT_ENEMY) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             break;
+    // [50] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)==0) goto collision_detect::@10 -- _deref_pbuc1_eq_0_then_la1 
+    lda collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq __b10
+    // [51] phi from collision_detect::@10 collision_detect::@16 collision_detect::@18 collision_detect::@27 collision_detect::@33 to collision_detect::@15 [phi:collision_detect::@10/collision_detect::@16/collision_detect::@18/collision_detect::@27/collision_detect::@33->collision_detect::@15]
+  __b12:
+    // [51] phi collision_detect::collision_detected#11 = 0 [phi:collision_detect::@10/collision_detect::@16/collision_detect::@18/collision_detect::@27/collision_detect::@33->collision_detect::@15#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [51] phi from collision_detect::@11 collision_detect::@13 collision_detect::@19 collision_detect::@22 to collision_detect::@15 [phi:collision_detect::@11/collision_detect::@13/collision_detect::@19/collision_detect::@22->collision_detect::@15]
+    // [51] phi collision_detect::collision_detected#11 = collision_detect::collision_detected#17 [phi:collision_detect::@11/collision_detect::@13/collision_detect::@19/collision_detect::@22->collision_detect::@15#0] -- register_copy 
+    // collision_detect::@15
+  __b15:
+    // if(collision_detected)
+    // [52] if(0==collision_detect::collision_detected#11) goto collision_detect::ht_get_next3 -- 0_eq_vbuxx_then_la1 
+    cpx #0
+    beq ht_get_next3
+    // collision_detect::@28
+    // flight_has_collided(outer)
+    // [53] flight_has_collided::f = collision_detect::outer#1 -- vbum1=vbum2 
+    lda outer
+    sta equinoxe_flightengine.flight_has_collided.f
+    // [54] callexecute flight_has_collided  -- call_var_near 
+    jsr equinoxe_flightengine.flight_has_collided
+    // [55] collision_detect::$37 = flight_has_collided::return -- vbuaa=vbum1 
+    lda equinoxe_flightengine.flight_has_collided.return
+    // if(!flight_has_collided(outer))
+    // [56] if(0!=collision_detect::$37) goto collision_detect::@24 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b24
+    // collision_detect::@29
+    // stage_impact(outer, inner)
+    // [57] stage_impact::f = collision_detect::outer#1 -- vbum1=vbum2 
+    lda outer
+    sta equinoxe_stage_flight.stage_impact.f
+    // [58] stage_impact::h = collision_detect::inner#1 -- vbum1=vbum2 
+    lda inner
+    sta equinoxe_stage_flight.stage_impact.h
+    // [59] callexecute stage_impact  -- call_var_close_cx16_ram 
+    lda.z 0
+    pha
+    lda #3
+    sta.z 0
+    jsr equinoxe_stage_flight.stage_impact
+    pla
+    sta.z 0
+    // collision_detect::@24
+  __b24:
+    // flight_has_collided(inner)
+    // [60] flight_has_collided::f = collision_detect::inner#1 -- vbum1=vbum2 
+    lda inner
+    sta equinoxe_flightengine.flight_has_collided.f
+    // [61] callexecute flight_has_collided  -- call_var_near 
+    jsr equinoxe_flightengine.flight_has_collided
+    // [62] collision_detect::$41 = flight_has_collided::return -- vbuaa=vbum1 
+    lda equinoxe_flightengine.flight_has_collided.return
+    // if(!flight_has_collided(inner))
+    // [63] if(0!=collision_detect::$41) goto collision_detect::ht_get_next3 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne ht_get_next3
+    // collision_detect::@25
+    // stage_impact(inner, outer)
+    // [64] stage_impact::f = collision_detect::inner#1 -- vbum1=vbum2 
+    lda inner
+    sta equinoxe_stage_flight.stage_impact.f
+    // [65] stage_impact::h = collision_detect::outer#1 -- vbum1=vbum2 
+    lda outer
+    sta equinoxe_stage_flight.stage_impact.h
+    // [66] callexecute stage_impact  -- call_var_close_cx16_ram 
+    lda.z 0
+    pha
+    lda #3
+    sta.z 0
+    jsr equinoxe_stage_flight.stage_impact
+    pla
+    sta.z 0
+    // collision_detect::ht_get_next3
+  ht_get_next3:
+    // return ht_list.next[ht_index];
+    // [67] collision_detect::ht_get_next3_return#0 = ((char *)&ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT)[collision_detect::ht_get_next3_ht_index#0] -- vbum1=pbuc1_derefidx_vbum1 
+    ldy ht_get_next3_return
+    lda ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT,y
+    sta ht_get_next3_return
+    jmp __b6
+    // collision_detect::@10
+  __b10:
+    // if (collision_inner.type == FLIGHT_ENEMY)
+    // [68] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=1) goto collision_detect::@15 -- _deref_pbuc1_neq_vbuc2_then_la1 
+    lda #1
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    bne __b12
+    // [69] phi from collision_detect::@10 to collision_detect::@14 [phi:collision_detect::@10->collision_detect::@14]
+    // collision_detect::@14
+  __b14:
+    // [51] phi from collision_detect::@14 collision_detect::@20 collision_detect::@23 to collision_detect::@15 [phi:collision_detect::@14/collision_detect::@20/collision_detect::@23->collision_detect::@15]
+    // [51] phi collision_detect::collision_detected#11 = 1 [phi:collision_detect::@14/collision_detect::@20/collision_detect::@23->collision_detect::@15#0] -- vbuxx=vbuc1 
+    ldx #1
+    jmp __b15
+    // collision_detect::@9
+  __b9:
+    // if (collision_inner.type == FLIGHT_ENEMY)
+    // [70] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=1) goto collision_detect::@11 -- _deref_pbuc1_neq_vbuc2_then_la1 
+    lda #1
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    bne __b13
+    // [71] phi from collision_detect::@9 to collision_detect::@12 [phi:collision_detect::@9->collision_detect::@12]
+    // collision_detect::@12
+    // [72] phi from collision_detect::@12 to collision_detect::@11 [phi:collision_detect::@12->collision_detect::@11]
+    // [72] phi collision_detect::collision_detected#17 = 1 [phi:collision_detect::@12->collision_detect::@11#0] -- vbuxx=vbuc1 
+    tax
+    jmp __b11
+    // [72] phi from collision_detect::@9 to collision_detect::@11 [phi:collision_detect::@9->collision_detect::@11]
+  __b13:
+    // [72] phi collision_detect::collision_detected#17 = 0 [phi:collision_detect::@9->collision_detect::@11#0] -- vbuxx=vbuc1 
+    ldx #0
+    // collision_detect::@11
+  __b11:
+    // if (collision_inner.type == FLIGHT_TOWER)
+    // [73] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=2) goto collision_detect::@15 -- _deref_pbuc1_neq_vbuc2_then_la1 
+    lda #2
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq !__b15+
+    jmp __b15
+  !__b15:
+    // collision_detect::@13
+    // collision_detected++;
+    // [74] collision_detect::collision_detected#2 = ++ collision_detect::collision_detected#17 -- vbuxx=_inc_vbuxx 
+    inx
+    jmp __b15
+    // collision_detect::@8
+  __b8:
+    // case FLIGHT_BULLET:
+    //                                             if (collision_inner.type == FLIGHT_PLAYER) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             break;
+    // [75] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)==3) goto collision_detect::@16 -- _deref_pbuc1_eq_vbuc2_then_la1 
+    lda #3
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq __b16
+    // collision_detect::@26
+    // case FLIGHT_ENEMY:
+    //                                             if (collision_inner.type == FLIGHT_BULLET) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             if (collision_inner.type == FLIGHT_PLAYER) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             break;
+    // [76] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)==1) goto collision_detect::@17 -- _deref_pbuc1_eq_vbuc2_then_la1 
+    lda #1
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq __b17
+    // collision_detect::@27
+    // case FLIGHT_TOWER:
+    //                                             if (collision_inner.type == FLIGHT_BULLET) {
+    //                                                 collision_detected++;
+    //                                             }
+    //                                             break;
+    // [77] if(*((char *)&collision_detect::collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)==2) goto collision_detect::@18 -- _deref_pbuc1_eq_vbuc2_then_la1 
+    lda #2
+    cmp collision_outer+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq __b18
+    jmp __b12
+    // collision_detect::@18
+  __b18:
+    // if (collision_inner.type == FLIGHT_BULLET)
+    // [78] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=3) goto collision_detect::@15 -- _deref_pbuc1_neq_vbuc2_then_la1 
+    lda #3
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq !__b12+
+    jmp __b12
+  !__b12:
+    // [79] phi from collision_detect::@18 to collision_detect::@23 [phi:collision_detect::@18->collision_detect::@23]
+    // collision_detect::@23
+    jmp __b14
+    // collision_detect::@17
+  __b17:
+    // if (collision_inner.type == FLIGHT_BULLET)
+    // [80] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=3) goto collision_detect::@19 -- _deref_pbuc1_neq_vbuc2_then_la1 
+    lda #3
+    cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    bne __b20
+    // [81] phi from collision_detect::@17 to collision_detect::@21 [phi:collision_detect::@17->collision_detect::@21]
+    // collision_detect::@21
+    // [82] phi from collision_detect::@21 to collision_detect::@19 [phi:collision_detect::@21->collision_detect::@19]
+    // [82] phi collision_detect::collision_detected#14 = 1 [phi:collision_detect::@21->collision_detect::@19#0] -- vbuxx=vbuc1 
+    ldx #1
+    jmp __b19
+    // [82] phi from collision_detect::@17 to collision_detect::@19 [phi:collision_detect::@17->collision_detect::@19]
+  __b20:
+    // [82] phi collision_detect::collision_detected#14 = 0 [phi:collision_detect::@17->collision_detect::@19#0] -- vbuxx=vbuc1 
+    ldx #0
+    // collision_detect::@19
+  __b19:
+    // if (collision_inner.type == FLIGHT_PLAYER)
+    // [83] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=0) goto collision_detect::@15 -- _deref_pbuc1_neq_0_then_la1 
+    lda collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq !__b15+
+    jmp __b15
+  !__b15:
+    // collision_detect::@22
+    // collision_detected++;
+    // [84] collision_detect::collision_detected#6 = ++ collision_detect::collision_detected#14 -- vbuxx=_inc_vbuxx 
+    inx
+    jmp __b15
+    // collision_detect::@16
+  __b16:
+    // if (collision_inner.type == FLIGHT_PLAYER)
+    // [85] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=0) goto collision_detect::@15 -- _deref_pbuc1_neq_0_then_la1 
+    lda collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    beq !__b12+
+    jmp __b12
+  !__b12:
+    // [86] phi from collision_detect::@16 to collision_detect::@20 [phi:collision_detect::@16->collision_detect::@20]
+    // collision_detect::@20
+    jmp __b14
+  .segment Data
+    collision_outer: .fill SIZEOF_STRUCT_COLLISION_DECISION_T, 0
+  .segment Data
+    collision_inner: .fill SIZEOF_STRUCT_COLLISION_DECISION_T, 0
+  .segment Data
+    gy: .byte 0
+  .segment Data
+    gx: .byte 0
+  .segment Data
+    ht_index_outer: .byte 0
+  .segment Data
+    .label ht_index_inner = ht_get_next3_ht_index
+  .segment Data
+    .label ht_get_next2_return = ht_index_outer
+  .segment Data
+    outer: .byte 0
+  .segment Data
+    inner: .byte 0
+  .segment Data
+    ht_get_next3_ht_index: .byte 0
+  .segment Data
+    .label ht_get_next3_return = ht_get_next3_ht_index
+}
+  // code segment
+.segment Code
+  // collision_insert
+/**
+ * @brief Add a new coordinate to the spacial grid.
+ * This routine is very tricky. It requires to carefully determine which sectors
+ * in the spacial grid are to be inserted in the has table.
+ * And this is not obvious, sometimes also negative coordinates are given, like -64.
+ * This has a risk of ending in an endless loop!
+ * So the xmin and ymin are taken as char values, while the xmax and ymax values are taken as int values.
+ * This to carefully compare the increment of ymin from 0x00F0 to 0x0100 and not to 0x0000!
+ * Same for the xmin value. So the gx and gy values are also int to ensure that the addition is taken in two bytes.
+ * But note that only the lower bytes of the int values are actually stored in the spacial grid coordinate system!
+ *
+ * @param ht
+ * @param group
+ * @param xmin
+ * @param ymin
+ * @param f
+ */
+// void equinoxe_collision.collision_insert(__mem() char f)
+collision_insert: {
+    // constants
+    // variables
+    // variables-zero-page
+    // unsigned char xmin = flight.xi[f] >> 2
+    // [91] collision_insert::$12 = collision_insert::f << 1 -- vbuaa=vbum1_rol_1 
+    lda f
+    asl
+    // [92] collision_insert::xmin#0 = ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[collision_insert::$12] >> 2 -- vbuxx=pwuc1_derefidx_vbuaa_ror_2 
+    tax
+    clc
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,x
+    ror
+    sta.z $ff
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,x
+    ror
+    sta.z $fe
+    clc
+    ror.z $ff
+    ror
+    tax
+    // unsigned char ymin = flight.yi[f] >> 2
+    // [93] collision_insert::$13 = collision_insert::f << 1 -- vbuaa=vbum1_rol_1 
+    lda f
+    asl
+    // [94] collision_insert::ymin#0 = ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[collision_insert::$13] >> 2 -- vbum1=pwuc1_derefidx_vbuaa_ror_2 
+    tay
+    clc
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,y
+    ror
+    sta.z $ff
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,y
+    ror
+    sta.z $fe
+    clc
+    ror.z $ff
+    ror
+    sta ymin
+    // flight.cx[f] = xmin
+    // [95] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CX)[collision_insert::f] = collision_insert::xmin#0 -- pbuc1_derefidx_vbum1=vbuxx 
+    ldy f
+    txa
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_CX,y
+    // flight.cy[f] = ymin
+    // [96] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CY)[collision_insert::f] = collision_insert::ymin#0 -- pbuc1_derefidx_vbum1=vbum2 
+    lda ymin
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_CY,y
+    // flight.collided[f] = 0
+    // [97] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_COLLIDED)[collision_insert::f] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #0
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_COLLIDED,y
+    // xmin += 16
+    // [98] collision_insert::xmin#1 = collision_insert::xmin#0 + $10 -- vbuxx=vbuxx_plus_vbuc1 
+    // The coordinates start at -63, so we add 16 to avoid negative numbers in the grid key.
+    txa
+    clc
+    adc #$10
+    tax
+    // ymin += 16
+    // [99] collision_insert::ymin#1 = collision_insert::ymin#0 + $10 -- vbuyy=vbum1_plus_vbuc1 
+    lda #$10
+    clc
+    adc ymin
+    tay
+    // (unsigned char)xmin + 8
+    // [100] collision_insert::$2 = collision_insert::xmin#1 + 8 -- vbuaa=vbuxx_plus_vbuc1 
+    txa
+    clc
+    adc #8
+    // unsigned char xmax = ((unsigned char)xmin + 8) & 0b11110000
+    // [101] collision_insert::xmax#0 = collision_insert::$2 & $f0 -- vbum1=vbuaa_band_vbuc1 
+    and #$f0
+    sta xmax
+    // (unsigned char)ymin + 8
+    // [102] collision_insert::$4 = collision_insert::ymin#1 + 8 -- vbuaa=vbuyy_plus_vbuc1 
+    tya
+    clc
+    adc #8
+    // unsigned char ymax = ((unsigned char)ymin + 8) & 0b11110000
+    // [103] collision_insert::ymax#0 = collision_insert::$4 & $f0 -- vbum1=vbuaa_band_vbuc1 
+    and #$f0
+    sta ymax
+    // xmin >>= 4
+    // [104] collision_insert::gx#0 = collision_insert::xmin#1 >> 4 -- vbum1=vbuxx_ror_4 
+    txa
+    lsr
+    lsr
+    lsr
+    lsr
+    sta gx
+    // xmax >>= 4
+    // [105] collision_insert::xmax#1 = collision_insert::xmax#0 >> 4 -- vbum1=vbum1_ror_4 
+    lda xmax
+    lsr
+    lsr
+    lsr
+    lsr
+    sta xmax
+    // ymin = ymin & 0b11110000
+    // [106] collision_insert::ymin#2 = collision_insert::ymin#1 & $f0 -- vbum1=vbuyy_band_vbuc1 
+    tya
+    and #$f0
+    sta ymin_1
+    // [107] phi from collision_insert collision_insert::@5 to collision_insert::@1 [phi:collision_insert/collision_insert::@5->collision_insert::@1]
+    // [107] phi collision_insert::gx#2 = collision_insert::gx#0 [phi:collision_insert/collision_insert::@5->collision_insert::@1#0] -- register_copy 
+    // collision_insert::@1
+  __b1:
+    // for (unsigned char gx = xmin; gx <= xmax; gx += 1)
+    // [108] if(collision_insert::gx#2<=collision_insert::xmax#1) goto collision_insert::@2 -- vbum1_le_vbum2_then_la1 
+    lda xmax
+    cmp gx
+    bcs __b2
+    // collision_insert::@return
+    // }
+    // [109] return 
+    rts
+    // collision_insert::@2
+  __b2:
+    // [110] collision_insert::gy#6 = collision_insert::ymin#2 -- vbum1=vbum2 
+    lda ymin_1
+    sta gy
+    // [111] phi from collision_insert::@2 collision_insert::@7 to collision_insert::@3 [phi:collision_insert::@2/collision_insert::@7->collision_insert::@3]
+    // [111] phi collision_insert::gy#2 = collision_insert::gy#6 [phi:collision_insert::@2/collision_insert::@7->collision_insert::@3#0] -- register_copy 
+    // collision_insert::@3
+  __b3:
+    // for (unsigned char gy = ymin; gy <= ymax; gy += 16)
+    // [112] if(collision_insert::gy#2<=collision_insert::ymax#0) goto collision_insert::@4 -- vbum1_le_vbum2_then_la1 
+    lda ymax
+    cmp gy
+    bcs __b4
+    // collision_insert::@5
+    // gx += 1
+    // [113] collision_insert::gx#1 = collision_insert::gx#2 + 1 -- vbum1=vbum1_plus_1 
+    inc gx
+    jmp __b1
+    // collision_insert::@4
+  __b4:
+    // ht_key_t ht_key = collision_key((unsigned char)gx, (unsigned char)gy)
+    // [114] collision_key::gx#0 = collision_insert::gx#2 -- vbuaa=vbum1 
+    lda gx
+    // [115] collision_key::gy#0 = collision_insert::gy#2 -- vbuxx=vbum1 
+    ldx gy
+    // [116] call collision_key
+    // [134] phi from collision_insert::@4 to collision_key [phi:collision_insert::@4->collision_key]
+    // [134] phi collision_key::gx#2 = collision_key::gx#0 [phi:collision_insert::@4->collision_key#0] -- register_copy 
+    // [134] phi collision_key::gy#2 = collision_key::gy#0 [phi:collision_insert::@4->collision_key#1] -- register_copy 
+    jsr collision_key
+    // ht_key_t ht_key = collision_key((unsigned char)gx, (unsigned char)gy)
+    // [117] collision_key::return#2 = collision_key::return#0
+    // collision_insert::@6
+    // [118] collision_insert::ht_key#0 = collision_key::return#2
+    // ht_insert(&collision_hash, ht_key, f)
+    // [119] ht_insert::key#0 = collision_insert::ht_key#0 -- vbuyy=vbuaa 
+    tay
+    // [120] ht_insert::data#0 = collision_insert::f -- vbum1=vbum2 
+    lda f
+    sta ht_insert.data
+    // [121] call ht_insert
+    // [170] phi from collision_insert::@6 to ht_insert [phi:collision_insert::@6->ht_insert]
+    jsr ht_insert
+    // collision_insert::@7
+    // gy + gx
+    // [122] collision_insert::$11 = collision_insert::gy#2 + collision_insert::gx#2 -- vbuaa=vbum1_plus_vbum2 
+    lda gy
+    clc
+    adc gx
+    // collision_quadrant.cell[gy + gx] += 1
+    // [123] ((char *)&collision_quadrant)[collision_insert::$11] = ((char *)&collision_quadrant)[collision_insert::$11] + 1 -- pbuc1_derefidx_vbuaa=pbuc1_derefidx_vbuaa_plus_1 
+    tay
+    lda collision_quadrant,y
+    inc
+    sta collision_quadrant,y
+    // gy += 16
+    // [124] collision_insert::gy#1 = collision_insert::gy#2 + $10 -- vbum1=vbum1_plus_vbuc1 
+    lda #$10
+    clc
+    adc gy
+    sta gy
+    jmp __b3
+  .segment Data
+    f: .byte 0
+  .segment Data
+    ymin: .byte 0
+  .segment Data
+    xmax: .byte 0
+  .segment Data
+    ymax: .byte 0
+  .segment Data
+    ymin_1: .byte 0
+  .segment Data
+    gx: .byte 0
+  .segment Data
+    gy: .byte 0
+}
+  // code segment
+.segment Code
+  // collision_init
+// void equinoxe_collision.collision_init()
+collision_init: {
+    // constants
+    .const memset_fast1_ch = 0
+    // heap_segment_define(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!
+    .label memset_fast1_destination = collision_quadrant
+    // variables
+    // variables-zero-page
+    // ht_init(&collision_hash)
+    // [126] call ht_init
+    // [185] phi from collision_init to ht_init [phi:collision_init->ht_init]
+    jsr ht_init
+    // [127] phi from collision_init to collision_init::memset_fast1 [phi:collision_init->collision_init::memset_fast1]
+    // collision_init::memset_fast1
+    // [128] phi from collision_init::memset_fast1 to collision_init::memset_fast1_@1 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1]
+    // [128] phi collision_init::memset_fast1_num#2 = 0 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [128] phi collision_init::memset_fast1_x#2 = 0 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1#1] -- vbuyy=vbuc1 
+    ldy #0
+    // [128] phi from collision_init::memset_fast1_@1 to collision_init::memset_fast1_@1 [phi:collision_init::memset_fast1_@1->collision_init::memset_fast1_@1]
+    // [128] phi collision_init::memset_fast1_num#2 = collision_init::memset_fast1_num#1 [phi:collision_init::memset_fast1_@1->collision_init::memset_fast1_@1#0] -- register_copy 
+    // [128] phi collision_init::memset_fast1_x#2 = collision_init::memset_fast1_x#1 [phi:collision_init::memset_fast1_@1->collision_init::memset_fast1_@1#1] -- register_copy 
+    // collision_init::memset_fast1_@1
+  memset_fast1___b1:
+    // destination[x] = ch
+    // [129] collision_init::memset_fast1_destination#0[collision_init::memset_fast1_x#2] = collision_init::memset_fast1_ch#0 -- pbuc1_derefidx_vbuyy=vbuc2 
+    lda #memset_fast1_ch
+    sta memset_fast1_destination,y
+    // x++;
+    // [130] collision_init::memset_fast1_x#1 = ++ collision_init::memset_fast1_x#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // num--;
+    // [131] collision_init::memset_fast1_num#1 = -- collision_init::memset_fast1_num#2 -- vbuxx=_dec_vbuxx 
+    dex
+    // while(num)
+    // [132] if(0!=collision_init::memset_fast1_num#1) goto collision_init::memset_fast1_@1 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne memset_fast1___b1
+    // collision_init::@return
+    // }
+    // [133] return 
+    rts
+}
+  // code segment
+.segment Code
+  // collision_key
+// __register(A) char collision_key(__register(A) char gx, __register(X) char gy)
+collision_key: {
+    // constants
+    // variables
+    // variables-zero-page
+    // unsigned char key = gy + gx
+    // [135] collision_key::return#0 = collision_key::gy#2 + collision_key::gx#2 -- vbuaa=vbuxx_plus_vbuaa 
+    stx.z $ff
+    clc
+    adc.z $ff
+    // collision_key::@return
+    // }
+    // [136] return 
+    rts
+}
+  // code segment
+.segment Code
+  // ht_get
+// ht_index_t ht_hash_next(ht_index_t index)
+// {
+//    asm{
+//                    lda ht_seed
+//                    beq !doEor+
+//                    asl
+//                    beq !noEor+
+//                    bcc !noEor+
+//        !doEor:    eor #$2b
+//        !noEor:    sta ht_seed
+//    }
+//    return ht_seed;
+// }
+// __register(A) char ht_get(ht_item_t *ht, __register(X) char key)
+ht_get: {
+    // constants
+    .label ht = collision_hash
+    // variables
+    // variables-zero-page
+    // [138] phi from ht_get to ht_get::ht_hash1 [phi:ht_get->ht_get::ht_hash1]
+    // ht_get::ht_hash1
+    // ht_get::@4
+    // [139] ht_get::ht_index#6 = ht_get::key#0 -- vbuyy=vbuxx 
+    txa
+    tay
+    // [140] phi from ht_get::@4 ht_get::ht_hash_next1 to ht_get::@1 [phi:ht_get::@4/ht_get::ht_hash_next1->ht_get::@1]
+    // [140] phi ht_get::ht_index#2 = ht_get::ht_index#6 [phi:ht_get::@4/ht_get::ht_hash_next1->ht_get::@1#0] -- register_copy 
+    // ht_get::@1
+  __b1:
+    // ht_next = ht->next[ht_index]
+    // [141] ht_get::ht_next#1 = ((char *)ht_get::ht#0+OFFSET_STRUCT_HT_ITEM_T_NEXT)[ht_get::ht_index#2] -- vbuaa=pbuc1_derefidx_vbuyy 
+    lda ht+OFFSET_STRUCT_HT_ITEM_T_NEXT,y
+    // while ((ht_next = ht->next[ht_index]))
+    // [142] if(0!=ht_get::ht_next#1) goto ht_get::@2 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b2
+    // [143] phi from ht_get::@1 to ht_get::@return [phi:ht_get::@1->ht_get::@return]
+    // [143] phi ht_get::return#2 = 0 [phi:ht_get::@1->ht_get::@return#0] -- vbuaa=vbuc1 
+    lda #0
+    // ht_get::@return
+    // }
+    // [144] return 
+    rts
+    // ht_get::@2
+  __b2:
+    // ht_key = ht->key[ht_index]
+    // [145] ht_get::ht_key#1 = ((char *)ht_get::ht#0)[ht_get::ht_index#2] -- vbum1=pbuc1_derefidx_vbuyy 
+    lda ht,y
+    sta ht_key
+    // if ((ht_key = ht->key[ht_index]) == key)
+    // [146] if(ht_get::ht_key#1!=ht_get::key#0) goto ht_get::ht_hash_next1 -- vbum1_neq_vbuxx_then_la1 
+    cpx ht_key
+    bne ht_hash_next1
+    // ht_get::@3
+    // return ht->next[ht_index];
+    // [147] ht_get::return#1 = ((char *)ht_get::ht#0+OFFSET_STRUCT_HT_ITEM_T_NEXT)[ht_get::ht_index#2] -- vbuaa=pbuc1_derefidx_vbuyy 
+    lda ht+OFFSET_STRUCT_HT_ITEM_T_NEXT,y
+    // [143] phi from ht_get::@3 to ht_get::@return [phi:ht_get::@3->ht_get::@return]
+    // [143] phi ht_get::return#2 = ht_get::return#1 [phi:ht_get::@3->ht_get::@return#0] -- register_copy 
+    rts
+    // ht_get::ht_hash_next1
+  ht_hash_next1:
+    // index+1
+    // [148] ht_get::ht_hash_next1_return#0 = ht_get::ht_index#2 + 1 -- vbuyy=vbuyy_plus_1 
+    iny
+    jmp __b1
+  .segment Data
+    ht_key: .byte 0
+}
+  // code segment
+.segment Code
+  // collision_data
+/*
+inline void collision_debug() {
+    gotoxy(0, 0);
+    printf("hash root = %04p, ", &collision_hash);
+    printf("hash list = %04p, ", &ht_list);
+    printf("hash quadrant = %04p \n", &collision_quadrant);
+
+    ht_display(&collision_hash);
+}
+*/
+// __register(X) char collision_data(__register(X) char collision, __zp($22) collision_decision_t *collision_decision)
+collision_data: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label collision_decision = $22
+    // unsigned char type = flight.type[collision]
+    // [150] collision_data::type#0 = ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_TYPE)[collision_data::return#0] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_TYPE,x
+    sta type
+    // unsigned char side = flight.side[collision]
+    // [151] collision_data::side#0 = ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_SIDE)[collision_data::return#0] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_SIDE,x
+    sta side
+    // unsigned char x = flight.cx[collision]
+    // [152] collision_data::x#0 = ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CX)[collision_data::return#0] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_CX,x
+    sta x
+    // unsigned char y = flight.cy[collision]
+    // [153] collision_data::y#0 = ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CY)[collision_data::return#0] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_CY,x
+    sta y
+    // unsigned char s = flight.cache[collision]
+    // [154] collision_data::s#0 = ((char *)&flight)[collision_data::return#0] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda equinoxe_flightengine.flight,x
+    sta s
+    // collision_decision->collision = collision
+    // [155] *((char *)collision_data::collision_decision#2) = collision_data::return#0 -- _deref_pbuz1=vbuxx 
+    // Which sprite is it in the cache...
+    txa
+    ldy #0
+    sta (collision_decision),y
+    // collision_decision->s = s
+    // [156] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_S] = collision_data::s#0 -- pbuz1_derefidx_vbuc1=vbum2 
+    lda s
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_S
+    sta (collision_decision),y
+    // collision_decision->x = x
+    // [157] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_X] = collision_data::x#0 -- pbuz1_derefidx_vbuc1=vbum2 
+    lda x
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_X
+    sta (collision_decision),y
+    // collision_decision->y = y
+    // [158] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_Y] = collision_data::y#0 -- pbuz1_derefidx_vbuc1=vbum2 
+    lda y
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_Y
+    sta (collision_decision),y
+    // collision_decision->side = side
+    // [159] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_SIDE] = collision_data::side#0 -- pbuz1_derefidx_vbuc1=vbum2 
+    lda side
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_SIDE
+    sta (collision_decision),y
+    // collision_decision->type = type
+    // [160] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_TYPE] = collision_data::type#0 -- pbuz1_derefidx_vbuc1=vbum2 
+    lda type
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
+    sta (collision_decision),y
+    // x + sprite_cache.xmin[s]
+    // [161] collision_data::$0 = collision_data::x#0 + ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMIN)[collision_data::s#0] -- vbuaa=vbum1_plus_pbuc1_derefidx_vbum2 
+    lda x
+    ldy s
+    clc
+    adc equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMIN,y
+    // collision_decision->min_x = x + sprite_cache.xmin[s]
+    // [162] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X] = collision_data::$0 -- pbuz1_derefidx_vbuc1=vbuaa 
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_MIN_X
+    sta (collision_decision),y
+    // y + sprite_cache.ymin[s]
+    // [163] collision_data::$1 = collision_data::y#0 + ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMIN)[collision_data::s#0] -- vbuaa=vbum1_plus_pbuc1_derefidx_vbum2 
+    lda y
+    ldy s
+    clc
+    adc equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMIN,y
+    // collision_decision->min_y = y + sprite_cache.ymin[s]
+    // [164] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y] = collision_data::$1 -- pbuz1_derefidx_vbuc1=vbuaa 
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_MIN_Y
+    sta (collision_decision),y
+    // x + sprite_cache.xmax[s]
+    // [165] collision_data::$2 = collision_data::x#0 + ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMAX)[collision_data::s#0] -- vbuaa=vbum1_plus_pbuc1_derefidx_vbum2 
+    lda x
+    ldy s
+    clc
+    adc equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMAX,y
+    // collision_decision->max_x = x + sprite_cache.xmax[s]
+    // [166] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X] = collision_data::$2 -- pbuz1_derefidx_vbuc1=vbuaa 
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_MAX_X
+    sta (collision_decision),y
+    // y + sprite_cache.ymax[s]
+    // [167] collision_data::$3 = collision_data::y#0 + ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMAX)[collision_data::s#0] -- vbuaa=vbum1_plus_pbuc1_derefidx_vbum2 
+    lda y
+    ldy s
+    clc
+    adc equinoxe_flightengine.sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMAX,y
+    // collision_decision->max_y = y + sprite_cache.ymax[s]
+    // [168] ((char *)collision_data::collision_decision#2)[OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y] = collision_data::$3 -- pbuz1_derefidx_vbuc1=vbuaa 
+    ldy #OFFSET_STRUCT_COLLISION_DECISION_T_MAX_Y
+    sta (collision_decision),y
+    // collision_data::@return
+    // }
+    // [169] return 
+    rts
+  .segment Data
+    type: .byte 0
+  .segment Data
+    side: .byte 0
+  .segment Data
+    x: .byte 0
+  .segment Data
+    y: .byte 0
+  .segment Data
+    s: .byte 0
+}
+  // code segment
+.segment Code
+  // ht_insert
+// char ht_insert(ht_item_t *ht, __register(Y) char key, __mem() char data)
+ht_insert: {
+    // constants
+    .label ht = collision_hash
+    // variables
+    // variables-zero-page
+    // [171] phi from ht_insert to ht_insert::ht_hash1 [phi:ht_insert->ht_insert::ht_hash1]
+    // ht_insert::ht_hash1
+    // ht_insert::@3
+    // [172] ht_insert::ht_index#5 = ht_insert::key#0 -- vbuxx=vbuyy 
+    tya
+    tax
+    // [173] phi from ht_insert::@3 ht_insert::ht_hash_next1 to ht_insert::@1 [phi:ht_insert::@3/ht_insert::ht_hash_next1->ht_insert::@1]
+    // [173] phi ht_insert::ht_index#2 = ht_insert::ht_index#5 [phi:ht_insert::@3/ht_insert::ht_hash_next1->ht_insert::@1#0] -- register_copy 
+    // ht_insert::@1
+  __b1:
+    // ht_next = ht->next[ht_index]
+    // [174] ht_insert::ht_next#1 = ((char *)ht_insert::ht#0+OFFSET_STRUCT_HT_ITEM_T_NEXT)[ht_insert::ht_index#2] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda ht+OFFSET_STRUCT_HT_ITEM_T_NEXT,x
+    sta ht_next
+    // ht_key = ht->key[ht_index]
+    // [175] ht_insert::ht_key#1 = ((char *)ht_insert::ht#0)[ht_insert::ht_index#2] -- vbum1=pbuc1_derefidx_vbuxx 
+    lda ht,x
+    sta ht_key
+    // while ((ht_next = ht->next[ht_index]) && (ht_key = ht->key[ht_index]) != key)
+    // [176] if(0==ht_insert::ht_next#1) goto ht_insert::@2 -- 0_eq_vbum1_then_la1 
+    lda ht_next
+    beq __b2
+    // ht_insert::@4
+    // [177] if(ht_insert::ht_key#1!=ht_insert::key#0) goto ht_insert::ht_hash_next1 -- vbum1_neq_vbuyy_then_la1 
+    cpy ht_key
+    bne ht_hash_next1
+    // ht_insert::@2
+  __b2:
+    // ht->key[ht_index] = key
+    // [178] ((char *)ht_insert::ht#0)[ht_insert::ht_index#2] = ht_insert::key#0 -- pbuc1_derefidx_vbuxx=vbuyy 
+    tya
+    sta ht,x
+    // ht_list.data[ht_list_pool] = data
+    // [179] ((char *)&ht_list)[ht_list_pool] = ht_insert::data#0 -- pbuc1_derefidx_vbum1=vbum2 
+    lda data
+    ldy ht_list_pool
+    sta ht_list,y
+    // ht_list.next[ht_list_pool] = ht_next
+    // [180] ((char *)&ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT)[ht_list_pool] = ht_insert::ht_next#1 -- pbuc1_derefidx_vbum1=vbum2 
+    // Now the new node becomes the first node in the list;
+    lda ht_next
+    sta ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT,y
+    // ht->next[ht_index] = ht_list_pool
+    // [181] ((char *)ht_insert::ht#0+OFFSET_STRUCT_HT_ITEM_T_NEXT)[ht_insert::ht_index#2] = ht_list_pool -- pbuc1_derefidx_vbuxx=vbum1 
+    tya
+    sta ht+OFFSET_STRUCT_HT_ITEM_T_NEXT,x
+    // ht_list_pool--;
+    // [182] ht_list_pool = -- ht_list_pool -- vbum1=_dec_vbum1 
+    dec ht_list_pool
+    // ht_insert::@return
+    // }
+    // [183] return 
+    rts
+    // ht_insert::ht_hash_next1
+  ht_hash_next1:
+    // index+1
+    // [184] ht_insert::ht_hash_next1_return#0 = ht_insert::ht_index#2 + 1 -- vbuxx=vbuxx_plus_1 
+    inx
+    jmp __b1
+  .segment Data
+    ht_next: .byte 0
+  .segment Data
+    ht_key: .byte 0
+  .segment Data
+    data: .byte 0
+}
+  // code segment
+.segment Code
+  // ht_init
+// void ht_init(ht_item_t *ht)
+ht_init: {
+    // constants
+    .const memset_fast1_ch = 0
+    .const memset_fast2_ch = 0
+    .label ht = collision_hash
+    // heap_segment_define(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!
+    .label memset_fast1_destination = ht
+    // heap_segment_define(&ht_heap, &ht_heap_list, 8, ht_size, 8*ht_size); // Each list item is maximum 8 bytes on the heap!
+    .label memset_fast2_destination = ht+OFFSET_STRUCT_HT_ITEM_T_NEXT
+    // variables
+    // variables-zero-page
+    // [186] phi from ht_init to ht_init::memset_fast1 [phi:ht_init->ht_init::memset_fast1]
+    // ht_init::memset_fast1
+    // [187] phi from ht_init::memset_fast1 to ht_init::memset_fast1_@1 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1]
+    // [187] phi ht_init::memset_fast1_num#2 = 0 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [187] phi ht_init::memset_fast1_x#2 = 0 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1#1] -- vbuyy=vbuc1 
+    ldy #0
+    // [187] phi from ht_init::memset_fast1_@1 to ht_init::memset_fast1_@1 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast1_@1]
+    // [187] phi ht_init::memset_fast1_num#2 = ht_init::memset_fast1_num#1 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast1_@1#0] -- register_copy 
+    // [187] phi ht_init::memset_fast1_x#2 = ht_init::memset_fast1_x#1 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast1_@1#1] -- register_copy 
+    // ht_init::memset_fast1_@1
+  memset_fast1___b1:
+    // destination[x] = ch
+    // [188] ht_init::memset_fast1_destination#0[ht_init::memset_fast1_x#2] = ht_init::memset_fast1_ch#0 -- pbuc1_derefidx_vbuyy=vbuc2 
+    lda #memset_fast1_ch
+    sta memset_fast1_destination,y
+    // x++;
+    // [189] ht_init::memset_fast1_x#1 = ++ ht_init::memset_fast1_x#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // num--;
+    // [190] ht_init::memset_fast1_num#1 = -- ht_init::memset_fast1_num#2 -- vbuxx=_dec_vbuxx 
+    dex
+    // while(num)
+    // [191] if(0!=ht_init::memset_fast1_num#1) goto ht_init::memset_fast1_@1 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne memset_fast1___b1
+    // [192] phi from ht_init::memset_fast1_@1 to ht_init::memset_fast2 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast2]
+    // ht_init::memset_fast2
+    // [193] phi from ht_init::memset_fast2 to ht_init::memset_fast2_@1 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1]
+    // [193] phi ht_init::memset_fast2_num#2 = 0 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1#0] -- vbuxx=vbuc1 
+    ldx #0
+    // [193] phi ht_init::memset_fast2_x#2 = 0 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1#1] -- vbuyy=vbuc1 
+    ldy #0
+    // [193] phi from ht_init::memset_fast2_@1 to ht_init::memset_fast2_@1 [phi:ht_init::memset_fast2_@1->ht_init::memset_fast2_@1]
+    // [193] phi ht_init::memset_fast2_num#2 = ht_init::memset_fast2_num#1 [phi:ht_init::memset_fast2_@1->ht_init::memset_fast2_@1#0] -- register_copy 
+    // [193] phi ht_init::memset_fast2_x#2 = ht_init::memset_fast2_x#1 [phi:ht_init::memset_fast2_@1->ht_init::memset_fast2_@1#1] -- register_copy 
+    // ht_init::memset_fast2_@1
+  memset_fast2___b1:
+    // destination[x] = ch
+    // [194] ht_init::memset_fast2_destination#0[ht_init::memset_fast2_x#2] = ht_init::memset_fast2_ch#0 -- pbuc1_derefidx_vbuyy=vbuc2 
+    lda #memset_fast2_ch
+    sta memset_fast2_destination,y
+    // x++;
+    // [195] ht_init::memset_fast2_x#1 = ++ ht_init::memset_fast2_x#2 -- vbuyy=_inc_vbuyy 
+    iny
+    // num--;
+    // [196] ht_init::memset_fast2_num#1 = -- ht_init::memset_fast2_num#2 -- vbuxx=_dec_vbuxx 
+    dex
+    // while(num)
+    // [197] if(0!=ht_init::memset_fast2_num#1) goto ht_init::memset_fast2_@1 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne memset_fast2___b1
+    // ht_init::@1
+    // ht_list_pool = HT_SIZE-1
+    // [198] ht_list_pool = $100-1 -- vbum1=vwuc1 
+    lda #<$100-1
+    sta ht_list_pool
+    // ht_init::@return
+    // }
+    // [199] return 
+    rts
+}
+  // Exported Global Data
+.segment Data
+  ht_list: .fill SIZEOF_STRUCT_HT_LIST_S, 0
+.segment Data
+  ht_list_pool: .byte 0
+.segment Hash
+  collision_hash: .fill SIZEOF_STRUCT_HT_ITEM_T, 0
+.segment Hash
+  collision_quadrant: .fill SIZEOF_STRUCT_COLLISION_QUADRANT_T, 0
+  // end-assembler
+  // End Namespace
+} // namespace
+ // Asm import library equinoxe-layers:
+.namespace equinoxe_layers {
+.label sprite_cache = 0
+.label flight = 0
+} // namespaceequinoxe_layers
+
+ // Asm import library equinoxe-flightengine:
+.namespace equinoxe_flightengine {
+.label sprite_cache = 0
+.label flight = 0
+flight_has_collided: {
+  .label f = 0
+  .label return = 0
+}
+} // namespaceequinoxe_flightengine
+
+ // Asm import library equinoxe-waves:
+.namespace equinoxe_waves {
+.label sprite_cache = 0
+.label flight = 0
+} // namespaceequinoxe_waves
+
+ // Asm import library equinoxe-stage-flight:
+.namespace equinoxe_stage_flight {
+.label sprite_cache = 0
+.label flight = 0
+stage_impact: {
+  .label f = 0
+  .label h = 0
+  .label return = 0
+}
+} // namespaceequinoxe_stage_flight
+
+ // Asm import library lib_conio:
+.namespace lib_conio {
+.label sprite_cache = 0
+.label flight = 0
+} // namespacelib_conio
+

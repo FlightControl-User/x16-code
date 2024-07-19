@@ -1,5 +1,5 @@
-#include "equinoxe-cx16.h"
-#include "equinoxe-player.h"
+#pragma lib_configure
+#pragma lib_export(__varcall, player_init, player_add, player_remove, player_hit, player_logic)
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_PLAYERS)
@@ -7,7 +7,17 @@
 #pragma bank(cx16_ram,BANK_ENGINE_PLAYERS)
 #endif
 
+#include "equinoxe-cx16.h"
+#include "equinoxe-player.h"
+
+#include <equinoxe-flightengine.p>
+#include <equinoxe-stage-flight.p>
+#include <equinoxe-animate.p>
+#include <equinoxe-collision.p>
+
+
 void player_init() {
+    asm { nop }
 }
 
 void player_add(sprite_index_t sprite_player, sprite_index_t sprite_engine) {
@@ -64,7 +74,7 @@ void player_hit(unsigned char p, signed char impact) {
     }
 }
 
-void player_logic() {
+void player_logic(unsigned int mouse_x, unsigned int mouse_px, unsigned int mouse_y, unsigned char mouse_status) {
 
 #ifdef debug_scanlines
         vera_display_set_border_color(6);
@@ -83,7 +93,7 @@ void player_logic() {
 
 
 #ifdef __BULLET
-            if (cx16_mouse.status == 1 && flight.reload[p] <= 0) {
+            if (mouse_status == 1 && flight.reload[p] <= 0) {
                 unsigned int x = flight.xi[p];
                 unsigned int y = flight.yi[p];
                 if (flight.firegun[p]) {
@@ -96,8 +106,8 @@ void player_logic() {
 #endif
 
 
-            flight.xi[p] = (unsigned int)cx16_mouse.x;
-            flight.yi[p] = (unsigned int)cx16_mouse.y;
+            flight.xi[p] = (unsigned int)mouse_x;
+            flight.yi[p] = (unsigned int)mouse_y;
 
             flight_index_t n = flight.engine[p];
             flight.xi[n] = flight.xi[p]+8;
@@ -118,7 +128,7 @@ void player_logic() {
             }
 
             unsigned char ap = flight.animate[p]; 
-            animate_player(ap, (signed int)cx16_mouse.x, (signed int)cx16_mouse.px);
+            animate_player(ap, (signed int)mouse_x, (signed int)mouse_px);
             unsigned char an = flight.animate[n]; 
             animate_logic(an);
 

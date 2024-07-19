@@ -3,16 +3,20 @@
 #pragma encoding(petscii_mixed)
 #pragma var_model(mem)
 
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(enemy_init)
-#pragma asm_export(enemy_add)
-#pragma asm_export(enemy_remove)
-#pragma asm_export(enemy_move)
-#pragma asm_export(enemy_arc)
-#pragma asm_export(enemy_logic)
-#pragma asm_export(enemy_get_wave)
+#pragma lib_export(enemy_init)
+#pragma lib_export(enemy_add)
+#pragma lib_export(enemy_remove)
+#pragma lib_export(enemy_move)
+#pragma lib_export(enemy_arc)
+#pragma lib_export(enemy_logic)
+#pragma lib_export(enemy_get_wave)
+
 #pragma calling(__phicall)
+
+#include <lib_conio.p>
+// #include <printf.h>
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
@@ -20,19 +24,14 @@
 #include "multiply.h"
 #include "stdio-types.h"
 
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
-#include "equinoxe-collision_asm.h"
-#include "equinoxe-flightengine_asm.h"
-#include "equinoxe-waves_asm.h"
-#include "equinoxe-stage-flight_asm.h"
-#include "lib_conio_asm.h"
-#include "lib_lru_cache_asm.h"
-#include "lib_veraheap_asm.h"
-#include "lib_bramheap_asm.h"
-#include "lib_file_asm.h"
-
+#include <equinoxe-layers.p>
+#include <equinoxe-animate.p>
+// #include <equinoxe-palette.p>
+#include <equinoxe-collision.p>
+#include <equinoxe-flightengine.p>
+#include <equinoxe-waves.p>
+#include <equinoxe-stage-flight.p>
+#include <equinoxe-bullet.p>
 
 #pragma data_seg(DATA_ENGINE_ENEMIES)
 
@@ -41,6 +40,8 @@
 #pragma data_seg(DATA_ENGINE_ENEMIES)
 #pragma bank(cx16_ram,BANK_ENGINE_ENEMIES)
 #endif
+
+#ifdef __ENEMY
 
 void enemy_init()
 {
@@ -80,38 +81,21 @@ unsigned char enemy_add(unsigned char w, sprite_index_t sprite_enemy)
 }
 
 
-void enemy_move( unsigned char e, unsigned int moving, unsigned char turn, unsigned char speed)
-{
-	flight.move[e] = 1;
-	if(speed>1) moving >>= (speed-1);
-	flight.moving[e] = moving;
-	flight.angle[e] = flight.angle[e] + turn;
-	flight.speed[e] = speed;
-}
-
-void enemy_arc( unsigned char e, unsigned char turn, unsigned char radius, unsigned char speed)
-{
-	flight.move[e] = 2;
-	flight.turn[e] = sgn_u8(turn);
-	flight.radius[e] = radius;
-	flight.delay[e] = 0;
-	flight.moving[e] = mul8u(abs_u8((unsigned char)turn), radius);
-	flight.speed[e] = speed;
-}
-
 void enemy_logic() {
 
-    flight_index_t e = flight_root(FLIGHT_ENEMY);
+    __zp flight_index_t e = flight_root(FLIGHT_ENEMY);
 	while(e) {
 
 		flight_index_t en = flight_next(e);
 
 		if(flight.type[e] == FLIGHT_ENEMY && flight.used[e]) {	
 
+			// gotoxy(0, e);
+			// cputc(' ');
+			// printf("%02u ", e);
+
 			if(!flight.moving[e]) {
 
-				// gotoxy(0, e);
-				// printf("%02u - used", e);
 
 				stage_flightpath_t* enemy_flightpath = flight.flightpath[e];
 				unsigned char enemy_action = flight.action[e];
@@ -119,7 +103,7 @@ void enemy_logic() {
                 unsigned char type = stage_get_flightpath_type(enemy_flightpath, enemy_action);
                 unsigned char next = stage_get_flightpath_next(enemy_flightpath, enemy_action);
 
-				// printf("efp=%p, ac=%03u, ty=%03u, ne=%03u - ", enemy_flightpath, enemy_action, type, next );
+				// printf("efp=%x, ac=%04p, ty=%03u, ne=%03u - ", (unsigned int)enemy_flightpath, action, type, next );
 
 				unsigned int path = 0;
 				signed char turn = 0;
@@ -132,10 +116,9 @@ void enemy_logic() {
                     path = stage_get_flightpath_action_move_flight(action);
                     turn = stage_get_flightpath_action_move_turn(action);
                     speed = stage_get_flightpath_action_move_speed(action);
-                    // printf("move f=%03u, t=%03d, s=%03u, a=%03u - ", flight, turn, speed, next );
+                    // printf("move f=%03u, t=%03d, s=%03u, a=%03u - ", e, turn, speed, next );
 
-					enemy_move(e, path, (unsigned char)turn, speed);
-                    flight.action[e] = next;
+					flight_move(e, path, (unsigned char)turn, speed);
 					break;
 
 				case STAGE_ACTION_TURN:
@@ -144,8 +127,7 @@ void enemy_logic() {
                     speed = stage_get_flightpath_action_turn_speed(action);
                     // printf("turn t=%03d, r=%03u, s=%03u, a=%03u - ", turn, radius, speed, next );
 
-					enemy_arc( e, (unsigned char)turn, radius, speed);
-                    flight.action[e] = next;
+					flight_arc( e, (unsigned char)turn, radius, speed);
 					break;
         
 
@@ -154,6 +136,7 @@ void enemy_logic() {
 					continue; // After removal, continue with the next enemy.
                     
 				}
+				flight.action[e] = next;
 			} else {
 				flight.moving[e]--;
 
@@ -177,14 +160,14 @@ void enemy_logic() {
 				}
 			}
 
-            char* const xf = (char*)&flight.xf;
-            char* const yf = (char*)&flight.yf;
-            char* const xi = (char*)&flight.xi;
-            char* const yi = (char*)&flight.yi;
-            char* const xd = (char*)&flight.xd;
-            char* const yd = (char*)&flight.yd;
+            __zp char* const xf = (char*)&flight.xf;
+            __zp char* const yf = (char*)&flight.yf;
+            __zp char* const xi = (char*)&flight.xi;
+            __zp char* const yi = (char*)&flight.yi;
+            __zp char* const xd = (char*)&flight.xd;
+            __zp char* const yd = (char*)&flight.yd;
 
-            {kickasm(uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
+            {kickasm(uses e, uses xf, uses yf, uses xi, uses yi, uses xd, uses yd) {{
                 lda e
                 asl
                 tay
@@ -223,6 +206,10 @@ void enemy_logic() {
 			unsigned int x = flight.xi[e];
 			unsigned int y = flight.yi[e];
 
+			// printf("%02x ", flight.moving[e]);
+
+			// printf("%03u %03u ", x, y);
+
 			if (flight.reload[e] > 0) {
 				flight.reload[e]--;
 			}
@@ -253,7 +240,7 @@ void enemy_logic() {
 #ifdef __BULLET         
 				unsigned int r = rand();
 				if(r>=65300) {
-					// stage_bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
+					stage_bullet_add(flight.xi[e], flight.yi[e], flight.xi[stage.player], flight.yi[stage.player], 4, SIDE_ENEMY, b002);
 				}
 #endif
 				animate_logic(flight.animate[e]);
@@ -285,3 +272,4 @@ inline void enemy_bank() {
 inline void enemy_unbank() {
 }
 
+#endif

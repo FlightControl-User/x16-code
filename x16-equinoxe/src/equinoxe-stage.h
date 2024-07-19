@@ -5,8 +5,12 @@
 
 
 void stage_reset();
+
+#ifdef __ENEMY
 void stage_enemy_add(unsigned char w, sprite_index_t enemy_sprite);
 void stage_enemy_remove(wave_index_t w, flight_index_t e);
+#endif
+
 void stage_logic(unsigned char tickstage);
 
 // void stage_impact(unsigned char f, flight_index_t h);
@@ -16,9 +20,6 @@ stage_tower_t* stage_tower_get();
 void stage_tower_add(unsigned char row, unsigned char column);
 void stage_tower_remove(unsigned char t);
 #endif
-
-void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet);
-void stage_bullet_remove(flight_index_t b);
 
 
 

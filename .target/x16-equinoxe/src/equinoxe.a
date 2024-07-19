@@ -1,0 +1,3900 @@
+  // Upstart
+.cpu _65c02
+  
+.file                               [name="equinoxe-enemy.prg", type="prg", segments="Program"]
+.file                               [name="STAGES.BIN",         type="bin", segments="CodeEngineStages, BramEngineStages"]
+.file                               [name="PLAYERS.BIN",        type="bin", segments="CodeEnginePlayers"]
+.file                               [name="BULLETS.BIN",        type="bin", segments="CodeEngineBullets"]
+.file                               [name="ENEMIES.BIN",        type="bin", segments="CodeEngineEnemies"]
+.file                               [name="TOWERS.BIN",         type="bin", segments="CodeEngineTowers"]
+.file                               [name="BRAMFLIGHT1.BIN",    type="bin", segments="BramEngineFlight"]
+.file                               [name="BRAMFLOOR1.BIN",     type="bin", segments="BramEngineFloor"]
+.segmentdef Program                 [segments="Basic, Code, Data" + 
+                                     ", CodeBramHeap" +
+                                     ", CodeVeraHeap" +
+                                     ", CodeLruCache" + 
+                                     ", CodeEngineFloor" +
+                                     ", CodeEngineAnimate" +
+                                     ", CodeEngineFlight" +
+                                     ", CodeEnginePalette" +
+                                     ", DataBramHeap" +
+                                     ", DataVeraHeap" +
+                                     ", DataEngineFloor" +
+                                     ", DataEngineAnimate" +
+                                     ", DataEngineStages" +
+                                     ", DataEngineBullets" +
+                                     ", DataEnginePlayers" +
+                                     ", DataEngineEnemies" +
+                                     ", DataEngineFlight" +
+                                     ", DataEnginePalette" +
+//                                     ", BramEngineFloor" +
+                                     ", DataSpriteCache"
+                                     ]
+.segmentdef Basic                   [start=$0801]
+.segmentdef Code                    [start=$80d]
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
+.segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
+
+.segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
+.segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+
+.segment Basic
+:BasicUpstart(__start)
+.segment Code
+.segment CodeEngineFloor
+.segment CodeEngineFlight
+.segment CodeEngineStages
+.segment CodeEngineBullets
+.segment CodeEngineEnemies
+.segment CodeEnginePlayers
+.segment Data
+.segment Code
+
+
+  // start-assembler
+  // File Comments
+// Space flight engine for a space game written in kickc for the Commander X16.
+  // Global constants and variables
+  // constants
+  // void cx16_kernal_irq(IRQ_TYPE irq);
+  .label CX16_ROM_KERNAL = 0
+  .label CX16_ROM_BASIC = 4
+  /// The colors of the C64
+  .label BLACK = 0
+  .label WHITE = 1
+  .label BLUE = 6
+  .label YELLOW = 7
+  .label PINK = $a
+  .label GREY = $c
+  .label LIGHT_BLUE = $e
+  ///< Close a logical file.
+  .label CBM_CLRCHN = $ffcc
+  ///< CX16 Set/Get screen mode.
+  .label CX16_SCREEN_SET_CHARSET = $ff62
+  .label VERA_DCSEL = 2
+  .label VERA_VSYNC = 1
+  .label VERA_SPRITES_ENABLE = $40
+  .label VERA_LAYER1_ENABLE = $20
+  .label VERA_LAYER0_ENABLE = $10
+  // The different flight object types.
+  .label t001 = 0
+  .label p001 = 1
+  .label n001 = 2
+  .label e0701 = 3
+  .label e0102 = 4
+  .label e0201 = 5
+  .label e0202 = 6
+  .label e0301 = 7
+  .label e0302 = 8
+  .label e0401 = 9
+  .label e0501 = $a
+  .label e0502 = $b
+  .label e0601 = $c
+  .label e0602 = $d
+  .label e0702 = $f
+  .label e0703 = $10
+  .label b001 = $11
+  .label b002 = $12
+  .label b003 = $13
+  .label STAGE_ACTION_MOVE = 2
+  .label STAGE_ACTION_TURN = 3
+  .label STAGE_ACTION_END = $ff
+  // CX16 CBM Mouse Routines
+  .label CX16_MOUSE_CONFIG = $ff68
+  // ISR routine to scan the mouse state.
+  .label CX16_MOUSE_GET = $ff6b
+  .label SIZEOF_STRUCT_STAGE_T = $38
+  .label SIZEOF_STRUCT_STAGE_PLAYBOOK_T = $a
+  .label OFFSET_STRUCT_CX16_MOUSE_T_WAIT = 9
+  .label OFFSET_STRUCT_CX16_MOUSE_T_Y = 2
+  .label OFFSET_STRUCT_CX16_MOUSE_T_STATUS = 8
+  .label OFFSET_STRUCT_CX16_MOUSE_T_PX = 4
+  .label OFFSET_STRUCT_CX16_MOUSE_T_PY = 6
+  .label OFFSET_STRUCT_STAGE_T_SCRIPT_B = $15
+  .label OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B = 1
+  .label OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT = $1a
+  .label OFFSET_STRUCT_STAGE_T_LIVES = $34
+  .label OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL = $1e
+  .label OFFSET_STRUCT_STAGE_T_EW = $18
+  .label OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT = $1c
+  .label OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER = 3
+  .label OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE = 1
+  .label OFFSET_STRUCT_STAGE_T_ENEMY_COUNT = $13
+  .label OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN = $35
+  .label OFFSET_STRUCT_WAVE_T_USED = $78
+  .label OFFSET_STRUCT_WAVE_T_WAIT = $68
+  .label OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN = 8
+  .label OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE = $28
+  .label OFFSET_STRUCT_WAVE_T_FINISHED = $80
+  .label OFFSET_STRUCT_WAVE_T_ENEMY_SPRITE = $10
+  .label OFFSET_STRUCT_WAVE_T_SCENARIO = $88
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_PREV = $e
+  .label OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B = 1
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_X = 6
+  .label OFFSET_STRUCT_WAVE_T_X = $30
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_Y = 8
+  .label OFFSET_STRUCT_WAVE_T_Y = $40
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_DX = $a
+  .label OFFSET_STRUCT_WAVE_T_DX = $50
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_DY = $b
+  .label OFFSET_STRUCT_WAVE_T_DY = $58
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_ENEMY_FLIGHTPATH = 4
+  .label OFFSET_STRUCT_WAVE_T_ENEMY_FLIGHTPATH = $18
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_ENEMY_SPAWN = 1
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_STAGE_ENEMY = 2
+  .label OFFSET_STRUCT_STAGE_ENEMY_T_ANIMATION_SPEED = 4
+  .label OFFSET_STRUCT_WAVE_T_ANIMATION_SPEED = $98
+  .label OFFSET_STRUCT_STAGE_ENEMY_T_ANIMATION_REVERSE = 5
+  .label OFFSET_STRUCT_WAVE_T_ANIMATION_REVERSE = $a0
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_INTERVAL = $c
+  .label OFFSET_STRUCT_WAVE_T_INTERVAL = $60
+  .label OFFSET_STRUCT_WAVE_T_PREV = $70
+  .label OFFSET_STRUCT_STAGE_SCENARIO_T_WAIT = $d
+  .label OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET = $25
+  .label OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_BULLET = 3
+  .label OFFSET_STRUCT_STAGE_ENEMY_T_STAGE_BULLET = 2
+  .label OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSYNC = 1
+  .label OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSTAGE = 2
+  .label STACK_BASE = $103
+  .label SIZEOF_STRUCT_STAGE_SCENARIO_T = $10
+  .label SIZEOF_STRUCT_CX16_MOUSE_T = $a
+  .label SIZEOF_STRUCT_AABB_T = 4
+  .label SIZEOF_STRUCT_FLOOR_SEGMENT_T = 5
+  .label SIZEOF_STRUCT_FLOOR_COMPOSITION_T = $c
+  /// $9F25	CTRL Control
+  /// Bit 7: Reset
+  /// Bit 1: DCSEL
+  /// Bit 2: ADDRSEL
+  .label VERA_CTRL = $9f25
+  /// $9F26	IEN		Interrupt Enable
+  /// Bit 7: IRQ line (8)
+  /// Bit 3: AFLOW
+  /// Bit 2: SPRCOL
+  /// Bit 1: LINE
+  /// Bit 0: VSYNC
+  .label VERA_IEN = $9f26
+  /// $9F27	ISR     Interrupt Status
+  /// Interrupts will be generated for the interrupt sources set in the lower 4 bits of IEN. ISR will indicate the interrupts that have occurred.
+  /// Writing a 1 to one of the lower 3 bits in ISR will clear that interrupt status. AFLOW can only be cleared by filling the audio FIFO for at least 1/4.
+  /// Bit 4-7: Sprite Collisions. This field indicates which groups of sprites have collided.
+  /// Bit 3: AFLOW
+  /// Bit 2: SPRCOL
+  /// Bit 1: LINE
+  /// Bit 0: VSYNC
+  .label VERA_ISR = $9f27
+  /// $9F28	IRQLINE_L	IRQ line (7:0)
+  /// IRQ_LINE specifies at which line the LINE interrupt will be generated.
+  /// Note that bit 8 of this value is present in the IEN register.
+  /// For interlaced modes the interrupt will be generated each field and the bit 0 of IRQ_LINE is ignored.
+  .label VERA_IRQLINE_L = $9f28
+  /// $9F29	DC_VIDEO (DCSEL=0)
+  /// Bit 7: Current Field     Read-only bit which reflects the active interlaced field in composite and RGB modes. (0: even, 1: odd)
+  /// Bit 6: Sprites Enable	Enable output from the Sprites renderer
+  /// Bit 5: Layer1 Enable	    Enable output from the Layer1 renderer
+  /// Bit 4: Layer0 Enable	    Enable output from the Layer0 renderer
+  /// Bit 2: Chroma Disable    Setting 'Chroma Disable' disables output of chroma in NTSC composite mode and will give a better picture on a monochrome display. (Setting this bit will also disable the chroma output on the S-video output.)
+  /// Bit 0-1: Output Mode     0: Video disabled, 1: VGA output, 2: NTSC composite, 3: RGB interlaced, composite sync (via VGA connector)
+  .label VERA_DC_VIDEO = $9f29
+  /// $9F2C	DC_BORDER (DCSEL=0)	Border Color
+  .label VERA_DC_BORDER = $9f2c
+  /// $9F29	DC_HSTART (DCSEL=1)	Active Display H-Start (9:2)
+  .label VERA_DC_HSTART = $9f29
+  /// $9F2A	DC_HSTOP (DCSEL=1)	Active Display H-Stop (9:2)
+  .label VERA_DC_HSTOP = $9f2a
+  /// $9F2B	DC_VSTART (DCSEL=1)	Active Display V-Start (8:1)
+  .label VERA_DC_VSTART = $9f2b
+  /// $9F2C	DC_VSTOP (DCSEL=1)	Active Display V-Stop (8:1)
+  .label VERA_DC_VSTOP = $9f2c
+  /// $0314	(RAM) IRQ vector - The vector used when the KERNAL serves IRQ interrupts
+  .label KERNEL_IRQ = $314
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __start
+// void __start()
+__start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // #pragma constructor_for(cx16_irq_reset, cx16_irq_relay, cx16_nmi_reset, cx16_nmi_relay, cx16_brk_reset, cx16_brk_relay)
+    // [3] call cx16_irq_reset
+    jsr cx16_irq_reset
+    // [4] phi from __start::__init1 to __start::@1 [phi:__start::__init1->__start::@1]
+    // __start::@1
+    // [5] call __lib_conio_start
+    // [136] phi from __start::@1 to __lib_conio_start [phi:__start::@1->__lib_conio_start]
+    jsr lib_conio.__lib_conio_start
+    // [6] phi from __start::@1 to __start::@2 [phi:__start::@1->__start::@2]
+    // __start::@2
+    // [7] call __lib_lru_cache_start
+    // [138] phi from __start::@2 to __lib_lru_cache_start [phi:__start::@2->__lib_lru_cache_start]
+    jsr lib_lru_cache.__lib_lru_cache_start
+    // [8] phi from __start::@2 to __start::@3 [phi:__start::@2->__start::@3]
+    // __start::@3
+    // [9] call __lib_veraheap_start
+    // [140] phi from __start::@3 to __lib_veraheap_start [phi:__start::@3->__lib_veraheap_start]
+    jsr lib_veraheap.__lib_veraheap_start
+    // [10] phi from __start::@3 to __start::@4 [phi:__start::@3->__start::@4]
+    // __start::@4
+    // [11] call __lib_bramheap_start
+    // [142] phi from __start::@4 to __lib_bramheap_start [phi:__start::@4->__lib_bramheap_start]
+    jsr lib_bramheap.__lib_bramheap_start
+    // [12] phi from __start::@4 to __start::@5 [phi:__start::@4->__start::@5]
+    // __start::@5
+    // [13] call __lib_file_start
+    // [144] phi from __start::@5 to __lib_file_start [phi:__start::@5->__lib_file_start]
+    jsr lib_file.__lib_file_start
+    // [14] phi from __start::@5 to __start::@6 [phi:__start::@5->__start::@6]
+    // __start::@6
+    // [15] call __equinoxe_layers_start
+    // [146] phi from __start::@6 to __equinoxe_layers_start [phi:__start::@6->__equinoxe_layers_start]
+    jsr equinoxe_layers.__equinoxe_layers_start
+    // [16] phi from __start::@6 to __start::@7 [phi:__start::@6->__start::@7]
+    // __start::@7
+    // [17] call __equinoxe_animate_start
+    // [148] phi from __start::@7 to __equinoxe_animate_start [phi:__start::@7->__equinoxe_animate_start]
+    jsr equinoxe_animate.__equinoxe_animate_start
+    // [18] phi from __start::@7 to __start::@8 [phi:__start::@7->__start::@8]
+    // __start::@8
+    // [19] call __equinoxe_palette_start
+    // [150] phi from __start::@8 to __equinoxe_palette_start [phi:__start::@8->__equinoxe_palette_start]
+    jsr equinoxe_palette.__equinoxe_palette_start
+    // [20] phi from __start::@8 to __start::@9 [phi:__start::@8->__start::@9]
+    // __start::@9
+    // [21] call __equinoxe_flightengine_start
+    // [152] phi from __start::@9 to __equinoxe_flightengine_start [phi:__start::@9->__equinoxe_flightengine_start]
+    jsr equinoxe_flightengine.__equinoxe_flightengine_start
+    // [22] phi from __start::@9 to __start::@10 [phi:__start::@9->__start::@10]
+    // __start::@10
+    // [23] call __equinoxe_waves_start
+    // [154] phi from __start::@10 to __equinoxe_waves_start [phi:__start::@10->__equinoxe_waves_start]
+    jsr equinoxe_waves.__equinoxe_waves_start
+    // [24] phi from __start::@10 to __start::@11 [phi:__start::@10->__start::@11]
+    // __start::@11
+    // [25] call __equinoxe_stage_flight_start
+    // [156] phi from __start::@11 to __equinoxe_stage_flight_start [phi:__start::@11->__equinoxe_stage_flight_start]
+    jsr equinoxe_stage_flight.__equinoxe_stage_flight_start
+    // [26] phi from __start::@11 to __start::@12 [phi:__start::@11->__start::@12]
+    // __start::@12
+    // [27] call __equinoxe_enemy_start
+    // [158] phi from __start::@12 to __equinoxe_enemy_start [phi:__start::@12->__equinoxe_enemy_start]
+    jsr equinoxe_enemy.__equinoxe_enemy_start
+    // [28] phi from __start::@12 to __start::@13 [phi:__start::@12->__start::@13]
+    // __start::@13
+    // [29] call __equinoxe_collision_start
+    // [160] phi from __start::@13 to __equinoxe_collision_start [phi:__start::@13->__equinoxe_collision_start]
+    jsr equinoxe_collision.__equinoxe_collision_start
+    // [30] phi from __start::@13 to __start::@14 [phi:__start::@13->__start::@14]
+    // __start::@14
+    // [31] call __equinoxe_player_start
+    // [162] phi from __start::@14 to __equinoxe_player_start [phi:__start::@14->__equinoxe_player_start]
+    jsr equinoxe_player.__equinoxe_player_start
+    // [32] phi from __start::@14 to __start::@15 [phi:__start::@14->__start::@15]
+    // __start::@15
+    // [33] call __equinoxe_bullet_start
+    // [164] phi from __start::@15 to __equinoxe_bullet_start [phi:__start::@15->__equinoxe_bullet_start]
+    jsr equinoxe_bullet.__equinoxe_bullet_start
+    // [34] phi from __start::@15 to __start::@16 [phi:__start::@15->__start::@16]
+    // __start::@16
+    // [35] call main
+    jsr main
+    // __start::@return
+    // [36] return 
+    rts
+}
+  // code segment
+.segment Code
+  // irq_vsync
+//VSYNC Interrupt Routine
+// void irq_vsync()
+irq_vsync: {
+    // constants
+    .const bank_set_brom1_bank = 0
+    .const bank_push_set_bram1_bank = $ff
+    // variables
+    // variables-zero-page
+    // interrupt(isr_rom_sys_cx16_entry) -- isr_rom_sys_cx16_entry 
+    // irq_vsync::bank_set_brom1
+    // BROM = bank
+    // [38] BROM = irq_vsync::bank_set_brom1_bank#0 -- vbuz1=vbuc1 
+    lda #bank_set_brom1_bank
+    sta.z BROM
+    // irq_vsync::vera_display_set_border_color1
+    // *VERA_CTRL &= 0b10000001
+    // [39] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [40] *VERA_DC_BORDER = YELLOW -- _deref_pbuc1=vbuc2 
+    lda #YELLOW
+    sta VERA_DC_BORDER
+    // irq_vsync::bank_push_set_bram1
+    // asm
+    // asm { lda$00 pha  }
+    lda.z 0
+    pha
+    // BRAM = bank
+    // [42] BRAM = irq_vsync::bank_push_set_bram1_bank#0 -- vbuz1=vbuc1 
+    lda #bank_push_set_bram1_bank
+    sta.z BRAM
+    // irq_vsync::vera_display_set_border_color2
+    // *VERA_CTRL &= 0b10000001
+    // [43] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [44] *VERA_DC_BORDER = BLUE -- _deref_pbuc1=vbuc2 
+    lda #BLUE
+    sta VERA_DC_BORDER
+    // [45] phi from irq_vsync::vera_display_set_border_color2 to irq_vsync::@3 [phi:irq_vsync::vera_display_set_border_color2->irq_vsync::@3]
+    // irq_vsync::@3
+    // collision_init()
+    // [46] callexecute collision_init  -- call_var_near 
+    jsr equinoxe_collision.collision_init
+    // cx16_mouse_get()
+    // [47] call cx16_mouse_get
+    // cx16_mouse_scan(); 
+    jsr cx16_mouse_get
+    // irq_vsync::@9
+    // unsigned char tickupdate = game.ticksync & 0x01
+    // [48] irq_vsync::tickupdate#0 = *((char *)&game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSYNC) & 1 -- vbuaa=_deref_pbuc1_band_vbuc2 
+    lda #1
+    and game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSYNC
+    // if(!tickupdate)
+    // [49] if(0!=irq_vsync::tickupdate#0) goto irq_vsync::@1 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b1
+    // irq_vsync::@2
+    // stage_logic(game.tickstage)
+    // [50] stage_logic::tickstage#0 = *((char *)&game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSTAGE) -- vbuxx=_deref_pbuc1 
+    ldx game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSTAGE
+    // [51] call stage_logic
+    // [264] phi from irq_vsync::@2 to stage_logic [phi:irq_vsync::@2->stage_logic]
+    // [264] phi stage_logic::tickstage#2 = stage_logic::tickstage#0 [phi:irq_vsync::@2->stage_logic#0] -- call_phi_close_cx16_ram 
+    sta.z $ff
+    lda.z 0
+    pha
+    lda #3
+    sta.z 0
+    lda.z $ff
+    jsr stage_logic
+    sta.z $ff
+    pla
+    sta.z 0
+    lda.z $ff
+    // irq_vsync::@10
+    // game.tickstage++;
+    // [52] *((char *)&game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSTAGE) = ++ *((char *)&game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSTAGE) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSTAGE
+    // irq_vsync::@1
+  __b1:
+    // game.ticksync++;
+    // [53] *((char *)&game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSYNC) = ++ *((char *)&game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSYNC) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc game+OFFSET_STRUCT_EQUINOXE_GAME_T_TICKSYNC
+    // irq_vsync::vera_display_set_border_color3
+    // *VERA_CTRL &= 0b10000001
+    // [54] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [55] *VERA_DC_BORDER = LIGHT_BLUE -- _deref_pbuc1=vbuc2 
+    lda #LIGHT_BLUE
+    sta VERA_DC_BORDER
+    // irq_vsync::@4
+    // player_logic(cx16_mouse.x, cx16_mouse.px, cx16_mouse.y, cx16_mouse.status)
+    // [56] player_logic::mouse_x = *((unsigned int *)&cx16_mouse) -- vwum1=_deref_pwuc1 
+    lda cx16_mouse
+    sta equinoxe_player.player_logic.mouse_x
+    lda cx16_mouse+1
+    sta equinoxe_player.player_logic.mouse_x+1
+    // [57] player_logic::mouse_px = *((unsigned int *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PX) -- vwum1=_deref_pwuc1 
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PX
+    sta equinoxe_player.player_logic.mouse_px
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PX+1
+    sta equinoxe_player.player_logic.mouse_px+1
+    // [58] player_logic::mouse_y = *((unsigned int *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y) -- vwum1=_deref_pwuc1 
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y
+    sta equinoxe_player.player_logic.mouse_y
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y+1
+    sta equinoxe_player.player_logic.mouse_y+1
+    // [59] player_logic::mouse_status = *((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_STATUS) -- vbum1=_deref_pbuc1 
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_STATUS
+    sta equinoxe_player.player_logic.mouse_status
+    // [60] callexecute player_logic  -- call_var_near 
+    jsr equinoxe_player.player_logic
+    // irq_vsync::vera_display_set_border_color4
+    // *VERA_CTRL &= 0b10000001
+    // [61] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [62] *VERA_DC_BORDER = YELLOW -- _deref_pbuc1=vbuc2 
+    lda #YELLOW
+    sta VERA_DC_BORDER
+    // [63] phi from irq_vsync::vera_display_set_border_color4 to irq_vsync::@5 [phi:irq_vsync::vera_display_set_border_color4->irq_vsync::@5]
+    // irq_vsync::@5
+    // bullet_logic()
+    // [64] callexecute bullet_logic  -- call_var_close_cx16_ram 
+    lda.z 0
+    pha
+    lda #7
+    sta.z 0
+    jsr equinoxe_bullet.bullet_logic
+    pla
+    sta.z 0
+    // irq_vsync::vera_display_set_border_color5
+    // *VERA_CTRL &= 0b10000001
+    // [65] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [66] *VERA_DC_BORDER = PINK -- _deref_pbuc1=vbuc2 
+    lda #PINK
+    sta VERA_DC_BORDER
+    // [67] phi from irq_vsync::vera_display_set_border_color5 to irq_vsync::@6 [phi:irq_vsync::vera_display_set_border_color5->irq_vsync::@6]
+    // irq_vsync::@6
+    // enemy_logic()
+    // [68] callexecute enemy_logic  -- call_var_close_cx16_ram 
+    lda.z 0
+    pha
+    lda #8
+    sta.z 0
+    jsr equinoxe_enemy.enemy_logic
+    pla
+    sta.z 0
+    // irq_vsync::vera_display_set_border_color6
+    // *VERA_CTRL &= 0b10000001
+    // [69] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [70] *VERA_DC_BORDER = WHITE -- _deref_pbuc1=vbuc2 
+    lda #WHITE
+    sta VERA_DC_BORDER
+    // [71] phi from irq_vsync::vera_display_set_border_color6 to irq_vsync::@7 [phi:irq_vsync::vera_display_set_border_color6->irq_vsync::@7]
+    // irq_vsync::@7
+    // collision_detect()
+    // [72] callexecute collision_detect  -- call_var_near 
+    jsr equinoxe_collision.collision_detect
+    // irq_vsync::vera_display_set_border_color7
+    // *VERA_CTRL &= 0b10000001
+    // [73] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [74] *VERA_DC_BORDER = GREY -- _deref_pbuc1=vbuc2 
+    lda #GREY
+    sta VERA_DC_BORDER
+    // [75] phi from irq_vsync::vera_display_set_border_color7 to irq_vsync::@8 [phi:irq_vsync::vera_display_set_border_color7->irq_vsync::@8]
+    // irq_vsync::@8
+    // flight_draw()
+    // [76] callexecute flight_draw  -- call_var_near 
+    jsr equinoxe_flightengine.flight_draw
+    // *VERA_ISR = 1
+    // [77] *VERA_ISR = 1 -- _deref_pbuc1=vbuc2 
+    // Reset the VSYNC interrupt
+    lda #1
+    sta VERA_ISR
+    // irq_vsync::bank_pull_bram1
+    // asm
+    // asm { pla sta$00  }
+    pla
+    sta.z 0
+    // irq_vsync::vera_display_set_border_color8
+    // *VERA_CTRL &= 0b10000001
+    // [79] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [80] *VERA_DC_BORDER = BLACK -- _deref_pbuc1=vbuc2 
+    lda #BLACK
+    sta VERA_DC_BORDER
+    // irq_vsync::@return
+    // }
+    // [81] return 
+    // interrupt(isr_rom_sys_cx16_exit) -- isr_rom_sys_cx16_exit 
+    jmp (isr_vsync)
+}
+  // code segment
+.segment Code
+  // cx16_irq_reset
+// void cx16_irq_reset()
+cx16_irq_reset: {
+    // constants
+    // variables
+    // variables-zero-page
+    // isr_vsync = *(IRQ_TYPE*)0x0314
+    // [84] isr_vsync = *((void (**)()) 788) -- pprm1=_deref_qprc1 
+    lda $314
+    sta isr_vsync
+    lda $314+1
+    sta isr_vsync+1
+    // cx16_irq_reset::@return
+    // }
+    // [85] return 
+    rts
+}
+  // code segment
+.segment Code
+  // main
+/// @brief game startup
+// void main()
+main: {
+    // constants
+    .const vera_display_set_hstart1_start = 1
+    .const vera_display_set_hstop1_stop = $9f
+    .const vera_display_set_vstart1_start = 0
+    .const vera_display_set_vstop1_stop = $ee
+    // variables
+    // variables-zero-page
+    .label cx16_k_screen_set_charset1_offset = $2e
+    // cx16_k_screen_set_charset(3, (char *)0)
+    // [166] main::cx16_k_screen_set_charset1_charset = 3 -- vbum1=vbuc1 
+    lda #3
+    sta cx16_k_screen_set_charset1_charset
+    // [167] main::cx16_k_screen_set_charset1_offset = (char *) 0 -- pbuz1=pbuc1 
+    lda #<0
+    sta.z cx16_k_screen_set_charset1_offset
+    sta.z cx16_k_screen_set_charset1_offset+1
+    // main::cx16_k_screen_set_charset1
+    // asm
+    // asm { ldacharset ldx<offset ldy>offset jsrCX16_SCREEN_SET_CHARSET  }
+    lda cx16_k_screen_set_charset1_charset
+    ldx.z <cx16_k_screen_set_charset1_offset
+    ldy.z >cx16_k_screen_set_charset1_offset
+    jsr CX16_SCREEN_SET_CHARSET
+    // main::bank_set_brom1
+    // BROM = bank
+    // [169] BROM = CX16_ROM_KERNAL -- vbuz1=vbuc1 
+    lda #CX16_ROM_KERNAL
+    sta.z BROM
+    // main::vera_layer0_hide1
+    // *VERA_CTRL &= ~VERA_DCSEL
+    // [170] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_DCSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_VIDEO &= ~VERA_LAYER0_ENABLE
+    // [171] *VERA_DC_VIDEO = *VERA_DC_VIDEO & ~VERA_LAYER0_ENABLE -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_LAYER0_ENABLE^$ff
+    and VERA_DC_VIDEO
+    sta VERA_DC_VIDEO
+    // [172] phi from main::vera_layer0_hide1 to main::@4 [phi:main::vera_layer0_hide1->main::@4]
+    // main::@4
+    // vera_layer1_hide()
+    // [173] call vera_layer1_hide
+    jsr vera_layer1_hide
+    // [174] phi from main::@4 to main::@9 [phi:main::@4->main::@9]
+    // main::@9
+    // vera_petscii_init()
+    // [175] callexecute vera_petscii_init  -- call_var_near 
+    jsr equinoxe_layers.vera_petscii_init
+    // scroll(1)
+    // [176] stackpush(char) = 1 -- _stackpushbyte_=vbuc1 
+    lda #1
+    pha
+    // [177] callexecute scroll  -- call_stack_near 
+    jsr lib_conio.scroll
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // equinoxe_init()
+    // [179] call equinoxe_init
+  // music = fopen("music.bin","r");
+    // [329] phi from main::@9 to equinoxe_init [phi:main::@9->equinoxe_init]
+    jsr equinoxe_init
+    // main::@10
+    // bram_heap_bram_bank_init(BANK_HEAP_BRAM)
+    // [180] bram_heap_bram_bank_init::bram_bank = $f -- vbum1=vbuc1 
+    // We initialize the Commander X16 BRAM heap manager. This manages dynamically the memory space in banked ram as a real heap.
+    lda #$f
+    sta lib_bramheap.bram_heap_bram_bank_init.bram_bank
+    // [181] callexecute bram_heap_bram_bank_init  -- call_var_near 
+    jsr lib_bramheap.bram_heap_bram_bank_init
+    // bram_heap_segment_init(0, 0x10, (bram_ptr_t)0xA000, 0x3C, (bram_ptr_t)0xA000)
+    // [182] bram_heap_segment_init::s = 0 -- vbum1=vbuc1 
+    // BREAKPOINT
+    lda #0
+    sta lib_bramheap.bram_heap_segment_init.s
+    // [183] bram_heap_segment_init::bram_bank_floor = $10 -- vbum1=vbuc1 
+    lda #$10
+    sta lib_bramheap.bram_heap_segment_init.bram_bank_floor
+    // [184] bram_heap_segment_init::bram_ptr_floor = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_floor
+    lda #>$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_floor+1
+    // [185] bram_heap_segment_init::bram_bank_ceil = $3c -- vbum1=vbuc1 
+    lda #$3c
+    sta lib_bramheap.bram_heap_segment_init.bram_bank_ceil
+    // [186] bram_heap_segment_init::bram_ptr_ceil = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_ceil
+    lda #>$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_ceil+1
+    // [187] callexecute bram_heap_segment_init  -- call_var_near 
+    jsr lib_bramheap.bram_heap_segment_init
+    // bram_heap_segment_init(1, 0x3C, (bram_ptr_t)0xA000, 0x3F, (bram_ptr_t)0xA000)
+    // [188] bram_heap_segment_init::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_bramheap.bram_heap_segment_init.s
+    // [189] bram_heap_segment_init::bram_bank_floor = $3c -- vbum1=vbuc1 
+    lda #$3c
+    sta lib_bramheap.bram_heap_segment_init.bram_bank_floor
+    // [190] bram_heap_segment_init::bram_ptr_floor = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_floor
+    lda #>$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_floor+1
+    // [191] bram_heap_segment_init::bram_bank_ceil = $3f -- vbum1=vbuc1 
+    lda #$3f
+    sta lib_bramheap.bram_heap_segment_init.bram_bank_ceil
+    // [192] bram_heap_segment_init::bram_ptr_ceil = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_ceil
+    lda #>$a000
+    sta.z lib_bramheap.bram_heap_segment_init.bram_ptr_ceil+1
+    // [193] callexecute bram_heap_segment_init  -- call_var_near 
+    jsr lib_bramheap.bram_heap_segment_init
+    // vera_heap_bram_bank_init(BANK_VERA_HEAP)
+    // [194] vera_heap_bram_bank_init::bram_bank = 1 -- vbum1=vbuc1 
+    // We intialize the Commander X16 VERA heap manager. This manages dynamically the memory space in vera ram as a real heap.
+    lda #1
+    sta lib_veraheap.vera_heap_bram_bank_init.bram_bank
+    // [195] callexecute vera_heap_bram_bank_init  -- call_var_near 
+    jsr lib_veraheap.vera_heap_bram_bank_init
+    // vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM)
+    // [196] vera_heap_segment_init::s = 0 -- vbum1=vbuc1 
+    lda #0
+    sta lib_veraheap.vera_heap_segment_init.s
+    // [197] vera_heap_segment_init::vram_bank_floor = 0 -- vbum1=vbuc1 
+    sta lib_veraheap.vera_heap_segment_init.vram_bank_floor
+    // [198] vera_heap_segment_init::vram_offset_floor = 0 -- vwum1=vbuc1 
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_floor
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_floor+1
+    // [199] vera_heap_segment_init::vram_bank_ceil = 0 -- vbum1=vbuc1 
+    sta lib_veraheap.vera_heap_segment_init.vram_bank_ceil
+    // [200] vera_heap_segment_init::vram_offset_ceil = $5000 -- vwum1=vwuc1 
+    lda #<$5000
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_ceil
+    lda #>$5000
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_ceil+1
+    // [201] callexecute vera_heap_segment_init  -- call_var_near 
+    jsr lib_veraheap.vera_heap_segment_init
+    // vera_heap_segment_init(VERA_HEAP_SEGMENT_SPRITES, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM)
+    // [202] vera_heap_segment_init::s = 1 -- vbum1=vbuc1 
+    // FLOOR_TILE segment for tiles of various sizes and types
+    lda #1
+    sta lib_veraheap.vera_heap_segment_init.s
+    // [203] vera_heap_segment_init::vram_bank_floor = 0 -- vbum1=vbuc1 
+    lda #0
+    sta lib_veraheap.vera_heap_segment_init.vram_bank_floor
+    // [204] vera_heap_segment_init::vram_offset_floor = $5000 -- vwum1=vwuc1 
+    lda #<$5000
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_floor
+    lda #>$5000
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_floor+1
+    // [205] vera_heap_segment_init::vram_bank_ceil = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_segment_init.vram_bank_ceil
+    // [206] vera_heap_segment_init::vram_offset_ceil = $b000 -- vwum1=vwuc1 
+    lda #<$b000
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_ceil
+    lda #>$b000
+    sta lib_veraheap.vera_heap_segment_init.vram_offset_ceil+1
+    // [207] callexecute vera_heap_segment_init  -- call_var_near 
+    jsr lib_veraheap.vera_heap_segment_init
+    // stage_reset()
+    // [208] call stage_reset -- call_phi_close_cx16_ram 
+    // SPRITES segment for sprites of various sizes
+    sta.z $ff
+    lda.z 0
+    pha
+    lda #3
+    sta.z 0
+    lda.z $ff
+    jsr stage_reset
+    sta.z $ff
+    pla
+    sta.z 0
+    lda.z $ff
+    // main::vera_display_set_hstart1
+    // *VERA_CTRL |= VERA_DCSEL
+    // [209] *VERA_CTRL = *VERA_CTRL | VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_DCSEL
+    ora VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_HSTART = start
+    // [210] *VERA_DC_HSTART = main::vera_display_set_hstart1_start#0 -- _deref_pbuc1=vbuc2 
+    lda #vera_display_set_hstart1_start
+    sta VERA_DC_HSTART
+    // main::vera_display_set_hstop1
+    // *VERA_CTRL |= VERA_DCSEL
+    // [211] *VERA_CTRL = *VERA_CTRL | VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_DCSEL
+    ora VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_HSTOP = stop
+    // [212] *VERA_DC_HSTOP = main::vera_display_set_hstop1_stop#0 -- _deref_pbuc1=vbuc2 
+    lda #vera_display_set_hstop1_stop
+    sta VERA_DC_HSTOP
+    // main::vera_display_set_vstart1
+    // *VERA_CTRL |= VERA_DCSEL
+    // [213] *VERA_CTRL = *VERA_CTRL | VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_DCSEL
+    ora VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_VSTART = start
+    // [214] *VERA_DC_VSTART = main::vera_display_set_vstart1_start#0 -- _deref_pbuc1=vbuc2 
+    lda #vera_display_set_vstart1_start
+    sta VERA_DC_VSTART
+    // main::vera_display_set_vstop1
+    // *VERA_CTRL |= VERA_DCSEL
+    // [215] *VERA_CTRL = *VERA_CTRL | VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_DCSEL
+    ora VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_VSTOP = stop
+    // [216] *VERA_DC_VSTOP = main::vera_display_set_vstop1_stop#0 -- _deref_pbuc1=vbuc2 
+    lda #vera_display_set_vstop1_stop
+    sta VERA_DC_VSTOP
+    // [217] phi from main::vera_display_set_vstop1 to main::@5 [phi:main::vera_display_set_vstop1->main::@5]
+    // main::@5
+    // stage_logic(0)
+    // [218] call stage_logic
+    // [264] phi from main::@5 to stage_logic [phi:main::@5->stage_logic]
+    // [264] phi stage_logic::tickstage#2 = 0 [phi:main::@5->stage_logic#0] -- call_phi_close_cx16_ram 
+    ldx #0
+    sta.z $ff
+    lda.z 0
+    pha
+    lda #3
+    sta.z 0
+    lda.z $ff
+    jsr stage_logic
+    sta.z $ff
+    pla
+    sta.z 0
+    lda.z $ff
+    // main::@11
+    // scroll(0)
+    // [219] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    lda #0
+    pha
+    // [220] callexecute scroll  -- call_stack_near 
+    jsr lib_conio.scroll
+    // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
+    pla
+    // main::cbm_k_clrchn1
+    // asm
+    // asm { jsrCBM_CLRCHN  }
+    jsr CBM_CLRCHN
+    // main::@1
+  __b1:
+    // kbhit()
+    // sideeffect stackpushpadding(1) -- _stackpushpadding_1 
+    pha
+    // [224] callexecute kbhit  -- call_stack_near 
+    jsr lib_conio.kbhit
+    // [225] main::$29 = stackpull(char) -- vbuaa=_stackpullbyte_ 
+    pla
+    // while(!kbhit())
+    // [226] if(0==main::$29) goto main::@1 -- 0_eq_vbuaa_then_la1 
+    cmp #0
+    beq __b1
+    // main::SEI1
+    // asm
+    // asm { sei  }
+    sei
+    // [228] phi from main::SEI1 to main::@6 [phi:main::SEI1->main::@6]
+    // main::@6
+    // cx16_irq_relay(&irq_vsync)
+    // [229] call cx16_irq_relay
+    jsr cx16_irq_relay
+    // main::@12
+    // *VERA_IEN = VERA_VSYNC | 0x80
+    // [230] *VERA_IEN = VERA_VSYNC|$80 -- _deref_pbuc1=vbuc2 
+    // *KERNEL_IRQ = &irq_vsync;
+    lda #VERA_VSYNC|$80
+    sta VERA_IEN
+    // *VERA_IRQLINE_L = 0xFF
+    // [231] *VERA_IRQLINE_L = $ff -- _deref_pbuc1=vbuc2 
+    lda #$ff
+    sta VERA_IRQLINE_L
+    // main::CLI1
+    // asm
+    // asm { cli  }
+    cli
+    // main::@7
+    // cx16_mouse_config(0xFF, 80, 60)
+    // [233] cx16_mouse_config::visible = $ff -- vbum1=vbuc1 
+    sta cx16_mouse_config.visible
+    // [234] cx16_mouse_config::scalex = $50 -- vbum1=vbuc1 
+    lda #$50
+    sta cx16_mouse_config.scalex
+    // [235] cx16_mouse_config::scaley = $3c -- vbum1=vbuc1 
+    lda #$3c
+    sta cx16_mouse_config.scaley
+    // [236] call cx16_mouse_config
+    jsr cx16_mouse_config
+    // [237] phi from main::@7 to main::@13 [phi:main::@7->main::@13]
+    // main::@13
+    // cx16_mouse_get()
+    // [238] call cx16_mouse_get
+    jsr cx16_mouse_get
+    // main::vera_sprites_show1
+    // *VERA_CTRL &= ~VERA_DCSEL
+    // [239] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_DCSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_VIDEO |= VERA_SPRITES_ENABLE
+    // [240] *VERA_DC_VIDEO = *VERA_DC_VIDEO | VERA_SPRITES_ENABLE -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    lda #VERA_SPRITES_ENABLE
+    ora VERA_DC_VIDEO
+    sta VERA_DC_VIDEO
+    // main::@8
+    // volatile unsigned char ch = kbhit()
+    // sideeffect stackpushpadding(1) -- _stackpushpadding_1 
+    pha
+    // [242] callexecute kbhit  -- call_stack_near 
+    jsr lib_conio.kbhit
+    // [243] main::ch = stackpull(char) -- vbum1=_stackpullbyte_ 
+    pla
+    sta ch
+    // main::@2
+  __b2:
+    // while (ch != 'x')
+    // [244] if(main::ch!='x'pm) goto main::@3 -- vbum1_neq_vbuc1_then_la1 
+  .encoding "petscii_mixed"
+    lda #'x'
+    cmp ch
+    bne __b3
+    // main::bank_set_brom2
+    // BROM = bank
+    // [245] BROM = CX16_ROM_BASIC -- vbuz1=vbuc1 
+    lda #CX16_ROM_BASIC
+    sta.z BROM
+    // main::@return
+    // }
+    // [246] return 
+    rts
+    // main::@3
+  __b3:
+    // kbhit()
+    // sideeffect stackpushpadding(1) -- _stackpushpadding_1 
+    pha
+    // [248] callexecute kbhit  -- call_stack_near 
+    jsr lib_conio.kbhit
+    // [249] main::$32 = stackpull(char) -- vbuaa=_stackpullbyte_ 
+    pla
+    // ch=kbhit()
+    // [250] main::ch = main::$32 -- vbum1=vbuaa 
+    // #ifdef __DEBUG_STAGE
+    //     SEI();
+    //     stage_display();
+    //     CLI();
+    // #endif
+    sta ch
+    jmp __b2
+  .segment Data
+    ch: .byte 0
+  .segment Data
+    cx16_k_screen_set_charset1_charset: .byte 0
+}
+  // code segment
+.segment Code
+  // cx16_mouse_get
+/**
+ * @brief Retrieves the status of the mouse pointer and will fill the mouse position in the defined mouse registers.
+ * 
+ * @return char Current mouse status.
+ * 
+ * The pre-defined variables cx16_mousex and cx16_mousey contain the position of the mouse pointer.
+ * 
+ *     volatile int cx16_mousex = 0;
+ *     volatile int cx16_mousey = 0;
+ * 
+ * The state of the mouse buttons is returned:
+ * 
+ *   |Bit|Description|
+ *   |---|-----------|
+ *   |0|Left Button|
+ *   |1|Right Button|
+ *   |2|Middle Button|
+ * 
+ *   If a button is pressed, the corresponding bit is set.
+ *
+ * The mouse logic administers a previous x and y positions,
+ * which have an update rate of every 4 enquiries.
+ */
+// char cx16_mouse_get()
+cx16_mouse_get: {
+    // constants
+    // variables
+    .label x = $fc
+    .label y = $fe
+    // variables-zero-page
+    // __mem char status
+    // [251] cx16_mouse_get::status = 0 -- vbum1=vbuc1 
+    lda #0
+    sta status
+    // __address(0xfc) unsigned int x
+    // [252] cx16_mouse_get::x = 0 -- vwuz1=vwuc1 
+    sta.z x
+    sta.z x+1
+    // __address(0xfe) unsigned int y
+    // [253] cx16_mouse_get::y = 0 -- vwuz1=vwuc1 
+    sta.z y
+    sta.z y+1
+    // if(!cx16_mouse.wait)
+    // [254] if(0!=*((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT)) goto cx16_mouse_get::@1 -- 0_neq__deref_pbuc1_then_la1 
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT
+    bne __b1
+    // cx16_mouse_get::@2
+    // cx16_mouse.px = cx16_mouse.x
+    // [255] *((unsigned int *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PX) = *((unsigned int *)&cx16_mouse) -- _deref_pwuc1=_deref_pwuc2 
+    lda cx16_mouse
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PX
+    lda cx16_mouse+1
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PX+1
+    // cx16_mouse.py = cx16_mouse.y
+    // [256] *((unsigned int *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PY) = *((unsigned int *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y) -- _deref_pwuc1=_deref_pwuc2 
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PY
+    lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y+1
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_PY+1
+    // cx16_mouse.wait = 4
+    // [257] *((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT) = 4 -- _deref_pbuc1=vbuc2 
+    lda #4
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT
+    // cx16_mouse_get::@1
+  __b1:
+    // cx16_mouse.wait--;
+    // [258] *((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT) = -- *((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT) -- _deref_pbuc1=_dec__deref_pbuc1 
+    dec cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT
+    // asm
+    // asm { ldx#$fc jsrCX16_MOUSE_GET stastatus  }
+    ldx #$fc
+    jsr CX16_MOUSE_GET
+    sta status
+    // cx16_mouse.x = x
+    // [260] *((unsigned int *)&cx16_mouse) = cx16_mouse_get::x -- _deref_pwuc1=vwuz1 
+    lda.z x
+    sta cx16_mouse
+    lda.z x+1
+    sta cx16_mouse+1
+    // cx16_mouse.y = y
+    // [261] *((unsigned int *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y) = cx16_mouse_get::y -- _deref_pwuc1=vwuz1 
+    lda.z y
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y
+    lda.z y+1
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_Y+1
+    // cx16_mouse.status = status
+    // [262] *((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_STATUS) = cx16_mouse_get::status -- _deref_pbuc1=vbum1 
+    lda status
+    sta cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_STATUS
+    // cx16_mouse_get::@return
+    // }
+    // [263] return 
+    rts
+  .segment Data
+    status: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_logic
+// void stage_logic(__register(X) char tickstage)
+// __bank(cx16_ram, 3) 
+stage_logic: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label stage_playbook_ptr1_stage_playbooks_b = $3c
+    .label stage_playbook_ptr1_return = $3e
+    .label stage_scenario_ptr1_stage_scenarios_b = $40
+    .label stage_scenario_ptr1_return = $42
+    .label stage_playbook_ptr2_stage_playbooks_b = $34
+    .label stage_playbook_ptr2_return = $36
+    .label stage_player_ptr_b = $38
+    .label stage_engine_ptr_b = $3a
+    // if(stage.playbook_current < stage.script_b.playbook_total_b)
+    // [265] if(*((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT)>=*((char *)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B)) goto stage_logic::@1 -- _deref_pwuc1_ge__deref_pbuc2_then_la1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    bne __b1
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    cmp equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B
+    bcs __b1
+  !:
+    // stage_logic::@2
+    // tickstage & 0x03
+    // [266] stage_logic::$3 = stage_logic::tickstage#2 & 3 -- vbuxx=vbuxx_band_vbuc1 
+    txa
+    and #3
+    tax
+    // if(!(tickstage & 0x03))
+    // [267] if(0!=stage_logic::$3) goto stage_logic::@1 -- 0_neq_vbuxx_then_la1 
+    cpx #0
+    bne __b1
+    // [268] phi from stage_logic::@2 to stage_logic::@4 [phi:stage_logic::@2->stage_logic::@4]
+    // [268] phi stage_logic::w#10 = 0 [phi:stage_logic::@2->stage_logic::@4#0] -- vbum1=vbuc1 
+    lda #0
+    sta w
+  // BREAKPOINT
+    // stage_logic::@4
+  __b4:
+    // for(__mem unsigned char w=0; w<8; w++)
+    // [269] if(stage_logic::w#10<8) goto stage_logic::@5 -- vbum1_lt_vbuc1_then_la1 
+    lda w
+    cmp #8
+    bcs !__b5+
+    jmp __b5
+  !__b5:
+    // [270] phi from stage_logic::@4 to stage_logic::@14 [phi:stage_logic::@4->stage_logic::@14]
+    // [270] phi stage_logic::w1#2 = 0 [phi:stage_logic::@4->stage_logic::@14#0] -- vbum1=vbuc1 
+    lda #0
+    sta w1
+    // stage_logic::@14
+  __b14:
+    // for(unsigned char w=0; w<8; w++)
+    // [271] if(stage_logic::w1#2<8) goto stage_logic::@15 -- vbum1_lt_vbuc1_then_la1 
+    lda w1
+    cmp #8
+    bcs !__b15+
+    jmp __b15
+  !__b15:
+    // stage_logic::@16
+    // if(stage.scenario_current >= stage.scenario_total)
+    // [272] if(*((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT)<*((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL)) goto stage_logic::@1 -- _deref_pwuc1_lt__deref_pwuc2_then_la1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT+1
+    cmp equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL+1
+    bcc __b1
+    bne !+
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT
+    cmp equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL
+    bcc __b1
+  !:
+    // stage_logic::@23
+    // if(stage.playbook_current < stage.script_b.playbook_total_b)
+    // [273] if(*((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT)>=*((char *)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B)) goto stage_logic::@1 -- _deref_pwuc1_ge__deref_pbuc2_then_la1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    bne __b1
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    cmp equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B
+    bcs __b1
+  !:
+    // stage_logic::@24
+    // stage.scenario_current = 0
+    // [274] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT) = 0 -- _deref_pwuc1=vbuc2 
+    // stage.playbook_current++;
+    // stage_playbook_t* stage_playbook = stage.script_b.playbooks_b;
+    // stage.current_playbook = stage_playbook[stage.playbook_current];
+    // stage.scenario_total = stage.current_playbook.scenario_total_b;
+    lda #<0
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT+1
+    // stage_logic::@1
+  __b1:
+    // if(stage.player_respawn)
+    // [275] if(0==*((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN)) goto stage_logic::@return -- 0_eq__deref_pbuc1_then_la1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN
+    beq __breturn
+    // stage_logic::@3
+    // stage.player_respawn--;
+    // [276] *((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN) = -- *((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN) -- _deref_pbuc1=_dec__deref_pbuc1 
+    dec equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN
+    // if(!stage.player_respawn)
+    // [277] if(0!=*((char *)&stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN)) goto stage_logic::@return -- 0_neq__deref_pbuc1_then_la1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN
+    bne __breturn
+    // stage_logic::stage_playbook_ptr2
+    // stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b
+    // [278] stage_logic::stage_playbook_ptr2_stage_playbooks_b#0 = *((stage_playbook_t **)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B) -- pssz1=_deref_qssc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B
+    sta.z stage_playbook_ptr2_stage_playbooks_b
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B+1
+    sta.z stage_playbook_ptr2_stage_playbooks_b+1
+    // &stage_playbooks_b[stage.playbook_current]
+    // [279] stage_logic::$57 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) << 2 -- vwum1=_deref_pwuc1_rol_2 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    asl
+    sta stage_logic__57
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    rol
+    sta stage_logic__57+1
+    asl stage_logic__57
+    rol stage_logic__57+1
+    // [280] stage_logic::$58 = stage_logic::$57 + *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda stage_logic__58
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    sta stage_logic__58
+    lda stage_logic__58+1
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    sta stage_logic__58+1
+    // [281] stage_logic::stage_playbook_ptr2_$1 = stage_logic::$58 << 1 -- vwum1=vwum1_rol_1 
+    asl stage_playbook_ptr2_stage_logic__1
+    rol stage_playbook_ptr2_stage_logic__1+1
+    // [282] stage_logic::stage_playbook_ptr2_return#0 = stage_logic::stage_playbook_ptr2_stage_playbooks_b#0 + stage_logic::stage_playbook_ptr2_$1 -- pssz1=pssz2_plus_vwum3 
+    lda stage_playbook_ptr2_stage_logic__1
+    clc
+    adc.z stage_playbook_ptr2_stage_playbooks_b
+    sta.z stage_playbook_ptr2_return
+    lda stage_playbook_ptr2_stage_logic__1+1
+    adc.z stage_playbook_ptr2_stage_playbooks_b+1
+    sta.z stage_playbook_ptr2_return+1
+    // stage_logic::@26
+    // stage_player_t* stage_player_ptr_b = stage_playbook_ptr_b->stage_player
+    // [283] stage_logic::stage_player_ptr_b#0 = ((stage_player_t **)stage_logic::stage_playbook_ptr2_return#0)[OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER
+    lda (stage_playbook_ptr2_return),y
+    sta.z stage_player_ptr_b
+    iny
+    lda (stage_playbook_ptr2_return),y
+    sta.z stage_player_ptr_b+1
+    // stage_engine_t* stage_engine_ptr_b = stage_player_ptr_b->stage_engine
+    // [284] stage_logic::stage_engine_ptr_b#0 = ((stage_engine_t **)stage_logic::stage_player_ptr_b#0)[OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE
+    lda (stage_player_ptr_b),y
+    sta.z stage_engine_ptr_b
+    iny
+    lda (stage_player_ptr_b),y
+    sta.z stage_engine_ptr_b+1
+    // player_add(stage_player_ptr_b->player_sprite, stage_engine_ptr_b->engine_sprite)
+    // [285] player_add::sprite_player = *((char *)stage_logic::stage_player_ptr_b#0) -- vbum1=_deref_pbuz2 
+    ldy #0
+    lda (stage_player_ptr_b),y
+    sta equinoxe_player.player_add.sprite_player
+    // [286] player_add::sprite_engine = *((char *)stage_logic::stage_engine_ptr_b#0) -- vbum1=_deref_pbuz2 
+    lda (stage_engine_ptr_b),y
+    sta equinoxe_player.player_add.sprite_engine
+    // [287] callexecute player_add  -- call_var_near 
+    jsr equinoxe_player.player_add
+    // stage_logic::@return
+  __breturn:
+    // }
+    // [288] return 
+    rts
+    // stage_logic::@15
+  __b15:
+    // if(wave.finished[w])
+    // [289] if(0==((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_logic::w1#2]) goto stage_logic::@17 -- 0_eq_pbuc1_derefidx_vbum1_then_la1 
+    ldy w1
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
+    cmp #0
+    beq __b17
+    // stage_logic::@22
+    // __mem stage_scenario_index_t new_scenario = wave.scenario[w]
+    // [290] stage_logic::$34 = stage_logic::w1#2 << 1 -- vbuxx=vbum1_rol_1 
+    tya
+    asl
+    tax
+    // [291] stage_logic::new_scenario#0 = ((unsigned int *)&wave+OFFSET_STRUCT_WAVE_T_SCENARIO)[stage_logic::$34] -- vwum1=pwuc1_derefidx_vbuxx 
+    // If there are more scenarios, create new waves based on the scenarios dependent on the finished wave.
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO,x
+    sta new_scenario
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO+1,x
+    sta new_scenario+1
+    // __mem unsigned int wave_scenario = wave.scenario[w]
+    // [292] stage_logic::wave_scenario#0 = ((unsigned int *)&wave+OFFSET_STRUCT_WAVE_T_SCENARIO)[stage_logic::$34] -- vwum1=pwuc1_derefidx_vbuxx 
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO,x
+    sta wave_scenario
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO+1,x
+    sta wave_scenario+1
+    // [293] phi from stage_logic::@20 stage_logic::@22 to stage_logic::@18 [phi:stage_logic::@20/stage_logic::@22->stage_logic::@18]
+  __b2:
+    // [293] phi stage_logic::new_scenario#10 = stage_logic::new_scenario#1 [phi:stage_logic::@20/stage_logic::@22->stage_logic::@18#0] -- register_copy 
+  // TODO find solution for this loop, maybe with pointers?
+    // stage_logic::@18
+    // while(new_scenario < stage.scenario_total)
+    // [294] if(stage_logic::new_scenario#10<*((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL)) goto stage_logic::stage_playbook_ptr1 -- vwum1_lt__deref_pwuc1_then_la1 
+    lda new_scenario+1
+    cmp equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL+1
+    bcc stage_playbook_ptr1
+    bne !+
+    lda new_scenario
+    cmp equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL
+    bcc stage_playbook_ptr1
+  !:
+    // stage_logic::@19
+    // wave.finished[w] = 0
+    // [295] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_logic::w1#2] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #0
+    ldy w1
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
+    // stage_logic::@17
+  __b17:
+    // for(unsigned char w=0; w<8; w++)
+    // [296] stage_logic::w1#1 = ++ stage_logic::w1#2 -- vbum1=_inc_vbum1 
+    inc w1
+    // [270] phi from stage_logic::@17 to stage_logic::@14 [phi:stage_logic::@17->stage_logic::@14]
+    // [270] phi stage_logic::w1#2 = stage_logic::w1#1 [phi:stage_logic::@17->stage_logic::@14#0] -- register_copy 
+    jmp __b14
+    // stage_logic::stage_playbook_ptr1
+  stage_playbook_ptr1:
+    // stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b
+    // [297] stage_logic::stage_playbook_ptr1_stage_playbooks_b#0 = *((stage_playbook_t **)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B) -- pssz1=_deref_qssc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B
+    sta.z stage_playbook_ptr1_stage_playbooks_b
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B+1
+    sta.z stage_playbook_ptr1_stage_playbooks_b+1
+    // &stage_playbooks_b[stage.playbook_current]
+    // [298] stage_logic::$54 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) << 2 -- vwum1=_deref_pwuc1_rol_2 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    asl
+    sta stage_logic__54
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    rol
+    sta stage_logic__54+1
+    asl stage_logic__54
+    rol stage_logic__54+1
+    // [299] stage_logic::$55 = stage_logic::$54 + *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda stage_logic__55
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    sta stage_logic__55
+    lda stage_logic__55+1
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    sta stage_logic__55+1
+    // [300] stage_logic::stage_playbook_ptr1_$1 = stage_logic::$55 << 1 -- vwum1=vwum1_rol_1 
+    asl stage_playbook_ptr1_stage_logic__1
+    rol stage_playbook_ptr1_stage_logic__1+1
+    // [301] stage_logic::stage_playbook_ptr1_return#0 = stage_logic::stage_playbook_ptr1_stage_playbooks_b#0 + stage_logic::stage_playbook_ptr1_$1 -- pssz1=pssz2_plus_vwum3 
+    lda stage_playbook_ptr1_stage_logic__1
+    clc
+    adc.z stage_playbook_ptr1_stage_playbooks_b
+    sta.z stage_playbook_ptr1_return
+    lda stage_playbook_ptr1_stage_logic__1+1
+    adc.z stage_playbook_ptr1_stage_playbooks_b+1
+    sta.z stage_playbook_ptr1_return+1
+    // stage_logic::stage_scenario_ptr1
+    // stage_scenario_t* stage_scenarios_b = stage_playbook_ptr_b->scenarios_b
+    // [302] stage_logic::stage_scenario_ptr1_stage_scenarios_b#0 = ((stage_scenario_t **)stage_logic::stage_playbook_ptr1_return#0)[OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B
+    lda (stage_playbook_ptr1_return),y
+    sta.z stage_scenario_ptr1_stage_scenarios_b
+    iny
+    lda (stage_playbook_ptr1_return),y
+    sta.z stage_scenario_ptr1_stage_scenarios_b+1
+    // &stage_scenarios_b[scenario]
+    // [303] stage_logic::stage_scenario_ptr1_$1 = stage_logic::new_scenario#10 << 4 -- vwum1=vwum2_rol_4 
+    lda new_scenario
+    asl
+    sta stage_scenario_ptr1_stage_logic__1
+    lda new_scenario+1
+    rol
+    sta stage_scenario_ptr1_stage_logic__1+1
+    asl stage_scenario_ptr1_stage_logic__1
+    rol stage_scenario_ptr1_stage_logic__1+1
+    asl stage_scenario_ptr1_stage_logic__1
+    rol stage_scenario_ptr1_stage_logic__1+1
+    asl stage_scenario_ptr1_stage_logic__1
+    rol stage_scenario_ptr1_stage_logic__1+1
+    // [304] stage_logic::stage_scenario_ptr1_return#0 = stage_logic::stage_scenario_ptr1_stage_scenarios_b#0 + stage_logic::stage_scenario_ptr1_$1 -- pssz1=pssz2_plus_vwum3 
+    lda stage_scenario_ptr1_stage_logic__1
+    clc
+    adc.z stage_scenario_ptr1_stage_scenarios_b
+    sta.z stage_scenario_ptr1_return
+    lda stage_scenario_ptr1_stage_logic__1+1
+    adc.z stage_scenario_ptr1_stage_scenarios_b+1
+    sta.z stage_scenario_ptr1_return+1
+    // stage_logic::@25
+    // unsigned int prev = stage_scenario_ptr_b->prev
+    // [305] stage_logic::prev#0 = (unsigned int)((char *)stage_logic::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_PREV] -- vwum1=_word_pbuz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_PREV
+    lda (stage_scenario_ptr1_return),y
+    sta prev
+    lda #0
+    sta prev+1
+    // if(prev == wave_scenario)
+    // [306] if(stage_logic::prev#0!=stage_logic::wave_scenario#0) goto stage_logic::@20 -- vwum1_neq_vwum2_then_la1 
+    cmp wave_scenario+1
+    bne __b20
+    lda prev
+    cmp wave_scenario
+    bne __b20
+    // stage_logic::@21
+    // stage.ew+1
+    // [307] stage_logic::$21 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_EW) + 1 -- vwum1=_deref_pwuc1_plus_1 
+    clc
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_EW
+    adc #1
+    sta stage_logic__21
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_EW+1
+    adc #0
+    sta stage_logic__21+1
+    // (stage.ew+1) & 0x07
+    // [308] stage_logic::$22 = stage_logic::$21 & 7 -- vbuxx=vwum1_band_vbuc1 
+    lda #7
+    and stage_logic__21
+    tax
+    // stage.ew = (stage.ew+1) & 0x07
+    // [309] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_EW) = stage_logic::$22 -- _deref_pwuc1=vbuxx 
+    // We create new waves from the scenarios that are dependent on the finished one.
+    // There must always be at least one that equals scenario of the previous scenario.
+    txa
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_EW
+    lda #0
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_EW+1
+    // stage_copy(stage.ew, new_scenario)
+    // [310] stage_copy::ew#1 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_EW) -- vbum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_EW
+    sta stage_copy.ew
+    // [311] stage_copy::scenario#1 = stage_logic::new_scenario#10 -- vwum1=vwum2 
+    lda new_scenario
+    sta stage_copy.scenario
+    lda new_scenario+1
+    sta stage_copy.scenario+1
+    // [312] call stage_copy
+    // [377] phi from stage_logic::@21 to stage_copy [phi:stage_logic::@21->stage_copy]
+    // [377] phi stage_copy::ew#2 = stage_copy::ew#1 [phi:stage_logic::@21->stage_copy#0] -- register_copy 
+    // [377] phi stage_copy::scenario#2 = stage_copy::scenario#1 [phi:stage_logic::@21->stage_copy#1] -- register_copy 
+    jsr stage_copy
+    // stage_logic::@20
+  __b20:
+    // new_scenario++;
+    // [313] stage_logic::new_scenario#1 = ++ stage_logic::new_scenario#10 -- vwum1=_inc_vwum1 
+    inc new_scenario
+    bne !+
+    inc new_scenario+1
+  !:
+    jmp __b2
+    // stage_logic::@5
+  __b5:
+    // if(wave.used[w])
+    // [314] if(0==((char *)&wave+OFFSET_STRUCT_WAVE_T_USED)[stage_logic::w#10]) goto stage_logic::@6 -- 0_eq_pbuc1_derefidx_vbum1_then_la1 
+    ldy w
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_USED,y
+    cmp #0
+    beq __b6
+    // stage_logic::@12
+    // if(!wave.wait[w])
+    // [315] if(0==((char *)&wave+OFFSET_STRUCT_WAVE_T_WAIT)[stage_logic::w#10]) goto stage_logic::@7 -- 0_eq_pbuc1_derefidx_vbum1_then_la1 
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_WAIT,y
+    cmp #0
+    beq __b7
+    // stage_logic::@13
+    // wave.wait[w]--;
+    // [316] ((char *)&wave+OFFSET_STRUCT_WAVE_T_WAIT)[stage_logic::w#10] = -- ((char *)&wave+OFFSET_STRUCT_WAVE_T_WAIT)[stage_logic::w#10] -- pbuc1_derefidx_vbum1=_dec_pbuc1_derefidx_vbum1 
+    ldx w
+    dec equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_WAIT,x
+    // stage_logic::@6
+  __b6:
+    // for(__mem unsigned char w=0; w<8; w++)
+    // [317] stage_logic::w#1 = ++ stage_logic::w#10 -- vbum1=_inc_vbum1 
+    inc w
+    // [268] phi from stage_logic::@6 to stage_logic::@4 [phi:stage_logic::@6->stage_logic::@4]
+    // [268] phi stage_logic::w#10 = stage_logic::w#1 [phi:stage_logic::@6->stage_logic::@4#0] -- register_copy 
+    jmp __b4
+    // stage_logic::@7
+  __b7:
+    // if(wave.enemy_count[w])
+    // [318] if(0!=((char *)&wave)[stage_logic::w#10]) goto stage_logic::@8 -- 0_neq_pbuc1_derefidx_vbum1_then_la1 
+    ldy w
+    lda equinoxe_waves.wave,y
+    cmp #0
+    bne __b8
+    // stage_logic::@10
+    // if(!wave.enemy_alive[w])
+    // [319] if(0!=((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE)[stage_logic::w#10]) goto stage_logic::@6 -- 0_neq_pbuc1_derefidx_vbum1_then_la1 
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE,y
+    cmp #0
+    bne __b6
+    // stage_logic::@11
+    // wave.used[w] = 0
+    // [320] ((char *)&wave+OFFSET_STRUCT_WAVE_T_USED)[stage_logic::w#10] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #0
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_USED,y
+    // wave.finished[w] = 1
+    // [321] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_logic::w#10] = 1 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #1
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
+    jmp __b6
+    // stage_logic::@8
+  __b8:
+    // if(wave.enemy_spawn[w])
+    // [322] if(0==((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN)[stage_logic::w#10]) goto stage_logic::@6 -- 0_eq_pbuc1_derefidx_vbum1_then_la1 
+    ldy w
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN,y
+    cmp #0
+    beq __b6
+    // stage_logic::@9
+    // stage_enemy_add(w, wave.enemy_sprite[w])
+    // [323] stage_enemy_add::w#0 = stage_logic::w#10 -- vbum1=vbum2 
+    tya
+    sta stage_enemy_add.w
+    // [324] stage_enemy_add::enemy_sprite#0 = ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPRITE)[stage_logic::w#10] -- vbuxx=pbuc1_derefidx_vbum1 
+    ldx equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPRITE,y
+    // [325] call stage_enemy_add
+    jsr stage_enemy_add
+    jmp __b6
+  .segment DataEngineStages
+    stage_logic__21: .word 0
+  .segment DataEngineStages
+    .label stage_playbook_ptr1_stage_logic__1 = stage_logic__54
+  .segment DataEngineStages
+    stage_scenario_ptr1_stage_logic__1: .word 0
+  .segment DataEngineStages
+    .label stage_playbook_ptr2_stage_logic__1 = stage_logic__57
+  .segment DataEngineStages
+    w: .byte 0
+  .segment DataEngineStages
+    w1: .byte 0
+  .segment DataEngineStages
+    new_scenario: .word 0
+  .segment DataEngineStages
+    wave_scenario: .word 0
+  .segment DataEngineStages
+    prev: .word 0
+  .segment DataEngineStages
+    stage_logic__54: .word 0
+  .segment DataEngineStages
+    .label stage_logic__55 = stage_logic__54
+  .segment DataEngineStages
+    stage_logic__57: .word 0
+  .segment DataEngineStages
+    .label stage_logic__58 = stage_logic__57
+}
+  // code segment
+.segment Code
+  // vera_layer1_hide
+/**
+ * @brief Hide the layer 1 to be displayed from the screen.
+ */
+// void vera_layer1_hide()
+vera_layer1_hide: {
+    // constants
+    // variables
+    // variables-zero-page
+    // *VERA_CTRL &= ~VERA_DCSEL
+    // [326] *VERA_CTRL = *VERA_CTRL & ~VERA_DCSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_DCSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_VIDEO &= ~VERA_LAYER1_ENABLE
+    // [327] *VERA_DC_VIDEO = *VERA_DC_VIDEO & ~VERA_LAYER1_ENABLE -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_LAYER1_ENABLE^$ff
+    and VERA_DC_VIDEO
+    sta VERA_DC_VIDEO
+    // vera_layer1_hide::@return
+    // }
+    // [328] return 
+    rts
+}
+  // code segment
+.segment Code
+  // equinoxe_init
+// void equinoxe_init()
+equinoxe_init: {
+    // constants
+    // variables
+    // variables-zero-page
+    // fload_bram("STAGES.BIN", BANK_ENGINE_STAGES, (bram_ptr_t)0xA000)
+    // [330] call fload_bram
+    // [413] phi from equinoxe_init to fload_bram [phi:equinoxe_init->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename [phi:equinoxe_init->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename
+    sta.z fload_bram.filename
+    lda #>filename
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 3 [phi:equinoxe_init->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #3
+    jsr fload_bram
+    // [331] phi from equinoxe_init to equinoxe_init::@1 [phi:equinoxe_init->equinoxe_init::@1]
+    // equinoxe_init::@1
+    // fload_bram("BRAMFLIGHT1.BIN", BANK_ENGINE_SPRITES, (bram_ptr_t)0xA000)
+    // [332] call fload_bram
+    // [413] phi from equinoxe_init::@1 to fload_bram [phi:equinoxe_init::@1->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename1 [phi:equinoxe_init::@1->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename1
+    sta.z fload_bram.filename
+    lda #>filename1
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 4 [phi:equinoxe_init::@1->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #4
+    jsr fload_bram
+    // [333] phi from equinoxe_init::@1 to equinoxe_init::@2 [phi:equinoxe_init::@1->equinoxe_init::@2]
+    // equinoxe_init::@2
+    // fload_bram("BRAMFLOOR1.BIN", BANK_ENGINE_FLOOR, (bram_ptr_t)0xA000)
+    // [334] call fload_bram
+    // [413] phi from equinoxe_init::@2 to fload_bram [phi:equinoxe_init::@2->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename2 [phi:equinoxe_init::@2->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename2
+    sta.z fload_bram.filename
+    lda #>filename2
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 5 [phi:equinoxe_init::@2->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #5
+    jsr fload_bram
+    // [335] phi from equinoxe_init::@2 to equinoxe_init::@3 [phi:equinoxe_init::@2->equinoxe_init::@3]
+    // equinoxe_init::@3
+    // fload_bram("VERAHEAP.BIN", BANK_VERA_HEAP, (bram_ptr_t)0xA000)
+    // [336] call fload_bram
+    // [413] phi from equinoxe_init::@3 to fload_bram [phi:equinoxe_init::@3->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename3 [phi:equinoxe_init::@3->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename3
+    sta.z fload_bram.filename
+    lda #>filename3
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 1 [phi:equinoxe_init::@3->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #1
+    jsr fload_bram
+    // [337] phi from equinoxe_init::@3 to equinoxe_init::@4 [phi:equinoxe_init::@3->equinoxe_init::@4]
+    // equinoxe_init::@4
+    // flight_init()
+    // [338] callexecute flight_init  -- call_var_near 
+    jsr equinoxe_flightengine.flight_init
+    // fload_bram("PLAYERS.BIN", BANK_ENGINE_PLAYERS, (bram_ptr_t)0xA000)
+    // [339] call fload_bram
+    // [413] phi from equinoxe_init::@4 to fload_bram [phi:equinoxe_init::@4->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename4 [phi:equinoxe_init::@4->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename4
+    sta.z fload_bram.filename
+    lda #>filename4
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 9 [phi:equinoxe_init::@4->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #9
+    jsr fload_bram
+    // [340] phi from equinoxe_init::@4 to equinoxe_init::@5 [phi:equinoxe_init::@4->equinoxe_init::@5]
+    // equinoxe_init::@5
+    // fload_bram("ENEMIES.BIN", BANK_ENGINE_ENEMIES, (bram_ptr_t)0xA000)
+    // [341] call fload_bram
+    // [413] phi from equinoxe_init::@5 to fload_bram [phi:equinoxe_init::@5->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename5 [phi:equinoxe_init::@5->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename5
+    sta.z fload_bram.filename
+    lda #>filename5
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 8 [phi:equinoxe_init::@5->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #8
+    jsr fload_bram
+    // [342] phi from equinoxe_init::@5 to equinoxe_init::@6 [phi:equinoxe_init::@5->equinoxe_init::@6]
+    // equinoxe_init::@6
+    // fload_bram("BULLETS.BIN", BANK_ENGINE_BULLETS, (bram_ptr_t)0xA000)
+    // [343] call fload_bram
+    // [413] phi from equinoxe_init::@6 to fload_bram [phi:equinoxe_init::@6->fload_bram]
+    // [413] phi fload_bram::filename#10 = equinoxe_init::filename6 [phi:equinoxe_init::@6->fload_bram#0] -- pbuz1=pbuc1 
+    lda #<filename6
+    sta.z fload_bram.filename
+    lda #>filename6
+    sta.z fload_bram.filename+1
+    // [413] phi fload_bram::dbank#10 = 7 [phi:equinoxe_init::@6->fload_bram#1] -- vbuxx=vbuc1 
+    ldx #7
+    jsr fload_bram
+    // [344] phi from equinoxe_init::@6 to equinoxe_init::@7 [phi:equinoxe_init::@6->equinoxe_init::@7]
+    // equinoxe_init::@7
+    // animate_init()
+    // [345] callexecute animate_init  -- call_var_near 
+    jsr equinoxe_animate.animate_init
+    // memset(&stage, 0, sizeof(stage_t))
+    // [346] call memset
+    // [433] phi from equinoxe_init::@7 to memset [phi:equinoxe_init::@7->memset]
+    jsr memset
+    // [347] phi from equinoxe_init::@7 to equinoxe_init::@8 [phi:equinoxe_init::@7->equinoxe_init::@8]
+    // equinoxe_init::@8
+    // lru_cache_init()
+    // [348] callexecute lru_cache_init  -- call_var_near 
+    // Initialize the cache in vram for the sprite animations.
+    jsr lib_lru_cache.lru_cache_init
+    // equinoxe_init::@return
+    // }
+    // [349] return 
+    rts
+  .segment Data
+    filename: .text "STAGES.BIN"
+    .byte 0
+  .segment Data
+    filename1: .text "BRAMFLIGHT1.BIN"
+    .byte 0
+  .segment Data
+    filename2: .text "BRAMFLOOR1.BIN"
+    .byte 0
+  .segment Data
+    filename3: .text "VERAHEAP.BIN"
+    .byte 0
+  .segment Data
+    filename4: .text "PLAYERS.BIN"
+    .byte 0
+  .segment Data
+    filename5: .text "ENEMIES.BIN"
+    .byte 0
+  .segment Data
+    filename6: .text "BULLETS.BIN"
+    .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_reset
+// void stage_reset()
+// __bank(cx16_ram, 3) 
+stage_reset: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label stage_player = $44
+    .label stage_engine = $46
+    // palette_init(BANK_ENGINE_PALETTE)
+    // [350] palette_init::bram_bank = 6 -- vbum1=vbuc1 
+    lda #6
+    sta equinoxe_palette.palette_init.bram_bank
+    // [351] callexecute palette_init  -- call_var_near 
+    jsr equinoxe_palette.palette_init
+    // player_init()
+    // [352] callexecute player_init  -- call_var_near 
+    jsr equinoxe_player.player_init
+    // memset(&stage, 0, sizeof(stage_t))
+    // [353] call memset
+  // #ifdef __ENEMY
+  //     enemy_init();
+  // #endif
+    // [433] phi from stage_reset to memset [phi:stage_reset->memset]
+    jsr memset
+    // stage_reset::@1
+    // stage.script_b.playbook_total_b = 1
+    // [354] *((char *)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B) = 1 -- _deref_pbuc1=vbuc2 
+    lda #1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B
+    // stage.script_b.playbooks_b = stage_playbooks_b
+    // [355] *((stage_playbook_t **)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B) = stage_playbooks_b -- _deref_qssc1=pssc2 
+    lda #<stage_playbooks_b
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B
+    lda #>stage_playbooks_b
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B+1
+    // &stage_playbooks_b[stage.playbook_current]
+    // [356] stage_reset::$15 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) << 2 -- vwum1=_deref_pwuc1_rol_2 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    asl
+    sta stage_reset__15
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    rol
+    sta stage_reset__15+1
+    asl stage_reset__15
+    rol stage_reset__15+1
+    // [357] stage_reset::$16 = stage_reset::$15 + *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda stage_reset__16
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    sta stage_reset__16
+    lda stage_reset__16+1
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    sta stage_reset__16+1
+    // [358] stage_reset::$8 = stage_reset::$16 << 1 -- vwum1=vwum1_rol_1 
+    asl stage_reset__8
+    rol stage_reset__8+1
+    // [359] memcpy::source#0 = stage_playbooks_b + stage_reset::$8 -- pssz1=pssc1_plus_vwum2 
+    lda stage_reset__8
+    clc
+    adc #<stage_playbooks_b
+    sta.z memcpy.source
+    lda stage_reset__8+1
+    adc #>stage_playbooks_b
+    sta.z memcpy.source+1
+    // memcpy(&stage.current_playbook, &stage_playbooks_b[stage.playbook_current], sizeof(stage_playbook_t))
+    // [360] call memcpy
+    // stage.current_playbook = stage_playbook[stage.playbook];
+    jsr memcpy
+    // stage_reset::@2
+    // stage.lives = 10
+    // [361] *((char *)&stage+OFFSET_STRUCT_STAGE_T_LIVES) = $a -- _deref_pbuc1=vbuc2 
+    lda #$a
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_LIVES
+    // stage.scenario_total = stage.current_playbook.scenario_total_b
+    // [362] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL) = *((char *)(stage_playbook_t *)&stage) -- _deref_pwuc1=_deref_pbuc2 
+    lda equinoxe_stage_flight.stage
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL
+    lda #0
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_TOTAL+1
+    // stage_load()
+    // [363] call stage_load
+    // bug?
+    jsr stage_load
+    // stage_reset::@3
+    // stage_copy(stage.ew, stage.scenario_current)
+    // [364] stage_copy::ew#0 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_EW) -- vbum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_EW
+    sta stage_copy.ew
+    // [365] stage_copy::scenario#0 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT) -- vwum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT
+    sta stage_copy.scenario
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT+1
+    sta stage_copy.scenario+1
+    // [366] call stage_copy
+  // Load the artefacts of the stage.
+    // [377] phi from stage_reset::@3 to stage_copy [phi:stage_reset::@3->stage_copy]
+    // [377] phi stage_copy::ew#2 = stage_copy::ew#0 [phi:stage_reset::@3->stage_copy#0] -- register_copy 
+    // [377] phi stage_copy::scenario#2 = stage_copy::scenario#0 [phi:stage_reset::@3->stage_copy#1] -- register_copy 
+    jsr stage_copy
+    // stage_reset::@4
+    // stage_player_t* stage_player = stage_playbooks_b->stage_player
+    // [367] stage_reset::stage_player#0 = *((stage_player_t **)stage_playbooks_b+OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER) -- pssz1=_deref_qssc1 
+    // Add the player to the stage.
+    lda stage_playbooks_b+OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER
+    sta.z stage_player
+    lda stage_playbooks_b+OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER+1
+    sta.z stage_player+1
+    // stage_engine_t* stage_engine = stage_player->stage_engine
+    // [368] stage_reset::stage_engine#0 = ((stage_engine_t **)stage_reset::stage_player#0)[OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE
+    lda (stage_player),y
+    sta.z stage_engine
+    iny
+    lda (stage_player),y
+    sta.z stage_engine+1
+    // player_add(stage_player->player_sprite, stage_engine->engine_sprite)
+    // [369] player_add::sprite_player = *((char *)stage_reset::stage_player#0) -- vbum1=_deref_pbuz2 
+    ldy #0
+    lda (stage_player),y
+    sta equinoxe_player.player_add.sprite_player
+    // [370] player_add::sprite_engine = *((char *)stage_reset::stage_engine#0) -- vbum1=_deref_pbuz2 
+    lda (stage_engine),y
+    sta equinoxe_player.player_add.sprite_engine
+    // [371] callexecute player_add  -- call_var_near 
+    jsr equinoxe_player.player_add
+    // stage_reset::@return
+    // }
+    // [372] return 
+    rts
+  .segment DataEngineStages
+    .label stage_reset__8 = stage_reset__15
+  .segment DataEngineStages
+    stage_reset__15: .word 0
+  .segment DataEngineStages
+    .label stage_reset__16 = stage_reset__15
+}
+  // code segment
+.segment Code
+  // cx16_irq_relay
+// void cx16_irq_relay(void (*irq)())
+cx16_irq_relay: {
+    // constants
+    .label irq = irq_vsync
+    // variables
+    // variables-zero-page
+    // *KERNEL_IRQ = irq
+    // [373] *KERNEL_IRQ = cx16_irq_relay::irq#0 -- _deref_qprc1=pprc2 
+    lda #<irq
+    sta KERNEL_IRQ
+    lda #>irq
+    sta KERNEL_IRQ+1
+    // cx16_irq_relay::@return
+    // }
+    // [374] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cx16_mouse_config
+/**
+ * @brief Configures the mouse pointer.
+ * 
+ * 
+ * @param visible Turn the mouse pointer on or off. Provide a value of 0xFF to set your own mouse pointer graphic (sprite 0).
+ * @param scalex Specify x axis screen resolution in 8 pixel increments.
+ * @param scaley Specify y axis screen resolution in 8 pixel increments.
+ * 
+ */
+// void cx16_mouse_config(__mem() volatile char visible, __mem() volatile char scalex, __mem() volatile char scaley)
+cx16_mouse_config: {
+    // constants
+    // variables
+    // variables-zero-page
+    // asm
+    // asm { ldavisible ldxscalex ldyscaley jsrCX16_MOUSE_CONFIG  }
+    lda visible
+    ldx scalex
+    ldy scaley
+    jsr CX16_MOUSE_CONFIG
+    // cx16_mouse_config::@return
+    // }
+    // [376] return 
+    rts
+  .segment Data
+    visible: .byte 0
+  .segment Data
+    scalex: .byte 0
+  .segment Data
+    scaley: .byte 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_copy
+// void stage_copy(__mem() char ew, __mem() unsigned int scenario)
+// __bank(cx16_ram, 3) 
+stage_copy: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label stage_playbook_ptr1_stage_playbooks_b = $48
+    .label stage_playbook_ptr1_return = $4a
+    .label stage_scenario_ptr1_stage_scenarios_b = $4c
+    .label stage_scenario_ptr1_return = $4e
+    .label stage_enemy = $50
+    // stage_copy::stage_playbook_ptr1
+    // stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b
+    // [378] stage_copy::stage_playbook_ptr1_stage_playbooks_b#0 = *((stage_playbook_t **)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B) -- pssz1=_deref_qssc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B
+    sta.z stage_playbook_ptr1_stage_playbooks_b
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B+1
+    sta.z stage_playbook_ptr1_stage_playbooks_b+1
+    // &stage_playbooks_b[stage.playbook_current]
+    // [379] stage_copy::$34 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) << 2 -- vwum1=_deref_pwuc1_rol_2 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    asl
+    sta stage_copy__34
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    rol
+    sta stage_copy__34+1
+    asl stage_copy__34
+    rol stage_copy__34+1
+    // [380] stage_copy::$35 = stage_copy::$34 + *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda stage_copy__35
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    sta stage_copy__35
+    lda stage_copy__35+1
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    sta stage_copy__35+1
+    // [381] stage_copy::stage_playbook_ptr1_$1 = stage_copy::$35 << 1 -- vwum1=vwum1_rol_1 
+    asl stage_playbook_ptr1_stage_copy__1
+    rol stage_playbook_ptr1_stage_copy__1+1
+    // [382] stage_copy::stage_playbook_ptr1_return#0 = stage_copy::stage_playbook_ptr1_stage_playbooks_b#0 + stage_copy::stage_playbook_ptr1_$1 -- pssz1=pssz2_plus_vwum3 
+    lda stage_playbook_ptr1_stage_copy__1
+    clc
+    adc.z stage_playbook_ptr1_stage_playbooks_b
+    sta.z stage_playbook_ptr1_return
+    lda stage_playbook_ptr1_stage_copy__1+1
+    adc.z stage_playbook_ptr1_stage_playbooks_b+1
+    sta.z stage_playbook_ptr1_return+1
+    // stage_copy::stage_scenario_ptr1
+    // stage_scenario_t* stage_scenarios_b = stage_playbook_ptr_b->scenarios_b
+    // [383] stage_copy::stage_scenario_ptr1_stage_scenarios_b#0 = ((stage_scenario_t **)stage_copy::stage_playbook_ptr1_return#0)[OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B
+    lda (stage_playbook_ptr1_return),y
+    sta.z stage_scenario_ptr1_stage_scenarios_b
+    iny
+    lda (stage_playbook_ptr1_return),y
+    sta.z stage_scenario_ptr1_stage_scenarios_b+1
+    // &stage_scenarios_b[scenario]
+    // [384] stage_copy::stage_scenario_ptr1_$1 = stage_copy::scenario#2 << 4 -- vwum1=vwum2_rol_4 
+    lda scenario
+    asl
+    sta stage_scenario_ptr1_stage_copy__1
+    lda scenario+1
+    rol
+    sta stage_scenario_ptr1_stage_copy__1+1
+    asl stage_scenario_ptr1_stage_copy__1
+    rol stage_scenario_ptr1_stage_copy__1+1
+    asl stage_scenario_ptr1_stage_copy__1
+    rol stage_scenario_ptr1_stage_copy__1+1
+    asl stage_scenario_ptr1_stage_copy__1
+    rol stage_scenario_ptr1_stage_copy__1+1
+    // [385] stage_copy::stage_scenario_ptr1_return#0 = stage_copy::stage_scenario_ptr1_stage_scenarios_b#0 + stage_copy::stage_scenario_ptr1_$1 -- pssz1=pssz2_plus_vwum3 
+    lda stage_scenario_ptr1_stage_copy__1
+    clc
+    adc.z stage_scenario_ptr1_stage_scenarios_b
+    sta.z stage_scenario_ptr1_return
+    lda stage_scenario_ptr1_stage_copy__1+1
+    adc.z stage_scenario_ptr1_stage_scenarios_b+1
+    sta.z stage_scenario_ptr1_return+1
+    // stage_copy::@1
+    // wave.x[ew] = stage_scenario_ptr_b->x
+    // [386] stage_copy::$4 = stage_copy::ew#2 << 1 -- vbum1=vbum2_rol_1 
+    lda ew
+    asl
+    sta stage_copy__4
+    // [387] ((int *)&wave+OFFSET_STRUCT_WAVE_T_X)[stage_copy::$4] = ((int *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_X] -- pwsc1_derefidx_vbum1=pwsz2_derefidx_vbuc2 
+    tax
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_X
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_X,x
+    iny
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_X+1,x
+    // wave.y[ew] = stage_scenario_ptr_b->y
+    // [388] ((int *)&wave+OFFSET_STRUCT_WAVE_T_Y)[stage_copy::$4] = ((int *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_Y] -- pwsc1_derefidx_vbum1=pwsz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_Y
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_Y,x
+    iny
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_Y+1,x
+    // wave.enemy_count[ew] = stage_scenario_ptr_b->enemy_count
+    // [389] ((char *)&wave)[stage_copy::ew#2] = *((char *)stage_copy::stage_scenario_ptr1_return#0) -- pbuc1_derefidx_vbum1=_deref_pbuz2 
+    ldy #0
+    lda (stage_scenario_ptr1_return),y
+    ldy ew
+    sta equinoxe_waves.wave,y
+    // wave.dx[ew] = stage_scenario_ptr_b->dx
+    // [390] ((signed char *)&wave+OFFSET_STRUCT_WAVE_T_DX)[stage_copy::ew#2] = ((signed char *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_DX] -- pbsc1_derefidx_vbum1=pbsz2_derefidx_vbuc2 
+    ldx ew
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_DX
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_DX,x
+    // wave.dy[ew] = stage_scenario_ptr_b->dy
+    // [391] ((signed char *)&wave+OFFSET_STRUCT_WAVE_T_DY)[stage_copy::ew#2] = ((signed char *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_DY] -- pbsc1_derefidx_vbum1=pbsz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_DY
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_DY,x
+    // wave.enemy_flightpath[ew] = stage_scenario_ptr_b->enemy_flightpath
+    // [392] ((stage_flightpath_t **)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_FLIGHTPATH)[stage_copy::$4] = ((stage_flightpath_t **)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_ENEMY_FLIGHTPATH] -- qssc1_derefidx_vbum1=qssz2_derefidx_vbuc2 
+    ldx stage_copy__4
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_ENEMY_FLIGHTPATH
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_FLIGHTPATH,x
+    iny
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_FLIGHTPATH+1,x
+    // wave.enemy_spawn[ew] = stage_scenario_ptr_b->enemy_spawn
+    // [393] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN)[stage_copy::ew#2] = ((char *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_ENEMY_SPAWN] -- pbuc1_derefidx_vbum1=pbuz2_derefidx_vbuc2 
+    ldx ew
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_ENEMY_SPAWN
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPAWN,x
+    // stage_enemy_t* stage_enemy = stage_scenario_ptr_b->stage_enemy
+    // [394] stage_copy::stage_enemy#0 = ((stage_enemy_t **)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_STAGE_ENEMY] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_STAGE_ENEMY
+    lda (stage_scenario_ptr1_return),y
+    sta.z stage_enemy
+    iny
+    lda (stage_scenario_ptr1_return),y
+    sta.z stage_enemy+1
+    // wave.animation_speed[ew] = stage_enemy->animation_speed
+    // [395] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ANIMATION_SPEED)[stage_copy::ew#2] = ((char *)stage_copy::stage_enemy#0)[OFFSET_STRUCT_STAGE_ENEMY_T_ANIMATION_SPEED] -- pbuc1_derefidx_vbum1=pbuz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_ENEMY_T_ANIMATION_SPEED
+    lda (stage_enemy),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ANIMATION_SPEED,x
+    // wave.animation_reverse[ew] = stage_enemy->animation_reverse
+    // [396] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ANIMATION_REVERSE)[stage_copy::ew#2] = ((char *)stage_copy::stage_enemy#0)[OFFSET_STRUCT_STAGE_ENEMY_T_ANIMATION_REVERSE] -- pbuc1_derefidx_vbum1=pbuz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_ENEMY_T_ANIMATION_REVERSE
+    lda (stage_enemy),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ANIMATION_REVERSE,x
+    // wave.enemy_sprite[ew] = stage_enemy->enemy_sprite_flight
+    // [397] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPRITE)[stage_copy::ew#2] = *((char *)stage_copy::stage_enemy#0) -- pbuc1_derefidx_vbum1=_deref_pbuz2 
+    ldy #0
+    lda (stage_enemy),y
+    ldy ew
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPRITE,y
+    // wave.interval[ew] = stage_scenario_ptr_b->interval
+    // [398] ((char *)&wave+OFFSET_STRUCT_WAVE_T_INTERVAL)[stage_copy::ew#2] = ((char *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_INTERVAL] -- pbuc1_derefidx_vbum1=pbuz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_INTERVAL
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_INTERVAL,x
+    // wave.prev[ew] = stage_scenario_ptr_b->prev
+    // [399] ((char *)&wave+OFFSET_STRUCT_WAVE_T_PREV)[stage_copy::ew#2] = ((char *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_PREV] -- pbuc1_derefidx_vbum1=pbuz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_PREV
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_PREV,x
+    // wave.wait[ew] = stage_scenario_ptr_b->wait
+    // [400] ((char *)&wave+OFFSET_STRUCT_WAVE_T_WAIT)[stage_copy::ew#2] = ((char *)stage_copy::stage_scenario_ptr1_return#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_WAIT] -- pbuc1_derefidx_vbum1=pbuz2_derefidx_vbuc2 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_WAIT
+    lda (stage_scenario_ptr1_return),y
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_WAIT,x
+    // wave.used[ew] = 1
+    // [401] ((char *)&wave+OFFSET_STRUCT_WAVE_T_USED)[stage_copy::ew#2] = 1 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #1
+    ldy ew
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_USED,y
+    // wave.finished[ew] = 0
+    // [402] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_copy::ew#2] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #0
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
+    // wave.scenario[ew] = scenario
+    // [403] ((unsigned int *)&wave+OFFSET_STRUCT_WAVE_T_SCENARIO)[stage_copy::$4] = stage_copy::scenario#2 -- pwuc1_derefidx_vbum1=vwum2 
+    ldy stage_copy__4
+    lda scenario
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO,y
+    lda scenario+1
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO+1,y
+    // wave.enemy_alive[ew] = 0
+    // [404] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE)[stage_copy::ew#2] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #0
+    ldy ew
+    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE,y
+    // stage_copy::@return
+    // }
+    // [405] return 
+    rts
+  .segment DataEngineStages
+    stage_copy__4: .byte 0
+  .segment DataEngineStages
+    .label stage_playbook_ptr1_stage_copy__1 = stage_copy__34
+  .segment DataEngineStages
+    stage_scenario_ptr1_stage_copy__1: .word 0
+  .segment Data
+    ew: .byte 0
+  .segment Data
+    scenario: .word 0
+  .segment DataEngineStages
+    stage_copy__34: .word 0
+  .segment DataEngineStages
+    .label stage_copy__35 = stage_copy__34
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_enemy_add
+// void stage_enemy_add(__mem() char w, __register(X) char enemy_sprite)
+// __bank(cx16_ram, 3) 
+stage_enemy_add: {
+    // constants
+    // variables
+    // variables-zero-page
+    // unsigned char enemies = enemy_add(w, enemy_sprite)
+    // [406] enemy_add::w = stage_enemy_add::w#0 -- vbum1=vbum2 
+    lda w
+    sta equinoxe_enemy.enemy_add.w
+    // [407] enemy_add::sprite_enemy = stage_enemy_add::enemy_sprite#0 -- vbum1=vbuxx 
+    stx equinoxe_enemy.enemy_add.sprite_enemy
+    // [408] callexecute enemy_add  -- call_var_far_cx16_ram 
+    jsr $ff6e
+    .byte <equinoxe_enemy.enemy_add
+    .byte >equinoxe_enemy.enemy_add
+    .byte 8
+    // wave_set(w)
+    // [409] wave_set::w = stage_enemy_add::w#0 -- vbum1=vbum2 
+    lda w
+    sta equinoxe_waves.wave_set.w
+    // [410] callexecute wave_set  -- call_var_near 
+    jsr equinoxe_waves.wave_set
+    // stage.enemy_count++;
+    // [411] *((char *)&stage+OFFSET_STRUCT_STAGE_T_ENEMY_COUNT) = ++ *((char *)&stage+OFFSET_STRUCT_STAGE_T_ENEMY_COUNT) -- _deref_pbuc1=_inc__deref_pbuc1 
+    inc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_ENEMY_COUNT
+    // stage_enemy_add::@return
+    // }
+    // [412] return 
+    rts
+  .segment Data
+    w: .byte 0
+}
+  // code segment
+.segment Code
+  // fload_bram
+/**
+ * @brief Load a file to banked ram located between address 0xA000 and 0xBFFF incrementing the banks.
+ *
+ * @param channel Input channel.
+ * @param device Input device.
+ * @param secondary Secondary channel.
+ * @param filename Name of the file to be loaded.
+ * @param bank The bank in banked ram to where the data of the file needs to be loaded.
+ * @param sptr The pointer between 0xA000 and 0xBFFF in banked ram.
+ * @return bram_ptr_t
+ *  - 0x0000: Something is wrong! Kernal Error Code (https://commodore.ca/manuals/pdfs/commodore_error_messages.pdf)
+ *  - other: OK! The last pointer between 0xA000 and 0xBFFF is returned. Note that the last pointer is indicating the first free byte.
+ */
+// unsigned int fload_bram(__zp($58) char *filename, __register(X) char dbank, char *dptr)
+fload_bram: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label fp = $52
+    .label filename = $58
+    // fload_bram::bank_get_bram1
+    // return BRAM;
+    // [414] fload_bram::bank_set_bram2_bank#0 = BRAM -- vbum1=vbuz2 
+    lda.z BRAM
+    sta bank_set_bram2_bank
+    // fload_bram::bank_set_bram1
+    // BRAM = bank
+    // [415] BRAM = fload_bram::dbank#10 -- vbuz1=vbuxx 
+    stx.z BRAM
+    // fload_bram::@4
+    // FILE* fp = fopen(filename,"r")
+    // [416] fopen::path = fload_bram::filename#10 -- pbuz1=pbuz2 
+    lda.z filename
+    sta.z lib_file.fopen.path
+    lda.z filename+1
+    sta.z lib_file.fopen.path+1
+    // [417] fopen::mode = fload_bram::mode -- pbuz1=pbuc1 
+    lda #<mode
+    sta.z lib_file.fopen.mode
+    lda #>mode
+    sta.z lib_file.fopen.mode+1
+    // [418] callexecute fopen  -- call_var_near 
+    jsr lib_file.fopen
+    // [419] fload_bram::fp#0 = fopen::return -- pssz1=pssz2 
+    lda.z lib_file.fopen.return
+    sta.z fp
+    lda.z lib_file.fopen.return+1
+    sta.z fp+1
+    // if(fp)
+    // [420] if((FILE *)0==fload_bram::fp#0) goto fload_bram::bank_set_bram2 -- pssc1_eq_pssz1_then_la1 
+    lda.z fp
+    cmp #<0
+    bne !+
+    lda.z fp+1
+    cmp #>0
+    beq bank_set_bram2
+  !:
+    // fload_bram::@1
+    // fgets(dptr, 0, fp)
+    // [421] fgets::ptr = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z lib_file.fgets.ptr
+    lda #>$a000
+    sta.z lib_file.fgets.ptr+1
+    // [422] fgets::size = 0 -- vwum1=vbuc1 
+    lda #<0
+    sta lib_file.fgets.size
+    sta lib_file.fgets.size+1
+    // [423] fgets::stream = fload_bram::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fgets.stream
+    lda.z fp+1
+    sta.z lib_file.fgets.stream+1
+    // [424] callexecute fgets  -- call_var_near 
+    jsr lib_file.fgets
+    // read = fgets(dptr, 0, fp)
+    // [425] fload_bram::read#1 = fgets::return -- vwum1=vwum2 
+    lda lib_file.fgets.return
+    sta read
+    lda lib_file.fgets.return+1
+    sta read+1
+    // if(read)
+    // [426] if(0!=fload_bram::read#1) goto fload_bram::@3 -- 0_neq_vwum1_then_la1 
+    lda read
+    ora read+1
+    bne __b3
+    // fload_bram::@2
+    // fclose(fp)
+    // [427] fclose::stream = fload_bram::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fclose.stream
+    lda.z fp+1
+    sta.z lib_file.fclose.stream+1
+    // [428] callexecute fclose  -- call_var_near 
+    jsr lib_file.fclose
+    // fload_bram::bank_set_bram2
+  bank_set_bram2:
+    // BRAM = bank
+    // [429] BRAM = fload_bram::bank_set_bram2_bank#0 -- vbuz1=vbum2 
+    lda bank_set_bram2_bank
+    sta.z BRAM
+    // fload_bram::@return
+    // }
+    // [430] return 
+    rts
+    // fload_bram::@3
+  __b3:
+    // fclose(fp)
+    // [431] fclose::stream = fload_bram::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fclose.stream
+    lda.z fp+1
+    sta.z lib_file.fclose.stream+1
+    // [432] callexecute fclose  -- call_var_near 
+    jsr lib_file.fclose
+    jmp bank_set_bram2
+  .segment Data
+    mode: .text "r"
+    .byte 0
+  .segment Data
+    bank_set_bram2_bank: .byte 0
+  .segment Data
+    read: .word 0
+}
+  // code segment
+.segment Code
+  // memset
+// Copies the character c (an unsigned char) to the first num characters of the object pointed to by the argument str.
+// void * memset(void *str, char c, unsigned int num)
+memset: {
+    // constants
+    .label end = equinoxe_stage_flight.stage+SIZEOF_STRUCT_STAGE_T
+    // variables
+    // variables-zero-page
+    .label dst = $58
+    // [434] phi from memset to memset::@1 [phi:memset->memset::@1]
+    // [434] phi memset::dst#2 = (char *)(void *)&stage [phi:memset->memset::@1#0] -- pbuz1=pbuc1 
+    lda #<equinoxe_stage_flight.stage
+    sta.z dst
+    lda #>equinoxe_stage_flight.stage
+    sta.z dst+1
+    // memset::@1
+  __b1:
+    // for(char* dst = str; dst!=end; dst++)
+    // [435] if(memset::dst#2!=memset::end#0) goto memset::@2 -- pbuz1_neq_pbuc1_then_la1 
+    lda.z dst+1
+    cmp #>end
+    bne __b2
+    lda.z dst
+    cmp #<end
+    bne __b2
+    // memset::@return
+    // }
+    // [436] return 
+    rts
+    // memset::@2
+  __b2:
+    // *dst = c
+    // [437] *memset::dst#2 = 0 -- _deref_pbuz1=vbuc1 
+    lda #0
+    tay
+    sta (dst),y
+    // for(char* dst = str; dst!=end; dst++)
+    // [438] memset::dst#1 = ++ memset::dst#2 -- pbuz1=_inc_pbuz1 
+    inc.z dst
+    bne !+
+    inc.z dst+1
+  !:
+    // [434] phi from memset::@2 to memset::@1 [phi:memset::@2->memset::@1]
+    // [434] phi memset::dst#2 = memset::dst#1 [phi:memset::@2->memset::@1#0] -- register_copy 
+    jmp __b1
+}
+  // code segment
+.segment Code
+  // memcpy
+// Copy block of memory (forwards)
+// Copies the values of num bytes from the location pointed to by source directly to the memory block pointed to by destination.
+// void * memcpy(void *destination, __zp($52) volatile stage_playbook_t *source, unsigned int num)
+memcpy: {
+    // constants
+    .label destination = equinoxe_stage_flight.stage
+    // variables
+    // variables-zero-page
+    .label src_end = $5c
+    .label dst = $58
+    .label src = $52
+    .label source = $52
+    // char* src_end = (char*)source+num
+    // [439] memcpy::src_end#0 = (char *)(void *)memcpy::source#0 + SIZEOF_STRUCT_STAGE_PLAYBOOK_T -- pbuz1=pbuz2_plus_vbuc1 
+    lda #SIZEOF_STRUCT_STAGE_PLAYBOOK_T
+    clc
+    adc.z source
+    sta.z src_end
+    lda #0
+    adc.z source+1
+    sta.z src_end+1
+    // [440] memcpy::src#4 = (char *)(void *)memcpy::source#0
+    // [441] phi from memcpy to memcpy::@1 [phi:memcpy->memcpy::@1]
+    // [441] phi memcpy::dst#2 = (char *)memcpy::destination#0 [phi:memcpy->memcpy::@1#0] -- pbuz1=pbuc1 
+    lda #<destination
+    sta.z dst
+    lda #>destination
+    sta.z dst+1
+    // [441] phi memcpy::src#2 = memcpy::src#4 [phi:memcpy->memcpy::@1#1] -- register_copy 
+    // memcpy::@1
+  __b1:
+    // while(src!=src_end)
+    // [442] if(memcpy::src#2!=memcpy::src_end#0) goto memcpy::@2 -- pbuz1_neq_pbuz2_then_la1 
+    lda.z src+1
+    cmp.z src_end+1
+    bne __b2
+    lda.z src
+    cmp.z src_end
+    bne __b2
+    // memcpy::@return
+    // }
+    // [443] return 
+    rts
+    // memcpy::@2
+  __b2:
+    // *dst++ = *src++
+    // [444] *memcpy::dst#2 = *memcpy::src#2 -- _deref_pbuz1=_deref_pbuz2 
+    ldy #0
+    lda (src),y
+    sta (dst),y
+    // *dst++ = *src++;
+    // [445] memcpy::dst#1 = ++ memcpy::dst#2 -- pbuz1=_inc_pbuz1 
+    inc.z dst
+    bne !+
+    inc.z dst+1
+  !:
+    // [446] memcpy::src#1 = ++ memcpy::src#2 -- pbuz1=_inc_pbuz1 
+    inc.z src
+    bne !+
+    inc.z src+1
+  !:
+    // [441] phi from memcpy::@2 to memcpy::@1 [phi:memcpy::@2->memcpy::@1]
+    // [441] phi memcpy::dst#2 = memcpy::dst#1 [phi:memcpy::@2->memcpy::@1#0] -- register_copy 
+    // [441] phi memcpy::src#2 = memcpy::src#1 [phi:memcpy::@2->memcpy::@1#1] -- register_copy 
+    jmp __b1
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_load
+// void stage_load()
+// __bank(cx16_ram, 3) 
+stage_load: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label stage_playbooks_b = $54
+    .label stage_playbook_b = $54
+    .label stage_scenarios_b = $56
+    .label stage_scenario = $5a
+    // stage_playbook_t* stage_playbooks_b = stage.script_b.playbooks_b
+    // [447] stage_load::stage_playbooks_b#0 = *((stage_playbook_t **)(stage_script_t *)&stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B) -- pssz1=_deref_qssc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B
+    sta.z stage_playbooks_b
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCRIPT_B+OFFSET_STRUCT_STAGE_SCRIPT_T_PLAYBOOKS_B+1
+    sta.z stage_playbooks_b+1
+    // stage_playbook_t* stage_playbook_b = &stage_playbooks_b[stage.playbook_current]
+    // [448] stage_load::$15 = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) << 2 -- vwum1=_deref_pwuc1_rol_2 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    asl
+    sta stage_load__15
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    rol
+    sta stage_load__15+1
+    asl stage_load__15
+    rol stage_load__15+1
+    // [449] stage_load::$16 = stage_load::$15 + *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda stage_load__16
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT
+    sta stage_load__16
+    lda stage_load__16+1
+    adc equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_PLAYBOOK_CURRENT+1
+    sta stage_load__16+1
+    // [450] stage_load::$5 = stage_load::$16 << 1 -- vwum1=vwum1_rol_1 
+    asl stage_load__5
+    rol stage_load__5+1
+    // [451] stage_load::stage_playbook_b#0 = stage_load::stage_playbooks_b#0 + stage_load::$5 -- pssz1=pssz1_plus_vwum2 
+    clc
+    lda.z stage_playbook_b
+    adc stage_load__5
+    sta.z stage_playbook_b
+    lda.z stage_playbook_b+1
+    adc stage_load__5+1
+    sta.z stage_playbook_b+1
+    // stage_scenario_t* stage_scenarios_b = stage_playbook_b->scenarios_b
+    // [452] stage_load::stage_scenarios_b#0 = ((stage_scenario_t **)stage_load::stage_playbook_b#0)[OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYBOOK_T_SCENARIOS_B
+    lda (stage_playbook_b),y
+    sta.z stage_scenarios_b
+    iny
+    lda (stage_playbook_b),y
+    sta.z stage_scenarios_b+1
+    // unsigned int stage_scenario_total = stage_playbook_b->scenario_total_b
+    // [453] stage_load::stage_scenario_total#0 = (unsigned int)*((char *)stage_load::stage_playbook_b#0) -- vwum1=_word__deref_pbuz2 
+    ldy #0
+    lda (stage_playbook_b),y
+    sta stage_scenario_total
+    tya
+    sta stage_scenario_total+1
+    // stage_load_player(stage_playbook_b->stage_player)
+    // [454] stage_load_player::stage_player#0 = ((stage_player_t **)stage_load::stage_playbook_b#0)[OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYBOOK_T_STAGE_PLAYER
+    lda (stage_playbook_b),y
+    sta.z stage_load_player.stage_player
+    iny
+    lda (stage_playbook_b),y
+    sta.z stage_load_player.stage_player+1
+    // [455] call stage_load_player
+    jsr stage_load_player
+    // [456] phi from stage_load to stage_load::@1 [phi:stage_load->stage_load::@1]
+    // [456] phi stage_load::scenario#2 = 0 [phi:stage_load->stage_load::@1#0] -- vwum1=vwuc1 
+    lda #<0
+    sta scenario
+    sta scenario+1
+  // Loading the enemy sprites in bram.
+    // stage_load::@1
+  __b1:
+    // for(unsigned int scenario = 0; scenario < stage_scenario_total; scenario++)
+    // [457] if(stage_load::scenario#2<stage_load::stage_scenario_total#0) goto stage_load::@2 -- vwum1_lt_vwum2_then_la1 
+    lda scenario+1
+    cmp stage_scenario_total+1
+    bcc __b2
+    bne !+
+    lda scenario
+    cmp stage_scenario_total
+    bcc __b2
+  !:
+    // stage_load::@return
+    // }
+    // [458] return 
+    rts
+    // stage_load::@2
+  __b2:
+    // stage_scenario_t* stage_scenario = &stage_scenarios_b[scenario]
+    // [459] stage_load::$6 = stage_load::scenario#2 << 4 -- vwum1=vwum2_rol_4 
+    lda scenario
+    asl
+    sta stage_load__6
+    lda scenario+1
+    rol
+    sta stage_load__6+1
+    asl stage_load__6
+    rol stage_load__6+1
+    asl stage_load__6
+    rol stage_load__6+1
+    asl stage_load__6
+    rol stage_load__6+1
+    // [460] stage_load::stage_scenario#0 = stage_load::stage_scenarios_b#0 + stage_load::$6 -- pssz1=pssz2_plus_vwum3 
+    lda stage_load__6
+    clc
+    adc.z stage_scenarios_b
+    sta.z stage_scenario
+    lda stage_load__6+1
+    adc.z stage_scenarios_b+1
+    sta.z stage_scenario+1
+    // stage_load_enemy(stage_scenario->stage_enemy)
+    // [461] stage_load_enemy::stage_enemy#0 = ((stage_enemy_t **)stage_load::stage_scenario#0)[OFFSET_STRUCT_STAGE_SCENARIO_T_STAGE_ENEMY] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_SCENARIO_T_STAGE_ENEMY
+    lda (stage_scenario),y
+    sta.z stage_load_enemy.stage_enemy
+    iny
+    lda (stage_scenario),y
+    sta.z stage_load_enemy.stage_enemy+1
+    // [462] call stage_load_enemy
+    jsr stage_load_enemy
+    // stage_load::@3
+    // for(unsigned int scenario = 0; scenario < stage_scenario_total; scenario++)
+    // [463] stage_load::scenario#1 = ++ stage_load::scenario#2 -- vwum1=_inc_vwum1 
+    inc scenario
+    bne !+
+    inc scenario+1
+  !:
+    // [456] phi from stage_load::@3 to stage_load::@1 [phi:stage_load::@3->stage_load::@1]
+    // [456] phi stage_load::scenario#2 = stage_load::scenario#1 [phi:stage_load::@3->stage_load::@1#0] -- register_copy 
+    jmp __b1
+  .segment DataEngineStages
+    .label stage_load__5 = stage_load__15
+  .segment DataEngineStages
+    stage_load__6: .word 0
+  .segment DataEngineStages
+    stage_scenario_total: .word 0
+  .segment DataEngineStages
+    scenario: .word 0
+  .segment DataEngineStages
+    stage_load__15: .word 0
+  .segment DataEngineStages
+    .label stage_load__16 = stage_load__15
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_load_player
+// void stage_load_player(__zp($58) stage_player_t *stage_player)
+// __bank(cx16_ram, 3) 
+stage_load_player: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label stage_engine = $60
+    .label stage_bullet = $5e
+    .label stage_player = $58
+    // sprite_index_t player_sprite = stage_player->player_sprite
+    // [464] stage_load_player::player_sprite#0 = *((char *)stage_load_player::stage_player#0) -- vbuxx=_deref_pbuz1 
+    // Loading the player sprites in bram.
+    ldy #0
+    lda (stage_player),y
+    tax
+    // fe_sprite_bram_load(player_sprite, stage.sprite_offset)
+    // [465] fe_sprite_bram_load::sprite_index = stage_load_player::player_sprite#0 -- vbum1=vbuxx 
+    stx equinoxe_flightengine.fe_sprite_bram_load.sprite_index
+    // [466] fe_sprite_bram_load::sprite_offset = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset+1
+    // [467] callexecute fe_sprite_bram_load  -- call_var_near 
+    jsr equinoxe_flightengine.fe_sprite_bram_load
+    // [468] stage_load_player::$0 = fe_sprite_bram_load::return -- vwum1=vwum2 
+    lda equinoxe_flightengine.fe_sprite_bram_load.return
+    sta stage_load_player__0
+    lda equinoxe_flightengine.fe_sprite_bram_load.return+1
+    sta stage_load_player__0+1
+    // stage.sprite_offset = fe_sprite_bram_load(player_sprite, stage.sprite_offset)
+    // [469] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) = stage_load_player::$0 -- _deref_pwuc1=vwum1 
+    lda stage_load_player__0
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    lda stage_load_player__0+1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    // stage_engine_t* stage_engine = stage_player->stage_engine
+    // [470] stage_load_player::stage_engine#0 = ((stage_engine_t **)stage_load_player::stage_player#0)[OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE] -- pssz1=qssz2_derefidx_vbuc1 
+    // gotoxy(0,0);
+    // printf("player_sprite = %u", player_sprite);
+    ldy #OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_ENGINE
+    lda (stage_player),y
+    sta.z stage_engine
+    iny
+    lda (stage_player),y
+    sta.z stage_engine+1
+    // sprite_index_t engine_sprite = stage_engine->engine_sprite
+    // [471] stage_load_player::engine_sprite#0 = *((char *)stage_load_player::stage_engine#0) -- vbuxx=_deref_pbuz1 
+    ldy #0
+    lda (stage_engine),y
+    tax
+    // fe_sprite_bram_load(engine_sprite, stage.sprite_offset)
+    // [472] fe_sprite_bram_load::sprite_index = stage_load_player::engine_sprite#0 -- vbum1=vbuxx 
+    stx equinoxe_flightengine.fe_sprite_bram_load.sprite_index
+    // [473] fe_sprite_bram_load::sprite_offset = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset+1
+    // [474] callexecute fe_sprite_bram_load  -- call_var_near 
+    jsr equinoxe_flightengine.fe_sprite_bram_load
+    // [475] stage_load_player::$1 = fe_sprite_bram_load::return -- vwum1=vwum2 
+    lda equinoxe_flightengine.fe_sprite_bram_load.return
+    sta stage_load_player__1
+    lda equinoxe_flightengine.fe_sprite_bram_load.return+1
+    sta stage_load_player__1+1
+    // stage.sprite_offset = fe_sprite_bram_load(engine_sprite, stage.sprite_offset)
+    // [476] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) = stage_load_player::$1 -- _deref_pwuc1=vwum1 
+    lda stage_load_player__1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    lda stage_load_player__1+1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    // stage_bullet_t* stage_bullet = stage_player->stage_bullet
+    // [477] stage_load_player::stage_bullet#0 = ((stage_bullet_t **)stage_load_player::stage_player#0)[OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_BULLET] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_PLAYER_T_STAGE_BULLET
+    lda (stage_player),y
+    sta.z stage_bullet
+    iny
+    lda (stage_player),y
+    sta.z stage_bullet+1
+    // sprite_index_t bullet_sprite = stage_bullet->bullet_sprite
+    // [478] stage_load_player::bullet_sprite#0 = *((char *)stage_load_player::stage_bullet#0) -- vbuxx=_deref_pbuz1 
+    ldy #0
+    lda (stage_bullet),y
+    tax
+    // fe_sprite_bram_load(bullet_sprite, stage.sprite_offset)
+    // [479] fe_sprite_bram_load::sprite_index = stage_load_player::bullet_sprite#0 -- vbum1=vbuxx 
+    stx equinoxe_flightengine.fe_sprite_bram_load.sprite_index
+    // [480] fe_sprite_bram_load::sprite_offset = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset+1
+    // [481] callexecute fe_sprite_bram_load  -- call_var_near 
+    jsr equinoxe_flightengine.fe_sprite_bram_load
+    // [482] stage_load_player::$2 = fe_sprite_bram_load::return -- vwum1=vwum2 
+    lda equinoxe_flightengine.fe_sprite_bram_load.return
+    sta stage_load_player__2
+    lda equinoxe_flightengine.fe_sprite_bram_load.return+1
+    sta stage_load_player__2+1
+    // stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset)
+    // [483] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) = stage_load_player::$2 -- _deref_pwuc1=vwum1 
+    lda stage_load_player__2
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    lda stage_load_player__2+1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    // stage_load_player::@return
+    // }
+    // [484] return 
+    rts
+  .segment DataEngineStages
+    stage_load_player__0: .word 0
+  .segment DataEngineStages
+    stage_load_player__1: .word 0
+  .segment DataEngineStages
+    stage_load_player__2: .word 0
+}
+  // code segment
+.segment CodeEngineStages
+  // stage_load_enemy
+// void stage_load_enemy(__zp($5c) stage_enemy_t *stage_enemy)
+// __bank(cx16_ram, 3) 
+stage_load_enemy: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label stage_bullet = $60
+    .label stage_enemy = $5c
+    // sprite_index_t enemy_sprite = stage_enemy->enemy_sprite_flight
+    // [485] stage_load_enemy::enemy_sprite#0 = *((char *)stage_load_enemy::stage_enemy#0) -- vbuxx=_deref_pbuz1 
+    // Loading the enemy sprites in bram.
+    ldy #0
+    lda (stage_enemy),y
+    tax
+    // fe_sprite_bram_load(enemy_sprite, stage.sprite_offset)
+    // [486] fe_sprite_bram_load::sprite_index = stage_load_enemy::enemy_sprite#0 -- vbum1=vbuxx 
+    stx equinoxe_flightengine.fe_sprite_bram_load.sprite_index
+    // [487] fe_sprite_bram_load::sprite_offset = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset+1
+    // [488] callexecute fe_sprite_bram_load  -- call_var_near 
+    jsr equinoxe_flightengine.fe_sprite_bram_load
+    // [489] stage_load_enemy::$0 = fe_sprite_bram_load::return -- vwum1=vwum2 
+    lda equinoxe_flightengine.fe_sprite_bram_load.return
+    sta stage_load_enemy__0
+    lda equinoxe_flightengine.fe_sprite_bram_load.return+1
+    sta stage_load_enemy__0+1
+    // stage.sprite_offset = fe_sprite_bram_load(enemy_sprite, stage.sprite_offset)
+    // [490] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) = stage_load_enemy::$0 -- _deref_pwuc1=vwum1 
+    lda stage_load_enemy__0
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    lda stage_load_enemy__0+1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    // stage_bullet_t* stage_bullet = stage_enemy->stage_bullet
+    // [491] stage_load_enemy::stage_bullet#0 = ((stage_bullet_t **)stage_load_enemy::stage_enemy#0)[OFFSET_STRUCT_STAGE_ENEMY_T_STAGE_BULLET] -- pssz1=qssz2_derefidx_vbuc1 
+    ldy #OFFSET_STRUCT_STAGE_ENEMY_T_STAGE_BULLET
+    lda (stage_enemy),y
+    sta.z stage_bullet
+    iny
+    lda (stage_enemy),y
+    sta.z stage_bullet+1
+    // sprite_index_t bullet_sprite = stage_bullet->bullet_sprite
+    // [492] stage_load_enemy::bullet_sprite#0 = *((char *)stage_load_enemy::stage_bullet#0) -- vbuxx=_deref_pbuz1 
+    ldy #0
+    lda (stage_bullet),y
+    tax
+    // fe_sprite_bram_load(bullet_sprite, stage.sprite_offset)
+    // [493] fe_sprite_bram_load::sprite_index = stage_load_enemy::bullet_sprite#0 -- vbum1=vbuxx 
+    stx equinoxe_flightengine.fe_sprite_bram_load.sprite_index
+    // [494] fe_sprite_bram_load::sprite_offset = *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset
+    lda equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    sta equinoxe_flightengine.fe_sprite_bram_load.sprite_offset+1
+    // [495] callexecute fe_sprite_bram_load  -- call_var_near 
+    jsr equinoxe_flightengine.fe_sprite_bram_load
+    // [496] stage_load_enemy::$1 = fe_sprite_bram_load::return -- vwum1=vwum2 
+    lda equinoxe_flightengine.fe_sprite_bram_load.return
+    sta stage_load_enemy__1
+    lda equinoxe_flightengine.fe_sprite_bram_load.return+1
+    sta stage_load_enemy__1+1
+    // stage.sprite_offset = fe_sprite_bram_load(bullet_sprite, stage.sprite_offset)
+    // [497] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET) = stage_load_enemy::$1 -- _deref_pwuc1=vwum1 
+    lda stage_load_enemy__1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET
+    lda stage_load_enemy__1+1
+    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SPRITE_OFFSET+1
+    // stage_load_enemy::@return
+    // }
+    // [498] return 
+    rts
+  .segment DataEngineStages
+    stage_load_enemy__0: .word 0
+  .segment DataEngineStages
+    stage_load_enemy__1: .word 0
+}
+  // File Data Internal or Ignore
+.segment BramEngineStages
+  action_flightpath_000: .word $140
+  .byte $10, 0, STAGE_ACTION_MOVE, 0
+.segment BramEngineStages
+  action_flightpath_left_circle_002: .word $140+$a0
+  .byte $20, 3, STAGE_ACTION_MOVE, 1, -$18, 4, 3
+  .fill 1, 0
+  .byte STAGE_ACTION_TURN, 2
+  .word $50
+  .byte 0, 3, STAGE_ACTION_MOVE, 1
+.segment BramEngineStages
+  action_flightpath_right_circle_003: .word $140+$a0
+  .byte 0, 3, STAGE_ACTION_MOVE, 1, $18, 4, 3
+  .fill 1, 0
+  .byte STAGE_ACTION_TURN, 2
+  .word $50
+  .byte 0, 3, STAGE_ACTION_MOVE, 1
+.segment BramEngineStages
+  action_flightpath_005: .word $300
+  .byte $20, 2, STAGE_ACTION_MOVE, 1, 0
+  .fill 3, 0
+  .byte STAGE_ACTION_END, 0
+.segment BramEngineStages
+  action_flightpath_006: .word $300
+  .byte 0, 2, STAGE_ACTION_MOVE, 1, 0
+  .fill 3, 0
+  .byte STAGE_ACTION_END, 0
+.segment BramEngineStages
+  stage_scenario_01_b: .byte 1, 1
+  .word stage_enemy_e0401, action_flightpath_000, $140, $a0
+  .byte 0, 0, 4, $a, $ff, 0, 1, 1
+  .word stage_enemy_e0701, action_flightpath_000, $a0, $a0
+  .byte 0, 0, 4, $14, 0, 0, 1, 1
+  .word stage_enemy_e0702, action_flightpath_000, $1e0, $a0
+  .byte 0, 0, 4, $1e, 0, 0, 4, 4
+  .word stage_enemy_e0201, action_flightpath_005, $2c0, $20
+  .byte 0, 0, $e, $14, 2, 0, 4, 4
+  .word stage_enemy_e0201, action_flightpath_006, $40, $60
+  .byte 0, 0, $10, $14, 2, 0, 4, 4
+  .word stage_enemy_e0201, action_flightpath_005, $2c0, $a0
+  .byte 0, 0, $12, $14, 2, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_006, -$40, $20
+  .byte 0, 0, 8, $14, 5, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_005, $2c0, $60
+  .byte 0, 0, 8, $14, 5, 0, 8, 8
+  .word stage_enemy_e0301, action_flightpath_006, -$40, $a0
+  .byte 0, 0, 8, $14, 5, 0, 8, 8
+  .word stage_enemy_e0302, action_flightpath_005, $2c0, $e0
+  .byte 0, 0, 8, $14, 8, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_006, -$40, $20
+  .byte 0, $20, 4, $14, 8, 0, 8, 8
+  .word stage_enemy_e0501, action_flightpath_005, $2c0, $20
+  .byte 0, $20, 2, $14, $a, 0, 8, 8
+  .word stage_enemy_e0601, action_flightpath_006, -$40, $20
+  .byte 0, $20, 2, $14, $a, 0, 8, 8
+  .word stage_enemy_e0701, action_flightpath_005, $2c0, $20
+  .byte 0, $20, 6, $14, $c, 0, 8, 8
+  .word stage_enemy_e0702, action_flightpath_006, -$40, $20
+  .byte 0, $20, 8, $14, $c, 0, 8, 8
+  .word stage_enemy_e0703, action_flightpath_005, $2c0, $20
+  .byte 0, $20, $a, $14, $c, 0, 8, 8
+  .word stage_enemy_e0101, action_flightpath_left_circle_002, $2c0, $20
+  .byte 0, $20, 6, $14, $f, 0, 8, 8
+  .word stage_enemy_e0202, action_flightpath_right_circle_003, -$40, $20
+  .byte 0, $20, 8, $14, $f, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_right_circle_003, $2c0, $20
+  .byte 0, $20, $a, $14, $11, 0, 8, 8
+  .word stage_enemy_e0401, action_flightpath_left_circle_002, $2c0, $20
+  .byte 0, $20, $a, $14, $11, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+  .fill SIZEOF_STRUCT_STAGE_SCENARIO_T, 0
+.segment BramEngineStages
+  // const stage_action_end_t      action_end                      = { 0 };
+  stage_floor_bram_tiles_01: .word mars_land_bram, mars_sand_bram, mars_sea_bram, metal_yellow_bram, metal_red_bram, metal_grey_bram
+.segment BramEngineStages
+  stage_tower_bram_tiles_01: .word tower_bram, mars_sea_bram
+.segment BramEngineStages
+  // This models the playbook of all the different levels in the game.
+  // The embedded level field in the playbook is a pointer to a level composition.
+  stage_playbooks_b: .byte $13
+  .word stage_scenario_01_b, stage_player, stage_floor_01
+  .byte 1
+  .word stage_towers_01
+.segment Data
+  __51: .text "t001"
+  .byte 0
+.segment Data
+  __52: .text "p001"
+  .byte 0
+.segment Data
+  __53: .text "n001"
+  .byte 0
+.segment Data
+  __54: .text "e0701"
+  .byte 0
+.segment Data
+  __55: .text "e0102"
+  .byte 0
+.segment Data
+  __56: .text "e0201"
+  .byte 0
+.segment Data
+  __57: .text "e0202"
+  .byte 0
+.segment Data
+  __58: .text "e0301"
+  .byte 0
+.segment Data
+  __59: .text "e0302"
+  .byte 0
+.segment Data
+  __60: .text "e0401"
+  .byte 0
+.segment Data
+  __61: .text "e0501"
+  .byte 0
+.segment Data
+  __62: .text "e0502"
+  .byte 0
+.segment Data
+  __63: .text "e0601"
+  .byte 0
+.segment Data
+  __64: .text "e0602"
+  .byte 0
+.segment Data
+  __65: .text "e0101"
+  .byte 0
+.segment Data
+  __66: .text "e0702"
+  .byte 0
+.segment Data
+  __67: .text "e0703"
+  .byte 0
+.segment Data
+  __68: .text "b001"
+  .byte 0
+.segment Data
+  __69: .text "b002"
+  .byte 0
+.segment Data
+  __70: .text "b003"
+  .byte 0
+.segment Data
+  __71: .text "b004"
+  .byte 0
+.segment Data
+  nmi_relay: .word 0
+.segment Data
+  brk_relay: .word 0
+.segment Data
+  isr_vsync: .word 0
+.segment Data
+  // The mouse work area.
+  cx16_mouse: .fill SIZEOF_STRUCT_CX16_MOUSE_T, 0
+.segment BramEngineFlight
+  // __export volatile sprite_bram_t sprite_t001 = { "t001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_p001 = { "p001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_n001 = { "n001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0101 = { "e0101", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0102 = { "e0102", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0201 = { "e0201", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0202 = { "e0202", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0301 = { "e0301", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0302 = { "e0302", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0401 = { "e0401", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0501 = { "e0501", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0502 = { "e0502", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0601 = { "e0601", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0602 = { "e0602", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0701 = { "e0701", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0702 = { "e0702", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_e0703 = { "e0703", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b001 = { "b001", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b002 = { "b002", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b003 = { "b003", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  // __export volatile sprite_bram_t sprite_b004 = { "b004", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, {0, 0, 0, 0 }, 0, 0, 0 };
+  sprites: .word __51, __52, __53, __54, __55, __56, __57, __58, __59, __60, __61, __62, __63, __64, __65, __66, __67, __68, __69, __70, __71
+  .fill 2*$b, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .word 0
+  .fill 2*$1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .word 0
+  .fill 2*$1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+.segment BramEngineFloor
+  // FLOOR
+  mars_land_bram: .byte 0
+  .text "marsland"
+  .byte 0
+  .fill 7, 0
+  .byte $5e
+  .word $10*$10*$5e, $80, 0
+.segment BramEngineFloor
+  mars_sand_bram: .byte 0
+  .text "marssand"
+  .byte 0
+  .fill 7, 0
+  .byte 4
+  .word $10*$10*4, $80, 0
+.segment BramEngineFloor
+  mars_sea_bram: .byte 0
+  .text "marssea"
+  .byte 0
+  .fill 8, 0
+  .byte $10
+  .word $10*$10*$10, $80, 0
+.segment BramEngineFloor
+  metal_yellow_bram: .byte 0
+  .text "metalyellow"
+  .byte 0
+  .fill 4, 0
+  .byte $2a
+  .word $10*$10*$2d, $80, 0
+.segment BramEngineFloor
+  metal_red_bram: .byte 0
+  .text "metalred"
+  .byte 0
+  .fill 7, 0
+  .byte 1
+  .word $10*$10*1, $80, 0
+.segment BramEngineFloor
+  metal_grey_bram: .byte 0
+  .text "metalgrey"
+  .byte 0
+  .fill 6, 0
+  .byte 1
+  .word $10*$10*1, $80, 0
+.segment BramEngineFloor
+  mars_parts: .word 0
+  .fill 2*$9f, 0
+  .word 0
+  .fill 2*$9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+.segment BramEngineFloor
+  mars_land: .byte 0, $23, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, 1, 0, $1a, 8, $1b, 1, $54, 0, $55, $56, 2, 0, 0, $1c, 0, 3, 0, 0, $16, $17, 3, 0, 0, $2c, $2d, 3, 0, 0, $4e, $4f, 3, $52, $53, $50, $51, 4, 0, $20, 0, 0, 4, 0, $2e, 0, 0, 5, $48, $46, $49, $47, 5, $2a, $2b, $2f, $30, 5, $b, $c, $e, $f, 5, $4a, $4b, $4c, $4d, 6, $27, $22, $28, $29, 7, $12, $13, $18, $19, 7, $57, $58, $59, $5a, 8, $21, 0, 0, 0, 8, $31, 0, 0, 0, 9, $23, $24, $25, $26, $a, $a, 0, $d, 0, $a, $32, 0, $33, 0, $a, $5b, 0, $5c, 0, $a, $5d, 0, $5e, 0, $b, $10, $11, $14, $15, $c, 3, 4, 0, 0, $c, $34, $35, 0, 0, $d, 5, 6, 8, 9, $d, 5, 6, 0, $39, $e, 1, 2, 7, 0, $e, 1, $36, $3a, $3b, $f, $1d, $1e, $1f, $1d, $f, $37, $38, $3c, $3d, $f, $3e, $3f, $40, $41, $f, $45, $42, $43, $44
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  mars_sand: .byte $5e, 2, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, $f, 1, 2, 3, 4
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  mars_sea: .byte $62, 5, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, $f, 1, 2, 5, 1, $f, 3, 4, 7, 8, $f, 9, $a, $d, $e, $f, $b, $c, $f, $10
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  metal_yellow: .byte $72, $20, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, 1, $1d, $2a, $2a, $29, 2, $29, $16, $2a, $29, 3, $19, $1a, $2a, $29, 4, $29, $2a, $b, $29, 5, $11, $2a, $13, $29, 6, $25, $22, $23, $28, 7, $2a, $e, 7, $25, 8, $29, $2a, $2a, 4, 9, $29, $e, $2a, $10, $a, $d, $e, $f, $10, $b, $11, $29, $26, 8, $c, $2a, $29, 7, 8, $d, $19, $27, $29, $10, $e, $28, $1a, $13, $2a, $f, $29, $2a, $2a, $29, $10, 0, 0, 0, 0, $11, $29, $1e, $1f, $20, $12, $15, $2a, $17, $18, $13, $29, $2a, $1b, $1c, $14, 9, $a, $2a, $c, $15, $29, $12, $2a, $14, $16, $25, $22, $23, $28, $17, $21, $2a, $2a, $29, $18, 1, 2, 3, $29, $19, $d, $2a, $f, $29, $1a, $d, $2a, $f, $29, $1b, $2a, $22, $2a, $29, $1c, 5, 6, $2a, $29, $1d, $29, $2a, $23, $29, $1e, $29, $2a, $2a, $24, $1f, $29, $2a, $2a, $29
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  metal_red: .byte $86, 2, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, $f, 1, 1, 1, 1
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  mars: .word mars_parts, mars_land, mars_sea, mars_sand, metal_yellow, metal_red
+  .fill 2*5, 0
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 1, 3, 5, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 2, $f, $a
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 3, $f, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 4, $c
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 5, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $e
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $c, 8
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $d, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $f, $a
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $f, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $c, $c
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $d, $f
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $e
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 1, 3, 5, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 2, $f, $a
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 3, 3, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 4, $c
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 5, $f, 5, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $e
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 7, $f, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $c, 8
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $d, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $a, $f, $a
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $b, $f, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $c, $c
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $d, $f
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $e
+  .word mars_sand
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $f
+  .word metal_yellow
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .word metal_yellow
+  .byte $1e, $13, $15, $e
+  .word mars_land
+  .byte 0, 0, 0, 1
+  .word metal_yellow
+  .byte $13, $1b, $d, $1a
+  .word mars_land
+  .byte 0, 0, 2, 0
+  .word metal_yellow
+  .byte $13, $13, 3, 3
+  .word mars_land
+  .byte 0, 0, 3, 3
+  .word metal_yellow
+  .byte $15, $b, $1b, $1c
+  .word mars_land
+  .byte 0, 4, 0, 0
+  .word metal_yellow
+  .byte $15, 5, $15, 5
+  .word mars_land
+  .byte 0, 5, 0, 5
+  .word metal_yellow
+  .byte $11, $b, $d, $18
+  .word mars_land
+  .byte 0, 4, 2, 0
+  .word metal_yellow
+  .byte $11, 5, 3, 1
+  .word mars_land
+  .byte 0, 5, 3, 7
+  .word metal_yellow
+  .byte 7, $1a, $1c, $17
+  .word mars_land
+  .byte 8, 0, 0, 0
+  .word metal_yellow
+  .byte 7, $12, $14, $e
+  .word mars_land
+  .byte 8, 0, 0, 1
+  .word metal_yellow
+  .byte $a, $1a, $a, $1a
+  .word mars_land
+  .byte $a, 0, $a, 0
+  .word metal_yellow
+  .byte $a, $12, 2, 3
+  .word mars_land
+  .byte $a, 0, $b, 3
+  .word metal_yellow
+  .byte $c, $c, $1c, $1c
+  .word mars_land
+  .byte $c, $c, 0, 0
+  .word metal_yellow
+  .byte $c, 4, $14, 5
+  .word mars_land
+  .byte $c, $d, 0, 5
+  .word metal_yellow
+  .byte 8, $c, $a, $18
+  .word mars_land
+  .byte $e, $c, $a, 0
+  .word metal_yellow
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte $f, $f, $f, $f
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .byte 0
+.segment BramEngineFloor
+  // TOWER
+  tower_bram: .byte 0
+  .text "tower01"
+  .byte 0
+  .fill 8, 0
+  .byte $10
+  .word $10*$10*$10, $80, 0
+.segment BramEngineFloor
+  tower_parts_01: .word 0
+  .fill 2*$9f, 0
+  .word 0
+  .fill 2*$9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+  .byte 0
+  .fill $9f, 0
+.segment BramEngineFloor
+  tower: .byte 0, 5, 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0, 0, 0, 0, 0, 1, 1, 2, 5, 6, 2, 3, 4, 7, 8, 3, 9, $a, $d, $e, 4, $b, $c, $f, $10
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_SEGMENT_T, 0
+.segment BramEngineFloor
+  tower_01: .word tower_parts_01, mars_sea, mars_land
+  .fill 2*8, 0
+  .word mars_sea
+  .byte $f, $f, $f, $f
+  .word mars_land
+  .byte 0, 0, 0, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .fill SIZEOF_STRUCT_FLOOR_COMPOSITION_T, 0
+  .byte 0
+.segment BramEngineStages
+  stage_bullet_fireball: .byte b002
+.segment BramEngineStages
+  stage_bullet_vertical_laser: .byte b003
+.segment BramEngineStages
+  stage_enemy_e0101: .byte e0701, e0701
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0102: .byte e0102, e0102
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0201: .byte e0201, e0201
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0202: .byte e0202, e0202
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0301: .byte e0301, e0301
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0302: .byte e0302, e0302
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0401: .byte e0401, e0401
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0501: .byte e0501, e0501
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0502: .byte e0502, e0502
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0601: .byte e0601, e0601
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0602: .byte e0602, e0602
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0701: .byte e0701, e0701
+  .word stage_bullet_fireball
+  .byte 4, 0
+.segment BramEngineStages
+  stage_enemy_e0702: .byte e0702, e0702
+  .word stage_bullet_fireball
+  .byte 4, 1
+.segment BramEngineStages
+  stage_enemy_e0703: .byte e0703, e0703
+  .word stage_bullet_fireball
+  .byte 4, 1
+.segment BramEngineStages
+  stage_player_engine: .byte n001
+.segment BramEngineStages
+  stage_player_bullet: .byte b001
+.segment BramEngineStages
+  stage_player: .byte p001
+  .word stage_player_engine, stage_player_bullet
+.segment BramEngineStages
+  stage_floor_01: .byte 6
+  .word stage_floor_bram_tiles_01, mars
+.segment BramEngineStages
+  stage_towers_01: .byte 2
+  .word stage_tower_bram_tiles_01, tower_01
+  .byte t001, $10, $10, 8, 8
+  .word stage_bullet_vertical_laser
+.segment BramEngineStages
+  stage_script_b: .byte 1
+  .word stage_playbooks_b
+.segment Data
+  game: .byte 1, 0, 0
+  .word 0
+  .byte 0, $7f, $40, 1, 2, $a, $f, $f, 1, -1
+  // end-assembler
+ // Asm import library lib_conio:
+.namespace lib_conio {
+.label wave = 0
+.label stage = 0
+kbhit: {
+  .label return = 0
+}
+scroll: {
+  .label onoff = 0
+  .label return = 0
+}
+__lib_conio_start: {
+  .label return = 0
+}
+} // namespacelib_conio
+
+ // Asm import library lib_lru_cache:
+.namespace lib_lru_cache {
+.label wave = 0
+.label stage = 0
+lru_cache_init: {
+  .label return = 0
+}
+__lib_lru_cache_start: {
+  .label return = 0
+}
+} // namespacelib_lru_cache
+
+ // Asm import library lib_veraheap:
+.namespace lib_veraheap {
+.label wave = 0
+.label stage = 0
+vera_heap_bram_bank_init: {
+  .label bram_bank = 0
+  .label return = 0
+}
+vera_heap_segment_init: {
+  .label s = 0
+  .label vram_bank_floor = 0
+  .label vram_offset_floor = 0
+  .label vram_bank_ceil = 0
+  .label vram_offset_ceil = 0
+  .label return = 0
+}
+__lib_veraheap_start: {
+  .label return = 0
+}
+} // namespacelib_veraheap
+
+ // Asm import library lib_bramheap:
+.namespace lib_bramheap {
+.label wave = 0
+.label stage = 0
+bram_heap_bram_bank_init: {
+  .label bram_bank = 0
+  .label return = 0
+}
+bram_heap_segment_init: {
+  .label s = 0
+  .label bram_bank_floor = 0
+  .label bram_ptr_floor = 0
+  .label bram_bank_ceil = 0
+  .label bram_ptr_ceil = 0
+  .label return = 0
+}
+__lib_bramheap_start: {
+  .label return = 0
+}
+} // namespacelib_bramheap
+
+ // Asm import library lib_file:
+.namespace lib_file {
+.label wave = 0
+.label stage = 0
+fopen: {
+  .label path = 0
+  .label mode = 0
+  .label return = 0
+}
+fclose: {
+  .label stream = 0
+  .label return = 0
+}
+fgets: {
+  .label ptr = 0
+  .label size = 0
+  .label stream = 0
+  .label return = 0
+}
+__lib_file_start: {
+  .label return = 0
+}
+} // namespacelib_file
+
+ // Asm import library equinoxe-layers:
+.namespace equinoxe_layers {
+.label wave = 0
+.label stage = 0
+vera_petscii_init: {
+  .label return = 0
+}
+__equinoxe_layers_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_layers
+
+ // Asm import library equinoxe-animate:
+.namespace equinoxe_animate {
+.label wave = 0
+.label stage = 0
+animate_init: {
+  .label return = 0
+}
+__equinoxe_animate_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_animate
+
+ // Asm import library equinoxe-palette:
+.namespace equinoxe_palette {
+.label wave = 0
+.label stage = 0
+palette_init: {
+  .label bram_bank = 0
+  .label return = 0
+}
+__equinoxe_palette_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_palette
+
+ // Asm import library equinoxe-flightengine:
+.namespace equinoxe_flightengine {
+.label wave = 0
+.label stage = 0
+flight_init: {
+  .label return = 0
+}
+flight_draw: {
+  .label return = 0
+}
+fe_sprite_bram_load: {
+  .label sprite_index = 0
+  .label sprite_offset = 0
+  .label return = 0
+}
+__equinoxe_flightengine_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_flightengine
+
+ // Asm import library equinoxe-waves:
+.namespace equinoxe_waves {
+.label wave = 0
+.label stage = 0
+wave_set: {
+  .label w = 0
+  .label return = 0
+}
+__equinoxe_waves_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_waves
+
+ // Asm import library equinoxe-stage-flight:
+.namespace equinoxe_stage_flight {
+.label wave = 0
+.label stage = 0
+__equinoxe_stage_flight_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_stage_flight
+
+ // Asm import library equinoxe-enemy:
+.namespace equinoxe_enemy {
+.label wave = 0
+.label stage = 0
+enemy_add: {
+  .label w = 0
+  .label sprite_enemy = 0
+  .label return = 0
+}
+enemy_logic: {
+  .label return = 0
+}
+__equinoxe_enemy_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_enemy
+
+ // Asm import library equinoxe-collision:
+.namespace equinoxe_collision {
+.label wave = 0
+.label stage = 0
+collision_init: {
+  .label return = 0
+}
+collision_detect: {
+  .label return = 0
+}
+__equinoxe_collision_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_collision
+
+ // Asm import library equinoxe-player:
+.namespace equinoxe_player {
+.label wave = 0
+.label stage = 0
+player_init: {
+  .label return = 0
+}
+player_add: {
+  .label sprite_player = 0
+  .label sprite_engine = 0
+  .label return = 0
+}
+player_logic: {
+  .label mouse_x = 0
+  .label mouse_px = 0
+  .label mouse_y = 0
+  .label mouse_status = 0
+  .label return = 0
+}
+__equinoxe_player_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_player
+
+ // Asm import library equinoxe-bullet:
+.namespace equinoxe_bullet {
+.label wave = 0
+.label stage = 0
+bullet_logic: {
+  .label return = 0
+}
+__equinoxe_bullet_start: {
+  .label return = 0
+}
+} // namespaceequinoxe_bullet
+

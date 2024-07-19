@@ -1,5 +1,7 @@
-.segmentdef Code
+
+
 .segmentdef CodeVeraHeap
-.segmentdef Data
 .segmentdef DataVeraHeap
 .segmentdef BramVeraHeap
+.segmentdef Code
+.segmentdef Data

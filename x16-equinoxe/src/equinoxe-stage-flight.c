@@ -2,42 +2,38 @@
 
 #pragma var_model(mem)
 
-#pragma asm_library
+#pragma lib_configure
 #pragma calling(__varcall)
-#pragma asm_export(stage_get_flightpath_action)
-#pragma asm_export(stage_get_flightpath_type)
-#pragma asm_export(stage_get_flightpath_next)
-#pragma asm_export(stage_get_flightpath_action_move_flight)
-#pragma asm_export(stage_get_flightpath_action_move_turn)
-#pragma asm_export(stage_get_flightpath_action_move_speed)
-#pragma asm_export(stage_get_flightpath_action_turn_turn)
-#pragma asm_export(stage_get_flightpath_action_turn_radius)
-#pragma asm_export(stage_get_flightpath_action_move_speed)
-#pragma asm_export(stage_get_flightpath_action_turn_speed)
-#pragma asm_export(stage_player_remove)
-#pragma asm_export(stage_enemy_remove)
-#pragma asm_export(stage_bullet_remove)
-#pragma asm_export(stage_tower_remove)
-#pragma asm_export(stage_impact)
+#pragma lib_export(stage_get_flightpath_action)
+#pragma lib_export(stage_get_flightpath_type)
+#pragma lib_export(stage_get_flightpath_next)
+#pragma lib_export(stage_get_flightpath_action_move_flight)
+#pragma lib_export(stage_get_flightpath_action_move_turn)
+#pragma lib_export(stage_get_flightpath_action_move_speed)
+#pragma lib_export(stage_get_flightpath_action_turn_turn)
+#pragma lib_export(stage_get_flightpath_action_turn_radius)
+#pragma lib_export(stage_get_flightpath_action_move_speed)
+#pragma lib_export(stage_get_flightpath_action_turn_speed)
+#pragma lib_export(stage_player_remove)
+#pragma lib_export(stage_enemy_remove)
+#pragma lib_export(stage_bullet_add)
+#pragma lib_export(stage_bullet_remove)
+#pragma lib_export(stage_tower_remove)
+#pragma lib_export(stage_impact)
 #pragma calling(__phicall)
 
 #include "equinoxe-defines.h"
 #include "equinoxe-types.h"
 #include "equinoxe-stage-flight.h"
-#include "stdio-types.h"
-#include "equinoxe-layers_asm.h"
-#include "equinoxe-animate_asm.h"
-#include "equinoxe-palette_asm.h"
-#include "equinoxe-flightengine_asm.h"
-#include "equinoxe-waves_asm.h"
-#include "lib_conio_asm.h"
-#include "lib_lru_cache_asm.h"
-#include "lib_veraheap_asm.h"
-#include "lib_bramheap_asm.h"
-#include "lib_file_asm.h"
+#include "equinoxe-levels.h"
+#include <equinoxe-flightengine.p>
+#include <equinoxe-waves.p>
+#include <equinoxe-bullet.p>
+// #include <lib_conio.p>
+
 
 #pragma data_seg(DATA_ENGINE_STAGES)
-__asm_export stage_t stage;
+__lib_export stage_t stage;
 
 #ifdef __BANKING
 #pragma code_seg(CODE_ENGINE_STAGES)
@@ -71,6 +67,13 @@ void stage_tower_remove(flight_index_t t)
     stage.tower_count--;
 }
 
+void stage_bullet_add(unsigned int sx, unsigned int sy, unsigned int tx, unsigned int ty, unsigned char speed, flight_side_t side, sprite_index_t sprite_bullet) {
+#ifdef __BULLET
+    bullet_add(sx, sy, tx, ty, speed, side, sprite_bullet);
+    stage.bullet_count++;
+#endif
+}
+
 void stage_bullet_remove(flight_index_t b) {
 #ifdef __BULLET
     flight_remove(FLIGHT_BULLET, b);
@@ -83,12 +86,16 @@ void stage_impact(flight_index_t f, flight_index_t h)
     unsigned char hit = flight_hit(f, flight_impact(h));
     if(hit) {
         switch(flight.type[f]) {
+#ifdef __ENEMY
             case FLIGHT_ENEMY:
                 stage_enemy_remove(flight_wave(f), f);
                 break;
+#endif
+#ifdef __BULLET
             case FLIGHT_BULLET:
                 stage_bullet_remove(f);
                 break;
+#endif
             case FLIGHT_PLAYER:
                 stage_player_remove(f);
                 break;
