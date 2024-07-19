@@ -123,7 +123,7 @@
         "asm_begin": "  // File Comments\n  // Global constants and variables\n",
         "asm_constants": "  // constants\n  .label SIZEOF_UNSIGNED_INT = 2\n  .label SIZEOF_CHAR = 1\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_DATA = $100\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_NEXT = $280\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_PREV = $200\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_LINK = $300\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_FIRST = $381\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_LAST = $382\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_COUNT = $380\n  .label OFFSET_STRUCT_LRU_CACHE_TABLE_T_SIZE = $383\n  .label SIZEOF_STRUCT_LRU_CACHE_TABLE_T = $384\n",
         "asm_variables": "  // variables\n  .label BRAM = 0\n  .label BROM = 1\n",
-        "asm_end": "  // Exported Global Data\n.segment CodeLruCache\n  // #include <conio.h>\n  // #include <stdio.h>\n  // #include <stdlib.h>\n  // #include <string.h>\n  lru_cache: .fill SIZEOF_STRUCT_LRU_CACHE_TABLE_T, 0\n"
+        "asm_end": "  // Exported Global Data\n.segment CodeLruCache\n  // #include <conio.h>\n  // #include <stdio.h>\n  // #include <string.h>\n  lru_cache: .fill SIZEOF_STRUCT_LRU_CACHE_TABLE_T, 0\n"
     },
     "procedures": {
         "lru_cache_init": {

@@ -5,5 +5,4 @@ extern __varcall __lib_import("lib_bramheap") __mem() char bram_heap_segment_ini
 extern __varcall __lib_import("lib_bramheap") __mem() char bram_heap_data_get_bank(__mem() char s, __mem() char index);
 extern __varcall __lib_import("lib_bramheap") __zp char * bram_heap_data_get_offset(__mem() char s, __mem() char index);
 extern __varcall __lib_import("lib_bramheap") __mem() unsigned long bram_heap_get_size(__mem() char s, __mem() char index);
-extern __phicall __lib_import("lib_bramheap") void conio_x16_init();
 extern __phicall __lib_import("lib_bramheap") void __lib_bramheap_start();

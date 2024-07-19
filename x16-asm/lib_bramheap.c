@@ -22,8 +22,8 @@
 #pragma calling(__phicall)
 
 #include <cx16.h>
-#include <conio.h>
-#include <printf.h>
+// #include <conio.h>
+// #include <printf.h>
 
 #define BRAM_BRAM_HEAP BramBramHeap
 //#define DATA_BRAM_HEAP DataBramHeap

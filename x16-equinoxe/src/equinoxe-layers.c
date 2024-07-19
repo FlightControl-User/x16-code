@@ -12,6 +12,7 @@
 #include <cx16-veralib.h>
 #include "equinoxe-defines.h"
 #include "equinoxe-bank.h"
+#include "equinoxe-vera.h"
 
 typedef struct {
     unsigned char cursor_x;             ///< current cursor x-position

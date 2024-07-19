@@ -16,7 +16,7 @@
 #include <lru-cache.h>
 // #include <conio.h>
 // #include <stdio.h>
-// #include <stdlib.h>
+#include <stdlib.h>
 // #include <string.h>
 
 lru_cache_table_t lru_cache;

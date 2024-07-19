@@ -8,6 +8,7 @@
 #include <lib_conio.p>
 
 #include "equinoxe-types.h"
+#include "equinoxe-vera.h"
 
 #include <lib_lru_cache.p>
 #include <lib_veraheap.p>
@@ -109,7 +110,7 @@ void irq_vsync() {
 
 #ifdef __FLOOR
 
-    #ifdef __LAYER1
+    #ifdef __VERA_LAYER1
     vera_floor_layer1();
     vera_floor_layer1_show();
     #endif
@@ -282,7 +283,7 @@ void main() {
     vera_layer0_hide();
     vera_layer1_hide();
 
-#ifndef __LAYER1
+#ifndef __VERA_LAYER1
     vera_petscii_init();
 #else
     game.layers++; // This to indicate that two layers are to be drawn in the floor engine!
@@ -327,7 +328,7 @@ void main() {
 #ifdef __FLOOR
     vera_floor_layer0();
 
-    #ifdef __LAYER1
+    #ifdef __VERA_LAYER1
     vera_floor_layer1();
     #else
     vera_petscii_layer1();

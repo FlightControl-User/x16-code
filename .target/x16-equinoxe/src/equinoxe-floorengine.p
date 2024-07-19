@@ -1,0 +1,12 @@
+extern __varcall __lib_import("equinoxe-floorengine") void floor_draw_clear(__zp floor_t *floor);
+extern __varcall __lib_import("equinoxe-floorengine") void floor_evolve();
+extern __varcall __lib_import("equinoxe-floorengine") void floor_part_memset_vram(__mem() char part, __zp floor_t *floor, __mem() char pattern);
+extern __varcall __lib_import("equinoxe-floorengine") __mem() char floor_parts_load_bram(__mem() char part, __zp floor_t *floor, __zp floor_bram_tiles_t *floor_bram_tile);
+extern __varcall __lib_import("equinoxe-floorengine") void floor_part_memcpy_vram_bram(__mem() char part, __zp floor_t *floor);
+extern __varcall __lib_import("equinoxe-floorengine") void floor_layer_index_segments(__zp floor_t *floor);
+extern __varcall __lib_import("equinoxe-floorengine") void floor_layer_map(__mem() char layer, __mem() char bank, __mem() unsigned int offset);
+extern __varcall __lib_import("equinoxe-floorengine") void floor_position();
+extern __varcall __lib_import("equinoxe-floorengine") void floor_scroll();
+extern __varcall __lib_import("equinoxe-floorengine") void floor_paint_background();
+extern __varcall __lib_import("equinoxe-floorengine") void floor_draw_background(__zp floor_t *floor);
+extern __phicall __lib_import("equinoxe-floorengine") void __equinoxe_floorengine_start();

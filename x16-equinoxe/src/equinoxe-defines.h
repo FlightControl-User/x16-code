@@ -10,10 +10,6 @@
  */
 
 
-
-
-#include "equinoxe-bank.h"
-
 // Global defines
 #define BRAM_HEAP_SEGMENTS 2
 
@@ -25,7 +21,6 @@
 #define SIDE_ENEMY 1
 
 // #define __CONIO_BSOUT
-// #define __LAYER1
 // #define __NOVSYNC
 #define __CPULINES
 
@@ -35,7 +30,7 @@
 #define __STAGE
 #define __COLLISION
 
-// #define __FLOOR
+#define __FLOOR
 // #define __TOWER
 #define __PLAYER
 #define __BULLET
@@ -43,6 +38,9 @@
 #define __ENGINE
 
 #define __BANKING
+
+#include "equinoxe-bank.h"
+
 
 // Sprite cache to avoid loading the same sprites over and over from bram.
 // #define __DEBUG_SPRITE_CACHE

@@ -1,7 +1,23 @@
 // Space tile scrolling engine for a space game written in kickc for the Commander X16.
 
+#pragma link("equinoxe-lib.ld")
+
+#pragma encoding(petscii_mixed)
+#pragma var_model(mem)
+
+
+#pragma lib_configure
+#pragma lib_export(__varcall, floor_draw_clear, floor_evolve, floor_part_memset_vram, floor_parts_load_bram, floor_part_memcpy_vram_bram)
+#pragma lib_export(__varcall, floor_layer_index_segments, floor_layer_map, floor_position, floor_scroll, floor_paint_background, floor_draw_background)
+
 #include "equinoxe-cx16.h"
+#include "equinoxe-vera.h"
 #include "equinoxe-floorengine.h"
+
+#include <lib_veraheap.p>
+#include <lib_bramheap.p>
+#include <equinoxe-palette.p>
+#include <equinoxe-stage-flight.p>
 
 #pragma data_seg(DATA_ENGINE_FLOOR)
 #pragma code_seg(CODE_ENGINE_FLOOR)
@@ -20,15 +36,13 @@ struct floor_s {
 
 };
 
-struct floor_s floor_config = {1, 64, 1, 2, 10, 15, 15, 1, 1, 0 };
+struct floor_s floor_config = {2, 64, 1, 2, 10, 15, 15, 1, 1, 0 };
 
 floor_cache_t floor_cache[FLOOR_CACHE_ROWS * FLOOR_CACHE_COLUMNS];
 
 floor_layer_vram_offset_t floor_layer_offsets[2];
 
 floor_scroll_t floor_pos;
-
-// #pragma var_model(zp)
 
 void floor_draw_clear(floor_t *floor) {
     bank_push_set_bram(BANK_ENGINE_FLOOR);
@@ -496,6 +510,7 @@ void floor_layer_index_segments(floor_t *floor) {
     bank_pull_bram();
 }
 
+/*
 void floor_layer_debug(floor_t *floor, unsigned char layer) {
 
     bank_push_set_bram(BANK_ENGINE_FLOOR);
@@ -514,6 +529,7 @@ void floor_layer_debug(floor_t *floor, unsigned char layer) {
 
     bank_pull_bram();
 }
+*/
 
 // Load the floor tiles into bram using the bram heap manager.
 unsigned char floor_parts_load_bram(unsigned char part, floor_t *floor, floor_bram_tiles_t *floor_bram_tile) {
@@ -631,12 +647,12 @@ void floor_scroll() {
         // all paint segments will have been painted on the paint buffer, and the tiling will just pick
         // row 2, 1 or 0 from the paint segment...
         floor_draw_row(stage.floor, row, floor_pos.tile_column);
-#ifdef __TOWERS
+#ifdef __TOWER
         floor_draw_row(stage.towers, row, floor_pos.tile_column);
 #endif
 
 #ifdef __TOWER
-        tower_move();
+        // tower_move();
 #endif
 
         floor_config.vscroll--;
@@ -646,7 +662,7 @@ void floor_scroll() {
 void floor_position() {
     // Now we set the vertical scroll to the required scroll position.
     vera_layer0_set_vertical_scroll(floor_config.vscroll);
-#ifdef __LAYER1
+#ifdef __VERA_LAYER1
     vera_layer1_set_vertical_scroll(floor_config.vscroll);
 #endif
 }

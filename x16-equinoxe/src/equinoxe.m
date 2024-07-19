@@ -5,6 +5,7 @@ equinoxe-bullet.c
 equinoxe-collision.c
 equinoxe-stage-flight.c
 equinoxe-flightengine.c
+equinoxe-floorengine.c
 equinoxe-waves.c
 equinoxe-layers.c
 equinoxe-palette.c

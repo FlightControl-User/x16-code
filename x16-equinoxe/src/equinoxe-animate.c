@@ -11,7 +11,7 @@
 #pragma lib_export(animate_debug)
 #pragma calling(__phicall)
 
-#include <printf.h>
+// #include <printf.h>
 #include <cx16.h>
 
 #include "equinoxe-types.h"
@@ -260,7 +260,9 @@ void animate_tower(unsigned char a) {
     animate.image[a] = animate.state[a];
 }
 
+/*
 void animate_debug(unsigned char a) {
     gotoxy(a / 32 * 16 + 2, a % 32);
     printf("s:%02x", animate.state[a]);
 }
+*/

@@ -4,6 +4,7 @@
 #pragma var_model(mem)
 
 #include "equinoxe-defines.h"
+#include "equinoxe-vera.h"
 
 #include "equinoxe-waves.p"
 #include "equinoxe-flightengine.p"
@@ -15,7 +16,7 @@
 #include "equinoxe-levels.h"
 #include <equinoxe-enemy.p>
 #include <equinoxe-bullet.p>
-#include "equinoxe-floorengine.h"
+#include <equinoxe-floorengine.p>
 
 
 
@@ -134,7 +135,7 @@ void stage_load_floor(stage_floor_t* stage_floor)
 
     floor_layer_index_segments(floor);
     floor_layer_map(0, FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM);
-    #ifdef __LAYER1
+    #ifdef __VERA_LAYER1
     floor_layer_map(1, FLOOR_MAP1_BANK_VRAM, FLOOR_MAP1_OFFSET_VRAM);
     #endif
     // floor_layer_debug(floor, 0);
@@ -144,7 +145,7 @@ void stage_load_floor(stage_floor_t* stage_floor)
 }
 #endif
 
-#ifdef __TOWER
+#ifdef __VERA_LAYER1
 void stage_load_tower(stage_tower_t* stage_tower)
 {
 
@@ -387,12 +388,14 @@ void stage_logic(unsigned char tickstage)
 }
 
 
+/*
 void stage_display()
 {
     gotoxy(0,0);
     printf("stage statistics\n");
     printf("count bullets=%04u, enemies=%04u, towers=%04u, players:%04u\n", stage.bullet_count, stage.enemy_count, stage.tower_count, stage.player_count);
 }
+*/
 
 #pragma data_seg(Data)
 #pragma code_seg(Code)

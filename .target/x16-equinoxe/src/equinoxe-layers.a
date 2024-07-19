@@ -2,56 +2,9 @@
 .namespace equinoxe_layers {
   // Upstart
 .cpu _65c02
-  .segmentdef Code 
-.segmentdef CodeBramHeap 
-.segmentdef CodeVeraHeap 
-.segmentdef CodeLruCache 
-.segmentdef CodeEngineFlight 
-.segmentdef CodeEngineFloor 
-.segmentdef CodeEngineAnimate 
-.segmentdef CodeEnginePalette 
-
-.segmentdef Data
-.segmentdef DataBramHeap 
-.segmentdef DataVeraHeap 
-.segmentdef DataEngineAnimate 
-.segmentdef DataEnginePalette 
-.segmentdef DataEngineFloor 
-.segmentdef DataEngineStages
-.segmentdef DataEngineBullets
-.segmentdef DataEnginePlayers
-.segmentdef DataEngineEnemies
-.segmentdef DataEngineTowers
-.segmentdef DataEngineFlight 
-.segmentdef DataSpriteCache
-
-
-//.segmentdef BramEngineFloor 
-
-
-.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
-
-.segmentdef Debug                   [startAfter="Hash", align=$100]
-
-.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
-
-//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
-//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
-
-.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
-.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
-.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
-
-.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
-.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
-.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
-
-//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
-//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+  
+   .segmentdef Code
+   .segmentdef Data
 
   // start-assembler
   // File Comments
@@ -259,13 +212,18 @@ vera_petscii_layer1: {
     // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 1 [phi:vera_petscii_layer1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 
     lda #1
     sta vera_layer1_mode_tile.tilebase_bank
-    // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_32 [phi:vera_petscii_layer1->vera_layer1_mode_tile#4] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::mapbase_offset#3 = $e000 [phi:vera_petscii_layer1->vera_layer1_mode_tile#4] -- vwum1=vwuc1 
+    lda #<$e000
+    sta vera_layer1_mode_tile.mapbase_offset
+    lda #>$e000
+    sta vera_layer1_mode_tile.mapbase_offset+1
+    // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_32 [phi:vera_petscii_layer1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 
     lda #VERA_LAYER_HEIGHT_32
     sta vera_layer1_mode_tile.mapheight
-    // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_64 [phi:vera_petscii_layer1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_64 [phi:vera_petscii_layer1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 
     lda #VERA_LAYER_WIDTH_64
     sta vera_layer1_mode_tile.mapwidth
-    // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_petscii_layer1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_petscii_layer1->vera_layer1_mode_tile#7] -- vbum1=vbuc1 
     lda #VERA_LAYER_COLOR_DEPTH_1BPP
     sta vera_layer1_mode_tile.vera_layer1_set_color_depth1_bpp
     jsr vera_layer1_mode_tile
@@ -314,13 +272,18 @@ vera_floor_layer1: {
     sta vera_layer1_mode_tile.tilebase_offset+1
     // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 
     sta vera_layer1_mode_tile.tilebase_bank
-    // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_32 [phi:vera_floor_layer1->vera_layer1_mode_tile#4] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::mapbase_offset#3 = $e000 [phi:vera_floor_layer1->vera_layer1_mode_tile#4] -- vwum1=vwuc1 
+    lda #<$e000
+    sta vera_layer1_mode_tile.mapbase_offset
+    lda #>$e000
+    sta vera_layer1_mode_tile.mapbase_offset+1
+    // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_32 [phi:vera_floor_layer1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 
     lda #VERA_LAYER_HEIGHT_32
     sta vera_layer1_mode_tile.mapheight
-    // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_64 [phi:vera_floor_layer1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_64 [phi:vera_floor_layer1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 
     lda #VERA_LAYER_WIDTH_64
     sta vera_layer1_mode_tile.mapwidth
-    // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_4BPP [phi:vera_floor_layer1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_4BPP [phi:vera_floor_layer1->vera_layer1_mode_tile#7] -- vbum1=vbuc1 
     lda #VERA_LAYER_COLOR_DEPTH_4BPP
     sta vera_layer1_mode_tile.vera_layer1_set_color_depth1_bpp
     jsr vera_layer1_mode_tile
@@ -350,7 +313,7 @@ vera_floor_layer0: {
     //         VERA_LAYER_COLOR_DEPTH_4BPP
     //     )
     // [32] call vera_layer0_mode_tile
-    // [91] phi from vera_floor_layer0 to vera_layer0_mode_tile [phi:vera_floor_layer0->vera_layer0_mode_tile]
+    // [94] phi from vera_floor_layer0 to vera_layer0_mode_tile [phi:vera_floor_layer0->vera_layer0_mode_tile]
     jsr vera_layer0_mode_tile
     // [33] phi from vera_floor_layer0 to vera_floor_layer0::@1 [phi:vera_floor_layer0->vera_floor_layer0::@1]
     // vera_floor_layer0::@1
@@ -413,13 +376,18 @@ vera_petscii_init: {
     // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 1 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 
     lda #1
     sta vera_layer1_mode_tile.tilebase_bank
-    // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_64 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#4] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::mapbase_offset#3 = $b000 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#4] -- vwum1=vwuc1 
+    lda #<$b000
+    sta vera_layer1_mode_tile.mapbase_offset
+    lda #>$b000
+    sta vera_layer1_mode_tile.mapbase_offset+1
+    // [72] phi vera_layer1_mode_tile::mapheight#3 = VERA_LAYER_HEIGHT_64 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 
     lda #VERA_LAYER_HEIGHT_64
     sta vera_layer1_mode_tile.mapheight
-    // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_128 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#5] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::mapwidth#3 = VERA_LAYER_WIDTH_128 [phi:vera_petscii_init::@1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 
     lda #VERA_LAYER_WIDTH_128
     sta vera_layer1_mode_tile.mapwidth
-    // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_petscii_init::@1->vera_layer1_mode_tile#6] -- vbum1=vbuc1 
+    // [72] phi vera_layer1_mode_tile::vera_layer1_set_color_depth1_bpp#0 = VERA_LAYER_COLOR_DEPTH_1BPP [phi:vera_petscii_init::@1->vera_layer1_mode_tile#7] -- vbum1=vbuc1 
     lda #VERA_LAYER_COLOR_DEPTH_1BPP
     sta vera_layer1_mode_tile.vera_layer1_set_color_depth1_bpp
     jsr vera_layer1_mode_tile
@@ -497,7 +465,7 @@ vera_layer1_hide: {
   // code segment
 .segment Code
   // vera_layer1_mode_tile
-// void vera_layer1_mode_tile(char mapbase_bank, unsigned int mapbase_offset, __mem() char tilebase_bank, __mem() unsigned int tilebase_offset, __mem() char mapwidth, __mem() char mapheight, __mem() char tilewidth, __mem() char tileheight, char bpp)
+// void vera_layer1_mode_tile(char mapbase_bank, __mem() unsigned int mapbase_offset, __mem() char tilebase_bank, __mem() unsigned int tilebase_offset, __mem() char mapwidth, __mem() char mapheight, __mem() char tilewidth, __mem() char tileheight, char bpp)
 vera_layer1_mode_tile: {
     // constants
     // variables
@@ -533,18 +501,30 @@ vera_layer1_mode_tile: {
     ora mapheight
     sta VERA_L1_CONFIG
     // vera_layer1_mode_tile::vera_layer1_set_mapbase1
+    // BYTE1(mapbase_offset)
+    // [79] vera_layer1_mode_tile::vera_layer1_set_mapbase1_$1 = byte1  vera_layer1_mode_tile::mapbase_offset#3 -- vbum1=_byte1_vwum2 
+    lda mapbase_offset+1
+    sta vera_layer1_set_mapbase1_vera_layer1_mode_tile__1
+    // BYTE1(mapbase_offset)>>1
+    // [80] vera_layer1_mode_tile::vera_layer1_set_mapbase1_$2 = vera_layer1_mode_tile::vera_layer1_set_mapbase1_$1 >> 1 -- vbum1=vbum2_ror_1 
+    lsr
+    sta vera_layer1_set_mapbase1_vera_layer1_mode_tile__2
+    // (mapbase_bank<<7) | (BYTE1(mapbase_offset)>>1)
+    // [81] vera_layer1_mode_tile::vera_layer1_set_mapbase1_$3 = 1<<7 | vera_layer1_mode_tile::vera_layer1_set_mapbase1_$2 -- vbum1=vbuc1_bor_vbum2 
+    lda #1<<7
+    ora vera_layer1_set_mapbase1_vera_layer1_mode_tile__2
+    sta vera_layer1_set_mapbase1_vera_layer1_mode_tile__3
     // *VERA_L1_MAPBASE = (mapbase_bank<<7) | (BYTE1(mapbase_offset)>>1)
-    // [79] *VERA_L1_MAPBASE = 1<<7|byte1 $b000>>1 -- _deref_pbuc1=vbuc2 
-    lda #1<<7|(>$b000)>>1
+    // [82] *VERA_L1_MAPBASE = vera_layer1_mode_tile::vera_layer1_set_mapbase1_$3 -- _deref_pbuc1=vbum1 
     sta VERA_L1_MAPBASE
     // vera_layer1_mode_tile::vera_layer1_set_tilebase1
     // *VERA_L1_TILEBASE &= ~VERA_LAYER_TILEBASE_MASK
-    // [80] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_LAYER_TILEBASE_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [83] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_LAYER_TILEBASE_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_LAYER_TILEBASE_MASK^$ff
     and VERA_L1_TILEBASE
     sta VERA_L1_TILEBASE
     // tilebase_bank << 7
-    // [81] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$0 = vera_layer1_mode_tile::tilebase_bank#10 << 7 -- vbum1=vbum2_rol_7 
+    // [84] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$0 = vera_layer1_mode_tile::tilebase_bank#10 << 7 -- vbum1=vbum2_rol_7 
     lda tilebase_bank
     asl
     asl
@@ -555,47 +535,53 @@ vera_layer1_mode_tile: {
     asl
     sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__0
     // BYTE1(tilebase_offset)
-    // [82] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$1 = byte1  vera_layer1_mode_tile::tilebase_offset#10 -- vbum1=_byte1_vwum2 
+    // [85] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$1 = byte1  vera_layer1_mode_tile::tilebase_offset#10 -- vbum1=_byte1_vwum2 
     lda tilebase_offset+1
     sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__1
     // BYTE1(tilebase_offset)>>1
-    // [83] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$2 = vera_layer1_mode_tile::vera_layer1_set_tilebase1_$1 >> 1 -- vbum1=vbum2_ror_1 
+    // [86] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$2 = vera_layer1_mode_tile::vera_layer1_set_tilebase1_$1 >> 1 -- vbum1=vbum2_ror_1 
     lsr
     sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__2
     // (tilebase_bank << 7) | BYTE1(tilebase_offset)>>1
-    // [84] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$3 = vera_layer1_mode_tile::vera_layer1_set_tilebase1_$0 | vera_layer1_mode_tile::vera_layer1_set_tilebase1_$2 -- vbum1=vbum2_bor_vbum3 
+    // [87] vera_layer1_mode_tile::vera_layer1_set_tilebase1_$3 = vera_layer1_mode_tile::vera_layer1_set_tilebase1_$0 | vera_layer1_mode_tile::vera_layer1_set_tilebase1_$2 -- vbum1=vbum2_bor_vbum3 
     lda vera_layer1_set_tilebase1_vera_layer1_mode_tile__0
     ora vera_layer1_set_tilebase1_vera_layer1_mode_tile__2
     sta vera_layer1_set_tilebase1_vera_layer1_mode_tile__3
     // *VERA_L1_TILEBASE |= ((tilebase_bank << 7) | BYTE1(tilebase_offset)>>1)
-    // [85] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::vera_layer1_set_tilebase1_$3 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 
+    // [88] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::vera_layer1_set_tilebase1_$3 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 
     lda VERA_L1_TILEBASE
     ora vera_layer1_set_tilebase1_vera_layer1_mode_tile__3
     sta VERA_L1_TILEBASE
     // vera_layer1_mode_tile::vera_layer1_set_tile_width1
     // *VERA_L1_TILEBASE &= ~VERA_TILEBASE_WIDTH_MASK
-    // [86] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_TILEBASE_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [89] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_TILEBASE_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_TILEBASE_WIDTH_MASK^$ff
     and VERA_L1_TILEBASE
     sta VERA_L1_TILEBASE
     // *VERA_L1_TILEBASE |= tilewidth
-    // [87] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::tilewidth#10 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 
+    // [90] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::tilewidth#10 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 
     ora tilewidth
     sta VERA_L1_TILEBASE
     // vera_layer1_mode_tile::vera_layer1_set_tile_height1
     // *VERA_L1_TILEBASE &= ~VERA_TILEBASE_HEIGHT_MASK
-    // [88] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_TILEBASE_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [91] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE & ~VERA_TILEBASE_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_TILEBASE_HEIGHT_MASK^$ff
     and VERA_L1_TILEBASE
     sta VERA_L1_TILEBASE
     // *VERA_L1_TILEBASE |= tileheight
-    // [89] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::tileheight#10 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 
+    // [92] *VERA_L1_TILEBASE = *VERA_L1_TILEBASE | vera_layer1_mode_tile::tileheight#10 -- _deref_pbuc1=_deref_pbuc1_bor_vbum1 
     ora tileheight
     sta VERA_L1_TILEBASE
     // vera_layer1_mode_tile::@return
     // }
-    // [90] return 
+    // [93] return 
     rts
+  .segment Data
+    vera_layer1_set_mapbase1_vera_layer1_mode_tile__1: .byte 0
+  .segment Data
+    vera_layer1_set_mapbase1_vera_layer1_mode_tile__2: .byte 0
+  .segment Data
+    vera_layer1_set_mapbase1_vera_layer1_mode_tile__3: .byte 0
   .segment Data
     vera_layer1_set_tilebase1_vera_layer1_mode_tile__0: .byte 0
   .segment Data
@@ -611,6 +597,8 @@ vera_layer1_mode_tile: {
   .segment Data
     mapheight: .byte 0
   .segment Data
+    mapbase_offset: .word 0
+  .segment Data
     tilebase_bank: .byte 0
   .segment Data
     tilebase_offset: .word 0
@@ -625,78 +613,80 @@ vera_layer1_mode_tile: {
 // void vera_layer0_mode_tile(char mapbase_bank, unsigned int mapbase_offset, char tilebase_bank, unsigned int tilebase_offset, char mapwidth, char mapheight, char tilewidth, char tileheight, char bpp)
 vera_layer0_mode_tile: {
     // constants
+    .const mapbase_bank = 1
+    .const mapbase_offset = $d000
     // variables
     // variables-zero-page
     // vera_layer0_mode_tile::vera_layer0_set_color_depth1
     // *VERA_L0_CONFIG &= ~VERA_LAYER_COLOR_DEPTH_MASK
-    // [92] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_COLOR_DEPTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [95] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_COLOR_DEPTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_LAYER_COLOR_DEPTH_MASK^$ff
     and VERA_L0_CONFIG
     sta VERA_L0_CONFIG
     // *VERA_L0_CONFIG |= bpp
-    // [93] *VERA_L0_CONFIG = *VERA_L0_CONFIG | VERA_LAYER_COLOR_DEPTH_4BPP -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [96] *VERA_L0_CONFIG = *VERA_L0_CONFIG | VERA_LAYER_COLOR_DEPTH_4BPP -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     lda #VERA_LAYER_COLOR_DEPTH_4BPP
     ora VERA_L0_CONFIG
     sta VERA_L0_CONFIG
     // vera_layer0_mode_tile::vera_layer0_set_width1
     // *VERA_L0_CONFIG &= ~VERA_LAYER_WIDTH_MASK
-    // [94] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [97] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_LAYER_WIDTH_MASK^$ff
     and VERA_L0_CONFIG
     sta VERA_L0_CONFIG
     // *VERA_L0_CONFIG |= mapwidth
-    // [95] *VERA_L0_CONFIG = *VERA_L0_CONFIG | VERA_LAYER_WIDTH_64 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [98] *VERA_L0_CONFIG = *VERA_L0_CONFIG | VERA_LAYER_WIDTH_64 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     lda #VERA_LAYER_WIDTH_64
     ora VERA_L0_CONFIG
     sta VERA_L0_CONFIG
     // vera_layer0_mode_tile::vera_layer0_set_height1
     // *VERA_L0_CONFIG &= ~VERA_LAYER_HEIGHT_MASK
-    // [96] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [99] *VERA_L0_CONFIG = *VERA_L0_CONFIG & ~VERA_LAYER_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_LAYER_HEIGHT_MASK^$ff
     and VERA_L0_CONFIG
     sta VERA_L0_CONFIG
     // *VERA_L0_CONFIG |= mapheight
-    // [97] *VERA_L0_CONFIG = *VERA_L0_CONFIG -- _deref_pbuc1=_deref_pbuc1 
+    // [100] *VERA_L0_CONFIG = *VERA_L0_CONFIG -- _deref_pbuc1=_deref_pbuc1 
     sta VERA_L0_CONFIG
     // vera_layer0_mode_tile::vera_layer0_set_mapbase1
     // *VERA_L0_MAPBASE = (mapbase_bank<<7) | (BYTE1(mapbase_offset)>>1)
-    // [98] *VERA_L0_MAPBASE = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
+    // [101] *VERA_L0_MAPBASE = vera_layer0_mode_tile::mapbase_bank#0<<7|byte1 vera_layer0_mode_tile::mapbase_offset#0>>1 -- _deref_pbuc1=vbuc2 
+    lda #mapbase_bank<<7|(>mapbase_offset)>>1
     sta VERA_L0_MAPBASE
     // vera_layer0_mode_tile::vera_layer0_set_tilebase1
     // *VERA_L0_TILEBASE &= ~VERA_LAYER_TILEBASE_MASK
-    // [99] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_LAYER_TILEBASE_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [102] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_LAYER_TILEBASE_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_LAYER_TILEBASE_MASK^$ff
     and VERA_L0_TILEBASE
     sta VERA_L0_TILEBASE
     // *VERA_L0_TILEBASE |= ((tilebase_bank << 7) | BYTE1(tilebase_offset)>>1)
-    // [100] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE -- _deref_pbuc1=_deref_pbuc1 
+    // [103] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE -- _deref_pbuc1=_deref_pbuc1 
     sta VERA_L0_TILEBASE
     // vera_layer0_mode_tile::vera_layer0_set_tile_width1
     // *VERA_L0_TILEBASE &= ~VERA_TILEBASE_WIDTH_MASK
-    // [101] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_TILEBASE_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [104] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_TILEBASE_WIDTH_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_TILEBASE_WIDTH_MASK^$ff
     and VERA_L0_TILEBASE
     sta VERA_L0_TILEBASE
     // *VERA_L0_TILEBASE |= tilewidth
-    // [102] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE | VERA_TILEBASE_WIDTH_16 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [105] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE | VERA_TILEBASE_WIDTH_16 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     lda #VERA_TILEBASE_WIDTH_16
     ora VERA_L0_TILEBASE
     sta VERA_L0_TILEBASE
     // vera_layer0_mode_tile::vera_layer0_set_tile_height1
     // *VERA_L0_TILEBASE &= ~VERA_TILEBASE_HEIGHT_MASK
-    // [103] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_TILEBASE_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    // [106] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE & ~VERA_TILEBASE_HEIGHT_MASK -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
     lda #VERA_TILEBASE_HEIGHT_MASK^$ff
     and VERA_L0_TILEBASE
     sta VERA_L0_TILEBASE
     // *VERA_L0_TILEBASE |= tileheight
-    // [104] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE | VERA_TILEBASE_HEIGHT_16 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
+    // [107] *VERA_L0_TILEBASE = *VERA_L0_TILEBASE | VERA_TILEBASE_HEIGHT_16 -- _deref_pbuc1=_deref_pbuc1_bor_vbuc2 
     lda #VERA_TILEBASE_HEIGHT_16
     ora VERA_L0_TILEBASE
     sta VERA_L0_TILEBASE
     // vera_layer0_mode_tile::@return
     // }
-    // [105] return 
+    // [108] return 
     rts
 }
   // Exported Global Data

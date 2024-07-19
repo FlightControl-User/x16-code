@@ -1426,7 +1426,6 @@ lru_cache_find_empty: {
 .segment CodeLruCache
   // #include <conio.h>
   // #include <stdio.h>
-  // #include <stdlib.h>
   // #include <string.h>
   lru_cache: .fill SIZEOF_STRUCT_LRU_CACHE_TABLE_T, 0
   // end-assembler
