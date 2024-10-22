@@ -116,9 +116,8 @@ __equinoxe_palette_start: {
     // variables-zero-page
     // __equinoxe_palette_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -150,10 +149,9 @@ palette_free_vram: {
     ldy #0
     lda (palette_free_vram__0),y
     // palette.vram.used[vram_index] = 0
-    // [6] ((char *)(struct palette_vram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED)[palette_free_vram::vram_index#0] = 0 -- pbuc1_derefidx_vbuaa=vbuc2 
-    tay
-    lda #0
-    sta palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED,y
+    // [6] ((char *)(struct palette_vram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED)[palette_free_vram::vram_index#0] = 0 -- pbuc1_derefidx_vbuaa=0 
+    tax
+    stz palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED,x
     // palette.bram.vram_index[bram_index] = 0
     // [7] palette_free_vram::$1 = (char *)(struct palette_bram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_BRAM + palette_free_vram::bram_index -- pbuz1=pbuc1_plus_vwum2 
     lda bram_index
@@ -163,8 +161,8 @@ palette_free_vram: {
     lda bram_index+1
     adc #>palette+OFFSET_STRUCT_PALETTE_T_BRAM
     sta.z palette_free_vram__1+1
-    // [8] *palette_free_vram::$1 = 0 -- _deref_pbuz1=vbuc1 
-    lda #0
+    // [8] *palette_free_vram::$1 = 0 -- _deref_pbuz1=0 
+    tya
     tay
     sta (palette_free_vram__1),y
     // palette_free_vram::@return
@@ -233,10 +231,11 @@ palette_use_vram: {
     // [18] palette_alloc_vram::return#3 = palette_alloc_vram::return#2
     // palette_use_vram::@7
     // vram_index = palette_alloc_vram()
-    // [19] palette_use_vram::vram_index#1 = palette_alloc_vram::return#3 -- vbum1=vbuaa 
-    sta vram_index
+    // [19] palette_use_vram::vram_index#1 = palette_alloc_vram::return#3 -- vbum1=vbuxx 
+    stx vram_index
     // if(vram_index)
     // [20] if(0==palette_use_vram::vram_index#1) goto palette_use_vram::@1 -- 0_eq_vbum1_then_la1 
+    txa
     beq __b1
     // palette_use_vram::@3
     // if(palette.vram.bram_index[vram_index])
@@ -247,10 +246,9 @@ palette_use_vram: {
     beq __b5
     // palette_use_vram::@4
     // palette.bram.vram_index[palette.vram.bram_index[vram_index]] = 0
-    // [22] ((char *)(struct palette_bram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_BRAM)[((char *)(struct palette_vram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM)[palette_use_vram::vram_index#1]] = 0 -- pbuc1_derefidx_(pbuc2_derefidx_vbum1)=vbuc3 
-    lda #0
+    // [22] ((char *)(struct palette_bram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_BRAM)[((char *)(struct palette_vram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM)[palette_use_vram::vram_index#1]] = 0 -- pbuc1_derefidx_(pbuc2_derefidx_vbum1)=0 
     ldx palette+OFFSET_STRUCT_PALETTE_T_VRAM,y
-    sta palette+OFFSET_STRUCT_PALETTE_T_BRAM,x
+    stz palette+OFFSET_STRUCT_PALETTE_T_BRAM,x
     // palette_use_vram::@5
   __b5:
     // palette.vram.bram_index[vram_index] = palette_index
@@ -311,7 +309,7 @@ palette_use_vram: {
     // [39] phi from palette_use_vram::memcpy_vram_bram_fast1_@3 to palette_use_vram::memcpy_vram_bram_fast1_@1 [phi:palette_use_vram::memcpy_vram_bram_fast1_@3->palette_use_vram::memcpy_vram_bram_fast1_@1]
     // [39] phi palette_use_vram::memcpy_vram_bram_fast1_num#2 = $20 [phi:palette_use_vram::memcpy_vram_bram_fast1_@3->palette_use_vram::memcpy_vram_bram_fast1_@1#0] -- vbuxx=vbuc1 
     ldx #$20
-    // [39] phi palette_use_vram::memcpy_vram_bram_fast1_add#2 = 0 [phi:palette_use_vram::memcpy_vram_bram_fast1_@3->palette_use_vram::memcpy_vram_bram_fast1_@1#1] -- vbuyy=vbuc1 
+    // [39] phi palette_use_vram::memcpy_vram_bram_fast1_add#2 = 0 [phi:palette_use_vram::memcpy_vram_bram_fast1_@3->palette_use_vram::memcpy_vram_bram_fast1_@1#1] -- vbuyy=0 
     ldy #0
     // [39] phi from palette_use_vram::memcpy_vram_bram_fast1_@1 to palette_use_vram::memcpy_vram_bram_fast1_@1 [phi:palette_use_vram::memcpy_vram_bram_fast1_@1->palette_use_vram::memcpy_vram_bram_fast1_@1]
     // [39] phi palette_use_vram::memcpy_vram_bram_fast1_num#2 = palette_use_vram::memcpy_vram_bram_fast1_num#1 [phi:palette_use_vram::memcpy_vram_bram_fast1_@1->palette_use_vram::memcpy_vram_bram_fast1_@1#0] -- register_copy 
@@ -409,7 +407,7 @@ palette_alloc_bram: {
     // palette.pool = (palette.pool + 1) % 64
     // [57] *((char *)&palette+OFFSET_STRUCT_PALETTE_T_POOL) = palette_alloc_bram::$1 -- _deref_pbuc1=vbuaa 
     sta palette+OFFSET_STRUCT_PALETTE_T_POOL
-    jmp __b1
+    bra __b1
   .segment DataEnginePalette
     return: .byte 0
 }
@@ -480,7 +478,7 @@ palette_init: {
     lda bram_bank
     sta palette
     // [64] phi from palette_init to palette_init::@1 [phi:palette_init->palette_init::@1]
-    // [64] phi palette_init::i#2 = 0 [phi:palette_init->palette_init::@1#0] -- vbuxx=vbuc1 
+    // [64] phi palette_init::i#2 = 0 [phi:palette_init->palette_init::@1#0] -- vbuxx=0 
     ldx #0
   // Doubled to save zeropage...
     // palette_init::@1
@@ -498,10 +496,9 @@ palette_init: {
     // [67] *((char *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM_INDEX) = 1 -- _deref_pbuc1=vbuc2 
     sta palette+OFFSET_STRUCT_PALETTE_T_VRAM_INDEX
     // palette.pool = 0
-    // [68] *((char *)&palette+OFFSET_STRUCT_PALETTE_T_POOL) = 0 -- _deref_pbuc1=vbuc2 
+    // [68] *((char *)&palette+OFFSET_STRUCT_PALETTE_T_POOL) = 0 -- _deref_pbuc1=0 
     // this needs to be revisited, a hardcoding that is meant to skip the tiles, but this will vary during play.
-    lda #0
-    sta palette+OFFSET_STRUCT_PALETTE_T_POOL
+    stz palette+OFFSET_STRUCT_PALETTE_T_POOL
     // palette_init::@return
     // }
     // [69] return 
@@ -545,15 +542,14 @@ palette_init: {
     lda.z palette_init__2+1
     sta palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_OFFSET+1,y
     // palette.vram.used[i] = 0
-    // [75] ((char *)(struct palette_vram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED)[palette_init::i#2] = 0 -- pbuc1_derefidx_vbuxx=vbuc2 
-    lda #0
-    sta palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED,x
+    // [75] ((char *)(struct palette_vram_index_s *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED)[palette_init::i#2] = 0 -- pbuc1_derefidx_vbuxx=0 
+    stz palette+OFFSET_STRUCT_PALETTE_T_VRAM+OFFSET_STRUCT_PALETTE_VRAM_INDEX_S_USED,x
     // for(unsigned char i=0; i<16; i++)
     // [76] palette_init::i#1 = ++ palette_init::i#2 -- vbuxx=_inc_vbuxx 
     inx
     // [64] phi from palette_init::@2 to palette_init::@1 [phi:palette_init::@2->palette_init::@1]
     // [64] phi palette_init::i#2 = palette_init::i#1 [phi:palette_init::@2->palette_init::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment DataEnginePalette
     bram_bank: .byte 0
   .segment DataEnginePalette
@@ -564,7 +560,7 @@ palette_init: {
   // code segment
 .segment CodeEnginePalette
   // palette_alloc_vram
-// __register(A) char palette_alloc_vram()
+// __register(X) char palette_alloc_vram()
 palette_alloc_vram: {
     // constants
     // variables
@@ -579,8 +575,8 @@ palette_alloc_vram: {
     cpx #$10
     bcc __b2
     // [80] phi from palette_alloc_vram::@1 to palette_alloc_vram::@return [phi:palette_alloc_vram::@1->palette_alloc_vram::@return]
-    // [80] phi palette_alloc_vram::return#2 = 0 [phi:palette_alloc_vram::@1->palette_alloc_vram::@return#0] -- vbuaa=vbuc1 
-    lda #0
+    // [80] phi palette_alloc_vram::return#2 = 0 [phi:palette_alloc_vram::@1->palette_alloc_vram::@return#0] -- vbuxx=0 
+    ldx #0
     // palette_alloc_vram::@return
     // }
     // [81] return 
@@ -607,8 +603,8 @@ palette_alloc_vram: {
     bne __b4
     // palette_alloc_vram::@6
     // return palette.vram_index;
-    // [85] palette_alloc_vram::return#1 = *((char *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM_INDEX) -- vbuaa=_deref_pbuc1 
-    tya
+    // [85] palette_alloc_vram::return#1 = *((char *)&palette+OFFSET_STRUCT_PALETTE_T_VRAM_INDEX) -- vbuxx=_deref_pbuc1 
+    ldx palette+OFFSET_STRUCT_PALETTE_T_VRAM_INDEX
     // [80] phi from palette_alloc_vram::@6 to palette_alloc_vram::@return [phi:palette_alloc_vram::@6->palette_alloc_vram::@return]
     // [80] phi palette_alloc_vram::return#2 = palette_alloc_vram::return#1 [phi:palette_alloc_vram::@6->palette_alloc_vram::@return#0] -- register_copy 
     rts
@@ -622,7 +618,7 @@ palette_alloc_vram: {
     inx
     // [78] phi from palette_alloc_vram::@4 to palette_alloc_vram::@1 [phi:palette_alloc_vram::@4->palette_alloc_vram::@1]
     // [78] phi palette_alloc_vram::vram_index#2 = palette_alloc_vram::vram_index#1 [phi:palette_alloc_vram::@4->palette_alloc_vram::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
 }
   // Exported Global Data
 .segment BramEnginePalette

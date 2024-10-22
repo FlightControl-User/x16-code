@@ -59,7 +59,27 @@
   // File Comments
   // Global constants and variables
   // constants
+  .label WHITE = 1
+  .label BLUE = 6
+  ///< Load a logical file.
+  .label CBM_PLOT = $fff0
+  .label VERA_LAYER_WIDTH_MASK = $30
+  .label VERA_LAYER_HEIGHT_MASK = $c0
   .label b001 = $11
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET = 3
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK = 5
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT = 9
+  .label OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH = 8
+  .label OFFSET_STRUCT___CX16_CONIO_S_COLOR = $d
+  .label OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP = $a
+  .label OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y = 1
+  .label OFFSET_STRUCT___CX16_CONIO_S_OFFSET = $13
+  .label OFFSET_STRUCT___CX16_CONIO_S_WIDTH = 6
+  .label OFFSET_STRUCT___CX16_CONIO_S_HEIGHT = 7
+  .label OFFSET_STRUCT___CX16_CONIO_S_OFFSETS = $15
+  .label OFFSET_STRUCT___CX16_CONIO_S_LAYER = 2
+  .label OFFSET_STRUCT___CX16_CONIO_S_SCROLL = $f
+  .label OFFSET_STRUCT___CX16_CONIO_S_CURSOR = $c
   .label OFFSET_STRUCT_FLIGHT_T_MOVED = $5c0
   .label OFFSET_STRUCT_FLIGHT_T_FIREGUN = $700
   .label OFFSET_STRUCT_FLIGHT_T_RELOAD = $740
@@ -78,6 +98,15 @@
   .label OFFSET_STRUCT_STAGE_T_PLAYER_RESPAWN = $35
   .label OFFSET_STRUCT_FLIGHT_T_COLLIDED = $140
   .label OFFSET_STRUCT_FLIGHT_T_TYPE = $180
+  .label SIZEOF_STRUCT___CX16_CONIO_S = $8f
+  /// $9F2A	DC_HSCALE (DCSEL=0)	Active Display H-Scale
+  .label VERA_DC_HSCALE = $9f2a
+  /// $9F2B	DC_VSCALE (DCSEL=0)	Active Display V-Scale
+  .label VERA_DC_VSCALE = $9f2b
+  /// $9F34	L1_CONFIG   Layer 1 Configuration
+  .label VERA_L1_CONFIG = $9f34
+  /// $9F35	L1_MAPBASE	    Layer 1 Map Base Address (16:9)
+  .label VERA_L1_MAPBASE = $9f35
   // variables
   .label BRAM = 0
   .label BROM = 1
@@ -92,9 +121,8 @@ __equinoxe_player_start: {
     // variables-zero-page
     // __equinoxe_player_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -112,9 +140,8 @@ player_logic: {
     // variables
     // variables-zero-page
     // flight_index_t p = flight_root(FLIGHT_PLAYER)
-    // [24] flight_root::type = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_flightengine.flight_root.type
+    // [24] flight_root::type = 0 -- vbum1=0 
+    stz equinoxe_flightengine.flight_root.type
     // [25] callexecute flight_root  -- call_var_near 
     jsr equinoxe_flightengine.flight_root
     // [26] player_logic::p#0 = flight_root::return -- vbum1=vbum2 
@@ -159,7 +186,7 @@ player_logic: {
     // [35] player_logic::p#16 = player_logic::p#1 -- vbum1=vbum2 
     lda p_1
     sta p
-    jmp __b1
+    bra __b1
     // player_logic::@13
   __b13:
     // if (flight.reload[p] > 0)
@@ -385,10 +412,9 @@ player_logic: {
     sta equinoxe_stage_flight.stage_bullet_add.tx
     lda x+1
     sta equinoxe_stage_flight.stage_bullet_add.tx+1
-    // [77] stage_bullet_add::ty = 0 -- vwum1=vbuc1 
-    lda #<0
-    sta equinoxe_stage_flight.stage_bullet_add.ty
-    sta equinoxe_stage_flight.stage_bullet_add.ty+1
+    // [77] stage_bullet_add::ty = 0 -- vwum1=0 
+    stz equinoxe_stage_flight.stage_bullet_add.ty
+    stz equinoxe_stage_flight.stage_bullet_add.ty+1
     // [78] stage_bullet_add::speed = 5 -- vbum1=vbuc1 
     lda #5
     sta equinoxe_stage_flight.stage_bullet_add.speed
@@ -528,10 +554,9 @@ player_remove: {
     // [97] callexecute animate_del  -- call_var_near 
     jsr equinoxe_animate.animate_del
     // flight_remove(FLIGHT_PLAYER, p)
-    // [98] flight_remove::type = 0 -- vbum1=vbuc1 
+    // [98] flight_remove::type = 0 -- vbum1=0 
     // Remove the animation of the player sprite.
-    lda #0
-    sta equinoxe_flightengine.flight_remove.type
+    stz equinoxe_flightengine.flight_remove.type
     // [99] flight_remove::f = player_remove::p -- vbum1=vbum2 
     lda p
     sta equinoxe_flightengine.flight_remove.f
@@ -560,9 +585,8 @@ player_add: {
     // variables
     // variables-zero-page
     // unsigned char p = flight_add(FLIGHT_PLAYER, SIDE_PLAYER, sprite_player)
-    // [103] flight_add::type = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_flightengine.flight_add.type
+    // [103] flight_add::type = 0 -- vbum1=0 
+    stz equinoxe_flightengine.flight_add.type
     // [104] flight_add::side = 2 -- vbum1=vbuc1 
     lda #2
     sta equinoxe_flightengine.flight_add.side
@@ -580,12 +604,12 @@ player_add: {
     ldy p
     sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_MOVED,y
     // flight.firegun[p] = 0
-    // [109] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_FIREGUN)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_FIREGUN,y
+    // [109] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_FIREGUN)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx p
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_FIREGUN,x
     // flight.reload[p] = 0
-    // [110] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_RELOAD)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_RELOAD,y
+    // [110] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_RELOAD)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=0 
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_RELOAD,x
     // flight.health[p] = 100
     // [111] ((signed char *)&flight+OFFSET_STRUCT_FLIGHT_T_HEALTH)[player_add::p#0] = $64 -- pbsc1_derefidx_vbum1=vbsc2 
     lda #$64
@@ -609,9 +633,8 @@ player_add: {
     // [117] animate_add::direction = 1 -- vbsm1=vbsc1 
     lda #1
     sta equinoxe_animate.animate_add.direction
-    // [118] animate_add::reverse = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_animate.animate_add.reverse
+    // [118] animate_add::reverse = 0 -- vbum1=0 
+    stz equinoxe_animate.animate_add.reverse
     // [119] callexecute animate_add  -- call_var_near 
     jsr equinoxe_animate.animate_add
     // [120] player_add::$1 = animate_add::return -- vbuaa=vbum1 
@@ -621,36 +644,42 @@ player_add: {
     ldy p
     sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_ANIMATE,y
     // flight.xf[p] = 0
-    // [122] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_XF)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XF,y
+    // [122] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_XF)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx p
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XF,x
     // flight.yf[p] = 0
-    // [123] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_YF)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YF,y
+    // [123] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_YF)[player_add::p#0] = 0 -- pbuc1_derefidx_vbum1=0 
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YF,x
     // flight.xi[p] = 320
-    // [124] player_add::$5 = player_add::p#0 << 1 -- vbuxx=vbum1_rol_1 
-    tya
+    // [124] player_add::$5 = player_add::p#0 << 1 -- vbuyy=vbum1_rol_1 
+    txa
     asl
-    tax
-    // [125] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[player_add::$5] = $140 -- pwuc1_derefidx_vbuxx=vwuc2 
+    tay
+    // [125] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[player_add::$5] = $140 -- pwuc1_derefidx_vbuyy=vwuc2 
     lda #<$140
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,y
     lda #>$140
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,y
     // flight.yi[p] = 200
-    // [126] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[player_add::$5] = $c8 -- pwuc1_derefidx_vbuxx=vbuc2 
+    // [126] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[player_add::$5] = $c8 -- pwuc1_derefidx_vbuyy=vbuc2 
     lda #$c8
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,y
     lda #0
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,y
     // flight.xd[p] = 0
-    // [127] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XD)[player_add::$5] = 0 -- pwuc1_derefidx_vbuxx=vbuc2 
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD+1,x
+    // [127] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XD)[player_add::$5] = 0 -- pwuc1_derefidx_vbuyy=0 
+    tya
+    tax
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
+    inx
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
     // flight.yd[p] = 0
-    // [128] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YD)[player_add::$5] = 0 -- pwuc1_derefidx_vbuxx=vbuc2 
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD+1,x
+    // [128] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YD)[player_add::$5] = 0 -- pwuc1_derefidx_vbuyy=0 
+    tya
+    tax
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
+    inx
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
     // unsigned char n = flight_add(FLIGHT_ENGINE, SIDE_PLAYER, sprite_engine)
     // [129] flight_add::type = 4 -- vbum1=vbuc1 
     lda #4
@@ -674,20 +703,18 @@ player_add: {
     // [135] animate_add::count = $10 -- vbum1=vbuc1 
     lda #$10
     sta equinoxe_animate.animate_add.count
-    // [136] animate_add::state = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_animate.animate_add.state
-    // [137] animate_add::loop = 0 -- vbum1=vbuc1 
-    sta equinoxe_animate.animate_add.loop
+    // [136] animate_add::state = 0 -- vbum1=0 
+    stz equinoxe_animate.animate_add.state
+    // [137] animate_add::loop = 0 -- vbum1=0 
+    stz equinoxe_animate.animate_add.loop
     // [138] animate_add::speed = 2 -- vbum1=vbuc1 
     lda #2
     sta equinoxe_animate.animate_add.speed
     // [139] animate_add::direction = 1 -- vbsm1=vbsc1 
     lda #1
     sta equinoxe_animate.animate_add.direction
-    // [140] animate_add::reverse = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_animate.animate_add.reverse
+    // [140] animate_add::reverse = 0 -- vbum1=0 
+    stz equinoxe_animate.animate_add.reverse
     // [141] callexecute animate_add  -- call_var_near 
     jsr equinoxe_animate.animate_add
     // [142] player_add::$3 = animate_add::return -- vbuaa=vbum1 
@@ -729,7 +756,508 @@ player_init: {
     // [147] return 
     rts
 }
+  // code segment
+.segment Code
+  // conio_x16_init
+/// Set initial screen values.
+// void equinoxe_player.conio_x16_init()
+conio_x16_init: {
+    // constants
+    // variables
+    // variables-zero-page
+    // screenlayer1()
+    // [149] call screenlayer1
+    jsr screenlayer1
+    // [150] phi from conio_x16_init to conio_x16_init::@1 [phi:conio_x16_init->conio_x16_init::@1]
+    // conio_x16_init::@1
+    // textcolor(CONIO_TEXTCOLOR_DEFAULT)
+    // [151] call textcolor
+    jsr textcolor
+    // [152] phi from conio_x16_init::@1 to conio_x16_init::@2 [phi:conio_x16_init::@1->conio_x16_init::@2]
+    // conio_x16_init::@2
+    // bgcolor(CONIO_BACKCOLOR_DEFAULT)
+    // [153] call bgcolor
+    jsr bgcolor
+    // [154] phi from conio_x16_init::@2 to conio_x16_init::@3 [phi:conio_x16_init::@2->conio_x16_init::@3]
+    // conio_x16_init::@3
+    // cursor(0)
+    // [155] call cursor
+    jsr cursor
+    // [156] phi from conio_x16_init::@3 to conio_x16_init::@4 [phi:conio_x16_init::@3->conio_x16_init::@4]
+    // conio_x16_init::@4
+    // cbm_k_plot_get()
+    // [157] call cbm_k_plot_get
+    jsr cbm_k_plot_get
+    // [158] cbm_k_plot_get::return#2 = cbm_k_plot_get::return#0
+    // conio_x16_init::@5
+    // [159] conio_x16_init::$4 = cbm_k_plot_get::return#2 -- vwum1=vwum2 
+    lda cbm_k_plot_get.return
+    sta conio_x16_init__4
+    lda cbm_k_plot_get.return+1
+    sta conio_x16_init__4+1
+    // BYTE1(cbm_k_plot_get())
+    // [160] conio_x16_init::$5 = byte1  conio_x16_init::$4 -- vbuaa=_byte1_vwum1 
+    // __conio.cursor_x = BYTE1(cbm_k_plot_get())
+    // [161] *((char *)&__conio) = conio_x16_init::$5 -- _deref_pbuc1=vbuaa 
+    sta __conio
+    // cbm_k_plot_get()
+    // [162] call cbm_k_plot_get
+    jsr cbm_k_plot_get
+    // [163] cbm_k_plot_get::return#3 = cbm_k_plot_get::return#0
+    // conio_x16_init::@6
+    // [164] conio_x16_init::$6 = cbm_k_plot_get::return#3 -- vwum1=vwum2 
+    lda cbm_k_plot_get.return
+    sta conio_x16_init__6
+    lda cbm_k_plot_get.return+1
+    sta conio_x16_init__6+1
+    // BYTE0(cbm_k_plot_get())
+    // [165] conio_x16_init::$7 = byte0  conio_x16_init::$6 -- vbuaa=_byte0_vwum1 
+    lda conio_x16_init__6
+    // __conio.cursor_y = BYTE0(cbm_k_plot_get())
+    // [166] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = conio_x16_init::$7 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // gotoxy(__conio.cursor_x, __conio.cursor_y)
+    // [167] gotoxy::x#0 = *((char *)&__conio) -- vbuxx=_deref_pbuc1 
+    ldx __conio
+    // [168] gotoxy::y#0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) -- vbuyy=_deref_pbuc1 
+    tay
+    // [169] call gotoxy
+    jsr gotoxy
+    // conio_x16_init::@7
+    // __conio.scroll[0] = 1
+    // [170] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL) = 1 -- _deref_pbuc1=vbuc2 
+    lda #1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL
+    // __conio.scroll[1] = 1
+    // [171] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL+1) = 1 -- _deref_pbuc1=vbuc2 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_SCROLL+1
+    // conio_x16_init::@return
+    // }
+    // [172] return 
+    rts
+  .segment Data
+    conio_x16_init__4: .word 0
+  .segment Data
+    conio_x16_init__6: .word 0
+}
+  // code segment
+.segment Code
+  // screenlayer1
+// Set the layer with which the conio will interact.
+// void screenlayer1()
+screenlayer1: {
+    // constants
+    // variables
+    // variables-zero-page
+    // screenlayer(1, *VERA_L1_MAPBASE, *VERA_L1_CONFIG)
+    // [173] screenlayer::mapbase#0 = *VERA_L1_MAPBASE -- vbuxx=_deref_pbuc1 
+    ldx VERA_L1_MAPBASE
+    // [174] screenlayer::config#0 = *VERA_L1_CONFIG -- vbuyy=_deref_pbuc1 
+    ldy VERA_L1_CONFIG
+    // [175] call screenlayer
+    jsr screenlayer
+    // screenlayer1::@return
+    // }
+    // [176] return 
+    rts
+}
+  // code segment
+.segment Code
+  // textcolor
+// Set the front color for text output. The old front text color setting is returned.
+// - color: a 4 bit value ( decimal between 0 and 15).
+//   This will only work when the VERA is in 16 color mode!
+//   Note that on the VERA, the transparent color has value 0.
+// char textcolor(char color)
+textcolor: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __conio.color & 0xF0
+    // [177] textcolor::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) & $f0 -- vbuaa=_deref_pbuc1_band_vbuc2 
+    lda #$f0
+    and __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // __conio.color & 0xF0 | color
+    // [178] textcolor::$1 = textcolor::$0 | WHITE -- vbuaa=vbuaa_bor_vbuc1 
+    ora #WHITE
+    // __conio.color = __conio.color & 0xF0 | color
+    // [179] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) = textcolor::$1 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // textcolor::@return
+    // }
+    // [180] return 
+    rts
+}
+  // code segment
+.segment Code
+  // bgcolor
+// Set the back color for text output.
+// - color: a 4 bit value ( decimal between 0 and 15).
+//   This will only work when the VERA is in 16 color mode!
+//   Note that on the VERA, the transparent color has value 0.
+// char bgcolor(char color)
+bgcolor: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __conio.color & 0x0F
+    // [181] bgcolor::$0 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) & $f -- vbuaa=_deref_pbuc1_band_vbuc2 
+    lda #$f
+    and __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // __conio.color & 0x0F | color << 4
+    // [182] bgcolor::$2 = bgcolor::$0 | BLUE<<4 -- vbuaa=vbuaa_bor_vbuc1 
+    ora #BLUE<<4
+    // __conio.color = __conio.color & 0x0F | color << 4
+    // [183] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR) = bgcolor::$2 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_COLOR
+    // bgcolor::@return
+    // }
+    // [184] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cursor
+// If onoff is 1, a cursor is displayed when waiting for keyboard input.
+// If onoff is 0, the cursor is hidden when waiting for keyboard input.
+// The function returns the old cursor setting.
+// char cursor(char onoff)
+cursor: {
+    // constants
+    .const onoff = 0
+    // variables
+    // variables-zero-page
+    // __conio.cursor = onoff
+    // [185] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR) = cursor::onoff#0 -- _deref_pbuc1=vbuc2 
+    lda #onoff
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR
+    // cursor::@return
+    // }
+    // [186] return 
+    rts
+}
+  // code segment
+.segment Code
+  // cbm_k_plot_get
+/**
+ * @brief Get current x and y cursor position.
+ * @return An unsigned int where the hi byte is the x coordinate and the low byte is the y coordinate of the screen position.
+ */
+// __mem() unsigned int cbm_k_plot_get()
+cbm_k_plot_get: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem unsigned char x
+    // [187] cbm_k_plot_get::x = 0 -- vbum1=0 
+    stz x
+    // __mem unsigned char y
+    // [188] cbm_k_plot_get::y = 0 -- vbum1=0 
+    stz y
+    // kickasm
+    // kickasm( uses cbm_k_plot_get::x uses cbm_k_plot_get::y uses CBM_PLOT) {{ sec         jsr CBM_PLOT         stx y         sty x      }}
+    sec
+        jsr CBM_PLOT
+        stx y
+        sty x
+    
+    // MAKEWORD(x,y)
+    // [190] cbm_k_plot_get::return#0 = cbm_k_plot_get::x w= cbm_k_plot_get::y -- vwum1=vbum2_word_vbum3 
+    lda x
+    sta return+1
+    lda y
+    sta return
+    // cbm_k_plot_get::@return
+    // }
+    // [191] return 
+    rts
+  .segment Data
+    x: .byte 0
+  .segment Data
+    y: .byte 0
+  .segment Data
+    return: .word 0
+}
+  // code segment
+.segment Code
+  // gotoxy
+// Set the cursor to the specified position
+// void gotoxy(__register(X) char x, __register(Y) char y)
+gotoxy: {
+    // constants
+    // variables
+    // variables-zero-page
+    // (x>=__conio.width)?__conio.width:x
+    // [192] if(gotoxy::x#0>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH)) goto gotoxy::@1 -- vbuxx_ge__deref_pbuc1_then_la1 
+    cpx __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    bcs __b1
+    // [194] phi from gotoxy gotoxy::@1 to gotoxy::@2 [phi:gotoxy/gotoxy::@1->gotoxy::@2]
+    // [194] phi gotoxy::$3 = gotoxy::x#0 [phi:gotoxy/gotoxy::@1->gotoxy::@2#0] -- register_copy 
+    bra __b2
+    // gotoxy::@1
+  __b1:
+    // [193] gotoxy::$2 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) -- vbuxx=_deref_pbuc1 
+    ldx __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // gotoxy::@2
+  __b2:
+    // __conio.cursor_x = (x>=__conio.width)?__conio.width:x
+    // [195] *((char *)&__conio) = gotoxy::$3 -- _deref_pbuc1=vbuxx 
+    stx __conio
+    // (y>=__conio.height)?__conio.height:y
+    // [196] if(gotoxy::y#0>=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto gotoxy::@3 -- vbuyy_ge__deref_pbuc1_then_la1 
+    cpy __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    bcs __b3
+    // gotoxy::@4
+    // [197] gotoxy::$14 = gotoxy::y#0 -- vbuaa=vbuyy 
+    tya
+    // [198] phi from gotoxy::@3 gotoxy::@4 to gotoxy::@5 [phi:gotoxy::@3/gotoxy::@4->gotoxy::@5]
+    // [198] phi gotoxy::$7 = gotoxy::$6 [phi:gotoxy::@3/gotoxy::@4->gotoxy::@5#0] -- register_copy 
+    // gotoxy::@5
+  __b5:
+    // __conio.cursor_y = (y>=__conio.height)?__conio.height:y
+    // [199] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = gotoxy::$7 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // __conio.cursor_x << 1
+    // [200] gotoxy::$8 = *((char *)&__conio) << 1 -- vbuxx=_deref_pbuc1_rol_1 
+    lda __conio
+    asl
+    tax
+    // __conio.offsets[y] + __conio.cursor_x << 1
+    // [201] gotoxy::$10 = gotoxy::y#0 << 1 -- vbuaa=vbuyy_rol_1 
+    tya
+    asl
+    // [202] gotoxy::$9 = ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[gotoxy::$10] + gotoxy::$8 -- vwum1=pwuc1_derefidx_vbuaa_plus_vbuxx 
+    tay
+    txa
+    clc
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    sta gotoxy__9
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    adc #0
+    sta gotoxy__9+1
+    // __conio.offset = __conio.offsets[y] + __conio.cursor_x << 1
+    // [203] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = gotoxy::$9 -- _deref_pwuc1=vwum1 
+    lda gotoxy__9
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET
+    lda gotoxy__9+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET+1
+    // gotoxy::@return
+    // }
+    // [204] return 
+    rts
+    // gotoxy::@3
+  __b3:
+    // (y>=__conio.height)?__conio.height:y
+    // [205] gotoxy::$6 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- vbuaa=_deref_pbuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    bra __b5
+  .segment Data
+    gotoxy__9: .word 0
+}
+  // code segment
+.segment Code
+  // screenlayer
+// --- layer management in VERA ---
+// void screenlayer(char layer, __register(X) char mapbase, __register(Y) char config)
+screenlayer: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __mem char vera_dc_hscale_temp = *VERA_DC_HSCALE
+    // [206] screenlayer::vera_dc_hscale_temp#0 = *VERA_DC_HSCALE -- vbum1=_deref_pbuc1 
+    lda VERA_DC_HSCALE
+    sta vera_dc_hscale_temp
+    // __mem char vera_dc_vscale_temp = *VERA_DC_VSCALE
+    // [207] screenlayer::vera_dc_vscale_temp#0 = *VERA_DC_VSCALE -- vbum1=_deref_pbuc1 
+    lda VERA_DC_VSCALE
+    sta vera_dc_vscale_temp
+    // __conio.layer = 0
+    // [208] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER) = 0 -- _deref_pbuc1=0 
+    stz __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    // mapbase >> 7
+    // [209] screenlayer::$0 = screenlayer::mapbase#0 >> 7 -- vbuaa=vbuxx_ror_7 
+    txa
+    rol
+    rol
+    and #1
+    // __conio.mapbase_bank = mapbase >> 7
+    // [210] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK) = screenlayer::$0 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_BANK
+    // (mapbase)<<1
+    // [211] screenlayer::$1 = screenlayer::mapbase#0 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // MAKEWORD((mapbase)<<1,0)
+    // [212] screenlayer::$2 = screenlayer::$1 w= 0 -- vwum1=vbuaa_word_0 
+    stz screenlayer__2
+    sta screenlayer__2+1
+    // __conio.mapbase_offset = MAKEWORD((mapbase)<<1,0)
+    // [213] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) = screenlayer::$2 -- _deref_pwuc1=vwum1 
+    lda screenlayer__2
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    lda screenlayer__2+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    // config & VERA_LAYER_WIDTH_MASK
+    // [214] screenlayer::$7 = screenlayer::config#0 & VERA_LAYER_WIDTH_MASK -- vbuaa=vbuyy_band_vbuc1 
+    tya
+    and #VERA_LAYER_WIDTH_MASK
+    // (config & VERA_LAYER_WIDTH_MASK) >> 4
+    // [215] screenlayer::$8 = screenlayer::$7 >> 4 -- vbuxx=vbuaa_ror_4 
+    lsr
+    lsr
+    lsr
+    lsr
+    tax
+    // __conio.mapwidth = VERA_LAYER_DIM[ (config & VERA_LAYER_WIDTH_MASK) >> 4]
+    // [216] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH) = screenlayer::VERA_LAYER_DIM[screenlayer::$8] -- _deref_pbuc1=pbuc2_derefidx_vbuxx 
+    lda VERA_LAYER_DIM,x
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPWIDTH
+    // config & VERA_LAYER_HEIGHT_MASK
+    // [217] screenlayer::$5 = screenlayer::config#0 & VERA_LAYER_HEIGHT_MASK -- vbuaa=vbuyy_band_vbuc1 
+    tya
+    and #VERA_LAYER_HEIGHT_MASK
+    // (config & VERA_LAYER_HEIGHT_MASK) >> 6
+    // [218] screenlayer::$6 = screenlayer::$5 >> 6 -- vbuaa=vbuaa_ror_6 
+    rol
+    rol
+    rol
+    and #3
+    // __conio.mapheight = VERA_LAYER_DIM[ (config & VERA_LAYER_HEIGHT_MASK) >> 6]
+    // [219] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT) = screenlayer::VERA_LAYER_DIM[screenlayer::$6] -- _deref_pbuc1=pbuc2_derefidx_vbuaa 
+    tay
+    lda VERA_LAYER_DIM,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPHEIGHT
+    // __conio.rowskip = VERA_LAYER_SKIP[(config & VERA_LAYER_WIDTH_MASK)>>4]
+    // [220] screenlayer::$16 = screenlayer::$8 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [221] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) = screenlayer::VERA_LAYER_SKIP[screenlayer::$16] -- _deref_pwuc1=pwuc2_derefidx_vbuaa 
+    // __conio.rowshift = ((config & VERA_LAYER_WIDTH_MASK)>>4)+6;
+    tay
+    lda VERA_LAYER_SKIP,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    lda VERA_LAYER_SKIP+1,y
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    // vera_dc_hscale_temp == 0x80
+    // [222] screenlayer::$9 = screenlayer::vera_dc_hscale_temp#0 == $80 -- vboaa=vbum1_eq_vbuc1 
+    lda vera_dc_hscale_temp
+    eor #$80
+    beq !+
+    lda #1
+  !:
+    eor #1
+    // 40 << (char)(vera_dc_hscale_temp == 0x80)
+    // [223] screenlayer::$18 = (char)screenlayer::$9 -- vbuxx=vbuaa 
+    tax
+    // [224] screenlayer::$10 = $28 << screenlayer::$18 -- vbuaa=vbuc1_rol_vbuxx 
+    lda #$28
+    cpx #0
+    beq !e+
+  !:
+    asl
+    dex
+    bne !-
+  !e:
+    // (40 << (char)(vera_dc_hscale_temp == 0x80))-1
+    // [225] screenlayer::$11 = screenlayer::$10 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // __conio.width = (40 << (char)(vera_dc_hscale_temp == 0x80))-1
+    // [226] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) = screenlayer::$11 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH
+    // vera_dc_vscale_temp == 0x80
+    // [227] screenlayer::$12 = screenlayer::vera_dc_vscale_temp#0 == $80 -- vboaa=vbum1_eq_vbuc1 
+    lda vera_dc_vscale_temp
+    eor #$80
+    beq !+
+    lda #1
+  !:
+    eor #1
+    // 30 << (char)(vera_dc_vscale_temp == 0x80)
+    // [228] screenlayer::$19 = (char)screenlayer::$12 -- vbuxx=vbuaa 
+    tax
+    // [229] screenlayer::$13 = $1e << screenlayer::$19 -- vbuaa=vbuc1_rol_vbuxx 
+    lda #$1e
+    cpx #0
+    beq !e+
+  !:
+    asl
+    dex
+    bne !-
+  !e:
+    // (30 << (char)(vera_dc_vscale_temp == 0x80))-1
+    // [230] screenlayer::$14 = screenlayer::$13 - 1 -- vbuaa=vbuaa_minus_1 
+    sec
+    sbc #1
+    // __conio.height = (30 << (char)(vera_dc_vscale_temp == 0x80))-1
+    // [231] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) = screenlayer::$14 -- _deref_pbuc1=vbuaa 
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    // unsigned int mapbase_offset = __conio.mapbase_offset
+    // [232] screenlayer::mapbase_offset#0 = *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) -- vwum1=_deref_pwuc1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
+    sta mapbase_offset
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
+    sta mapbase_offset+1
+    // [233] phi from screenlayer to screenlayer::@1 [phi:screenlayer->screenlayer::@1]
+    // [233] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#0 [phi:screenlayer->screenlayer::@1#0] -- register_copy 
+    // [233] phi screenlayer::y#2 = 0 [phi:screenlayer->screenlayer::@1#1] -- vbuxx=0 
+    ldx #0
+    // screenlayer::@1
+  __b1:
+    // for(register char y=0; y<=__conio.height; y++)
+    // [234] if(screenlayer::y#2<=*((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT)) goto screenlayer::@2 -- vbuxx_le__deref_pbuc1_then_la1 
+    lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
+    stx.z $ff
+    cmp.z $ff
+    bcs __b2
+    // screenlayer::@return
+    // }
+    // [235] return 
+    rts
+    // screenlayer::@2
+  __b2:
+    // __conio.offsets[y] = mapbase_offset
+    // [236] screenlayer::$17 = screenlayer::y#2 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [237] ((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS)[screenlayer::$17] = screenlayer::mapbase_offset#2 -- pwuc1_derefidx_vbuaa=vwum1 
+    tay
+    lda mapbase_offset
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS,y
+    lda mapbase_offset+1
+    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSETS+1,y
+    // mapbase_offset += __conio.rowskip
+    // [238] screenlayer::mapbase_offset#1 = screenlayer::mapbase_offset#2 + *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP) -- vwum1=vwum1_plus__deref_pwuc1 
+    clc
+    lda mapbase_offset
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP
+    sta mapbase_offset
+    lda mapbase_offset+1
+    adc __conio+OFFSET_STRUCT___CX16_CONIO_S_ROWSKIP+1
+    sta mapbase_offset+1
+    // for(register char y=0; y<=__conio.height; y++)
+    // [239] screenlayer::y#1 = ++ screenlayer::y#2 -- vbuxx=_inc_vbuxx 
+    inx
+    // [233] phi from screenlayer::@2 to screenlayer::@1 [phi:screenlayer::@2->screenlayer::@1]
+    // [233] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#1 [phi:screenlayer::@2->screenlayer::@1#0] -- register_copy 
+    // [233] phi screenlayer::y#2 = screenlayer::y#1 [phi:screenlayer::@2->screenlayer::@1#1] -- register_copy 
+    bra __b1
+  .segment Data
+    VERA_LAYER_DIM: .byte $1f, $3f, $7f, $ff
+  .segment Data
+    VERA_LAYER_SKIP: .word $40, $80, $100, $200
+  .segment Data
+    screenlayer__2: .word 0
+  .segment Data
+    vera_dc_hscale_temp: .byte 0
+  .segment Data
+    vera_dc_vscale_temp: .byte 0
+  .segment Data
+    mapbase_offset: .word 0
+}
   // Exported Global Data
+.segment Data
+  __conio: .fill SIZEOF_STRUCT___CX16_CONIO_S, 0
   // end-assembler
   // End Namespace
 } // namespace

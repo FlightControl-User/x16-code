@@ -83,9 +83,8 @@ __equinoxe_animate_start: {
     // variables-zero-page
     // __equinoxe_animate_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -226,15 +225,14 @@ animate_tower: {
     // [16] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = -- ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] -- pbuc1_derefidx_vbum1=_dec_pbuc1_derefidx_vbum1 
     ldx a
     dec animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
-    jmp __b12
+    bra __b12
     // animate_tower::@17
   __b17:
     // animate.moved[a] = 0
-    // [17] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy a
-    sta animate+OFFSET_STRUCT_ANIMATE_S_MOVED,y
-    jmp __b16
+    // [17] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx a
+    stz animate+OFFSET_STRUCT_ANIMATE_S_MOVED,x
+    bra __b16
     // animate_tower::@10
   __b10:
     // animate.moved[a] = 5
@@ -244,10 +242,10 @@ animate_tower: {
     ldy a
     sta animate+OFFSET_STRUCT_ANIMATE_S_MOVED,y
     // animate.wait[a] = 0
-    // [19] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta animate+OFFSET_STRUCT_ANIMATE_S_WAIT,y
-    jmp __b12
+    // [19] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx a
+    stz animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
+    bra __b12
     // animate_tower::@9
   __b9:
     // if(!animate.wait[a])
@@ -262,19 +260,19 @@ animate_tower: {
     // [21] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = -- ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] -- pbuc1_derefidx_vbum1=_dec_pbuc1_derefidx_vbum1 
     ldx a
     dec animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
-    jmp __b12
+    bra __b12
     // animate_tower::@15
   __b15:
     // animate.wait[a] = 0
-    // [22] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy a
-    sta animate+OFFSET_STRUCT_ANIMATE_S_WAIT,y
+    // [22] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx a
+    stz animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
     // animate.moved[a] = 4
     // [23] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_tower::a] = 4 -- pbuc1_derefidx_vbum1=vbuc2 
     lda #4
+    ldy a
     sta animate+OFFSET_STRUCT_ANIMATE_S_MOVED,y
-    jmp __b12
+    bra __b12
     // animate_tower::@8
   __b8:
     // if(!animate.wait[a])
@@ -288,7 +286,7 @@ animate_tower: {
     // [25] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = -- ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] -- pbuc1_derefidx_vbum1=_dec_pbuc1_derefidx_vbum1 
     ldx a
     dec animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
-    jmp __b12
+    bra __b12
     // animate_tower::@13
   __b13:
     // animate.wait[a] = animate.speed[a]
@@ -329,13 +327,13 @@ animate_tower: {
     // animate_tower::@7
   __b7:
     // animate.wait[a] = 0
-    // [31] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy a
-    sta animate+OFFSET_STRUCT_ANIMATE_S_WAIT,y
+    // [31] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_tower::a] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx a
+    stz animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
     // animate.moved[a] = 2
     // [32] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_tower::a] = 2 -- pbuc1_derefidx_vbum1=vbuc2 
     lda #2
+    ldy a
     sta animate+OFFSET_STRUCT_ANIMATE_S_MOVED,y
     jmp __b12
     // [33] phi from animate_tower to animate_tower::@6 [phi:animate_tower->animate_tower::@6]
@@ -511,9 +509,9 @@ animate_player: {
     bne __b9
     // animate_player::@13
     // animate.moved[a] = 0
-    // [56] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_player::a] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta animate+OFFSET_STRUCT_ANIMATE_S_MOVED,y
+    // [56] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_player::a] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx a
+    stz animate+OFFSET_STRUCT_ANIMATE_S_MOVED,x
     // animate_player::@9
   __b9:
     // if (animate.moved[a] == 2)
@@ -576,7 +574,7 @@ animate_player: {
     // [67] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_IMAGE)[animate_player::a] = $10 -- pbuc1_derefidx_vbum1=vbuc2 
     lda #$10
     sta animate+OFFSET_STRUCT_ANIMATE_S_IMAGE,y
-    jmp __b1
+    bra __b1
     // animate_player::@16
   __b16:
     // animate.state[a]-animate.loop[a]
@@ -588,7 +586,7 @@ animate_player: {
     // animate.image[a] = animate.state[a]-animate.loop[a]
     // [69] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_IMAGE)[animate_player::a] = animate_player::$28 -- pbuc1_derefidx_vbum1=vbuaa 
     sta animate+OFFSET_STRUCT_ANIMATE_S_IMAGE,y
-    jmp __b1
+    bra __b1
   .segment DataEngineAnimate
     a: .byte 0
   .segment DataEngineAnimate
@@ -710,7 +708,7 @@ animate_logic: {
     lda #-1
     ldy a
     sta animate+OFFSET_STRUCT_ANIMATE_S_DIRECTION,y
-    jmp __b9
+    bra __b9
   .segment DataEngineAnimate
     a: .byte 0
 }
@@ -801,10 +799,9 @@ animate_del: {
     // variables
     // variables-zero-page
     // animate.locked[a] = 0
-    // [92] ((char *)&animate)[animate_del::a] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy a
-    sta animate,y
+    // [92] ((char *)&animate)[animate_del::a] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx a
+    stz animate,x
     // animate.used--;
     // [93] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_USED) = -- *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_USED) -- _deref_pbuc1=_dec__deref_pbuc1 
     dec animate+OFFSET_STRUCT_ANIMATE_S_USED
@@ -864,9 +861,8 @@ animate_add: {
     lda #1
     sta animate,x
     // animate.wait[a] = 0
-    // [100] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_add::a#0] = 0 -- pbuc1_derefidx_vbuxx=vbuc2 
-    lda #0
-    sta animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
+    // [100] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_WAIT)[animate_add::a#0] = 0 -- pbuc1_derefidx_vbuxx=0 
+    stz animate+OFFSET_STRUCT_ANIMATE_S_WAIT,x
     // animate.speed[a] = speed
     // [101] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_SPEED)[animate_add::a#0] = animate_add::speed -- pbuc1_derefidx_vbuxx=vbum1 
     lda speed
@@ -892,12 +888,11 @@ animate_add: {
     lda direction
     sta animate+OFFSET_STRUCT_ANIMATE_S_DIRECTION,x
     // animate.image[a] = 0
-    // [107] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_IMAGE)[animate_add::a#0] = 0 -- pbuc1_derefidx_vbuxx=vbuc2 
-    lda #0
-    sta animate+OFFSET_STRUCT_ANIMATE_S_IMAGE,x
+    // [107] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_IMAGE)[animate_add::a#0] = 0 -- pbuc1_derefidx_vbuxx=0 
+    stz animate+OFFSET_STRUCT_ANIMATE_S_IMAGE,x
     // animate.moved[a] = 0
-    // [108] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_add::a#0] = 0 -- pbuc1_derefidx_vbuxx=vbuc2 
-    sta animate+OFFSET_STRUCT_ANIMATE_S_MOVED,x
+    // [108] ((char *)&animate+OFFSET_STRUCT_ANIMATE_S_MOVED)[animate_add::a#0] = 0 -- pbuc1_derefidx_vbuxx=0 
+    stz animate+OFFSET_STRUCT_ANIMATE_S_MOVED,x
     // animate.used++;
     // [109] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_USED) = ++ *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_USED) -- _deref_pbuc1=_inc__deref_pbuc1 
     inc animate+OFFSET_STRUCT_ANIMATE_S_USED
@@ -923,7 +918,7 @@ animate_add: {
     // animate.pool = (animate.pool + 1) % SPRITE_ANIMATE
     // [114] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_POOL) = animate_add::$3 -- _deref_pbuc1=vbuaa 
     sta animate+OFFSET_STRUCT_ANIMATE_S_POOL
-    jmp __b2
+    bra __b2
   .segment DataEngineAnimate
     count: .byte 0
   .segment DataEngineAnimate
@@ -968,7 +963,7 @@ animate_init: {
     // [117] phi from animate_init::memset_fast1 to animate_init::memset_fast1_@1 [phi:animate_init::memset_fast1->animate_init::memset_fast1_@1]
     // [117] phi animate_init::memset_fast1_num#2 = $80 [phi:animate_init::memset_fast1->animate_init::memset_fast1_@1#0] -- vbuxx=vbuc1 
     ldx #$80
-    // [117] phi animate_init::memset_fast1_x#2 = 0 [phi:animate_init::memset_fast1->animate_init::memset_fast1_@1#1] -- vbuyy=vbuc1 
+    // [117] phi animate_init::memset_fast1_x#2 = 0 [phi:animate_init::memset_fast1->animate_init::memset_fast1_@1#1] -- vbuyy=0 
     ldy #0
     // [117] phi from animate_init::memset_fast1_@1 to animate_init::memset_fast1_@1 [phi:animate_init::memset_fast1_@1->animate_init::memset_fast1_@1]
     // [117] phi animate_init::memset_fast1_num#2 = animate_init::memset_fast1_num#1 [phi:animate_init::memset_fast1_@1->animate_init::memset_fast1_@1#0] -- register_copy 
@@ -994,7 +989,7 @@ animate_init: {
     // [123] phi from animate_init::memset_fast2 to animate_init::memset_fast2_@1 [phi:animate_init::memset_fast2->animate_init::memset_fast2_@1]
     // [123] phi animate_init::memset_fast2_num#2 = $80 [phi:animate_init::memset_fast2->animate_init::memset_fast2_@1#0] -- vbuxx=vbuc1 
     ldx #$80
-    // [123] phi animate_init::memset_fast2_x#2 = 0 [phi:animate_init::memset_fast2->animate_init::memset_fast2_@1#1] -- vbuyy=vbuc1 
+    // [123] phi animate_init::memset_fast2_x#2 = 0 [phi:animate_init::memset_fast2->animate_init::memset_fast2_@1#1] -- vbuyy=0 
     ldy #0
     // [123] phi from animate_init::memset_fast2_@1 to animate_init::memset_fast2_@1 [phi:animate_init::memset_fast2_@1->animate_init::memset_fast2_@1]
     // [123] phi animate_init::memset_fast2_num#2 = animate_init::memset_fast2_num#1 [phi:animate_init::memset_fast2_@1->animate_init::memset_fast2_@1#0] -- register_copy 
@@ -1020,7 +1015,7 @@ animate_init: {
     // [129] phi from animate_init::memset_fast3 to animate_init::memset_fast3_@1 [phi:animate_init::memset_fast3->animate_init::memset_fast3_@1]
     // [129] phi animate_init::memset_fast3_num#2 = $80 [phi:animate_init::memset_fast3->animate_init::memset_fast3_@1#0] -- vbuyy=vbuc1 
     ldy #$80
-    // [129] phi animate_init::memset_fast3_x#2 = 0 [phi:animate_init::memset_fast3->animate_init::memset_fast3_@1#1] -- vbuxx=vbuc1 
+    // [129] phi animate_init::memset_fast3_x#2 = 0 [phi:animate_init::memset_fast3->animate_init::memset_fast3_@1#1] -- vbuxx=0 
     ldx #0
     // [129] phi from animate_init::memset_fast3_@1 to animate_init::memset_fast3_@1 [phi:animate_init::memset_fast3_@1->animate_init::memset_fast3_@1]
     // [129] phi animate_init::memset_fast3_num#2 = animate_init::memset_fast3_num#1 [phi:animate_init::memset_fast3_@1->animate_init::memset_fast3_@1#0] -- register_copy 
@@ -1046,7 +1041,7 @@ animate_init: {
     // [135] phi from animate_init::memset_fast4 to animate_init::memset_fast4_@1 [phi:animate_init::memset_fast4->animate_init::memset_fast4_@1]
     // [135] phi animate_init::memset_fast4_num#2 = $80 [phi:animate_init::memset_fast4->animate_init::memset_fast4_@1#0] -- vbuyy=vbuc1 
     ldy #$80
-    // [135] phi animate_init::memset_fast4_x#2 = 0 [phi:animate_init::memset_fast4->animate_init::memset_fast4_@1#1] -- vbuxx=vbuc1 
+    // [135] phi animate_init::memset_fast4_x#2 = 0 [phi:animate_init::memset_fast4->animate_init::memset_fast4_@1#1] -- vbuxx=0 
     ldx #0
     // [135] phi from animate_init::memset_fast4_@1 to animate_init::memset_fast4_@1 [phi:animate_init::memset_fast4_@1->animate_init::memset_fast4_@1]
     // [135] phi animate_init::memset_fast4_num#2 = animate_init::memset_fast4_num#1 [phi:animate_init::memset_fast4_@1->animate_init::memset_fast4_@1#0] -- register_copy 
@@ -1072,7 +1067,7 @@ animate_init: {
     // [141] phi from animate_init::memset_fast5 to animate_init::memset_fast5_@1 [phi:animate_init::memset_fast5->animate_init::memset_fast5_@1]
     // [141] phi animate_init::memset_fast5_num#2 = $80 [phi:animate_init::memset_fast5->animate_init::memset_fast5_@1#0] -- vbuyy=vbuc1 
     ldy #$80
-    // [141] phi animate_init::memset_fast5_x#2 = 0 [phi:animate_init::memset_fast5->animate_init::memset_fast5_@1#1] -- vbuxx=vbuc1 
+    // [141] phi animate_init::memset_fast5_x#2 = 0 [phi:animate_init::memset_fast5->animate_init::memset_fast5_@1#1] -- vbuxx=0 
     ldx #0
     // [141] phi from animate_init::memset_fast5_@1 to animate_init::memset_fast5_@1 [phi:animate_init::memset_fast5_@1->animate_init::memset_fast5_@1]
     // [141] phi animate_init::memset_fast5_num#2 = animate_init::memset_fast5_num#1 [phi:animate_init::memset_fast5_@1->animate_init::memset_fast5_@1#0] -- register_copy 
@@ -1098,7 +1093,7 @@ animate_init: {
     // [147] phi from animate_init::memset_fast6 to animate_init::memset_fast6_@1 [phi:animate_init::memset_fast6->animate_init::memset_fast6_@1]
     // [147] phi animate_init::memset_fast6_num#2 = $80 [phi:animate_init::memset_fast6->animate_init::memset_fast6_@1#0] -- vbuyy=vbuc1 
     ldy #$80
-    // [147] phi animate_init::memset_fast6_x#2 = 0 [phi:animate_init::memset_fast6->animate_init::memset_fast6_@1#1] -- vbuxx=vbuc1 
+    // [147] phi animate_init::memset_fast6_x#2 = 0 [phi:animate_init::memset_fast6->animate_init::memset_fast6_@1#1] -- vbuxx=0 
     ldx #0
     // [147] phi from animate_init::memset_fast6_@1 to animate_init::memset_fast6_@1 [phi:animate_init::memset_fast6_@1->animate_init::memset_fast6_@1]
     // [147] phi animate_init::memset_fast6_num#2 = animate_init::memset_fast6_num#1 [phi:animate_init::memset_fast6_@1->animate_init::memset_fast6_@1#0] -- register_copy 
@@ -1124,7 +1119,7 @@ animate_init: {
     // [153] phi from animate_init::memset_fast7 to animate_init::memset_fast7_@1 [phi:animate_init::memset_fast7->animate_init::memset_fast7_@1]
     // [153] phi animate_init::memset_fast7_num#2 = $80 [phi:animate_init::memset_fast7->animate_init::memset_fast7_@1#0] -- vbuyy=vbuc1 
     ldy #$80
-    // [153] phi animate_init::memset_fast7_x#2 = 0 [phi:animate_init::memset_fast7->animate_init::memset_fast7_@1#1] -- vbuxx=vbuc1 
+    // [153] phi animate_init::memset_fast7_x#2 = 0 [phi:animate_init::memset_fast7->animate_init::memset_fast7_@1#1] -- vbuxx=0 
     ldx #0
     // [153] phi from animate_init::memset_fast7_@1 to animate_init::memset_fast7_@1 [phi:animate_init::memset_fast7_@1->animate_init::memset_fast7_@1]
     // [153] phi animate_init::memset_fast7_num#2 = animate_init::memset_fast7_num#1 [phi:animate_init::memset_fast7_@1->animate_init::memset_fast7_@1#0] -- register_copy 
@@ -1150,7 +1145,7 @@ animate_init: {
     // [159] phi from animate_init::memset_fast8 to animate_init::memset_fast8_@1 [phi:animate_init::memset_fast8->animate_init::memset_fast8_@1]
     // [159] phi animate_init::memset_fast8_num#2 = $80 [phi:animate_init::memset_fast8->animate_init::memset_fast8_@1#0] -- vbuyy=vbuc1 
     ldy #$80
-    // [159] phi animate_init::memset_fast8_x#2 = 0 [phi:animate_init::memset_fast8->animate_init::memset_fast8_@1#1] -- vbuxx=vbuc1 
+    // [159] phi animate_init::memset_fast8_x#2 = 0 [phi:animate_init::memset_fast8->animate_init::memset_fast8_@1#1] -- vbuxx=0 
     ldx #0
     // [159] phi from animate_init::memset_fast8_@1 to animate_init::memset_fast8_@1 [phi:animate_init::memset_fast8_@1->animate_init::memset_fast8_@1]
     // [159] phi animate_init::memset_fast8_num#2 = animate_init::memset_fast8_num#1 [phi:animate_init::memset_fast8_@1->animate_init::memset_fast8_@1#0] -- register_copy 
@@ -1173,12 +1168,11 @@ animate_init: {
     bne memset_fast8___b1
     // animate_init::@1
     // animate.pool = 0
-    // [164] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_POOL) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta animate+OFFSET_STRUCT_ANIMATE_S_POOL
+    // [164] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_POOL) = 0 -- _deref_pbuc1=0 
+    stz animate+OFFSET_STRUCT_ANIMATE_S_POOL
     // animate.used = 0
-    // [165] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_USED) = 0 -- _deref_pbuc1=vbuc2 
-    sta animate+OFFSET_STRUCT_ANIMATE_S_USED
+    // [165] *((char *)&animate+OFFSET_STRUCT_ANIMATE_S_USED) = 0 -- _deref_pbuc1=0 
+    stz animate+OFFSET_STRUCT_ANIMATE_S_USED
     // animate_init::@return
     // }
     // [166] return 

@@ -125,7 +125,7 @@
             "asm_begin": "  // code segment\n.segment Code\n  // __equinoxe_waves_start\n// void equinoxe_waves.__equinoxe_waves_start()\n__equinoxe_waves_start: {\n",
             "asm_constants": "  // constants\n",
             "asm_variables": "  // variables\n",
-            "asm_end": "  // __equinoxe_waves_start::__init1\n  // [1] BRAM = 0 -- vbuz1=vbuc1 \n  lda #0\n  sta.z BRAM\n  // [2] BROM = 4 -- vbuz1=vbuc1 \n  lda #4\n  sta.z BROM\n  // __equinoxe_waves_start::@return\n  // [3] return \n  rts\n}\n"
+            "asm_end": "  // __equinoxe_waves_start::__init1\n  // [1] BRAM = 0 -- vbuz1=0 \n  stz.z BRAM\n  // [2] BROM = 4 -- vbuz1=vbuc1 \n  lda #4\n  sta.z BROM\n  // __equinoxe_waves_start::@return\n  // [3] return \n  rts\n}\n"
         }
     },
     "resources": [

@@ -52,9 +52,8 @@ __lib_bramheap_start: {
     // variables-zero-page
     // __lib_bramheap_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -165,8 +164,8 @@ bram_heap_data_get_bank: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_data_get_bank__5 = $26
-    .label bram_heap_map = $26
+    .label bram_heap_data_get_bank__5 = $24
+    .label bram_heap_map = $24
     // bram_heap_data_get_bank::bank_get_bram1
     // return BRAM;
     // [19] bram_heap_data_get_bank::bank_get_bram1_return#0 = BRAM -- vbuxx=vbuz1 
@@ -242,14 +241,14 @@ bram_heap_data_get_bank: {
   // code segment
 .segment CodeBramHeap
   // bram_heap_data_get_offset
-// __zp($24) char * lib_bramheap.bram_heap_data_get_offset(__mem() char s, __mem() char index)
+// __zp($28) char * lib_bramheap.bram_heap_data_get_offset(__mem() char s, __mem() char index)
 bram_heap_data_get_offset: {
     // constants
     // variables
     // variables-zero-page
-    .label return = $24
-    .label bram_heap_map = $26
-    .label bram_ptr = $24
+    .label return = $28
+    .label bram_heap_map = $24
+    .label bram_ptr = $28
     // bram_heap_data_get_offset::bank_get_bram1
     // return BRAM;
     // [31] bram_heap_data_get_offset::bank_get_bram1_return#0 = BRAM -- vbuxx=vbuz1 
@@ -442,11 +441,10 @@ bram_heap_free: {
     sta bram_heap_can_coalesce_left.heap_index
     // [67] call bram_heap_can_coalesce_left
     jsr bram_heap_can_coalesce_left
-    // [68] bram_heap_can_coalesce_left::return#0 = bram_heap_can_coalesce_left::return#3 -- vbuaa=vbum1 
-    lda bram_heap_can_coalesce_left.return
+    // [68] bram_heap_can_coalesce_left::return#0 = bram_heap_can_coalesce_left::return#3 -- vbuxx=vbum1 
+    ldx bram_heap_can_coalesce_left.return
     // bram_heap_free::@11
-    // [69] bram_heap_free::free_left_index#0 = bram_heap_can_coalesce_left::return#0 -- vbuxx=vbuaa 
-    tax
+    // [69] bram_heap_free::free_left_index#0 = bram_heap_can_coalesce_left::return#0
     // if(free_left_index != BRAM_HEAP_NULL)
     // [70] if(bram_heap_free::free_left_index#0==$ff) goto bram_heap_free::@1 -- vbuxx_eq_vbuc1_then_la1 
     cpx #$ff
@@ -628,11 +626,10 @@ bram_heap_alloc: {
     sta bram_heap_find_best_fit.requested_size+1
     // [107] call bram_heap_find_best_fit
     jsr bram_heap_find_best_fit
-    // [108] bram_heap_find_best_fit::return#0 = bram_heap_find_best_fit::return#2 -- vbuaa=vbum1 
-    lda bram_heap_find_best_fit.return
+    // [108] bram_heap_find_best_fit::return#0 = bram_heap_find_best_fit::return#2 -- vbuxx=vbum1 
+    ldx bram_heap_find_best_fit.return
     // bram_heap_alloc::@7
-    // [109] bram_heap_alloc::free_index#0 = bram_heap_find_best_fit::return#0 -- vbuxx=vbuaa 
-    tax
+    // [109] bram_heap_alloc::free_index#0 = bram_heap_find_best_fit::return#0
     // if(free_index != BRAM_HEAP_NULL)
     // [110] if(bram_heap_alloc::free_index#0!=$ff) goto bram_heap_alloc::@1 -- vbuxx_neq_vbuc1_then_la1 
     cpx #$ff
@@ -703,7 +700,7 @@ bram_heap_alloc: {
     sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE+1,y
     // [111] phi from bram_heap_alloc::@8 to bram_heap_alloc::@2 [phi:bram_heap_alloc::@8->bram_heap_alloc::@2]
     // [111] phi bram_heap_alloc::heap_index#4 = bram_heap_alloc::heap_index#1 [phi:bram_heap_alloc::@8->bram_heap_alloc::@2#0] -- register_copy 
-    jmp __b2
+    bra __b2
   .segment DataBramHeap
     s: .byte 0
   .segment DataBramHeap
@@ -741,26 +738,26 @@ bram_heap_alloc: {
  * 
  * @return void 
  */
-// __mem() char lib_bramheap.bram_heap_segment_init(__mem() char s, __mem() char bram_bank_floor, __zp($26) char *bram_ptr_floor, __mem() char bram_bank_ceil, __zp($24) char *bram_ptr_ceil)
+// __mem() char lib_bramheap.bram_heap_segment_init(__mem() char s, __mem() char bram_bank_floor, __zp($24) char *bram_ptr_floor, __mem() char bram_bank_ceil, __zp($28) char *bram_ptr_ceil)
 bram_heap_segment_init: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_ptr_floor = $26
-    .label bram_ptr_ceil = $24
+    .label bram_ptr_floor = $24
+    .label bram_ptr_ceil = $28
     // bram_heap_segment.index_position[s] = 0
-    // [125] ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_INDEX_POSITION)[bram_heap_segment_init::s] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy s
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_INDEX_POSITION,y
+    // [125] ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_INDEX_POSITION)[bram_heap_segment_init::s] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx s
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_INDEX_POSITION,x
     // bram_heap_segment.bram_bank_floor[s] = bram_bank_floor
     // [126] ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_BRAM_BANK_FLOOR)[bram_heap_segment_init::s] = bram_heap_segment_init::bram_bank_floor -- pbuc1_derefidx_vbum1=vbum2 
     // TODO initialize segment to all zero
     lda bram_bank_floor
+    ldy s
     sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_BRAM_BANK_FLOOR,y
     // bram_heap_segment.bram_ptr_floor[s] = bram_ptr_floor
     // [127] bram_heap_segment_init::$13 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
-    tya
+    txa
     asl
     // [128] ((void **)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_BRAM_PTR_FLOOR)[bram_heap_segment_init::$13] = (void *)bram_heap_segment_init::bram_ptr_floor -- qvoc1_derefidx_vbuaa=pvoz1 
     tay
@@ -775,7 +772,7 @@ bram_heap_segment_init: {
     sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_BRAM_BANK_CEIL,y
     // bram_heap_segment.bram_ptr_ceil[s] = bram_ptr_ceil
     // [130] bram_heap_segment_init::$14 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
-    tya
+    txa
     asl
     // [131] ((void **)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_BRAM_PTR_CEIL)[bram_heap_segment_init::$14] = (void *)bram_heap_segment_init::bram_ptr_ceil -- qvoc1_derefidx_vbuaa=pvoz1 
     tay
@@ -845,11 +842,11 @@ bram_heap_segment_init: {
     // [146] bram_heap_segment_init::$17 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
     lda s
     asl
-    // [147] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_OFFSET)[bram_heap_segment_init::$17] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
-    tay
-    lda #0
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_OFFSET,y
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_OFFSET+1,y
+    // [147] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_OFFSET)[bram_heap_segment_init::$17] = 0 -- pwuc1_derefidx_vbuaa=0 
+    tax
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_OFFSET,x
+    inx
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_OFFSET,x
     // bram_heap_size_packed_t free_size = bram_heap_segment.ceil[s]
     // [148] bram_heap_segment_init::$18 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
     lda s
@@ -877,29 +874,29 @@ bram_heap_segment_init: {
     // [152] bram_heap_segment_init::$20 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
     lda s
     asl
-    // [153] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPCOUNT)[bram_heap_segment_init::$20] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
-    tay
-    lda #0
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPCOUNT,y
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPCOUNT+1,y
+    // [153] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPCOUNT)[bram_heap_segment_init::$20] = 0 -- pwuc1_derefidx_vbuaa=0 
+    tax
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPCOUNT,x
+    inx
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPCOUNT,x
     // bram_heap_segment.freeCount[s] = 0
     // [154] bram_heap_segment_init::$21 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
     lda s
     asl
-    // [155] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREECOUNT)[bram_heap_segment_init::$21] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
-    tay
-    lda #0
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREECOUNT,y
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREECOUNT+1,y
+    // [155] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREECOUNT)[bram_heap_segment_init::$21] = 0 -- pwuc1_derefidx_vbuaa=0 
+    tax
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREECOUNT,x
+    inx
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREECOUNT,x
     // bram_heap_segment.idleCount[s] = 0
     // [156] bram_heap_segment_init::$22 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
     lda s
     asl
-    // [157] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLECOUNT)[bram_heap_segment_init::$22] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
-    tay
-    lda #0
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLECOUNT,y
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLECOUNT+1,y
+    // [157] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLECOUNT)[bram_heap_segment_init::$22] = 0 -- pwuc1_derefidx_vbuaa=0 
+    tax
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLECOUNT,x
+    inx
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLECOUNT,x
     // bram_heap_segment.heap_list[s] = BRAM_HEAP_NULL
     // [158] ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST)[bram_heap_segment_init::s] = $ff -- pbuc1_derefidx_vbum1=vbuc2 
     lda #$ff
@@ -987,11 +984,10 @@ bram_heap_segment_init: {
     jsr bram_heap_set_data_packed
     // bram_heap_segment_init::@8
     // bram_heap_set_size_packed(s, free_index, free_size)
-    // [180] bram_heap_set_size_packed::s#0 = bram_heap_segment_init::s -- vbuxx=vbum1 
-    ldx s
-    // [181] bram_heap_set_size_packed::index#0 = bram_heap_segment_init::free_index#1 -- vbum1=vbum2 
-    lda free_index
-    sta bram_heap_set_size_packed.index
+    // [180] bram_heap_set_size_packed::s#0 = bram_heap_segment_init::s -- vbuyy=vbum1 
+    ldy s
+    // [181] bram_heap_set_size_packed::index#0 = bram_heap_segment_init::free_index#1 -- vbuxx=vbum1 
+    ldx free_index
     // [182] bram_heap_set_size_packed::size_packed#0 = bram_heap_segment_init::free_size#1 -- vwum1=vwum2 
     lda free_size
     sta bram_heap_set_size_packed.size_packed
@@ -1021,8 +1017,9 @@ bram_heap_segment_init: {
     // [188] bram_heap_set_next::index#0 = bram_heap_segment_init::free_index#1 -- vbum1=vbum2 
     lda free_index
     sta bram_heap_set_next.index
-    // [189] bram_heap_set_next::next#0 = bram_heap_segment_init::free_index#1 -- vbuxx=vbum1 
-    ldx free_index
+    // [189] bram_heap_set_next::next#0 = bram_heap_segment_init::free_index#1 -- vbum1=vbum2 
+    lda free_index
+    sta bram_heap_set_next.next
     // [190] call bram_heap_set_next
     // [520] phi from bram_heap_segment_init::@10 to bram_heap_set_next [phi:bram_heap_segment_init::@10->bram_heap_set_next]
     // [520] phi bram_heap_set_next::index#6 = bram_heap_set_next::index#0 [phi:bram_heap_segment_init::@10->bram_heap_set_next#0] -- register_copy 
@@ -1036,8 +1033,9 @@ bram_heap_segment_init: {
     // [192] bram_heap_set_prev::index#0 = bram_heap_segment_init::free_index#1 -- vbum1=vbum2 
     lda free_index
     sta bram_heap_set_prev.index
-    // [193] bram_heap_set_prev::prev#0 = bram_heap_segment_init::free_index#1 -- vbuxx=vbum1 
-    ldx free_index
+    // [193] bram_heap_set_prev::prev#0 = bram_heap_segment_init::free_index#1 -- vbum1=vbum2 
+    lda free_index
+    sta bram_heap_set_prev.prev
     // [194] call bram_heap_set_prev
     // [527] phi from bram_heap_segment_init::@11 to bram_heap_set_prev [phi:bram_heap_segment_init::@11->bram_heap_set_prev]
     // [527] phi bram_heap_set_prev::index#6 = bram_heap_set_prev::index#0 [phi:bram_heap_segment_init::@11->bram_heap_set_prev#0] -- register_copy 
@@ -1074,11 +1072,11 @@ bram_heap_segment_init: {
     // [200] bram_heap_segment_init::$27 = bram_heap_segment_init::s << 1 -- vbuaa=vbum1_rol_1 
     lda s
     asl
-    // [201] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE)[bram_heap_segment_init::$27] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
-    tay
-    lda #0
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE,y
-    sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE+1,y
+    // [201] ((unsigned int *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE)[bram_heap_segment_init::$27] = 0 -- pwuc1_derefidx_vbuaa=0 
+    tax
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE,x
+    inx
+    stz bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAPSIZE,x
     // bram_heap_segment_init::bank_set_bram2
     // BRAM = bank
     // [202] BRAM = bram_heap_segment_init::bank_old#0 -- vbuz1=vbum2 
@@ -1163,9 +1161,9 @@ bram_heap_get_size_packed: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_get_size_packed__3 = $24
-    .label bram_heap_get_size_packed__4 = $26
-    .label bram_heap_map = $26
+    .label bram_heap_get_size_packed__3 = $28
+    .label bram_heap_get_size_packed__4 = $24
+    .label bram_heap_map = $24
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [215] bram_heap_get_size_packed::$5 = (unsigned int)bram_heap_get_size_packed::s#8 -- vwum1=_word_vbuaa 
     sta bram_heap_get_size_packed__5
@@ -1251,8 +1249,8 @@ bram_heap_get_data_packed: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_get_data_packed__3 = $22
-    .label bram_heap_map = $24
+    .label bram_heap_get_data_packed__3 = $26
+    .label bram_heap_map = $28
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [226] bram_heap_get_data_packed::$5 = (unsigned int)bram_heap_get_data_packed::s#8 -- vwum1=_word_vbuaa 
     sta bram_heap_get_data_packed__5
@@ -1346,10 +1344,9 @@ bram_heap_heap_remove: {
     // [236] bram_heap_list_remove::s#0 = bram_heap_heap_remove::s#0 -- vbum1=vbum2 
     lda s
     sta bram_heap_list_remove.s
-    // [237] bram_heap_list_remove::list#2 = ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST)[bram_heap_heap_remove::s#0] -- vbum1=pbuc1_derefidx_vbum2 
+    // [237] bram_heap_list_remove::list#2 = ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST)[bram_heap_heap_remove::s#0] -- vbuxx=pbuc1_derefidx_vbum1 
     ldy s
-    lda bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST,y
-    sta bram_heap_list_remove.list
+    ldx bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST,y
     // [238] bram_heap_list_remove::index#0 = bram_heap_heap_remove::heap_index#0
     // [239] call bram_heap_list_remove
     // [540] phi from bram_heap_heap_remove to bram_heap_list_remove [phi:bram_heap_heap_remove->bram_heap_list_remove]
@@ -1358,10 +1355,10 @@ bram_heap_heap_remove: {
     // [540] phi bram_heap_list_remove::list#10 = bram_heap_list_remove::list#2 [phi:bram_heap_heap_remove->bram_heap_list_remove#2] -- register_copy 
     jsr bram_heap_list_remove
     // bram_heap_list_remove(s, bram_heap_segment.heap_list[s], heap_index)
-    // [240] bram_heap_list_remove::return#4 = bram_heap_list_remove::return#1 -- vbuaa=vbum1 
-    lda bram_heap_list_remove.return
+    // [240] bram_heap_list_remove::return#4 = bram_heap_list_remove::return#1
     // bram_heap_heap_remove::@1
-    // [241] bram_heap_heap_remove::$1 = bram_heap_list_remove::return#4
+    // [241] bram_heap_heap_remove::$1 = bram_heap_list_remove::return#4 -- vbuaa=vbuxx 
+    txa
     // bram_heap_segment.heap_list[s] = bram_heap_list_remove(s, bram_heap_segment.heap_list[s], heap_index)
     // [242] ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST)[bram_heap_heap_remove::s#0] = bram_heap_heap_remove::$1 -- pbuc1_derefidx_vbum1=vbuaa 
     ldy s
@@ -1428,11 +1425,10 @@ bram_heap_free_insert: {
     jsr bram_heap_set_data_packed
     // bram_heap_free_insert::@2
     // bram_heap_set_size_packed(s, free_index, size)
-    // [256] bram_heap_set_size_packed::s#2 = bram_heap_free_insert::s#0 -- vbuxx=vbum1 
-    ldx s
-    // [257] bram_heap_set_size_packed::index#2 = bram_heap_free_insert::free_index#0 -- vbum1=vbum2 
-    lda free_index
-    sta bram_heap_set_size_packed.index
+    // [256] bram_heap_set_size_packed::s#2 = bram_heap_free_insert::s#0 -- vbuyy=vbum1 
+    ldy s
+    // [257] bram_heap_set_size_packed::index#2 = bram_heap_free_insert::free_index#0 -- vbuxx=vbum1 
+    ldx free_index
     // [258] bram_heap_set_size_packed::size_packed#2 = bram_heap_free_insert::size#0 -- vwum1=vwum2 
     lda size
     sta bram_heap_set_size_packed.size_packed
@@ -1573,7 +1569,7 @@ bram_heap_can_coalesce_left: {
     cmp heap_offset
     bcc __b1
   !:
-    jmp __b2
+    bra __b2
     // [288] phi from bram_heap_can_coalesce_left::@6 to bram_heap_can_coalesce_left::@1 [phi:bram_heap_can_coalesce_left::@6->bram_heap_can_coalesce_left::@1]
     // bram_heap_can_coalesce_left::@1
   __b1:
@@ -1811,11 +1807,10 @@ bram_heap_coalesce: {
     lda left_size+1
     adc right_size+1
     sta bram_heap_set_size_packed.size_packed+1
-    // [346] bram_heap_set_size_packed::s#5 = bram_heap_coalesce::s#10 -- vbuxx=vbum1 
-    ldx s
-    // [347] bram_heap_set_size_packed::index#5 = bram_heap_coalesce::right_index#10 -- vbum1=vbum2 
-    lda right_index
-    sta bram_heap_set_size_packed.index
+    // [346] bram_heap_set_size_packed::s#5 = bram_heap_coalesce::s#10 -- vbuyy=vbum1 
+    ldy s
+    // [347] bram_heap_set_size_packed::index#5 = bram_heap_coalesce::right_index#10 -- vbuxx=vbum1 
+    ldx right_index
     // [348] call bram_heap_set_size_packed
     // [500] phi from bram_heap_coalesce::@13 to bram_heap_set_size_packed [phi:bram_heap_coalesce::@13->bram_heap_set_size_packed]
     // [500] phi bram_heap_set_size_packed::index#6 = bram_heap_set_size_packed::index#5 [phi:bram_heap_coalesce::@13->bram_heap_set_size_packed#0] -- register_copy 
@@ -1981,7 +1976,7 @@ heap_can_coalesce_right: {
     cmp right_offset
     bcc __b1
   !:
-    jmp __b2
+    bra __b2
     // [382] phi from heap_can_coalesce_right::@6 to heap_can_coalesce_right::@1 [phi:heap_can_coalesce_right::@6->heap_can_coalesce_right::@1]
     // heap_can_coalesce_right::@1
   __b1:
@@ -2149,10 +2144,9 @@ bram_heap_find_best_fit: {
     // bram_heap_find_best_fit::@4
   __b4:
     // bram_heap_get_next(s, free_index)
-    // [406] bram_heap_get_next::s#3 = bram_heap_find_best_fit::s#0 -- vbuaa=vbum1 
-    lda s
-    // [407] bram_heap_get_next::index#3 = bram_heap_find_best_fit::free_index#2 -- vbuxx=vbum1 
-    ldx free_index
+    // [406] bram_heap_get_next::s#3 = bram_heap_find_best_fit::s#0 -- vbuyy=vbum1 
+    ldy s
+    // [407] bram_heap_get_next::index#3 = bram_heap_find_best_fit::free_index#2
     // [408] call bram_heap_get_next
     // [651] phi from bram_heap_find_best_fit::@4 to bram_heap_get_next [phi:bram_heap_find_best_fit::@4->bram_heap_get_next]
     // [651] phi bram_heap_get_next::index#4 = bram_heap_get_next::index#3 [phi:bram_heap_find_best_fit::@4->bram_heap_get_next#0] -- register_copy 
@@ -2195,7 +2189,7 @@ bram_heap_find_best_fit: {
     // [396] phi bram_heap_find_best_fit::best_index#6 = bram_heap_find_best_fit::best_index#2 [phi:bram_heap_find_best_fit::@10->bram_heap_find_best_fit::@3#0] -- register_copy 
     // [396] phi bram_heap_find_best_fit::best_size#2 = bram_heap_find_best_fit::best_size#7 [phi:bram_heap_find_best_fit::@10->bram_heap_find_best_fit::@3#1] -- register_copy 
     // [396] phi bram_heap_find_best_fit::free_index#2 = bram_heap_find_best_fit::free_index#1 [phi:bram_heap_find_best_fit::@10->bram_heap_find_best_fit::@3#2] -- register_copy 
-    jmp __b3
+    bra __b3
     // bram_heap_find_best_fit::@11
   __b11:
     // [415] bram_heap_find_best_fit::best_size#9 = bram_heap_find_best_fit::best_size#2 -- vwum1=vwum2 
@@ -2203,7 +2197,7 @@ bram_heap_find_best_fit: {
     sta best_size_1
     lda best_size+1
     sta best_size_1+1
-    jmp __b4
+    bra __b4
   .segment DataBramHeap
     s: .byte 0
   .segment DataBramHeap
@@ -2332,17 +2326,17 @@ bram_heap_allocate: {
   // code segment
 .segment CodeBramHeap
   // bram_heap_data_pack
-// __mem() unsigned int bram_heap_data_pack(__register(X) char bram_bank, __zp($26) char *bram_ptr)
+// __mem() unsigned int bram_heap_data_pack(__register(X) char bram_bank, __zp($24) char *bram_ptr)
 bram_heap_data_pack: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_ptr = $26
+    .label bram_ptr = $24
     // MAKEWORD(bram_bank, 0)
-    // [437] bram_heap_data_pack::$0 = bram_heap_data_pack::bram_bank#2 w= 0 -- vwum1=vbuxx_word_vbuc1 
-    lda #0
-    stx bram_heap_data_pack__0+1
-    sta bram_heap_data_pack__0
+    // [437] bram_heap_data_pack::$0 = bram_heap_data_pack::bram_bank#2 w= 0 -- vwum1=vbuxx_word_0 
+    txa
+    stz bram_heap_data_pack__0
+    sta bram_heap_data_pack__0+1
     // (unsigned int)bram_ptr & 0x1FFF
     // [438] bram_heap_data_pack::$1 = (unsigned int)bram_heap_data_pack::bram_ptr#2 & $1fff -- vwum1=vwuz2_band_vwuc1 
     lda.z bram_ptr
@@ -2462,8 +2456,9 @@ bram_heap_list_insert_at: {
     // [456] bram_heap_set_prev::index#3 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
     lda index
     sta bram_heap_set_prev.index
-    // [457] bram_heap_set_prev::prev#3 = bram_heap_list_insert_at::index#10 -- vbuxx=vbum1 
-    ldx index
+    // [457] bram_heap_set_prev::prev#3 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
+    lda index
+    sta bram_heap_set_prev.prev
     // [458] call bram_heap_set_prev
     // [527] phi from bram_heap_list_insert_at::@3 to bram_heap_set_prev [phi:bram_heap_list_insert_at::@3->bram_heap_set_prev]
     // [527] phi bram_heap_set_prev::index#6 = bram_heap_set_prev::index#3 [phi:bram_heap_list_insert_at::@3->bram_heap_set_prev#0] -- register_copy 
@@ -2477,8 +2472,9 @@ bram_heap_list_insert_at: {
     // [460] bram_heap_set_next::index#3 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
     lda index
     sta bram_heap_set_next.index
-    // [461] bram_heap_set_next::next#3 = bram_heap_list_insert_at::index#10 -- vbuxx=vbum1 
-    ldx index
+    // [461] bram_heap_set_next::next#3 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
+    lda index
+    sta bram_heap_set_next.next
     // [462] call bram_heap_set_next
     // [520] phi from bram_heap_list_insert_at::@5 to bram_heap_set_next [phi:bram_heap_list_insert_at::@5->bram_heap_set_next]
     // [520] phi bram_heap_set_next::index#6 = bram_heap_set_next::index#3 [phi:bram_heap_list_insert_at::@5->bram_heap_set_next#0] -- register_copy 
@@ -2507,10 +2503,11 @@ bram_heap_list_insert_at: {
     // bram_heap_list_insert_at::@2
   __b2:
     // bram_heap_index_t last = bram_heap_get_prev(s, at)
-    // [468] bram_heap_get_prev::s#1 = bram_heap_list_insert_at::s#10 -- vbuaa=vbum1 
-    lda s
-    // [469] bram_heap_get_prev::index#1 = bram_heap_list_insert_at::first#0 -- vbuxx=vbum1 
-    ldx first
+    // [468] bram_heap_get_prev::s#1 = bram_heap_list_insert_at::s#10 -- vbuyy=vbum1 
+    ldy s
+    // [469] bram_heap_get_prev::index#1 = bram_heap_list_insert_at::first#0 -- vbum1=vbum2 
+    lda first
+    sta bram_heap_get_prev.index
     // [470] call bram_heap_get_prev
     // [764] phi from bram_heap_list_insert_at::@2 to bram_heap_get_prev [phi:bram_heap_list_insert_at::@2->bram_heap_get_prev]
     // [764] phi bram_heap_get_prev::index#2 = bram_heap_get_prev::index#1 [phi:bram_heap_list_insert_at::@2->bram_heap_get_prev#0] -- register_copy 
@@ -2527,8 +2524,9 @@ bram_heap_list_insert_at: {
     // [474] bram_heap_set_prev::index#4 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
     lda index
     sta bram_heap_set_prev.index
-    // [475] bram_heap_set_prev::prev#4 = bram_heap_list_insert_at::last#0 -- vbuxx=vbum1 
-    ldx last
+    // [475] bram_heap_set_prev::prev#4 = bram_heap_list_insert_at::last#0 -- vbum1=vbum2 
+    lda last
+    sta bram_heap_set_prev.prev
     // [476] call bram_heap_set_prev
   // Add index to list at last position.
     // [527] phi from bram_heap_list_insert_at::@7 to bram_heap_set_prev [phi:bram_heap_list_insert_at::@7->bram_heap_set_prev]
@@ -2541,8 +2539,9 @@ bram_heap_list_insert_at: {
     // [477] bram_heap_set_next::s#4 = bram_heap_list_insert_at::s#10 -- vbuyy=vbum1 
     ldy s
     // [478] bram_heap_set_next::index#4 = bram_heap_list_insert_at::last#0
-    // [479] bram_heap_set_next::next#4 = bram_heap_list_insert_at::index#10 -- vbuxx=vbum1 
-    ldx index
+    // [479] bram_heap_set_next::next#4 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
+    lda index
+    sta bram_heap_set_next.next
     // [480] call bram_heap_set_next
     // [520] phi from bram_heap_list_insert_at::@8 to bram_heap_set_next [phi:bram_heap_list_insert_at::@8->bram_heap_set_next]
     // [520] phi bram_heap_set_next::index#6 = bram_heap_set_next::index#4 [phi:bram_heap_list_insert_at::@8->bram_heap_set_next#0] -- register_copy 
@@ -2556,8 +2555,9 @@ bram_heap_list_insert_at: {
     // [482] bram_heap_set_next::index#5 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
     lda index
     sta bram_heap_set_next.index
-    // [483] bram_heap_set_next::next#5 = bram_heap_list_insert_at::first#0 -- vbuxx=vbum1 
-    ldx first
+    // [483] bram_heap_set_next::next#5 = bram_heap_list_insert_at::first#0 -- vbum1=vbum2 
+    lda first
+    sta bram_heap_set_next.next
     // [484] call bram_heap_set_next
     // [520] phi from bram_heap_list_insert_at::@9 to bram_heap_set_next [phi:bram_heap_list_insert_at::@9->bram_heap_set_next]
     // [520] phi bram_heap_set_next::index#6 = bram_heap_set_next::index#5 [phi:bram_heap_list_insert_at::@9->bram_heap_set_next#0] -- register_copy 
@@ -2571,8 +2571,9 @@ bram_heap_list_insert_at: {
     // [486] bram_heap_set_prev::index#5 = bram_heap_list_insert_at::first#0 -- vbum1=vbum2 
     lda first
     sta bram_heap_set_prev.index
-    // [487] bram_heap_set_prev::prev#5 = bram_heap_list_insert_at::index#10 -- vbuxx=vbum1 
-    ldx index
+    // [487] bram_heap_set_prev::prev#5 = bram_heap_list_insert_at::index#10 -- vbum1=vbum2 
+    lda index
+    sta bram_heap_set_prev.prev
     // [488] call bram_heap_set_prev
     // [527] phi from bram_heap_list_insert_at::@10 to bram_heap_set_prev [phi:bram_heap_list_insert_at::@10->bram_heap_set_prev]
     // [527] phi bram_heap_set_prev::index#6 = bram_heap_set_prev::index#5 [phi:bram_heap_list_insert_at::@10->bram_heap_set_prev#0] -- register_copy 
@@ -2604,8 +2605,8 @@ bram_heap_set_data_packed: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_data_packed__4 = $22
-    .label bram_heap_map = $24
+    .label bram_heap_set_data_packed__4 = $26
+    .label bram_heap_map = $28
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [491] bram_heap_set_data_packed::$6 = (unsigned int)bram_heap_set_data_packed::s#7 -- vwum1=_word_vbuxx 
     txa
@@ -2668,17 +2669,17 @@ bram_heap_set_data_packed: {
   // code segment
 .segment CodeBramHeap
   // bram_heap_set_size_packed
-// void bram_heap_set_size_packed(__register(X) char s, __mem() char index, __mem() unsigned int size_packed)
+// void bram_heap_set_size_packed(__register(Y) char s, __register(X) char index, __mem() unsigned int size_packed)
 bram_heap_set_size_packed: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_size_packed__5 = $24
-    .label bram_heap_set_size_packed__6 = $22
-    .label bram_heap_map = $22
+    .label bram_heap_set_size_packed__5 = $28
+    .label bram_heap_set_size_packed__6 = $26
+    .label bram_heap_map = $26
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
-    // [501] bram_heap_set_size_packed::$7 = (unsigned int)bram_heap_set_size_packed::s#6 -- vwum1=_word_vbuxx 
-    txa
+    // [501] bram_heap_set_size_packed::$7 = (unsigned int)bram_heap_set_size_packed::s#6 -- vwum1=_word_vbuyy 
+    tya
     sta bram_heap_set_size_packed__7
     lda #0
     sta bram_heap_set_size_packed__7+1
@@ -2704,9 +2705,9 @@ bram_heap_set_size_packed: {
     // [504] bram_heap_set_size_packed::$1 = byte1  bram_heap_set_size_packed::size_packed#6 -- vbuaa=_byte1_vwum1 
     lda size_packed+1
     // BYTE1(size_packed) & 0x7F
-    // [505] bram_heap_set_size_packed::$2 = bram_heap_set_size_packed::$1 & $7f -- vbuxx=vbuaa_band_vbuc1 
+    // [505] bram_heap_set_size_packed::$2 = bram_heap_set_size_packed::$1 & $7f -- vbuyy=vbuaa_band_vbuc1 
     and #$7f
-    tax
+    tay
     // bram_heap_map->size1[index] = BYTE1(size_packed) & 0x7F
     // [506] bram_heap_set_size_packed::$5 = (char *)bram_heap_set_size_packed::bram_heap_map#0 + OFFSET_STRUCT_BRAM_HEAP_MAP_T_SIZE1 -- pbuz1=pbuz2_plus_vwuc1 
     // bram_heap_map->size1[index] &= bram_heap_map->size1[index] & 0x80;
@@ -2717,14 +2718,15 @@ bram_heap_set_size_packed: {
     lda.z bram_heap_map+1
     adc #>OFFSET_STRUCT_BRAM_HEAP_MAP_T_SIZE1
     sta.z bram_heap_set_size_packed__5+1
-    // [507] bram_heap_set_size_packed::$5[bram_heap_set_size_packed::index#6] = bram_heap_set_size_packed::$2 -- pbuz1_derefidx_vbum2=vbuxx 
+    // [507] bram_heap_set_size_packed::$5[bram_heap_set_size_packed::index#6] = bram_heap_set_size_packed::$2 -- pbuz1_derefidx_vbuxx=vbuyy 
     // bram_heap_map->size1[index] &= bram_heap_map->size1[index] & 0x80;
-    ldy index
-    txa
+    stx.z $ff
+    tya
+    ldy.z $ff
     sta (bram_heap_set_size_packed__5),y
     // BYTE0(size_packed)
-    // [508] bram_heap_set_size_packed::$3 = byte0  bram_heap_set_size_packed::size_packed#6 -- vbuxx=_byte0_vwum1 
-    ldx size_packed
+    // [508] bram_heap_set_size_packed::$3 = byte0  bram_heap_set_size_packed::size_packed#6 -- vbuyy=_byte0_vwum1 
+    ldy size_packed
     // bram_heap_map->size0[index] = BYTE0(size_packed)
     // [509] bram_heap_set_size_packed::$6 = (char *)bram_heap_set_size_packed::bram_heap_map#0 + OFFSET_STRUCT_BRAM_HEAP_MAP_T_SIZE0 -- pbuz1=pbuz1_plus_vwuc1 
     // Ignore free flag.
@@ -2735,9 +2737,11 @@ bram_heap_set_size_packed: {
     lda.z bram_heap_set_size_packed__6+1
     adc #>OFFSET_STRUCT_BRAM_HEAP_MAP_T_SIZE0
     sta.z bram_heap_set_size_packed__6+1
-    // [510] bram_heap_set_size_packed::$6[bram_heap_set_size_packed::index#6] = bram_heap_set_size_packed::$3 -- pbuz1_derefidx_vbum2=vbuxx 
+    // [510] bram_heap_set_size_packed::$6[bram_heap_set_size_packed::index#6] = bram_heap_set_size_packed::$3 -- pbuz1_derefidx_vbuxx=vbuyy 
     // Ignore free flag.
-    txa
+    stx.z $ff
+    tya
+    ldy.z $ff
     sta (bram_heap_set_size_packed__6),y
     // bram_heap_set_size_packed::@return
     // }
@@ -2747,8 +2751,6 @@ bram_heap_set_size_packed: {
     .label bram_heap_set_size_packed__4 = bram_heap_set_size_packed__7
   .segment DataBramHeap
     bram_heap_set_size_packed__7: .word 0
-  .segment DataBramHeap
-    index: .byte 0
   .segment DataBramHeap
     .label size_packed = bram_heap_find_best_fit.best_size_1
 }
@@ -2760,9 +2762,9 @@ bram_heap_set_free: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_free__2 = $24
-    .label bram_heap_set_free__3 = $22
-    .label bram_heap_map = $22
+    .label bram_heap_set_free__2 = $28
+    .label bram_heap_set_free__3 = $26
+    .label bram_heap_map = $26
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [513] bram_heap_set_free::$4 = (unsigned int)bram_heap_set_free::s#5 -- vwum1=_word_vbuaa 
     sta bram_heap_set_free__4
@@ -2822,13 +2824,13 @@ bram_heap_set_free: {
 .segment CodeBramHeap
   // bram_heap_set_next
 /*inline*/
-// void bram_heap_set_next(__register(Y) char s, __mem() char index, __register(X) char next)
+// void bram_heap_set_next(__register(Y) char s, __mem() char index, __mem() char next)
 bram_heap_set_next: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_next__2 = $24
-    .label bram_heap_map = $24
+    .label bram_heap_set_next__2 = $28
+    .label bram_heap_map = $28
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [521] bram_heap_set_next::$3 = (unsigned int)bram_heap_set_next::s#6 -- vwum1=_word_vbuyy 
     tya
@@ -2862,9 +2864,9 @@ bram_heap_set_next: {
     lda.z bram_heap_set_next__2+1
     adc #>OFFSET_STRUCT_BRAM_HEAP_MAP_T_NEXT
     sta.z bram_heap_set_next__2+1
-    // [525] bram_heap_set_next::$2[bram_heap_set_next::index#6] = bram_heap_set_next::next#6 -- pbuz1_derefidx_vbum2=vbuxx 
+    // [525] bram_heap_set_next::$2[bram_heap_set_next::index#6] = bram_heap_set_next::next#6 -- pbuz1_derefidx_vbum2=vbum3 
+    lda next
     ldy index
-    txa
     sta (bram_heap_set_next__2),y
     // bram_heap_set_next::@return
     // }
@@ -2876,18 +2878,20 @@ bram_heap_set_next: {
     bram_heap_set_next__3: .word 0
   .segment DataBramHeap
     index: .byte 0
+  .segment DataBramHeap
+    next: .byte 0
 }
   // code segment
 .segment CodeBramHeap
   // bram_heap_set_prev
 /*inline*/
-// void bram_heap_set_prev(__register(Y) char s, __mem() char index, __register(X) char prev)
+// void bram_heap_set_prev(__register(Y) char s, __mem() char index, __mem() char prev)
 bram_heap_set_prev: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_prev__2 = $24
-    .label bram_heap_map = $24
+    .label bram_heap_set_prev__2 = $28
+    .label bram_heap_map = $28
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [528] bram_heap_set_prev::$3 = (unsigned int)bram_heap_set_prev::s#6 -- vwum1=_word_vbuyy 
     tya
@@ -2921,9 +2925,9 @@ bram_heap_set_prev: {
     lda.z bram_heap_set_prev__2+1
     adc #>OFFSET_STRUCT_BRAM_HEAP_MAP_T_PREV
     sta.z bram_heap_set_prev__2+1
-    // [532] bram_heap_set_prev::$2[bram_heap_set_prev::index#6] = bram_heap_set_prev::prev#6 -- pbuz1_derefidx_vbum2=vbuxx 
+    // [532] bram_heap_set_prev::$2[bram_heap_set_prev::index#6] = bram_heap_set_prev::prev#6 -- pbuz1_derefidx_vbum2=vbum3 
+    lda prev
     ldy index
-    txa
     sta (bram_heap_set_prev__2),y
     // bram_heap_set_prev::@return
     // }
@@ -2935,6 +2939,8 @@ bram_heap_set_prev: {
     bram_heap_set_prev__3: .word 0
   .segment DataBramHeap
     index: .byte 0
+  .segment DataBramHeap
+    prev: .byte 0
 }
   // code segment
 .segment Code
@@ -2949,7 +2955,7 @@ memset: {
     .label end = str+num
     // variables
     // variables-zero-page
-    .label dst = $28
+    .label dst = $22
     // [535] phi from memset to memset::@1 [phi:memset->memset::@1]
     // [535] phi memset::dst#2 = (char *)memset::str#0 [phi:memset->memset::@1#0] -- pbuz1=pbuc1 
     lda #<str
@@ -2985,7 +2991,7 @@ memset: {
   !:
     // [535] phi from memset::@2 to memset::@1 [phi:memset::@2->memset::@1]
     // [535] phi memset::dst#2 = memset::dst#1 [phi:memset::@2->memset::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
 }
   // code segment
 .segment CodeBramHeap
@@ -2993,21 +2999,19 @@ memset: {
 /**
 * Remove header from List
 */
-// __register(A) char bram_heap_list_remove(__mem() char s, __mem() char list, __mem() char index)
+// __register(A) char bram_heap_list_remove(__mem() char s, __register(X) char list, __mem() char index)
 bram_heap_list_remove: {
     // constants
     // variables
     // variables-zero-page
     // if(list == BRAM_HEAP_NULL)
-    // [541] if(bram_heap_list_remove::list#10!=$ff) goto bram_heap_list_remove::@1 -- vbum1_neq_vbuc1_then_la1 
-    lda #$ff
-    cmp list
+    // [541] if(bram_heap_list_remove::list#10!=$ff) goto bram_heap_list_remove::@1 -- vbuxx_neq_vbuc1_then_la1 
+    cpx #$ff
     bne __b1
     // [542] phi from bram_heap_list_remove bram_heap_list_remove::@11 to bram_heap_list_remove::@return [phi:bram_heap_list_remove/bram_heap_list_remove::@11->bram_heap_list_remove::@return]
   __b4:
-    // [542] phi bram_heap_list_remove::return#1 = $ff [phi:bram_heap_list_remove/bram_heap_list_remove::@11->bram_heap_list_remove::@return#0] -- vbum1=vbuc1 
-    lda #$ff
-    sta return
+    // [542] phi bram_heap_list_remove::return#1 = $ff [phi:bram_heap_list_remove/bram_heap_list_remove::@11->bram_heap_list_remove::@return#0] -- vbuxx=vbuc1 
+    ldx #$ff
     // bram_heap_list_remove::@return
   __breturn:
     // }
@@ -3016,10 +3020,10 @@ bram_heap_list_remove: {
     // bram_heap_list_remove::@1
   __b1:
     // bram_heap_get_next(s, list)
-    // [544] bram_heap_get_next::s#0 = bram_heap_list_remove::s#10 -- vbuaa=vbum1 
-    lda s
-    // [545] bram_heap_get_next::index#0 = bram_heap_list_remove::list#10 -- vbuxx=vbum1 
-    ldx list
+    // [544] bram_heap_get_next::s#0 = bram_heap_list_remove::s#10 -- vbuyy=vbum1 
+    ldy s
+    // [545] bram_heap_get_next::index#0 = bram_heap_list_remove::list#10 -- vbum1=vbuxx 
+    stx bram_heap_get_next.index
     // [546] call bram_heap_get_next
     // [651] phi from bram_heap_list_remove::@1 to bram_heap_get_next [phi:bram_heap_list_remove::@1->bram_heap_get_next]
     // [651] phi bram_heap_get_next::index#4 = bram_heap_get_next::index#0 [phi:bram_heap_list_remove::@1->bram_heap_get_next#0] -- register_copy 
@@ -3028,10 +3032,11 @@ bram_heap_list_remove: {
     // bram_heap_get_next(s, list)
     // [547] bram_heap_get_next::return#0 = bram_heap_get_next::return#3
     // bram_heap_list_remove::@6
-    // [548] bram_heap_list_remove::$2 = bram_heap_get_next::return#0
+    // [548] bram_heap_list_remove::$2 = bram_heap_get_next::return#0 -- vbum1=vbuaa 
+    sta bram_heap_list_remove__2
     // if(list == bram_heap_get_next(s, list))
-    // [549] if(bram_heap_list_remove::list#10!=bram_heap_list_remove::$2) goto bram_heap_list_remove::@2 -- vbum1_neq_vbuaa_then_la1 
-    cmp list
+    // [549] if(bram_heap_list_remove::list#10!=bram_heap_list_remove::$2) goto bram_heap_list_remove::@2 -- vbuxx_neq_vbum1_then_la1 
+    cpx bram_heap_list_remove__2
     bne __b2
     // bram_heap_list_remove::@4
     // bram_heap_set_next(s, index, BRAM_HEAP_NULL)
@@ -3044,8 +3049,9 @@ bram_heap_list_remove: {
   // We initialize the start of the list to null.
     // [520] phi from bram_heap_list_remove::@4 to bram_heap_set_next [phi:bram_heap_list_remove::@4->bram_heap_set_next]
     // [520] phi bram_heap_set_next::index#6 = bram_heap_set_next::index#2 [phi:bram_heap_list_remove::@4->bram_heap_set_next#0] -- register_copy 
-    // [520] phi bram_heap_set_next::next#6 = $ff [phi:bram_heap_list_remove::@4->bram_heap_set_next#1] -- vbuxx=vbuc1 
-    ldx #$ff
+    // [520] phi bram_heap_set_next::next#6 = $ff [phi:bram_heap_list_remove::@4->bram_heap_set_next#1] -- vbum1=vbuc1 
+    lda #$ff
+    sta bram_heap_set_next.next
     // [520] phi bram_heap_set_next::s#6 = bram_heap_set_next::s#2 [phi:bram_heap_list_remove::@4->bram_heap_set_next#2] -- register_copy 
     jsr bram_heap_set_next
     // bram_heap_list_remove::@11
@@ -3058,18 +3064,20 @@ bram_heap_list_remove: {
     // [555] call bram_heap_set_prev
     // [527] phi from bram_heap_list_remove::@11 to bram_heap_set_prev [phi:bram_heap_list_remove::@11->bram_heap_set_prev]
     // [527] phi bram_heap_set_prev::index#6 = bram_heap_set_prev::index#2 [phi:bram_heap_list_remove::@11->bram_heap_set_prev#0] -- register_copy 
-    // [527] phi bram_heap_set_prev::prev#6 = $ff [phi:bram_heap_list_remove::@11->bram_heap_set_prev#1] -- vbuxx=vbuc1 
-    ldx #$ff
+    // [527] phi bram_heap_set_prev::prev#6 = $ff [phi:bram_heap_list_remove::@11->bram_heap_set_prev#1] -- vbum1=vbuc1 
+    lda #$ff
+    sta bram_heap_set_prev.prev
     // [527] phi bram_heap_set_prev::s#6 = bram_heap_set_prev::s#2 [phi:bram_heap_list_remove::@11->bram_heap_set_prev#2] -- register_copy 
     jsr bram_heap_set_prev
-    jmp __b4
+    bra __b4
     // bram_heap_list_remove::@2
   __b2:
     // bram_heap_index_t next = bram_heap_get_next(s, index)
-    // [556] bram_heap_get_next::s#1 = bram_heap_list_remove::s#10 -- vbuaa=vbum1 
-    lda s
-    // [557] bram_heap_get_next::index#1 = bram_heap_list_remove::index#10 -- vbuxx=vbum1 
-    ldx index
+    // [556] bram_heap_get_next::s#1 = bram_heap_list_remove::s#10 -- vbuyy=vbum1 
+    ldy s
+    // [557] bram_heap_get_next::index#1 = bram_heap_list_remove::index#10 -- vbum1=vbum2 
+    lda index
+    sta bram_heap_get_next.index
     // [558] call bram_heap_get_next
     // [651] phi from bram_heap_list_remove::@2 to bram_heap_get_next [phi:bram_heap_list_remove::@2->bram_heap_get_next]
     // [651] phi bram_heap_get_next::index#4 = bram_heap_get_next::index#1 [phi:bram_heap_list_remove::@2->bram_heap_get_next#0] -- register_copy 
@@ -3081,10 +3089,11 @@ bram_heap_list_remove: {
     // [560] bram_heap_list_remove::next#0 = bram_heap_get_next::return#1 -- vbum1=vbuaa 
     sta next
     // bram_heap_index_t prev = bram_heap_get_prev(s, index)
-    // [561] bram_heap_get_prev::s#0 = bram_heap_list_remove::s#10 -- vbuaa=vbum1 
-    lda s
-    // [562] bram_heap_get_prev::index#0 = bram_heap_list_remove::index#10 -- vbuxx=vbum1 
-    ldx index
+    // [561] bram_heap_get_prev::s#0 = bram_heap_list_remove::s#10 -- vbuyy=vbum1 
+    ldy s
+    // [562] bram_heap_get_prev::index#0 = bram_heap_list_remove::index#10 -- vbum1=vbum2 
+    lda index
+    sta bram_heap_get_prev.index
     // [563] call bram_heap_get_prev
     // [764] phi from bram_heap_list_remove::@7 to bram_heap_get_prev [phi:bram_heap_list_remove::@7->bram_heap_get_prev]
     // [764] phi bram_heap_get_prev::index#2 = bram_heap_get_prev::index#0 [phi:bram_heap_list_remove::@7->bram_heap_get_prev#0] -- register_copy 
@@ -3100,8 +3109,9 @@ bram_heap_list_remove: {
     ldy s
     // [567] bram_heap_set_next::index#1 = bram_heap_list_remove::prev#0 -- vbum1=vbum2 
     sta bram_heap_set_next.index
-    // [568] bram_heap_set_next::next#1 = bram_heap_list_remove::next#0 -- vbuxx=vbum1 
-    ldx next
+    // [568] bram_heap_set_next::next#1 = bram_heap_list_remove::next#0 -- vbum1=vbum2 
+    lda next
+    sta bram_heap_set_next.next
     // [569] call bram_heap_set_next
   // TODO, why can't this be coded in one statement ...
     // [520] phi from bram_heap_list_remove::@8 to bram_heap_set_next [phi:bram_heap_list_remove::@8->bram_heap_set_next]
@@ -3114,8 +3124,7 @@ bram_heap_list_remove: {
     // [570] bram_heap_set_prev::s#1 = bram_heap_list_remove::s#10 -- vbuyy=vbum1 
     ldy s
     // [571] bram_heap_set_prev::index#1 = bram_heap_list_remove::next#0
-    // [572] bram_heap_set_prev::prev#1 = bram_heap_list_remove::prev#0 -- vbuxx=vbum1 
-    ldx prev
+    // [572] bram_heap_set_prev::prev#1 = bram_heap_list_remove::prev#0
     // [573] call bram_heap_set_prev
     // [527] phi from bram_heap_list_remove::@9 to bram_heap_set_prev [phi:bram_heap_list_remove::@9->bram_heap_set_prev]
     // [527] phi bram_heap_set_prev::index#6 = bram_heap_set_prev::index#1 [phi:bram_heap_list_remove::@9->bram_heap_set_prev#0] -- register_copy 
@@ -3124,27 +3133,26 @@ bram_heap_list_remove: {
     jsr bram_heap_set_prev
     // bram_heap_list_remove::@10
     // if(index == list)
-    // [574] if(bram_heap_list_remove::index#10!=bram_heap_list_remove::list#10) goto bram_heap_list_remove::@3 -- vbum1_neq_vbum2_then_la1 
-    lda index
-    cmp list
+    // [574] if(bram_heap_list_remove::index#10!=bram_heap_list_remove::list#10) goto bram_heap_list_remove::@3 -- vbum1_neq_vbuxx_then_la1 
+    cpx index
     bne __breturn
     // bram_heap_list_remove::@5
     // bram_heap_get_next(s, list)
-    // [575] bram_heap_get_next::s#2 = bram_heap_list_remove::s#10 -- vbuaa=vbum1 
-    lda s
-    // [576] bram_heap_get_next::index#2 = bram_heap_list_remove::list#10 -- vbuxx=vbum1 
-    ldx list
+    // [575] bram_heap_get_next::s#2 = bram_heap_list_remove::s#10 -- vbuyy=vbum1 
+    ldy s
+    // [576] bram_heap_get_next::index#2 = bram_heap_list_remove::list#10 -- vbum1=vbuxx 
+    stx bram_heap_get_next.index
     // [577] call bram_heap_get_next
     // [651] phi from bram_heap_list_remove::@5 to bram_heap_get_next [phi:bram_heap_list_remove::@5->bram_heap_get_next]
     // [651] phi bram_heap_get_next::index#4 = bram_heap_get_next::index#2 [phi:bram_heap_list_remove::@5->bram_heap_get_next#0] -- register_copy 
     // [651] phi bram_heap_get_next::s#4 = bram_heap_get_next::s#2 [phi:bram_heap_list_remove::@5->bram_heap_get_next#1] -- register_copy 
     jsr bram_heap_get_next
     // bram_heap_get_next(s, list)
-    // [578] bram_heap_get_next::return#2 = bram_heap_get_next::return#3
+    // [578] bram_heap_get_next::return#2 = bram_heap_get_next::return#3 -- vbuxx=vbuaa 
+    tax
     // bram_heap_list_remove::@12
     // list = bram_heap_get_next(s, list)
-    // [579] bram_heap_list_remove::list#1 = bram_heap_get_next::return#2 -- vbum1=vbuaa 
-    sta list
+    // [579] bram_heap_list_remove::list#1 = bram_heap_get_next::return#2
     // [580] phi from bram_heap_list_remove::@10 bram_heap_list_remove::@12 to bram_heap_list_remove::@3 [phi:bram_heap_list_remove::@10/bram_heap_list_remove::@12->bram_heap_list_remove::@3]
     // [580] phi bram_heap_list_remove::return#3 = bram_heap_list_remove::list#10 [phi:bram_heap_list_remove::@10/bram_heap_list_remove::@12->bram_heap_list_remove::@3#0] -- register_copy 
     // bram_heap_list_remove::@3
@@ -3152,14 +3160,11 @@ bram_heap_list_remove: {
     // [542] phi bram_heap_list_remove::return#1 = bram_heap_list_remove::return#3 [phi:bram_heap_list_remove::@3->bram_heap_list_remove::@return#0] -- register_copy 
     rts
   .segment DataBramHeap
-    // empty list
-    return: .byte 0
+    bram_heap_list_remove__2: .byte 0
   .segment DataBramHeap
     .label next = bram_heap_set_prev.index
   .segment DataBramHeap
-    prev: .byte 0
-  .segment DataBramHeap
-    .label list = return
+    .label prev = bram_heap_set_prev.prev
   .segment DataBramHeap
     s: .byte 0
   .segment DataBramHeap
@@ -3174,8 +3179,8 @@ bram_heap_get_left: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_get_left__2 = $26
-    .label bram_heap_map = $26
+    .label bram_heap_get_left__2 = $24
+    .label bram_heap_map = $24
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [582] bram_heap_get_left::$3 = (unsigned int)bram_heap_get_left::s#4 -- vwum1=_word_vbuaa 
     sta bram_heap_get_left__3
@@ -3229,8 +3234,8 @@ bram_heap_is_free: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_is_free__4 = $26
-    .label bram_heap_map = $26
+    .label bram_heap_is_free__4 = $24
+    .label bram_heap_map = $24
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [589] bram_heap_is_free::$5 = (unsigned int)bram_heap_is_free::s#2 -- vwum1=_word_vbuaa 
     sta bram_heap_is_free__5
@@ -3293,8 +3298,8 @@ bram_heap_get_right: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_get_right__2 = $26
-    .label bram_heap_map = $26
+    .label bram_heap_get_right__2 = $24
+    .label bram_heap_map = $24
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [597] bram_heap_get_right::$3 = (unsigned int)bram_heap_get_right::s#3 -- vwum1=_word_vbuaa 
     sta bram_heap_get_right__3
@@ -3363,10 +3368,9 @@ bram_heap_free_remove: {
     // [606] bram_heap_list_remove::s#1 = bram_heap_free_remove::s#2 -- vbum1=vbum2 
     lda s
     sta bram_heap_list_remove.s
-    // [607] bram_heap_list_remove::list#3 = ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREE_LIST)[bram_heap_free_remove::s#2] -- vbum1=pbuc1_derefidx_vbum2 
+    // [607] bram_heap_list_remove::list#3 = ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREE_LIST)[bram_heap_free_remove::s#2] -- vbuxx=pbuc1_derefidx_vbum1 
     ldy s
-    lda bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREE_LIST,y
-    sta bram_heap_list_remove.list
+    ldx bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_FREE_LIST,y
     // [608] bram_heap_list_remove::index#1 = bram_heap_free_remove::free_index#2 -- vbum1=vbum2 
     lda free_index
     sta bram_heap_list_remove.index
@@ -3377,8 +3381,8 @@ bram_heap_free_remove: {
     // [540] phi bram_heap_list_remove::list#10 = bram_heap_list_remove::list#3 [phi:bram_heap_free_remove->bram_heap_list_remove#2] -- register_copy 
     jsr bram_heap_list_remove
     // bram_heap_list_remove(s, bram_heap_segment.free_list[s], free_index)
-    // [610] bram_heap_list_remove::return#5 = bram_heap_list_remove::return#1 -- vbuaa=vbum1 
-    lda bram_heap_list_remove.return
+    // [610] bram_heap_list_remove::return#5 = bram_heap_list_remove::return#1 -- vbuaa=vbuxx 
+    txa
     // bram_heap_free_remove::@1
     // [611] bram_heap_free_remove::$1 = bram_heap_list_remove::return#5
     // bram_heap_segment.free_list[s] = bram_heap_list_remove(s, bram_heap_segment.free_list[s], free_index)
@@ -3451,26 +3455,23 @@ bram_heap_idle_insert: {
     // [627] call bram_heap_set_data_packed
     // [490] phi from bram_heap_idle_insert::@1 to bram_heap_set_data_packed [phi:bram_heap_idle_insert::@1->bram_heap_set_data_packed]
     // [490] phi bram_heap_set_data_packed::index#7 = bram_heap_set_data_packed::index#2 [phi:bram_heap_idle_insert::@1->bram_heap_set_data_packed#0] -- register_copy 
-    // [490] phi bram_heap_set_data_packed::data_packed#7 = 0 [phi:bram_heap_idle_insert::@1->bram_heap_set_data_packed#1] -- vwum1=vbuc1 
-    lda #<0
-    sta bram_heap_set_data_packed.data_packed
-    sta bram_heap_set_data_packed.data_packed+1
+    // [490] phi bram_heap_set_data_packed::data_packed#7 = 0 [phi:bram_heap_idle_insert::@1->bram_heap_set_data_packed#1] -- vwum1=0 
+    stz bram_heap_set_data_packed.data_packed
+    stz bram_heap_set_data_packed.data_packed+1
     // [490] phi bram_heap_set_data_packed::s#7 = bram_heap_set_data_packed::s#2 [phi:bram_heap_idle_insert::@1->bram_heap_set_data_packed#2] -- register_copy 
     jsr bram_heap_set_data_packed
     // bram_heap_idle_insert::@2
     // bram_heap_set_size_packed(s, idle_index, 0)
-    // [628] bram_heap_set_size_packed::s#3 = bram_heap_idle_insert::s#0 -- vbuxx=vbum1 
-    ldx s
-    // [629] bram_heap_set_size_packed::index#3 = bram_heap_idle_insert::idle_index#0 -- vbum1=vbum2 
-    lda idle_index
-    sta bram_heap_set_size_packed.index
+    // [628] bram_heap_set_size_packed::s#3 = bram_heap_idle_insert::s#0 -- vbuyy=vbum1 
+    ldy s
+    // [629] bram_heap_set_size_packed::index#3 = bram_heap_idle_insert::idle_index#0 -- vbuxx=vbum1 
+    ldx idle_index
     // [630] call bram_heap_set_size_packed
     // [500] phi from bram_heap_idle_insert::@2 to bram_heap_set_size_packed [phi:bram_heap_idle_insert::@2->bram_heap_set_size_packed]
     // [500] phi bram_heap_set_size_packed::index#6 = bram_heap_set_size_packed::index#3 [phi:bram_heap_idle_insert::@2->bram_heap_set_size_packed#0] -- register_copy 
-    // [500] phi bram_heap_set_size_packed::size_packed#6 = 0 [phi:bram_heap_idle_insert::@2->bram_heap_set_size_packed#1] -- vwum1=vbuc1 
-    lda #<0
-    sta bram_heap_set_size_packed.size_packed
-    sta bram_heap_set_size_packed.size_packed+1
+    // [500] phi bram_heap_set_size_packed::size_packed#6 = 0 [phi:bram_heap_idle_insert::@2->bram_heap_set_size_packed#1] -- vwum1=0 
+    stz bram_heap_set_size_packed.size_packed
+    stz bram_heap_set_size_packed.size_packed+1
     // [500] phi bram_heap_set_size_packed::s#6 = bram_heap_set_size_packed::s#3 [phi:bram_heap_idle_insert::@2->bram_heap_set_size_packed#2] -- register_copy 
     jsr bram_heap_set_size_packed
     // bram_heap_idle_insert::@3
@@ -3502,8 +3503,8 @@ bram_heap_set_left: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_left__2 = $26
-    .label bram_heap_map = $26
+    .label bram_heap_set_left__2 = $24
+    .label bram_heap_map = $24
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [635] bram_heap_set_left::$3 = (unsigned int)bram_heap_set_left::s#6 -- vwum1=_word_vbuyy 
     tya
@@ -3561,8 +3562,8 @@ bram_heap_set_right: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_set_right__2 = $22
-    .label bram_heap_map = $22
+    .label bram_heap_set_right__2 = $26
+    .label bram_heap_map = $26
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [642] bram_heap_set_right::$3 = (unsigned int)bram_heap_set_right::s#6 -- vwum1=_word_vbuyy 
     tya
@@ -3662,15 +3663,16 @@ bram_heap_size_pack: {
 .segment CodeBramHeap
   // bram_heap_get_next
 /*inline*/
-// __register(A) char bram_heap_get_next(__register(A) char s, __register(X) char index)
+// __register(A) char bram_heap_get_next(__register(Y) char s, __mem() char index)
 bram_heap_get_next: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_get_next__2 = $22
-    .label bram_heap_map = $22
+    .label bram_heap_get_next__2 = $26
+    .label bram_heap_map = $26
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
-    // [652] bram_heap_get_next::$3 = (unsigned int)bram_heap_get_next::s#4 -- vwum1=_word_vbuaa 
+    // [652] bram_heap_get_next::$3 = (unsigned int)bram_heap_get_next::s#4 -- vwum1=_word_vbuyy 
+    tya
     sta bram_heap_get_next__3
     lda #0
     sta bram_heap_get_next__3+1
@@ -3701,9 +3703,8 @@ bram_heap_get_next: {
     lda.z bram_heap_get_next__2+1
     adc #>OFFSET_STRUCT_BRAM_HEAP_MAP_T_NEXT
     sta.z bram_heap_get_next__2+1
-    // [656] bram_heap_get_next::return#3 = bram_heap_get_next::$2[bram_heap_get_next::index#4] -- vbuaa=pbuz1_derefidx_vbuxx 
-    txa
-    tay
+    // [656] bram_heap_get_next::return#3 = bram_heap_get_next::$2[bram_heap_get_next::index#4] -- vbuaa=pbuz1_derefidx_vbum2 
+    ldy index
     lda (bram_heap_get_next__2),y
     // bram_heap_get_next::@return
     // }
@@ -3713,6 +3714,8 @@ bram_heap_get_next: {
     .label bram_heap_get_next__1 = bram_heap_get_next__3
   .segment DataBramHeap
     bram_heap_get_next__3: .word 0
+  .segment DataBramHeap
+    .label index = bram_heap_find_best_fit.free_index
 }
   // code segment
 .segment CodeBramHeap
@@ -3934,11 +3937,10 @@ bram_heap_split_free_and_allocate: {
     lda bram_heap_set_size_packed.size_packed+1
     sbc required_size+1
     sta bram_heap_set_size_packed.size_packed+1
-    // [707] bram_heap_set_size_packed::s#4 = bram_heap_split_free_and_allocate::s#0 -- vbuxx=vbum1 
-    ldx s
-    // [708] bram_heap_set_size_packed::index#4 = bram_heap_split_free_and_allocate::free_index#0 -- vbum1=vbum2 
-    lda free_index
-    sta bram_heap_set_size_packed.index
+    // [707] bram_heap_set_size_packed::s#4 = bram_heap_split_free_and_allocate::s#0 -- vbuyy=vbum1 
+    ldy s
+    // [708] bram_heap_set_size_packed::index#4 = bram_heap_split_free_and_allocate::free_index#0 -- vbuxx=vbum1 
+    ldx free_index
     // [709] call bram_heap_set_size_packed
     // [500] phi from bram_heap_split_free_and_allocate::@2 to bram_heap_set_size_packed [phi:bram_heap_split_free_and_allocate::@2->bram_heap_set_size_packed]
     // [500] phi bram_heap_set_size_packed::index#6 = bram_heap_set_size_packed::index#4 [phi:bram_heap_split_free_and_allocate::@2->bram_heap_set_size_packed#0] -- register_copy 
@@ -4157,10 +4159,9 @@ heap_idle_remove: {
     // [756] bram_heap_list_remove::s#2 = heap_idle_remove::s#0 -- vbum1=vbum2 
     lda s
     sta bram_heap_list_remove.s
-    // [757] bram_heap_list_remove::list#4 = ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLE_LIST)[heap_idle_remove::s#0] -- vbum1=pbuc1_derefidx_vbum2 
+    // [757] bram_heap_list_remove::list#4 = ((char *)&bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLE_LIST)[heap_idle_remove::s#0] -- vbuxx=pbuc1_derefidx_vbum1 
     ldy s
-    lda bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLE_LIST,y
-    sta bram_heap_list_remove.list
+    ldx bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_IDLE_LIST,y
     // [758] bram_heap_list_remove::index#2 = heap_idle_remove::idle_index#0
     // [759] call bram_heap_list_remove
     // [540] phi from heap_idle_remove to bram_heap_list_remove [phi:heap_idle_remove->bram_heap_list_remove]
@@ -4169,8 +4170,8 @@ heap_idle_remove: {
     // [540] phi bram_heap_list_remove::list#10 = bram_heap_list_remove::list#4 [phi:heap_idle_remove->bram_heap_list_remove#2] -- register_copy 
     jsr bram_heap_list_remove
     // bram_heap_list_remove(s, bram_heap_segment.idle_list[s], idle_index)
-    // [760] bram_heap_list_remove::return#10 = bram_heap_list_remove::return#1 -- vbuaa=vbum1 
-    lda bram_heap_list_remove.return
+    // [760] bram_heap_list_remove::return#10 = bram_heap_list_remove::return#1 -- vbuaa=vbuxx 
+    txa
     // heap_idle_remove::@1
     // [761] heap_idle_remove::$1 = bram_heap_list_remove::return#10
     // bram_heap_segment.idle_list[s] = bram_heap_list_remove(s, bram_heap_segment.idle_list[s], idle_index)
@@ -4190,15 +4191,16 @@ heap_idle_remove: {
 .segment CodeBramHeap
   // bram_heap_get_prev
 /*inline*/
-// __register(A) char bram_heap_get_prev(__register(A) char s, __register(X) char index)
+// __register(A) char bram_heap_get_prev(__register(Y) char s, __mem() char index)
 bram_heap_get_prev: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_get_prev__2 = $22
-    .label bram_heap_map = $22
+    .label bram_heap_get_prev__2 = $26
+    .label bram_heap_map = $26
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
-    // [765] bram_heap_get_prev::$3 = (unsigned int)bram_heap_get_prev::s#2 -- vwum1=_word_vbuaa 
+    // [765] bram_heap_get_prev::$3 = (unsigned int)bram_heap_get_prev::s#2 -- vwum1=_word_vbuyy 
+    tya
     sta bram_heap_get_prev__3
     lda #0
     sta bram_heap_get_prev__3+1
@@ -4229,9 +4231,8 @@ bram_heap_get_prev: {
     lda.z bram_heap_get_prev__2+1
     adc #>OFFSET_STRUCT_BRAM_HEAP_MAP_T_PREV
     sta.z bram_heap_get_prev__2+1
-    // [769] bram_heap_get_prev::return#1 = bram_heap_get_prev::$2[bram_heap_get_prev::index#2] -- vbuaa=pbuz1_derefidx_vbuxx 
-    txa
-    tay
+    // [769] bram_heap_get_prev::return#1 = bram_heap_get_prev::$2[bram_heap_get_prev::index#2] -- vbuaa=pbuz1_derefidx_vbum2 
+    ldy index
     lda (bram_heap_get_prev__2),y
     // bram_heap_get_prev::@return
     // }
@@ -4241,6 +4242,8 @@ bram_heap_get_prev: {
     .label bram_heap_get_prev__1 = bram_heap_get_prev__3
   .segment DataBramHeap
     bram_heap_get_prev__3: .word 0
+  .segment DataBramHeap
+    index: .byte 0
 }
   // code segment
 .segment CodeBramHeap
@@ -4250,9 +4253,9 @@ bram_heap_clear_free: {
     // constants
     // variables
     // variables-zero-page
-    .label bram_heap_clear_free__2 = $24
-    .label bram_heap_clear_free__3 = $22
-    .label bram_heap_map = $22
+    .label bram_heap_clear_free__2 = $28
+    .label bram_heap_clear_free__3 = $26
+    .label bram_heap_map = $26
     // bram_heap_map_t* bram_heap_map = &bram_heap_index[(unsigned int)s]
     // [772] bram_heap_clear_free::$4 = (unsigned int)bram_heap_clear_free::s#2 -- vwum1=_word_vbuaa 
     sta bram_heap_clear_free__4
@@ -4346,9 +4349,9 @@ bram_heap_heap_insert_at: {
     ldy s
     sta bram_heap_segment+OFFSET_STRUCT_BRAM_HEAP_SEGMENT_T_HEAP_LIST,y
     // bram_heap_set_size_packed(s, heap_index, size)
-    // [787] bram_heap_set_size_packed::s#1 = bram_heap_heap_insert_at::s#2 -- vbuxx=vbum1 
-    ldx s
-    // [788] bram_heap_set_size_packed::index#1 = bram_heap_heap_insert_at::heap_index#2
+    // [787] bram_heap_set_size_packed::s#1 = bram_heap_heap_insert_at::s#2 -- vbuyy=vbum1 
+    // [788] bram_heap_set_size_packed::index#1 = bram_heap_heap_insert_at::heap_index#2 -- vbuxx=vbum1 
+    ldx heap_index
     // [789] bram_heap_set_size_packed::size_packed#1 = bram_heap_heap_insert_at::size#2
     // [790] call bram_heap_set_size_packed
     // [500] phi from bram_heap_heap_insert_at::@1 to bram_heap_set_size_packed [phi:bram_heap_heap_insert_at::@1->bram_heap_set_size_packed]
@@ -4374,7 +4377,7 @@ bram_heap_heap_insert_at: {
   .segment DataBramHeap
     s: .byte 0
   .segment DataBramHeap
-    .label heap_index = bram_heap_set_size_packed.index
+    heap_index: .byte 0
   .segment DataBramHeap
     .label size = bram_heap_find_best_fit.best_size_1
 }

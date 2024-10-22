@@ -1,0 +1,1150 @@
+  // Library
+.namespace equinoxe_flight_load {
+  // Upstart
+.cpu _65c02
+  .segmentdef Basic                   [start=$0801]
+.segmentdef Code                    [start=$80d]
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
+.segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
+
+.segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
+.segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+
+  // start-assembler
+  // File Comments
+  // Global constants and variables
+  // constants
+  .label SIZEOF_STRUCT_SPRITE_FILE_HEADER_T = $10
+  .label OFFSET_STRUCT_SPRITE_T_LOADED = $40
+  .label OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET = $180
+  .label OFFSET_STRUCT_SPRITE_T_OFFSET = $240
+  .label OFFSET_STRUCT_SPRITE_T_SPRITESIZE = $80
+  .label OFFSET_STRUCT_SPRITE_T_COUNT = $60
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_SIZE = 1
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_WIDTH = 3
+  .label OFFSET_STRUCT_SPRITE_T_WIDTH = $e0
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HEIGHT = 4
+  .label OFFSET_STRUCT_SPRITE_T_HEIGHT = $c0
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_ZDEPTH = 5
+  .label OFFSET_STRUCT_SPRITE_T_ZDEPTH = $100
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HFLIP = 6
+  .label OFFSET_STRUCT_SPRITE_T_HFLIP = $120
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_VFLIP = 7
+  .label OFFSET_STRUCT_SPRITE_T_VFLIP = $140
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_BPP = 8
+  .label OFFSET_STRUCT_SPRITE_T_BPP = $160
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_REVERSE = $a
+  .label OFFSET_STRUCT_SPRITE_T_REVERSE = $1a0
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION = 9
+  .label OFFSET_STRUCT_AABB_T_YMIN = 1
+  .label OFFSET_STRUCT_AABB_T_XMAX = 2
+  .label OFFSET_STRUCT_AABB_T_YMAX = 3
+  .label OFFSET_STRUCT_SPRITE_FILE_HEADER_T_LOOP = $b
+  .label OFFSET_STRUCT_SPRITE_T_LOOP = $280
+  .label OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE = $2a0
+  .label OFFSET_STRUCT_SPRITE_T_AABB = $1c0
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __equinoxe_flight_load_start
+// void equinoxe_flight_load.__equinoxe_flight_load_start()
+__equinoxe_flight_load_start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __equinoxe_flight_load_start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // __equinoxe_flight_load_start::@return
+    // [3] return 
+    rts
+}
+  // code segment
+.segment CodeEngineFlight
+  // fe_sprite_bram_load
+// Load the sprite into bram using the new cx16 heap manager.
+// __mem() unsigned int equinoxe_flight_load.fe_sprite_bram_load(__mem() char sprite_index, __mem() unsigned int sprite_offset)
+fe_sprite_bram_load: {
+    // constants
+    .const bank_push_set_bram1_bank = 4
+    .const bank_push_set_bram2_bank = 6
+    // variables
+    // variables-zero-page
+    .label fp = $2c
+    .label palette_ptr = $32
+    .label sprite_ptr = $36
+    .label fe_sprite_bram_load__34 = $38
+    // fe_sprite_bram_load::bank_push_set_bram1
+    // asm
+    // asm { lda$00 pha  }
+    lda.z 0
+    pha
+    // BRAM = bank
+    // [6] BRAM = fe_sprite_bram_load::bank_push_set_bram1_bank#0 -- vbuz1=vbuc1 
+    lda #bank_push_set_bram1_bank
+    sta.z BRAM
+    // fe_sprite_bram_load::@10
+    // if (!sprites.loaded[sprite_index])
+    // [7] if(0!=((char *)&sprites+OFFSET_STRUCT_SPRITE_T_LOADED)[fe_sprite_bram_load::sprite_index]) goto fe_sprite_bram_load::bank_pull_bram1 -- 0_neq_pbuc1_derefidx_vbum1_then_la1 
+    ldy sprite_index
+    lda equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_LOADED,y
+    cmp #0
+    beq !bank_pull_bram1+
+    jmp bank_pull_bram1
+  !bank_pull_bram1:
+    // fe_sprite_bram_load::@1
+    // strcpy(filename, sprites.file[sprite_index])
+    // [8] fe_sprite_bram_load::$25 = fe_sprite_bram_load::sprite_index << 1 -- vbuaa=vbum1_rol_1 
+    tya
+    asl
+    // [9] strcpy::source#0 = ((char **)&sprites)[fe_sprite_bram_load::$25] -- pbuz1=qbuc1_derefidx_vbuaa 
+    tay
+    lda equinoxe_flight_cache.sprites,y
+    sta.z strcpy.source
+    lda equinoxe_flight_cache.sprites+1,y
+    sta.z strcpy.source+1
+    // [10] call strcpy
+    // [96] phi from fe_sprite_bram_load::@1 to strcpy [phi:fe_sprite_bram_load::@1->strcpy]
+    jsr strcpy
+    // [11] phi from fe_sprite_bram_load::@1 to fe_sprite_bram_load::@16 [phi:fe_sprite_bram_load::@1->fe_sprite_bram_load::@16]
+    // fe_sprite_bram_load::@16
+    // strcat(filename, ".bin")
+    // [12] call strcat
+    // [104] phi from fe_sprite_bram_load::@16 to strcat [phi:fe_sprite_bram_load::@16->strcat]
+    jsr strcat
+    // fe_sprite_bram_load::@17
+    // FILE *fp = fopen(filename, "r")
+    // [13] fopen::path = fe_sprite_bram_load::filename -- pbuz1=pbuc1 
+    lda #<filename
+    sta.z lib_file.fopen.path
+    lda #>filename
+    sta.z lib_file.fopen.path+1
+    // [14] fopen::mode = fe_sprite_bram_load::mode -- pbuz1=pbuc1 
+    lda #<mode
+    sta.z lib_file.fopen.mode
+    lda #>mode
+    sta.z lib_file.fopen.mode+1
+    // [15] callexecute fopen  -- call_var_near 
+    jsr lib_file.fopen
+    // [16] fe_sprite_bram_load::fp#0 = fopen::return -- pssz1=pssz2 
+    lda.z lib_file.fopen.return
+    sta.z fp
+    lda.z lib_file.fopen.return+1
+    sta.z fp+1
+    // if (!fp)
+    // [17] if((FILE *)0==fe_sprite_bram_load::fp#0) goto fe_sprite_bram_load::bank_pull_bram1 -- pssc1_eq_pssz1_then_la1 
+    lda.z fp
+    cmp #<0
+    bne !+
+    lda.z fp+1
+    cmp #>0
+    bne !bank_pull_bram1+
+    jmp bank_pull_bram1
+  !bank_pull_bram1:
+  !:
+    // fe_sprite_bram_load::@2
+    // sprite_file_header_t sprite_file_header
+    // [18] *(&fe_sprite_bram_load::sprite_file_header) = memset(sprite_file_header_t, SIZEOF_STRUCT_SPRITE_FILE_HEADER_T) -- _deref_pssc1=_memset_vbuc2 
+    ldy #SIZEOF_STRUCT_SPRITE_FILE_HEADER_T
+    lda #0
+  !:
+    dey
+    sta sprite_file_header,y
+    bne !-
+    // unsigned int read = fgets((char *)&sprite_file_header, sizeof(sprite_file_header_t), fp)
+    // [19] fgets::ptr = (char *)&fe_sprite_bram_load::sprite_file_header -- pbuz1=pbuc1 
+    // Read the header of the file into the sprite_file_header structure.
+    lda #<sprite_file_header
+    sta.z lib_file.fgets.ptr
+    lda #>sprite_file_header
+    sta.z lib_file.fgets.ptr+1
+    // [20] fgets::size = SIZEOF_STRUCT_SPRITE_FILE_HEADER_T -- vwum1=vbuc1 
+    lda #<SIZEOF_STRUCT_SPRITE_FILE_HEADER_T
+    sta lib_file.fgets.size
+    lda #>SIZEOF_STRUCT_SPRITE_FILE_HEADER_T
+    sta lib_file.fgets.size+1
+    // [21] fgets::stream = fe_sprite_bram_load::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fgets.stream
+    lda.z fp+1
+    sta.z lib_file.fgets.stream+1
+    // [22] callexecute fgets  -- call_var_near 
+    jsr lib_file.fgets
+    // [23] fe_sprite_bram_load::read#0 = fgets::return -- vwum1=vwum2 
+    lda lib_file.fgets.return
+    sta read
+    lda lib_file.fgets.return+1
+    sta read+1
+    // if (!read)
+    // [24] if(0==fe_sprite_bram_load::read#0) goto fe_sprite_bram_load::bank_pull_bram1 -- 0_eq_vwum1_then_la1 
+    lda read
+    ora read+1
+    bne !bank_pull_bram1+
+    jmp bank_pull_bram1
+  !bank_pull_bram1:
+    // fe_sprite_bram_load::@3
+    // sprite_map_header(&sprite_file_header, sprite_index)
+    // [25] sprite_map_header::sprite#0 = fe_sprite_bram_load::sprite_index -- vbuxx=vbum1 
+    ldx sprite_index
+    // [26] call sprite_map_header
+    jsr sprite_map_header
+    // [27] phi from fe_sprite_bram_load::@3 to fe_sprite_bram_load::@18 [phi:fe_sprite_bram_load::@3->fe_sprite_bram_load::@18]
+    // fe_sprite_bram_load::@18
+    // palette_index_t palette_index = palette_alloc_bram()
+    // [28] callexecute palette_alloc_bram  -- call_var_near 
+    jsr equinoxe_palette.palette_alloc_bram
+    // [29] fe_sprite_bram_load::palette_index#0 = palette_alloc_bram::return -- vbum1=vbum2 
+    lda equinoxe_palette.palette_alloc_bram.return
+    sta palette_index
+    // palette_ptr_t palette_ptr = palette_ptr_bram(palette_index)
+    // [30] palette_ptr_bram::palette_index = fe_sprite_bram_load::palette_index#0 -- vbum1=vbum2 
+    sta equinoxe_palette.palette_ptr_bram.palette_index
+    // [31] callexecute palette_ptr_bram  -- call_var_near 
+    jsr equinoxe_palette.palette_ptr_bram
+    // [32] fe_sprite_bram_load::palette_ptr#0 = palette_ptr_bram::return -- pssz1=pssz2 
+    lda.z equinoxe_palette.palette_ptr_bram.return
+    sta.z palette_ptr
+    lda.z equinoxe_palette.palette_ptr_bram.return+1
+    sta.z palette_ptr+1
+    // fe_sprite_bram_load::bank_push_set_bram2
+    // asm
+    // asm { lda$00 pha  }
+    lda.z 0
+    pha
+    // BRAM = bank
+    // [34] BRAM = fe_sprite_bram_load::bank_push_set_bram2_bank#0 -- vbuz1=vbuc1 
+    lda #bank_push_set_bram2_bank
+    sta.z BRAM
+    // fe_sprite_bram_load::@12
+    // fgets((char *)palette_ptr, 32, fp)
+    // [35] fgets::ptr = (char *)fe_sprite_bram_load::palette_ptr#0 -- pbuz1=pbuz2 
+    lda.z palette_ptr
+    sta.z lib_file.fgets.ptr
+    lda.z palette_ptr+1
+    sta.z lib_file.fgets.ptr+1
+    // [36] fgets::size = $20 -- vwum1=vbuc1 
+    lda #<$20
+    sta lib_file.fgets.size
+    lda #>$20
+    sta lib_file.fgets.size+1
+    // [37] fgets::stream = fe_sprite_bram_load::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fgets.stream
+    lda.z fp+1
+    sta.z lib_file.fgets.stream+1
+    // [38] callexecute fgets  -- call_var_near 
+    jsr lib_file.fgets
+    // fe_sprite_bram_load::bank_pull_bram2
+    // asm
+    // asm { pla sta$00  }
+    pla
+    sta.z 0
+    // fe_sprite_bram_load::@13
+    // sprites.PaletteOffset[sprite_index] = palette_index
+    // [40] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET)[fe_sprite_bram_load::sprite_index] = fe_sprite_bram_load::palette_index#0 -- pbuc1_derefidx_vbum1=vbum2 
+    lda palette_index
+    ldy sprite_index
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET,y
+    // sprites.offset[sprite_index] = sprite_offset
+    // [41] fe_sprite_bram_load::$26 = fe_sprite_bram_load::sprite_index << 1 -- vbuaa=vbum1_rol_1 
+    tya
+    asl
+    // [42] ((unsigned int *)&sprites+OFFSET_STRUCT_SPRITE_T_OFFSET)[fe_sprite_bram_load::$26] = fe_sprite_bram_load::sprite_offset -- pwuc1_derefidx_vbuaa=vwum1 
+    tay
+    lda sprite_offset
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_OFFSET,y
+    lda sprite_offset+1
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_OFFSET+1,y
+    // unsigned int sprite_size = sprites.SpriteSize[sprite_index]
+    // [43] fe_sprite_bram_load::$27 = fe_sprite_bram_load::sprite_index << 1 -- vbuaa=vbum1_rol_1 
+    lda sprite_index
+    asl
+    // [44] fe_sprite_bram_load::sprite_size#0 = ((unsigned int *)&sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE)[fe_sprite_bram_load::$27] -- vwum1=pwuc1_derefidx_vbuaa 
+    tay
+    lda equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE,y
+    sta sprite_size
+    lda equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE+1,y
+    sta sprite_size+1
+    // [45] phi from fe_sprite_bram_load::@13 to fe_sprite_bram_load::@4 [phi:fe_sprite_bram_load::@13->fe_sprite_bram_load::@4]
+    // [45] phi fe_sprite_bram_load::s#2 = 0 [phi:fe_sprite_bram_load::@13->fe_sprite_bram_load::@4#0] -- vbum1=vbuc1 
+    lda #0
+    sta s
+    // fe_sprite_bram_load::@4
+  __b4:
+    // for (unsigned char s = 0; s < sprites.count[sprite_index]; s++)
+    // [46] if(fe_sprite_bram_load::s#2<((char *)&sprites+OFFSET_STRUCT_SPRITE_T_COUNT)[fe_sprite_bram_load::sprite_index]) goto fe_sprite_bram_load::@5 -- vbum1_lt_pbuc1_derefidx_vbum2_then_la1 
+    lda s
+    ldy sprite_index
+    cmp equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_COUNT,y
+    bcc __b5
+    // fe_sprite_bram_load::@6
+    // fclose(fp)
+    // [47] fclose::stream = fe_sprite_bram_load::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fclose.stream
+    lda.z fp+1
+    sta.z lib_file.fclose.stream+1
+    // [48] callexecute fclose  -- call_var_near 
+    jsr lib_file.fclose
+    // [49] fe_sprite_bram_load::$24 = fclose::return -- vwsm1=vwsm2 
+    lda lib_file.fclose.return
+    sta fe_sprite_bram_load__24
+    lda lib_file.fclose.return+1
+    sta fe_sprite_bram_load__24+1
+    // if (fclose(fp))
+    // [50] if(0!=fe_sprite_bram_load::$24) goto fe_sprite_bram_load::bank_pull_bram1 -- 0_neq_vwsm1_then_la1 
+    // Now we have read everything and we close the file.
+    ora fe_sprite_bram_load__24
+    bne bank_pull_bram1
+    // fe_sprite_bram_load::@9
+    // sprites.loaded[sprite_index] = 1
+    // [51] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_LOADED)[fe_sprite_bram_load::sprite_index] = 1 -- pbuc1_derefidx_vbum1=vbuc2 
+    lda #1
+    ldy sprite_index
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_LOADED,y
+    // fe_sprite_bram_load::bank_pull_bram1
+  bank_pull_bram1:
+    // asm
+    // asm { pla sta$00  }
+    pla
+    sta.z 0
+    // fe_sprite_bram_load::@11
+    // return sprite_offset;
+    // [53] fe_sprite_bram_load::return = fe_sprite_bram_load::sprite_offset
+    // fe_sprite_bram_load::@return
+    // }
+    // [54] return 
+    rts
+    // fe_sprite_bram_load::@5
+  __b5:
+    // bram_heap_handle_t handle_bram = bram_heap_alloc(0, sprite_size)
+    // [55] bram_heap_alloc::s = 0 -- vbum1=vbuc1 
+    lda #0
+    sta lib_bramheap.bram_heap_alloc.s
+    // [56] bram_heap_alloc::size = fe_sprite_bram_load::sprite_size#0 -- vdum1=vwum2 
+    lda sprite_size
+    sta lib_bramheap.bram_heap_alloc.size
+    lda sprite_size+1
+    sta lib_bramheap.bram_heap_alloc.size+1
+    lda #0
+    sta lib_bramheap.bram_heap_alloc.size+2
+    sta lib_bramheap.bram_heap_alloc.size+3
+    // [57] callexecute bram_heap_alloc  -- call_var_near 
+    jsr lib_bramheap.bram_heap_alloc
+    // [58] fe_sprite_bram_load::handle_bram#0 = bram_heap_alloc::return -- vbum1=vbum2 
+    lda lib_bramheap.bram_heap_alloc.return
+    sta handle_bram
+    // bram_bank_t sprite_bank = bram_heap_data_get_bank(0, handle_bram)
+    // [59] bram_heap_data_get_bank::s = 0 -- vbum1=vbuc1 
+    lda #0
+    sta lib_bramheap.bram_heap_data_get_bank.s
+    // [60] bram_heap_data_get_bank::index = fe_sprite_bram_load::handle_bram#0 -- vbum1=vbum2 
+    lda handle_bram
+    sta lib_bramheap.bram_heap_data_get_bank.index
+    // [61] callexecute bram_heap_data_get_bank  -- call_var_near 
+    jsr lib_bramheap.bram_heap_data_get_bank
+    // [62] fe_sprite_bram_load::bank_push_set_bram3_bank#0 = bram_heap_data_get_bank::return -- vbum1=vbum2 
+    lda lib_bramheap.bram_heap_data_get_bank.return
+    sta bank_push_set_bram3_bank
+    // bram_ptr_t sprite_ptr = bram_heap_data_get_offset(0, handle_bram)
+    // [63] bram_heap_data_get_offset::s = 0 -- vbum1=vbuc1 
+    lda #0
+    sta lib_bramheap.bram_heap_data_get_offset.s
+    // [64] bram_heap_data_get_offset::index = fe_sprite_bram_load::handle_bram#0 -- vbum1=vbum2 
+    lda handle_bram
+    sta lib_bramheap.bram_heap_data_get_offset.index
+    // [65] callexecute bram_heap_data_get_offset  -- call_var_near 
+    jsr lib_bramheap.bram_heap_data_get_offset
+    // [66] fe_sprite_bram_load::sprite_ptr#0 = bram_heap_data_get_offset::return -- pbuz1=pbuz2 
+    lda.z lib_bramheap.bram_heap_data_get_offset.return
+    sta.z sprite_ptr
+    lda.z lib_bramheap.bram_heap_data_get_offset.return+1
+    sta.z sprite_ptr+1
+    // fe_sprite_bram_load::bank_push_set_bram3
+    // asm
+    // asm { lda$00 pha  }
+    lda.z 0
+    pha
+    // BRAM = bank
+    // [68] BRAM = fe_sprite_bram_load::bank_push_set_bram3_bank#0 -- vbuz1=vbum2 
+    lda bank_push_set_bram3_bank
+    sta.z BRAM
+    // fe_sprite_bram_load::@14
+    // unsigned int read = fgets(sprite_ptr, sprite_size, fp)
+    // [69] fgets::ptr = fe_sprite_bram_load::sprite_ptr#0 -- pbuz1=pbuz2 
+    lda.z sprite_ptr
+    sta.z lib_file.fgets.ptr
+    lda.z sprite_ptr+1
+    sta.z lib_file.fgets.ptr+1
+    // [70] fgets::size = fe_sprite_bram_load::sprite_size#0 -- vwum1=vwum2 
+    lda sprite_size
+    sta lib_file.fgets.size
+    lda sprite_size+1
+    sta lib_file.fgets.size+1
+    // [71] fgets::stream = fe_sprite_bram_load::fp#0 -- pssz1=pssz2 
+    lda.z fp
+    sta.z lib_file.fgets.stream
+    lda.z fp+1
+    sta.z lib_file.fgets.stream+1
+    // [72] callexecute fgets  -- call_var_near 
+    jsr lib_file.fgets
+    // [73] fe_sprite_bram_load::read1#0 = fgets::return -- vwum1=vwum2 
+    lda lib_file.fgets.return
+    sta read1
+    lda lib_file.fgets.return+1
+    sta read1+1
+    // fe_sprite_bram_load::bank_pull_bram3
+    // asm
+    // asm { pla sta$00  }
+    pla
+    sta.z 0
+    // fe_sprite_bram_load::@15
+    // if (!read)
+    // [75] if(0==fe_sprite_bram_load::read1#0) goto fe_sprite_bram_load::@7 -- 0_eq_vwum1_then_la1 
+    lda read1
+    ora read1+1
+    beq __b7
+    // fe_sprite_bram_load::@8
+    // sprite_bram_handles[sprite_offset] = handle_bram
+    // [76] fe_sprite_bram_load::$34 = sprite_bram_handles + fe_sprite_bram_load::sprite_offset -- pbuz1=pbuc1_plus_vwum2 
+    lda sprite_offset
+    clc
+    adc #<equinoxe_flight_cache.sprite_bram_handles
+    sta.z fe_sprite_bram_load__34
+    lda sprite_offset+1
+    adc #>equinoxe_flight_cache.sprite_bram_handles
+    sta.z fe_sprite_bram_load__34+1
+    // [77] *fe_sprite_bram_load::$34 = fe_sprite_bram_load::handle_bram#0 -- _deref_pbuz1=vbum2 
+    lda handle_bram
+    ldy #0
+    sta (fe_sprite_bram_load__34),y
+    // sprite_offset++;
+    // [78] fe_sprite_bram_load::sprite_offset = ++ fe_sprite_bram_load::sprite_offset -- vwum1=_inc_vwum1 
+    inc sprite_offset
+    bne !+
+    inc sprite_offset+1
+  !:
+    // fe_sprite_bram_load::@7
+  __b7:
+    // for (unsigned char s = 0; s < sprites.count[sprite_index]; s++)
+    // [79] fe_sprite_bram_load::s#1 = ++ fe_sprite_bram_load::s#2 -- vbum1=_inc_vbum1 
+    inc s
+    // [45] phi from fe_sprite_bram_load::@7 to fe_sprite_bram_load::@4 [phi:fe_sprite_bram_load::@7->fe_sprite_bram_load::@4]
+    // [45] phi fe_sprite_bram_load::s#2 = fe_sprite_bram_load::s#1 [phi:fe_sprite_bram_load::@7->fe_sprite_bram_load::@4#0] -- register_copy 
+    jmp __b4
+  .segment DataEngineFlight
+    filename: .fill $10, 0
+  .segment DataEngineFlight
+  .encoding "petscii_mixed"
+    source: .text ".bin"
+    .byte 0
+  .segment DataEngineFlight
+    mode: .text "r"
+    .byte 0
+  .segment DataEngineFlight
+    sprite_index: .byte 0
+  .segment DataEngineFlight
+    .label sprite_offset = return
+  .segment DataEngineFlight
+    return: .word 0
+  .segment DataEngineFlight
+    sprite_file_header: .fill SIZEOF_STRUCT_SPRITE_FILE_HEADER_T, 0
+  .segment DataEngineFlight
+    fe_sprite_bram_load__24: .word 0
+  .segment DataEngineFlight
+    read: .word 0
+  .segment DataEngineFlight
+    palette_index: .byte 0
+  .segment DataEngineFlight
+    sprite_size: .word 0
+  .segment DataEngineFlight
+    handle_bram: .byte 0
+  .segment Data
+    bank_push_set_bram3_bank: .byte 0
+  .segment DataEngineFlight
+    read1: .word 0
+  .segment DataEngineFlight
+    s: .byte 0
+}
+  // code segment
+.segment Code
+  // strcpy
+// Copies the C string pointed by source into the array pointed by destination, including the terminating null character (and stopping at that point).
+// char * strcpy(char *destination, __zp($22) char *source)
+strcpy: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label dst = $24
+    .label src = $22
+    .label source = $22
+    // [97] phi from strcpy to strcpy::@1 [phi:strcpy->strcpy::@1]
+    // [97] phi strcpy::dst#2 = fe_sprite_bram_load::filename [phi:strcpy->strcpy::@1#0] -- pbuz1=pbuc1 
+    lda #<fe_sprite_bram_load.filename
+    sta.z dst
+    lda #>fe_sprite_bram_load.filename
+    sta.z dst+1
+    // [97] phi strcpy::src#2 = strcpy::source#0 [phi:strcpy->strcpy::@1#1] -- register_copy 
+    // strcpy::@1
+  __b1:
+    // while(*src)
+    // [98] if(0!=*strcpy::src#2) goto strcpy::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (src),y
+    cmp #0
+    bne __b2
+    // strcpy::@3
+    // *dst = 0
+    // [99] *strcpy::dst#2 = 0 -- _deref_pbuz1=vbuc1 
+    tya
+    tay
+    sta (dst),y
+    // strcpy::@return
+    // }
+    // [100] return 
+    rts
+    // strcpy::@2
+  __b2:
+    // *dst++ = *src++
+    // [101] *strcpy::dst#2 = *strcpy::src#2 -- _deref_pbuz1=_deref_pbuz2 
+    ldy #0
+    lda (src),y
+    sta (dst),y
+    // *dst++ = *src++;
+    // [102] strcpy::dst#1 = ++ strcpy::dst#2 -- pbuz1=_inc_pbuz1 
+    inc.z dst
+    bne !+
+    inc.z dst+1
+  !:
+    // [103] strcpy::src#1 = ++ strcpy::src#2 -- pbuz1=_inc_pbuz1 
+    inc.z src
+    bne !+
+    inc.z src+1
+  !:
+    // [97] phi from strcpy::@2 to strcpy::@1 [phi:strcpy::@2->strcpy::@1]
+    // [97] phi strcpy::dst#2 = strcpy::dst#1 [phi:strcpy::@2->strcpy::@1#0] -- register_copy 
+    // [97] phi strcpy::src#2 = strcpy::src#1 [phi:strcpy::@2->strcpy::@1#1] -- register_copy 
+    jmp __b1
+}
+  // code segment
+.segment Code
+  // strcat
+// Concatenates the C string pointed by source into the array pointed by destination, including the terminating null character (and stopping at that point).
+// char * strcat(char *destination, char *source)
+strcat: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label dst = $24
+    .label src = $22
+    // strlen(destination)
+    // [105] call strlen
+    // [171] phi from strcat to strlen [phi:strcat->strlen]
+    jsr strlen
+    // strlen(destination)
+    // [106] strlen::return#0 = strlen::len#2
+    // strcat::@4
+    // [107] strcat::$0 = strlen::return#0
+    // char* dst = destination + strlen(destination)
+    // [108] strcat::dst#0 = fe_sprite_bram_load::filename + strcat::$0 -- pbuz1=pbuc1_plus_vwum2 
+    lda strcat__0
+    clc
+    adc #<fe_sprite_bram_load.filename
+    sta.z dst
+    lda strcat__0+1
+    adc #>fe_sprite_bram_load.filename
+    sta.z dst+1
+    // [109] phi from strcat::@4 to strcat::@1 [phi:strcat::@4->strcat::@1]
+    // [109] phi strcat::dst#2 = strcat::dst#0 [phi:strcat::@4->strcat::@1#0] -- register_copy 
+    // [109] phi strcat::src#2 = fe_sprite_bram_load::source [phi:strcat::@4->strcat::@1#1] -- pbuz1=pbuc1 
+    lda #<fe_sprite_bram_load.source
+    sta.z src
+    lda #>fe_sprite_bram_load.source
+    sta.z src+1
+    // strcat::@1
+  __b1:
+    // while(*src)
+    // [110] if(0!=*strcat::src#2) goto strcat::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (src),y
+    cmp #0
+    bne __b2
+    // strcat::@3
+    // *dst = 0
+    // [111] *strcat::dst#2 = 0 -- _deref_pbuz1=vbuc1 
+    tya
+    tay
+    sta (dst),y
+    // strcat::@return
+    // }
+    // [112] return 
+    rts
+    // strcat::@2
+  __b2:
+    // *dst++ = *src++
+    // [113] *strcat::dst#2 = *strcat::src#2 -- _deref_pbuz1=_deref_pbuz2 
+    ldy #0
+    lda (src),y
+    sta (dst),y
+    // *dst++ = *src++;
+    // [114] strcat::dst#1 = ++ strcat::dst#2 -- pbuz1=_inc_pbuz1 
+    inc.z dst
+    bne !+
+    inc.z dst+1
+  !:
+    // [115] strcat::src#1 = ++ strcat::src#2 -- pbuz1=_inc_pbuz1 
+    inc.z src
+    bne !+
+    inc.z src+1
+  !:
+    // [109] phi from strcat::@2 to strcat::@1 [phi:strcat::@2->strcat::@1]
+    // [109] phi strcat::dst#2 = strcat::dst#1 [phi:strcat::@2->strcat::@1#0] -- register_copy 
+    // [109] phi strcat::src#2 = strcat::src#1 [phi:strcat::@2->strcat::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    .label strcat__0 = strlen.len
+}
+  // code segment
+.segment CodeEngineFlight
+  // sprite_map_header
+// void sprite_map_header(sprite_file_header_t *sprite_file_header, __register(X) char sprite)
+sprite_map_header: {
+    // constants
+    .label sprite_file_header = fe_sprite_bram_load.sprite_file_header
+    // variables
+    // variables-zero-page
+    // sprites.count[sprite] = sprite_file_header->count
+    // [116] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_COUNT)[sprite_map_header::sprite#0] = *((char *)sprite_map_header::sprite_file_header#0) -- pbuc1_derefidx_vbuxx=_deref_pbuc2 
+    lda sprite_file_header
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_COUNT,x
+    // sprites.SpriteSize[sprite] = sprite_file_header->size
+    // [117] sprite_map_header::$8 = sprite_map_header::sprite#0 << 1 -- vbuaa=vbuxx_rol_1 
+    txa
+    asl
+    // [118] ((unsigned int *)&sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE)[sprite_map_header::$8] = *((unsigned int *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_SIZE) -- pwuc1_derefidx_vbuaa=_deref_pwuc2 
+    tay
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_SIZE
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE,y
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_SIZE+1
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE+1,y
+    // vera_sprite_width_get_bitmap(sprite_file_header->width)
+    // [119] sprite_map_header::vera_sprite_width_get_bitmap1_width#0 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_WIDTH) -- vbuaa=_deref_pbuc1 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_WIDTH
+    // sprite_map_header::vera_sprite_width_get_bitmap1
+    // case 8:
+    //             return VERA_SPRITE_WIDTH_8;
+    // [120] if(sprite_map_header::vera_sprite_width_get_bitmap1_width#0==8) goto sprite_map_header::vera_sprite_width_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #8
+    beq __b5
+    // sprite_map_header::vera_sprite_width_get_bitmap1_@1
+    // case 16:
+    //             return VERA_SPRITE_WIDTH_16;
+    // [121] if(sprite_map_header::vera_sprite_width_get_bitmap1_width#0==$10) goto sprite_map_header::vera_sprite_width_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$10
+    beq __b6
+    // sprite_map_header::vera_sprite_width_get_bitmap1_@2
+    // case 32:
+    //             return VERA_SPRITE_WIDTH_32;
+    // [122] if(sprite_map_header::vera_sprite_width_get_bitmap1_width#0==$20) goto sprite_map_header::vera_sprite_width_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$20
+    beq __b7
+    // sprite_map_header::vera_sprite_width_get_bitmap1_@3
+    // case 64:
+    //             return VERA_SPRITE_WIDTH_64;
+    //         other:
+    // [123] if(sprite_map_header::vera_sprite_width_get_bitmap1_width#0==$40) goto sprite_map_header::vera_sprite_width_get_bitmap1_@9 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$40
+    beq vera_sprite_width_get_bitmap1___b9
+    // [125] phi from sprite_map_header::vera_sprite_width_get_bitmap1 sprite_map_header::vera_sprite_width_get_bitmap1_@3 to sprite_map_header::vera_sprite_width_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_width_get_bitmap1/sprite_map_header::vera_sprite_width_get_bitmap1_@3->sprite_map_header::vera_sprite_width_get_bitmap1_@return]
+  __b5:
+    // [125] phi sprite_map_header::vera_sprite_width_get_bitmap1_return#5 = 0 [phi:sprite_map_header::vera_sprite_width_get_bitmap1/sprite_map_header::vera_sprite_width_get_bitmap1_@3->sprite_map_header::vera_sprite_width_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #0
+    jmp __b1
+    // [124] phi from sprite_map_header::vera_sprite_width_get_bitmap1_@3 to sprite_map_header::vera_sprite_width_get_bitmap1_@9 [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@3->sprite_map_header::vera_sprite_width_get_bitmap1_@9]
+    // sprite_map_header::vera_sprite_width_get_bitmap1_@9
+  vera_sprite_width_get_bitmap1___b9:
+    // [125] phi from sprite_map_header::vera_sprite_width_get_bitmap1_@9 to sprite_map_header::vera_sprite_width_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@9->sprite_map_header::vera_sprite_width_get_bitmap1_@return]
+    // [125] phi sprite_map_header::vera_sprite_width_get_bitmap1_return#5 = $30 [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@9->sprite_map_header::vera_sprite_width_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$30
+    jmp __b1
+    // [125] phi from sprite_map_header::vera_sprite_width_get_bitmap1_@1 to sprite_map_header::vera_sprite_width_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@1->sprite_map_header::vera_sprite_width_get_bitmap1_@return]
+  __b6:
+    // [125] phi sprite_map_header::vera_sprite_width_get_bitmap1_return#5 = $10 [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@1->sprite_map_header::vera_sprite_width_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$10
+    jmp __b1
+    // [125] phi from sprite_map_header::vera_sprite_width_get_bitmap1_@2 to sprite_map_header::vera_sprite_width_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@2->sprite_map_header::vera_sprite_width_get_bitmap1_@return]
+  __b7:
+    // [125] phi sprite_map_header::vera_sprite_width_get_bitmap1_return#5 = $20 [phi:sprite_map_header::vera_sprite_width_get_bitmap1_@2->sprite_map_header::vera_sprite_width_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$20
+    // sprite_map_header::vera_sprite_width_get_bitmap1_@return
+    // sprite_map_header::@1
+  __b1:
+    // sprites.Width[sprite] = vera_sprite_width_get_bitmap(sprite_file_header->width)
+    // [126] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_WIDTH)[sprite_map_header::sprite#0] = sprite_map_header::vera_sprite_width_get_bitmap1_return#5 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_WIDTH,x
+    // vera_sprite_height_get_bitmap(sprite_file_header->height)
+    // [127] sprite_map_header::vera_sprite_height_get_bitmap1_height#0 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HEIGHT) -- vbuaa=_deref_pbuc1 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HEIGHT
+    // sprite_map_header::vera_sprite_height_get_bitmap1
+    // case 8:
+    //             return VERA_SPRITE_HEIGHT_8;
+    // [128] if(sprite_map_header::vera_sprite_height_get_bitmap1_height#0==8) goto sprite_map_header::vera_sprite_height_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #8
+    beq __b8
+    // sprite_map_header::vera_sprite_height_get_bitmap1_@1
+    // case 16:
+    //             return VERA_SPRITE_HEIGHT_16;
+    // [129] if(sprite_map_header::vera_sprite_height_get_bitmap1_height#0==$10) goto sprite_map_header::vera_sprite_height_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$10
+    beq __b9
+    // sprite_map_header::vera_sprite_height_get_bitmap1_@2
+    // case 32:
+    //             return VERA_SPRITE_HEIGHT_32;
+    // [130] if(sprite_map_header::vera_sprite_height_get_bitmap1_height#0==$20) goto sprite_map_header::vera_sprite_height_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$20
+    beq __b10
+    // sprite_map_header::vera_sprite_height_get_bitmap1_@3
+    // case 64:
+    //             return VERA_SPRITE_HEIGHT_64;
+    //         other:
+    // [131] if(sprite_map_header::vera_sprite_height_get_bitmap1_height#0==$40) goto sprite_map_header::vera_sprite_height_get_bitmap1_@9 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #$40
+    beq vera_sprite_height_get_bitmap1___b9
+    // [133] phi from sprite_map_header::vera_sprite_height_get_bitmap1 sprite_map_header::vera_sprite_height_get_bitmap1_@3 to sprite_map_header::vera_sprite_height_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_height_get_bitmap1/sprite_map_header::vera_sprite_height_get_bitmap1_@3->sprite_map_header::vera_sprite_height_get_bitmap1_@return]
+  __b8:
+    // [133] phi sprite_map_header::vera_sprite_height_get_bitmap1_return#5 = 0 [phi:sprite_map_header::vera_sprite_height_get_bitmap1/sprite_map_header::vera_sprite_height_get_bitmap1_@3->sprite_map_header::vera_sprite_height_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #0
+    jmp __b2
+    // [132] phi from sprite_map_header::vera_sprite_height_get_bitmap1_@3 to sprite_map_header::vera_sprite_height_get_bitmap1_@9 [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@3->sprite_map_header::vera_sprite_height_get_bitmap1_@9]
+    // sprite_map_header::vera_sprite_height_get_bitmap1_@9
+  vera_sprite_height_get_bitmap1___b9:
+    // [133] phi from sprite_map_header::vera_sprite_height_get_bitmap1_@9 to sprite_map_header::vera_sprite_height_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@9->sprite_map_header::vera_sprite_height_get_bitmap1_@return]
+    // [133] phi sprite_map_header::vera_sprite_height_get_bitmap1_return#5 = $c0 [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@9->sprite_map_header::vera_sprite_height_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$c0
+    jmp __b2
+    // [133] phi from sprite_map_header::vera_sprite_height_get_bitmap1_@1 to sprite_map_header::vera_sprite_height_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@1->sprite_map_header::vera_sprite_height_get_bitmap1_@return]
+  __b9:
+    // [133] phi sprite_map_header::vera_sprite_height_get_bitmap1_return#5 = $40 [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@1->sprite_map_header::vera_sprite_height_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$40
+    jmp __b2
+    // [133] phi from sprite_map_header::vera_sprite_height_get_bitmap1_@2 to sprite_map_header::vera_sprite_height_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@2->sprite_map_header::vera_sprite_height_get_bitmap1_@return]
+  __b10:
+    // [133] phi sprite_map_header::vera_sprite_height_get_bitmap1_return#5 = $80 [phi:sprite_map_header::vera_sprite_height_get_bitmap1_@2->sprite_map_header::vera_sprite_height_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$80
+    // sprite_map_header::vera_sprite_height_get_bitmap1_@return
+    // sprite_map_header::@2
+  __b2:
+    // sprites.Height[sprite] = vera_sprite_height_get_bitmap(sprite_file_header->height)
+    // [134] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_HEIGHT)[sprite_map_header::sprite#0] = sprite_map_header::vera_sprite_height_get_bitmap1_return#5 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_HEIGHT,x
+    // vera_sprite_zdepth_get_bitmap(sprite_file_header->zdepth)
+    // [135] sprite_map_header::vera_sprite_zdepth_get_bitmap1_zdepth#0 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_ZDEPTH) -- vbuaa=_deref_pbuc1 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_ZDEPTH
+    // sprite_map_header::vera_sprite_zdepth_get_bitmap1
+    // case 0:
+    //             return VERA_SPRITE_ZDEPTH_DISABLED;
+    // [136] if(sprite_map_header::vera_sprite_zdepth_get_bitmap1_zdepth#0==0) goto sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return -- vbuaa_eq_0_then_la1 
+    cmp #0
+    beq __b11
+    // sprite_map_header::vera_sprite_zdepth_get_bitmap1_@1
+    // case 1:
+    //             return VERA_SPRITE_ZDEPTH_BETWEEN_BACKGROUND_AND_LAYER0;
+    // [137] if(sprite_map_header::vera_sprite_zdepth_get_bitmap1_zdepth#0==1) goto sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #1
+    beq __b12
+    // sprite_map_header::vera_sprite_zdepth_get_bitmap1_@2
+    // case 2:
+    //             return VERA_SPRITE_ZDEPTH_BETWEEN_LAYER0_AND_LAYER1;
+    // [138] if(sprite_map_header::vera_sprite_zdepth_get_bitmap1_zdepth#0==2) goto sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #2
+    beq __b13
+    // sprite_map_header::vera_sprite_zdepth_get_bitmap1_@3
+    // case 3:
+    //             return VERA_SPRITE_ZDEPTH_IN_FRONT;
+    //         other:
+    // [139] if(sprite_map_header::vera_sprite_zdepth_get_bitmap1_zdepth#0==3) goto sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #3
+    beq vera_sprite_zdepth_get_bitmap1___b9
+    // [141] phi from sprite_map_header::vera_sprite_zdepth_get_bitmap1 sprite_map_header::vera_sprite_zdepth_get_bitmap1_@3 to sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1/sprite_map_header::vera_sprite_zdepth_get_bitmap1_@3->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return]
+  __b11:
+    // [141] phi sprite_map_header::vera_sprite_zdepth_get_bitmap1_return#5 = 0 [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1/sprite_map_header::vera_sprite_zdepth_get_bitmap1_@3->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #0
+    jmp __b3
+    // [140] phi from sprite_map_header::vera_sprite_zdepth_get_bitmap1_@3 to sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9 [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@3->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9]
+    // sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9
+  vera_sprite_zdepth_get_bitmap1___b9:
+    // [141] phi from sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9 to sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return]
+    // [141] phi sprite_map_header::vera_sprite_zdepth_get_bitmap1_return#5 = $c [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@9->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #$c
+    jmp __b3
+    // [141] phi from sprite_map_header::vera_sprite_zdepth_get_bitmap1_@1 to sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@1->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return]
+  __b12:
+    // [141] phi sprite_map_header::vera_sprite_zdepth_get_bitmap1_return#5 = 4 [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@1->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #4
+    jmp __b3
+    // [141] phi from sprite_map_header::vera_sprite_zdepth_get_bitmap1_@2 to sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@2->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return]
+  __b13:
+    // [141] phi sprite_map_header::vera_sprite_zdepth_get_bitmap1_return#5 = 8 [phi:sprite_map_header::vera_sprite_zdepth_get_bitmap1_@2->sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #8
+    // sprite_map_header::vera_sprite_zdepth_get_bitmap1_@return
+    // sprite_map_header::@3
+  __b3:
+    // sprites.Zdepth[sprite] = vera_sprite_zdepth_get_bitmap(sprite_file_header->zdepth)
+    // [142] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_ZDEPTH)[sprite_map_header::sprite#0] = sprite_map_header::vera_sprite_zdepth_get_bitmap1_return#5 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_ZDEPTH,x
+    // vera_sprite_hflip_get_bitmap(sprite_file_header->hflip)
+    // [143] sprite_map_header::vera_sprite_hflip_get_bitmap1_hflip#0 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HFLIP) -- vbuaa=_deref_pbuc1 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HFLIP
+    // sprite_map_header::vera_sprite_hflip_get_bitmap1
+    // case 0:
+    //             return VERA_SPRITE_NFLIP;
+    // [144] if(sprite_map_header::vera_sprite_hflip_get_bitmap1_hflip#0==0) goto sprite_map_header::vera_sprite_hflip_get_bitmap1_@return -- vbuaa_eq_0_then_la1 
+    cmp #0
+    beq __b14
+    // sprite_map_header::vera_sprite_hflip_get_bitmap1_@1
+    // case 1:
+    //             return VERA_SPRITE_HFLIP;
+    //         other:
+    // [145] if(sprite_map_header::vera_sprite_hflip_get_bitmap1_hflip#0==1) goto sprite_map_header::vera_sprite_hflip_get_bitmap1_@5 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #1
+    beq vera_sprite_hflip_get_bitmap1___b5
+    // [147] phi from sprite_map_header::vera_sprite_hflip_get_bitmap1 sprite_map_header::vera_sprite_hflip_get_bitmap1_@1 to sprite_map_header::vera_sprite_hflip_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_hflip_get_bitmap1/sprite_map_header::vera_sprite_hflip_get_bitmap1_@1->sprite_map_header::vera_sprite_hflip_get_bitmap1_@return]
+  __b14:
+    // [147] phi sprite_map_header::vera_sprite_hflip_get_bitmap1_return#3 = 0 [phi:sprite_map_header::vera_sprite_hflip_get_bitmap1/sprite_map_header::vera_sprite_hflip_get_bitmap1_@1->sprite_map_header::vera_sprite_hflip_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #0
+    jmp __b4
+    // [146] phi from sprite_map_header::vera_sprite_hflip_get_bitmap1_@1 to sprite_map_header::vera_sprite_hflip_get_bitmap1_@5 [phi:sprite_map_header::vera_sprite_hflip_get_bitmap1_@1->sprite_map_header::vera_sprite_hflip_get_bitmap1_@5]
+    // sprite_map_header::vera_sprite_hflip_get_bitmap1_@5
+  vera_sprite_hflip_get_bitmap1___b5:
+    // [147] phi from sprite_map_header::vera_sprite_hflip_get_bitmap1_@5 to sprite_map_header::vera_sprite_hflip_get_bitmap1_@return [phi:sprite_map_header::vera_sprite_hflip_get_bitmap1_@5->sprite_map_header::vera_sprite_hflip_get_bitmap1_@return]
+    // [147] phi sprite_map_header::vera_sprite_hflip_get_bitmap1_return#3 = 1 [phi:sprite_map_header::vera_sprite_hflip_get_bitmap1_@5->sprite_map_header::vera_sprite_hflip_get_bitmap1_@return#0] -- vbuaa=vbuc1 
+    lda #1
+    // sprite_map_header::vera_sprite_hflip_get_bitmap1_@return
+    // sprite_map_header::@4
+  __b4:
+    // sprites.Hflip[sprite] = vera_sprite_hflip_get_bitmap(sprite_file_header->hflip)
+    // [148] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_HFLIP)[sprite_map_header::sprite#0] = sprite_map_header::vera_sprite_hflip_get_bitmap1_return#3 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_HFLIP,x
+    // vera_sprite_vflip_get_bitmap(sprite_file_header->vflip)
+    // [149] vera_sprite_vflip_get_bitmap::vflip#0 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_VFLIP) -- vbuaa=_deref_pbuc1 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_VFLIP
+    // [150] call vera_sprite_vflip_get_bitmap
+    jsr vera_sprite_vflip_get_bitmap
+    // [151] vera_sprite_vflip_get_bitmap::return#4 = vera_sprite_vflip_get_bitmap::return#3
+    // sprite_map_header::@5
+    // [152] sprite_map_header::$4 = vera_sprite_vflip_get_bitmap::return#4
+    // sprites.Vflip[sprite] = vera_sprite_vflip_get_bitmap(sprite_file_header->vflip)
+    // [153] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_VFLIP)[sprite_map_header::sprite#0] = sprite_map_header::$4 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_VFLIP,x
+    // vera_sprite_bpp_get_bitmap(sprite_file_header->bpp)
+    // [154] vera_sprite_bpp_get_bitmap::bpp#0 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_BPP) -- vbuaa=_deref_pbuc1 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_BPP
+    // [155] call vera_sprite_bpp_get_bitmap
+    jsr vera_sprite_bpp_get_bitmap
+    // [156] vera_sprite_bpp_get_bitmap::return#4 = vera_sprite_bpp_get_bitmap::return#3
+    // sprite_map_header::@6
+    // [157] sprite_map_header::$5 = vera_sprite_bpp_get_bitmap::return#4
+    // sprites.BPP[sprite] = vera_sprite_bpp_get_bitmap(sprite_file_header->bpp)
+    // [158] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_BPP)[sprite_map_header::sprite#0] = sprite_map_header::$5 -- pbuc1_derefidx_vbuxx=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_BPP,x
+    // sprites.reverse[sprite] = sprite_file_header->reverse
+    // [159] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_REVERSE)[sprite_map_header::sprite#0] = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_REVERSE) -- pbuc1_derefidx_vbuxx=_deref_pbuc2 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_REVERSE
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_REVERSE,x
+    // sprites.aabb[sprite].xmin = sprite_file_header->collision
+    // [160] sprite_map_header::$10 = sprite_map_header::sprite#0 << 2 -- vbuyy=vbuxx_rol_2 
+    txa
+    asl
+    asl
+    tay
+    // [161] ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB)[sprite_map_header::$10] = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION) -- pbuc1_derefidx_vbuyy=_deref_pbuc2 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_AABB,y
+    // sprites.aabb[sprite].ymin = sprite_file_header->collision
+    // [162] ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMIN)[sprite_map_header::$10] = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION) -- pbuc1_derefidx_vbuyy=_deref_pbuc2 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMIN,y
+    // sprite_file_header->width - sprite_file_header->collision
+    // [163] sprite_map_header::$6 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_WIDTH) - *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION) -- vbuaa=_deref_pbuc1_minus__deref_pbuc2 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_WIDTH
+    sec
+    sbc sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION
+    // sprites.aabb[sprite].xmax = sprite_file_header->width - sprite_file_header->collision
+    // [164] ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_XMAX)[sprite_map_header::$10] = sprite_map_header::$6 -- pbuc1_derefidx_vbuyy=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_XMAX,y
+    // sprite_file_header->height - sprite_file_header->collision
+    // [165] sprite_map_header::$7 = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HEIGHT) - *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION) -- vbuaa=_deref_pbuc1_minus__deref_pbuc2 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_HEIGHT
+    sec
+    sbc sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_COLLISION
+    // sprites.aabb[sprite].ymax = sprite_file_header->height - sprite_file_header->collision
+    // [166] ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMAX)[sprite_map_header::$10] = sprite_map_header::$7 -- pbuc1_derefidx_vbuyy=vbuaa 
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMAX,y
+    // sprites.PaletteOffset[sprite] = 0
+    // [167] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET)[sprite_map_header::sprite#0] = 0 -- pbuc1_derefidx_vbuxx=vbuc2 
+    lda #0
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET,x
+    // sprites.loop[sprite] = sprite_file_header->loop
+    // [168] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_LOOP)[sprite_map_header::sprite#0] = *((char *)sprite_map_header::sprite_file_header#0+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_LOOP) -- pbuc1_derefidx_vbuxx=_deref_pbuc2 
+    lda sprite_file_header+OFFSET_STRUCT_SPRITE_FILE_HEADER_T_LOOP
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_LOOP,x
+    // sprites.sprite_cache[sprite] = 0
+    // [169] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE)[sprite_map_header::sprite#0] = 0 -- pbuc1_derefidx_vbuxx=vbuc2 
+    lda #0
+    sta equinoxe_flight_cache.sprites+OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE,x
+    // sprite_map_header::@return
+    // }
+    // [170] return 
+    rts
+}
+  // code segment
+.segment Code
+  // strlen
+// Computes the length of the string str up to but not including the terminating null character.
+// __mem() unsigned int strlen(__zp($26) char *str)
+strlen: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label str = $26
+    // [172] phi from strlen to strlen::@1 [phi:strlen->strlen::@1]
+    // [172] phi strlen::len#2 = 0 [phi:strlen->strlen::@1#0] -- vwum1=vwuc1 
+    lda #<0
+    sta len
+    sta len+1
+    // [172] phi strlen::str#2 = fe_sprite_bram_load::filename [phi:strlen->strlen::@1#1] -- pbuz1=pbuc1 
+    lda #<fe_sprite_bram_load.filename
+    sta.z str
+    lda #>fe_sprite_bram_load.filename
+    sta.z str+1
+    // strlen::@1
+  __b1:
+    // while(*str)
+    // [173] if(0!=*strlen::str#2) goto strlen::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (str),y
+    cmp #0
+    bne __b2
+    // strlen::@return
+    // }
+    // [174] return 
+    rts
+    // strlen::@2
+  __b2:
+    // len++;
+    // [175] strlen::len#1 = ++ strlen::len#2 -- vwum1=_inc_vwum1 
+    inc len
+    bne !+
+    inc len+1
+  !:
+    // str++;
+    // [176] strlen::str#1 = ++ strlen::str#2 -- pbuz1=_inc_pbuz1 
+    inc.z str
+    bne !+
+    inc.z str+1
+  !:
+    // [172] phi from strlen::@2 to strlen::@1 [phi:strlen::@2->strlen::@1]
+    // [172] phi strlen::len#2 = strlen::len#1 [phi:strlen::@2->strlen::@1#0] -- register_copy 
+    // [172] phi strlen::str#2 = strlen::str#1 [phi:strlen::@2->strlen::@1#1] -- register_copy 
+    jmp __b1
+  .segment Data
+    .label return = len
+  .segment Data
+    len: .word 0
+}
+  // code segment
+.segment Code
+  // vera_sprite_vflip_get_bitmap
+// __register(A) char vera_sprite_vflip_get_bitmap(__register(A) char vflip)
+vera_sprite_vflip_get_bitmap: {
+    // constants
+    // variables
+    // variables-zero-page
+    // case 0:
+    //             return VERA_SPRITE_NFLIP;
+    // [177] if(vera_sprite_vflip_get_bitmap::vflip#0==0) goto vera_sprite_vflip_get_bitmap::@return -- vbuaa_eq_0_then_la1 
+    cmp #0
+    beq __b1
+    // vera_sprite_vflip_get_bitmap::@1
+    // case 1:
+    //             return VERA_SPRITE_VFLIP;
+    //         other:
+    // [178] if(vera_sprite_vflip_get_bitmap::vflip#0==1) goto vera_sprite_vflip_get_bitmap::@2 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #1
+    beq __b2
+    // [180] phi from vera_sprite_vflip_get_bitmap vera_sprite_vflip_get_bitmap::@1 to vera_sprite_vflip_get_bitmap::@return [phi:vera_sprite_vflip_get_bitmap/vera_sprite_vflip_get_bitmap::@1->vera_sprite_vflip_get_bitmap::@return]
+  __b1:
+    // [180] phi vera_sprite_vflip_get_bitmap::return#3 = 0 [phi:vera_sprite_vflip_get_bitmap/vera_sprite_vflip_get_bitmap::@1->vera_sprite_vflip_get_bitmap::@return#0] -- vbuaa=vbuc1 
+    lda #0
+    rts
+    // [179] phi from vera_sprite_vflip_get_bitmap::@1 to vera_sprite_vflip_get_bitmap::@2 [phi:vera_sprite_vflip_get_bitmap::@1->vera_sprite_vflip_get_bitmap::@2]
+    // vera_sprite_vflip_get_bitmap::@2
+  __b2:
+    // [180] phi from vera_sprite_vflip_get_bitmap::@2 to vera_sprite_vflip_get_bitmap::@return [phi:vera_sprite_vflip_get_bitmap::@2->vera_sprite_vflip_get_bitmap::@return]
+    // [180] phi vera_sprite_vflip_get_bitmap::return#3 = 2 [phi:vera_sprite_vflip_get_bitmap::@2->vera_sprite_vflip_get_bitmap::@return#0] -- vbuaa=vbuc1 
+    lda #2
+    // vera_sprite_vflip_get_bitmap::@return
+    // }
+    // [181] return 
+    rts
+}
+  // code segment
+.segment Code
+  // vera_sprite_bpp_get_bitmap
+// __register(A) char vera_sprite_bpp_get_bitmap(__register(A) char bpp)
+vera_sprite_bpp_get_bitmap: {
+    // constants
+    // variables
+    // variables-zero-page
+    // case 4:
+    //             return VERA_SPRITE_4BPP;
+    // [182] if(vera_sprite_bpp_get_bitmap::bpp#0==4) goto vera_sprite_bpp_get_bitmap::@return -- vbuaa_eq_vbuc1_then_la1 
+    cmp #4
+    beq __b1
+    // vera_sprite_bpp_get_bitmap::@1
+    // case 8:
+    //             return VERA_SPRITE_8BPP;
+    //         other:
+    // [183] if(vera_sprite_bpp_get_bitmap::bpp#0==8) goto vera_sprite_bpp_get_bitmap::@2 -- vbuaa_eq_vbuc1_then_la1 
+    cmp #8
+    beq __b2
+    // [185] phi from vera_sprite_bpp_get_bitmap vera_sprite_bpp_get_bitmap::@1 to vera_sprite_bpp_get_bitmap::@return [phi:vera_sprite_bpp_get_bitmap/vera_sprite_bpp_get_bitmap::@1->vera_sprite_bpp_get_bitmap::@return]
+  __b1:
+    // [185] phi vera_sprite_bpp_get_bitmap::return#3 = 0 [phi:vera_sprite_bpp_get_bitmap/vera_sprite_bpp_get_bitmap::@1->vera_sprite_bpp_get_bitmap::@return#0] -- vbuaa=vbuc1 
+    lda #0
+    rts
+    // [184] phi from vera_sprite_bpp_get_bitmap::@1 to vera_sprite_bpp_get_bitmap::@2 [phi:vera_sprite_bpp_get_bitmap::@1->vera_sprite_bpp_get_bitmap::@2]
+    // vera_sprite_bpp_get_bitmap::@2
+  __b2:
+    // [185] phi from vera_sprite_bpp_get_bitmap::@2 to vera_sprite_bpp_get_bitmap::@return [phi:vera_sprite_bpp_get_bitmap::@2->vera_sprite_bpp_get_bitmap::@return]
+    // [185] phi vera_sprite_bpp_get_bitmap::return#3 = $80 [phi:vera_sprite_bpp_get_bitmap::@2->vera_sprite_bpp_get_bitmap::@return#0] -- vbuaa=vbuc1 
+    lda #$80
+    // vera_sprite_bpp_get_bitmap::@return
+    // }
+    // [186] return 
+    rts
+}
+  // Exported Global Data
+  // end-assembler
+  // End Namespace
+} // namespace
+ // Asm import library lib_bramheap:
+.namespace lib_bramheap {
+.label sprites = 0
+.label sprite_bram_handles = 0
+bram_heap_alloc: {
+  .label s = 0
+  .label size = 0
+  .label return = 0
+}
+bram_heap_data_get_bank: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+bram_heap_data_get_offset: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+} // namespacelib_bramheap
+
+ // Asm import library lib_file:
+.namespace lib_file {
+.label sprites = 0
+.label sprite_bram_handles = 0
+fopen: {
+  .label path = 0
+  .label mode = 0
+  .label return = 0
+}
+fclose: {
+  .label stream = 0
+  .label return = 0
+}
+fgets: {
+  .label ptr = 0
+  .label size = 0
+  .label stream = 0
+  .label return = 0
+}
+} // namespacelib_file
+
+ // Asm import library equinoxe-flightengine:
+.namespace equinoxe_flightengine {
+.label sprites = 0
+.label sprite_bram_handles = 0
+} // namespaceequinoxe_flightengine
+
+ // Asm import library equinoxe-flight-cache:
+.namespace equinoxe_flight_cache {
+.label sprites = 0
+.label sprite_bram_handles = 0
+} // namespaceequinoxe_flight_cache
+
+ // Asm import library equinoxe-palette:
+.namespace equinoxe_palette {
+.label sprites = 0
+.label sprite_bram_handles = 0
+palette_alloc_bram: {
+  .label return = 0
+}
+palette_ptr_bram: {
+  .label palette_index = 0
+  .label return = 0
+}
+} // namespaceequinoxe_palette
+

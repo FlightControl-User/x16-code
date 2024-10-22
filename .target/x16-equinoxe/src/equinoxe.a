@@ -279,9 +279,8 @@ __start: {
     // variables-zero-page
     // __start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -728,10 +727,9 @@ main: {
     // [222] callexecute bram_heap_bram_bank_init  -- call_var_near 
     jsr lib_bramheap.bram_heap_bram_bank_init
     // bram_heap_segment_init(0, 0x10, (bram_ptr_t)0xA000, 0x3C, (bram_ptr_t)0xA000)
-    // [223] bram_heap_segment_init::s = 0 -- vbum1=vbuc1 
+    // [223] bram_heap_segment_init::s = 0 -- vbum1=0 
     // BREAKPOINT
-    lda #0
-    sta lib_bramheap.bram_heap_segment_init.s
+    stz lib_bramheap.bram_heap_segment_init.s
     // [224] bram_heap_segment_init::bram_bank_floor = $10 -- vbum1=vbuc1 
     lda #$10
     sta lib_bramheap.bram_heap_segment_init.bram_bank_floor
@@ -780,16 +778,15 @@ main: {
     // [236] callexecute vera_heap_bram_bank_init  -- call_var_near 
     jsr lib_veraheap.vera_heap_bram_bank_init
     // vera_heap_segment_init(VERA_HEAP_SEGMENT_TILES, FLOOR_TILE_BANK_VRAM, FLOOR_TILE_OFFSET_VRAM, SPRITE_BANK_VRAM, SPRITE_OFFSET_VRAM)
-    // [237] vera_heap_segment_init::s = 0 -- vbum1=vbuc1 
-    lda #0
-    sta lib_veraheap.vera_heap_segment_init.s
-    // [238] vera_heap_segment_init::vram_bank_floor = 0 -- vbum1=vbuc1 
-    sta lib_veraheap.vera_heap_segment_init.vram_bank_floor
-    // [239] vera_heap_segment_init::vram_offset_floor = 0 -- vwum1=vbuc1 
-    sta lib_veraheap.vera_heap_segment_init.vram_offset_floor
-    sta lib_veraheap.vera_heap_segment_init.vram_offset_floor+1
-    // [240] vera_heap_segment_init::vram_bank_ceil = 0 -- vbum1=vbuc1 
-    sta lib_veraheap.vera_heap_segment_init.vram_bank_ceil
+    // [237] vera_heap_segment_init::s = 0 -- vbum1=0 
+    stz lib_veraheap.vera_heap_segment_init.s
+    // [238] vera_heap_segment_init::vram_bank_floor = 0 -- vbum1=0 
+    stz lib_veraheap.vera_heap_segment_init.vram_bank_floor
+    // [239] vera_heap_segment_init::vram_offset_floor = 0 -- vwum1=0 
+    stz lib_veraheap.vera_heap_segment_init.vram_offset_floor
+    stz lib_veraheap.vera_heap_segment_init.vram_offset_floor+1
+    // [240] vera_heap_segment_init::vram_bank_ceil = 0 -- vbum1=0 
+    stz lib_veraheap.vera_heap_segment_init.vram_bank_ceil
     // [241] vera_heap_segment_init::vram_offset_ceil = $5000 -- vwum1=vwuc1 
     lda #<$5000
     sta lib_veraheap.vera_heap_segment_init.vram_offset_ceil
@@ -802,9 +799,8 @@ main: {
     // FLOOR_TILE segment for tiles of various sizes and types
     lda #1
     sta lib_veraheap.vera_heap_segment_init.s
-    // [244] vera_heap_segment_init::vram_bank_floor = 0 -- vbum1=vbuc1 
-    lda #0
-    sta lib_veraheap.vera_heap_segment_init.vram_bank_floor
+    // [244] vera_heap_segment_init::vram_bank_floor = 0 -- vbum1=0 
+    stz lib_veraheap.vera_heap_segment_init.vram_bank_floor
     // [245] vera_heap_segment_init::vram_offset_floor = $5000 -- vwum1=vwuc1 
     lda #<$5000
     sta lib_veraheap.vera_heap_segment_init.vram_offset_floor
@@ -914,23 +910,22 @@ main: {
     lda #<vera_layer0_set_vertical_scroll1_scroll
     sta VERA_L0_VSCROLL_L
     // *VERA_L0_VSCROLL_H = BYTE1(scroll)
-    // [268] *VERA_L0_VSCROLL_H = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta VERA_L0_VSCROLL_H
+    // [268] *VERA_L0_VSCROLL_H = 0 -- _deref_pbuc1=0 
+    stz VERA_L0_VSCROLL_H
     // main::vera_layer1_set_vertical_scroll1
     // *VERA_L1_VSCROLL_L = BYTE0(scroll)
-    // [269] *VERA_L1_VSCROLL_L = 0 -- _deref_pbuc1=vbuc2 
-    sta VERA_L1_VSCROLL_L
+    // [269] *VERA_L1_VSCROLL_L = 0 -- _deref_pbuc1=0 
+    stz VERA_L1_VSCROLL_L
     // *VERA_L1_VSCROLL_H = BYTE1(scroll)
-    // [270] *VERA_L1_VSCROLL_H = 0 -- _deref_pbuc1=vbuc2 
-    sta VERA_L1_VSCROLL_H
+    // [270] *VERA_L1_VSCROLL_H = 0 -- _deref_pbuc1=0 
+    stz VERA_L1_VSCROLL_H
     // [271] phi from main::vera_layer1_set_vertical_scroll1 to main::@6 [phi:main::vera_layer1_set_vertical_scroll1->main::@6]
     // main::@6
     // stage_logic(0)
     // [272] call stage_logic
     // [318] phi from main::@6 to stage_logic [phi:main::@6->stage_logic]
     // [318] phi stage_logic::tickstage#2 = 0 [phi:main::@6->stage_logic#0] -- call_phi_close_cx16_ram 
-    tax
+    ldx #0
     sta.z $ff
     lda.z 0
     pha
@@ -944,7 +939,7 @@ main: {
     lda.z $ff
     // main::@12
     // scroll(0)
-    // [273] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    // [273] stackpush(char) = 0 -- _stackpushbyte_=0 
     lda #0
     pha
     // [274] callexecute scroll  -- call_stack_near 
@@ -1062,7 +1057,7 @@ main: {
     //     CLI();
     // #endif
     sta ch
-    jmp __b2
+    bra __b2
   .segment Data
     ch: .byte 0
   .segment Data
@@ -1102,17 +1097,16 @@ cx16_mouse_get: {
     .label y = $fe
     // variables-zero-page
     // __mem char status
-    // [305] cx16_mouse_get::status = 0 -- vbum1=vbuc1 
-    lda #0
-    sta status
+    // [305] cx16_mouse_get::status = 0 -- vbum1=0 
+    stz status
     // __address(0xfc) unsigned int x
-    // [306] cx16_mouse_get::x = 0 -- vwuz1=vwuc1 
-    sta.z x
-    sta.z x+1
+    // [306] cx16_mouse_get::x = 0 -- vwuz1=0 
+    stz.z x
+    stz.z x+1
     // __address(0xfe) unsigned int y
-    // [307] cx16_mouse_get::y = 0 -- vwuz1=vwuc1 
-    sta.z y
-    sta.z y+1
+    // [307] cx16_mouse_get::y = 0 -- vwuz1=0 
+    stz.z y
+    stz.z y+1
     // if(!cx16_mouse.wait)
     // [308] if(0!=*((char *)&cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT)) goto cx16_mouse_get::@1 -- 0_neq__deref_pbuc1_then_la1 
     lda cx16_mouse+OFFSET_STRUCT_CX16_MOUSE_T_WAIT
@@ -1208,9 +1202,8 @@ stage_logic: {
     // [323] callexecute floor_evolve  -- call_var_near 
     jsr equinoxe_floorengine.floor_evolve
     // [324] phi from stage_logic::@3 to stage_logic::@5 [phi:stage_logic::@3->stage_logic::@5]
-    // [324] phi stage_logic::w#10 = 0 [phi:stage_logic::@3->stage_logic::@5#0] -- vbum1=vbuc1 
-    lda #0
-    sta w
+    // [324] phi stage_logic::w#10 = 0 [phi:stage_logic::@3->stage_logic::@5#0] -- vbum1=0 
+    stz w
   // BREAKPOINT
     // stage_logic::@5
   __b5:
@@ -1222,9 +1215,8 @@ stage_logic: {
     jmp __b6
   !__b6:
     // [326] phi from stage_logic::@5 to stage_logic::@15 [phi:stage_logic::@5->stage_logic::@15]
-    // [326] phi stage_logic::w1#2 = 0 [phi:stage_logic::@5->stage_logic::@15#0] -- vbum1=vbuc1 
-    lda #0
-    sta w1
+    // [326] phi stage_logic::w1#2 = 0 [phi:stage_logic::@5->stage_logic::@15#0] -- vbum1=0 
+    stz w1
     // stage_logic::@15
   __b15:
     // for(unsigned char w=0; w<8; w++)
@@ -1256,14 +1248,13 @@ stage_logic: {
   !:
     // stage_logic::@25
     // stage.scenario_current = 0
-    // [330] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT) = 0 -- _deref_pwuc1=vbuc2 
+    // [330] *((unsigned int *)&stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT) = 0 -- _deref_pwuc1=0 
     // stage.playbook_current++;
     // stage_playbook_t* stage_playbook = stage.script_b.playbooks_b;
     // stage.current_playbook = stage_playbook[stage.playbook_current];
     // stage.scenario_total = stage.current_playbook.scenario_total_b;
-    lda #<0
-    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT
-    sta equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT+1
+    stz equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT
+    stz equinoxe_stage_flight.stage+OFFSET_STRUCT_STAGE_T_SCENARIO_CURRENT+1
     // stage_logic::@1
   __b1:
     // if(stage.player_respawn)
@@ -1389,10 +1380,9 @@ stage_logic: {
   !:
     // stage_logic::@20
     // wave.finished[w] = 0
-    // [351] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_logic::w1#2] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy w1
-    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
+    // [351] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_logic::w1#2] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx w1
+    stz equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,x
     // stage_logic::@18
   __b18:
     // for(unsigned char w=0; w<8; w++)
@@ -1573,14 +1563,14 @@ stage_logic: {
     bne __b7
     // stage_logic::@12
     // wave.used[w] = 0
-    // [376] ((char *)&wave+OFFSET_STRUCT_WAVE_T_USED)[stage_logic::w#10] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_USED,y
+    // [376] ((char *)&wave+OFFSET_STRUCT_WAVE_T_USED)[stage_logic::w#10] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx w
+    stz equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_USED,x
     // wave.finished[w] = 1
     // [377] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_logic::w#10] = 1 -- pbuc1_derefidx_vbum1=vbuc2 
     lda #1
     sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
-    jmp __b7
+    bra __b7
     // stage_logic::@9
   __b9:
     // if(wave.enemy_spawn[w])
@@ -1598,7 +1588,7 @@ stage_logic: {
     ldx equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_SPRITE,y
     // [381] call stage_enemy_add
     jsr stage_enemy_add
-    jmp __b7
+    bra __b7
   .segment DataEngineStages
     stage_logic__22: .word 0
   .segment DataEngineStages
@@ -2166,9 +2156,8 @@ stage_copy: {
     ldy ew
     sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_USED,y
     // wave.finished[ew] = 0
-    // [458] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_copy::ew#2] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,y
+    // [458] ((char *)&wave+OFFSET_STRUCT_WAVE_T_FINISHED)[stage_copy::ew#2] = 0 -- pbuc1_derefidx_vbum1=0 
+    stz equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_FINISHED,x
     // wave.scenario[ew] = scenario
     // [459] ((unsigned int *)&wave+OFFSET_STRUCT_WAVE_T_SCENARIO)[stage_copy::$4] = stage_copy::scenario#2 -- pwuc1_derefidx_vbum1=vwum2 
     ldy stage_copy__4
@@ -2177,10 +2166,8 @@ stage_copy: {
     lda scenario+1
     sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_SCENARIO+1,y
     // wave.enemy_alive[ew] = 0
-    // [460] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE)[stage_copy::ew#2] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy ew
-    sta equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE,y
+    // [460] ((char *)&wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE)[stage_copy::ew#2] = 0 -- pbuc1_derefidx_vbum1=0 
+    stz equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_ALIVE,x
     // stage_copy::@return
     // }
     // [461] return 
@@ -2288,14 +2275,10 @@ fload_bram: {
     lda.z lib_file.fopen.return+1
     sta.z fp+1
     // if(fp)
-    // [476] if((FILE *)0==fload_bram::fp#0) goto fload_bram::bank_set_bram2 -- pssc1_eq_pssz1_then_la1 
+    // [476] if((FILE *)0==fload_bram::fp#0) goto fload_bram::bank_set_bram2 -- 0_eq_pssz1_then_la1 
     lda.z fp
-    cmp #<0
-    bne !+
-    lda.z fp+1
-    cmp #>0
+    ora.z fp+1
     beq bank_set_bram2
-  !:
     // fload_bram::@1
     // fgets(dptr, 0, fp)
     // [477] fgets::ptr = (char *) 40960 -- pbuz1=pbuc1 
@@ -2303,10 +2286,9 @@ fload_bram: {
     sta.z lib_file.fgets.ptr
     lda #>$a000
     sta.z lib_file.fgets.ptr+1
-    // [478] fgets::size = 0 -- vwum1=vbuc1 
-    lda #<0
-    sta lib_file.fgets.size
-    sta lib_file.fgets.size+1
+    // [478] fgets::size = 0 -- vwum1=0 
+    stz lib_file.fgets.size
+    stz lib_file.fgets.size+1
     // [479] fgets::stream = fload_bram::fp#0 -- pssz1=pssz2 
     lda.z fp
     sta.z lib_file.fgets.stream
@@ -2354,7 +2336,7 @@ fload_bram: {
     sta.z lib_file.fclose.stream+1
     // [488] callexecute fclose  -- call_var_near 
     jsr lib_file.fclose
-    jmp bank_set_bram2
+    bra bank_set_bram2
   .segment Data
     mode: .text "r"
     .byte 0
@@ -2397,7 +2379,7 @@ memset: {
     // memset::@2
   __b2:
     // *dst = c
-    // [493] *memset::dst#2 = 0 -- _deref_pbuz1=vbuc1 
+    // [493] *memset::dst#2 = 0 -- _deref_pbuz1=0 
     lda #0
     tay
     sta (dst),y
@@ -2409,7 +2391,7 @@ memset: {
   !:
     // [490] phi from memset::@2 to memset::@1 [phi:memset::@2->memset::@1]
     // [490] phi memset::dst#2 = memset::dst#1 [phi:memset::@2->memset::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
 }
   // code segment
 .segment Code
@@ -2478,7 +2460,7 @@ memcpy: {
     // [497] phi from memcpy::@2 to memcpy::@1 [phi:memcpy::@2->memcpy::@1]
     // [497] phi memcpy::dst#2 = memcpy::dst#1 [phi:memcpy::@2->memcpy::@1#0] -- register_copy 
     // [497] phi memcpy::src#2 = memcpy::src#1 [phi:memcpy::@2->memcpy::@1#1] -- register_copy 
-    jmp __b1
+    bra __b1
 }
   // code segment
 .segment CodeEngineStages
@@ -2554,10 +2536,9 @@ stage_load: {
     // [511] call stage_load_player
     jsr stage_load_player
     // [512] phi from stage_load to stage_load::@1 [phi:stage_load->stage_load::@1]
-    // [512] phi stage_load::scenario#2 = 0 [phi:stage_load->stage_load::@1#0] -- vwum1=vwuc1 
-    lda #<0
-    sta scenario
-    sta scenario+1
+    // [512] phi stage_load::scenario#2 = 0 [phi:stage_load->stage_load::@1#0] -- vwum1=0 
+    stz scenario
+    stz scenario+1
   // Loading the enemy sprites in bram.
     // stage_load::@1
   __b1:
@@ -2629,7 +2610,7 @@ stage_load: {
   !:
     // [512] phi from stage_load::@4 to stage_load::@1 [phi:stage_load::@4->stage_load::@1]
     // [512] phi stage_load::scenario#2 = stage_load::scenario#1 [phi:stage_load::@4->stage_load::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment DataEngineStages
     .label stage_load__6 = stage_load__18
   .segment DataEngineStages
@@ -2794,17 +2775,15 @@ stage_load_floor: {
     lda (stage_floor),y
     sta.z floor+1
     // floor_part_memset_vram(0, floor, 0)
-    // [545] floor_part_memset_vram::part = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_floorengine.floor_part_memset_vram.part
+    // [545] floor_part_memset_vram::part = 0 -- vbum1=0 
+    stz equinoxe_floorengine.floor_part_memset_vram.part
     // [546] floor_part_memset_vram::floor = stage_load_floor::floor#0 -- pssz1=pssz2 
     lda.z floor
     sta.z equinoxe_floorengine.floor_part_memset_vram.floor
     lda.z floor+1
     sta.z equinoxe_floorengine.floor_part_memset_vram.floor+1
-    // [547] floor_part_memset_vram::pattern = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_floorengine.floor_part_memset_vram.pattern
+    // [547] floor_part_memset_vram::pattern = 0 -- vbum1=0 
+    stz equinoxe_floorengine.floor_part_memset_vram.pattern
     // [548] callexecute floor_part_memset_vram  -- call_var_near 
     jsr equinoxe_floorengine.floor_part_memset_vram
     // volatile unsigned char part=1
@@ -2812,9 +2791,8 @@ stage_load_floor: {
     lda #1
     sta part
     // [550] phi from stage_load_floor to stage_load_floor::@1 [phi:stage_load_floor->stage_load_floor::@1]
-    // [550] phi stage_load_floor::f#2 = 0 [phi:stage_load_floor->stage_load_floor::@1#0] -- vbum1=vbuc1 
-    lda #0
-    sta f
+    // [550] phi stage_load_floor::f#2 = 0 [phi:stage_load_floor->stage_load_floor::@1#0] -- vbum1=0 
+    stz f
     // stage_load_floor::@1
   __b1:
     // for(unsigned char f=0; f<stage_floor->floor_file_count; f++)
@@ -2852,9 +2830,8 @@ stage_load_floor: {
     // [556] callexecute floor_layer_index_segments  -- call_var_near 
     jsr equinoxe_floorengine.floor_layer_index_segments
     // floor_layer_map(0, FLOOR_MAP0_BANK_VRAM, FLOOR_MAP0_OFFSET_VRAM)
-    // [557] floor_layer_map::layer = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_floorengine.floor_layer_map.layer
+    // [557] floor_layer_map::layer = 0 -- vbum1=0 
+    stz equinoxe_floorengine.floor_layer_map.layer
     // [558] floor_layer_map::bank = 1 -- vbum1=vbuc1 
     lda #1
     sta equinoxe_floorengine.floor_layer_map.bank
@@ -2908,7 +2885,7 @@ stage_load_floor: {
     inc part1
     // [553] phi from stage_load_floor::@5 to stage_load_floor::@4 [phi:stage_load_floor::@5->stage_load_floor::@4]
     // [553] phi stage_load_floor::part1#2 = stage_load_floor::part1#1 [phi:stage_load_floor::@5->stage_load_floor::@4#0] -- register_copy 
-    jmp __b4
+    bra __b4
     // stage_load_floor::@2
   __b2:
     // floor_bram_tiles_t* floor_bram = floor_bram_tiles[f].floor_bram_tile

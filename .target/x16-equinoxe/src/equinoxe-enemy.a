@@ -106,9 +106,8 @@ __equinoxe_enemy_start: {
     // variables-zero-page
     // __equinoxe_enemy_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -209,7 +208,7 @@ enemy_logic: {
     // [16] enemy_logic::e = enemy_logic::en#0 -- vbuz1=vbum2 
     lda en
     sta.z e
-    jmp __b1
+    bra __b1
     // enemy_logic::@20
   __b20:
     // !flight.moving[e]
@@ -296,13 +295,12 @@ enemy_logic: {
     sta.z math_vecx1_return
     lda math_vecx1_dx+1
     sta.z math_vecx1_return+1
-    jmp __b24
+    bra __b24
     // [30] phi from enemy_logic::math_vecx1 to enemy_logic::math_vecx1_@1 [phi:enemy_logic::math_vecx1->enemy_logic::math_vecx1_@1]
   __b7:
-    // [30] phi enemy_logic::math_vecx1_return#0 = 0 [phi:enemy_logic::math_vecx1->enemy_logic::math_vecx1_@1#0] -- vwsz1=vwsc1 
-    lda #<0
-    sta.z math_vecx1_return
-    sta.z math_vecx1_return+1
+    // [30] phi enemy_logic::math_vecx1_return#0 = 0 [phi:enemy_logic::math_vecx1->enemy_logic::math_vecx1_@1#0] -- vwsz1=0 
+    stz.z math_vecx1_return
+    stz.z math_vecx1_return+1
     // enemy_logic::math_vecx1_@1
     // enemy_logic::@24
   __b24:
@@ -357,13 +355,12 @@ enemy_logic: {
     sta.z math_vecy1_return
     lda math_vecy1_dy+1
     sta.z math_vecy1_return+1
-    jmp __b25
+    bra __b25
     // [40] phi from enemy_logic::math_vecy1 to enemy_logic::math_vecy1_@1 [phi:enemy_logic::math_vecy1->enemy_logic::math_vecy1_@1]
   __b8:
-    // [40] phi enemy_logic::math_vecy1_return#0 = 0 [phi:enemy_logic::math_vecy1->enemy_logic::math_vecy1_@1#0] -- vwsz1=vwsc1 
-    lda #<0
-    sta.z math_vecy1_return
-    sta.z math_vecy1_return+1
+    // [40] phi enemy_logic::math_vecy1_return#0 = 0 [phi:enemy_logic::math_vecy1->enemy_logic::math_vecy1_@1#0] -- vwsz1=0 
+    stz.z math_vecy1_return
+    stz.z math_vecy1_return+1
     // enemy_logic::math_vecy1_@1
     // enemy_logic::@25
   __b25:
@@ -378,10 +375,9 @@ enemy_logic: {
     lda.z math_vecy1_return+1
     sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD+1,y
     // flight.move[e] = 0
-    // [43] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_MOVE)[enemy_logic::e] = 0 -- pbuc1_derefidx_vbuz1=vbuc2 
-    lda #0
-    ldy.z e
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_MOVE,y
+    // [43] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_MOVE)[enemy_logic::e] = 0 -- pbuc1_derefidx_vbuz1=0 
+    ldx.z e
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_MOVE,x
     // enemy_logic::@5
   __b5:
     // if(flight.move[e] == 2)
@@ -456,13 +452,12 @@ enemy_logic: {
     sta.z math_vecx2_return
     lda math_vecx2_dx+1
     sta.z math_vecx2_return+1
-    jmp __b26
+    bra __b26
     // [56] phi from enemy_logic::math_vecx2 to enemy_logic::math_vecx2_@1 [phi:enemy_logic::math_vecx2->enemy_logic::math_vecx2_@1]
   __b16:
-    // [56] phi enemy_logic::math_vecx2_return#0 = 0 [phi:enemy_logic::math_vecx2->enemy_logic::math_vecx2_@1#0] -- vwsz1=vwsc1 
-    lda #<0
-    sta.z math_vecx2_return
-    sta.z math_vecx2_return+1
+    // [56] phi enemy_logic::math_vecx2_return#0 = 0 [phi:enemy_logic::math_vecx2->enemy_logic::math_vecx2_@1#0] -- vwsz1=0 
+    stz.z math_vecx2_return
+    stz.z math_vecx2_return+1
     // enemy_logic::math_vecx2_@1
     // enemy_logic::@26
   __b26:
@@ -517,13 +512,12 @@ enemy_logic: {
     sta.z math_vecy2_return
     lda math_vecy2_dy+1
     sta.z math_vecy2_return+1
-    jmp __b27
+    bra __b27
     // [66] phi from enemy_logic::math_vecy2 to enemy_logic::math_vecy2_@1 [phi:enemy_logic::math_vecy2->enemy_logic::math_vecy2_@1]
   __b17:
-    // [66] phi enemy_logic::math_vecy2_return#0 = 0 [phi:enemy_logic::math_vecy2->enemy_logic::math_vecy2_@1#0] -- vwsz1=vwsc1 
-    lda #<0
-    sta.z math_vecy2_return
-    sta.z math_vecy2_return+1
+    // [66] phi enemy_logic::math_vecy2_return#0 = 0 [phi:enemy_logic::math_vecy2->enemy_logic::math_vecy2_@1#0] -- vwsz1=0 
+    stz.z math_vecy2_return
+    stz.z math_vecy2_return+1
     // enemy_logic::math_vecy2_@1
     // enemy_logic::@27
   __b27:
@@ -876,7 +870,7 @@ enemy_logic: {
     stx equinoxe_flightengine.flight_arc.speed
     // [128] callexecute flight_arc  -- call_var_near 
     jsr equinoxe_flightengine.flight_arc
-    jmp __b13
+    bra __b13
     // enemy_logic::@10
   __b10:
     // stage_get_flightpath_action_move_flight(action)
@@ -1027,13 +1021,12 @@ enemy_add: {
     // 		)
     // [150] animate_add::count = enemy_add::$1 -- vbum1=vbuxx 
     stx equinoxe_animate.animate_add.count
-    // [151] animate_add::state = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_animate.animate_add.state
-    // [152] animate_add::loop = 0 -- vbum1=vbuc1 
-    sta equinoxe_animate.animate_add.loop
+    // [151] animate_add::state = 0 -- vbum1=0 
+    stz equinoxe_animate.animate_add.state
+    // [152] animate_add::loop = 0 -- vbum1=0 
+    stz equinoxe_animate.animate_add.loop
     // [153] animate_add::speed = ((char *)&wave+OFFSET_STRUCT_WAVE_T_ANIMATION_SPEED)[enemy_add::w] -- vbum1=pbuc1_derefidx_vbum2 
-    ldy w
+    tay
     lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ANIMATION_SPEED,y
     sta equinoxe_animate.animate_add.speed
     // [154] animate_add::direction = 1 -- vbsm1=vbsc1 
@@ -1076,52 +1069,56 @@ enemy_add: {
     lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_ENEMY_FLIGHTPATH+1,y
     sta.z flightpath+1
     // flight.flightpath[e] = flightpath
-    // [163] enemy_add::$8 = enemy_add::e#0 << 1 -- vbuxx=vbum1_rol_1 
+    // [163] enemy_add::$8 = enemy_add::e#0 << 1 -- vbuyy=vbum1_rol_1 
     lda e
     asl
-    tax
-    // [164] ((stage_flightpath_t **)&flight+OFFSET_STRUCT_FLIGHT_T_FLIGHTPATH)[enemy_add::$8] = enemy_add::flightpath#0 -- qssc1_derefidx_vbuxx=pssz1 
+    tay
+    // [164] ((stage_flightpath_t **)&flight+OFFSET_STRUCT_FLIGHT_T_FLIGHTPATH)[enemy_add::$8] = enemy_add::flightpath#0 -- qssc1_derefidx_vbuyy=pssz1 
     lda.z flightpath
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_FLIGHTPATH,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_FLIGHTPATH,y
     lda.z flightpath+1
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_FLIGHTPATH+1,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_FLIGHTPATH+1,y
     // flight.xf[e] = 0
-    // [165] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_XF)[enemy_add::e#0] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    ldy e
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XF,y
+    // [165] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_XF)[enemy_add::e#0] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx e
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XF,x
     // flight.yf[e] = 0
-    // [166] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_YF)[enemy_add::e#0] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YF,y
+    // [166] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_YF)[enemy_add::e#0] = 0 -- pbuc1_derefidx_vbum1=0 
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YF,x
     // flight.xi[e] = (unsigned int)wave.x[w]
     // [167] enemy_add::$5 = enemy_add::w << 1 -- vbuaa=vbum1_rol_1 
     lda w
     asl
-    // [168] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[enemy_add::$8] = (unsigned int)((int *)&wave+OFFSET_STRUCT_WAVE_T_X)[enemy_add::$5] -- pwuc1_derefidx_vbuxx=pwuc2_derefidx_vbuaa 
-    tay
-    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_X,y
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,x
-    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_X+1,y
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,x
+    // [168] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[enemy_add::$8] = (unsigned int)((int *)&wave+OFFSET_STRUCT_WAVE_T_X)[enemy_add::$5] -- pwuc1_derefidx_vbuyy=pwuc2_derefidx_vbuaa 
+    tax
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_X,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,y
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_X+1,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,y
     // flight.yi[e] = (unsigned int)wave.y[w]
     // [169] enemy_add::$7 = enemy_add::w << 1 -- vbuaa=vbum1_rol_1 
     lda w
     asl
-    // [170] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[enemy_add::$8] = (unsigned int)((int *)&wave+OFFSET_STRUCT_WAVE_T_Y)[enemy_add::$7] -- pwuc1_derefidx_vbuxx=pwuc2_derefidx_vbuaa 
-    tay
-    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_Y,y
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,x
-    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_Y+1,y
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,x
+    // [170] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YI)[enemy_add::$8] = (unsigned int)((int *)&wave+OFFSET_STRUCT_WAVE_T_Y)[enemy_add::$7] -- pwuc1_derefidx_vbuyy=pwuc2_derefidx_vbuaa 
+    tax
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_Y,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI,y
+    lda equinoxe_waves.wave+OFFSET_STRUCT_WAVE_T_Y+1,x
+    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YI+1,y
     // flight.xd[e] = 0
-    // [171] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XD)[enemy_add::$8] = 0 -- pwuc1_derefidx_vbuxx=vbuc2 
-    lda #0
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD+1,x
+    // [171] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XD)[enemy_add::$8] = 0 -- pwuc1_derefidx_vbuyy=0 
+    tya
+    tax
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
+    inx
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XD,x
     // flight.yd[e] = 0
-    // [172] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YD)[enemy_add::$8] = 0 -- pwuc1_derefidx_vbuxx=vbuc2 
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD+1,x
+    // [172] ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_YD)[enemy_add::$8] = 0 -- pwuc1_derefidx_vbuyy=0 
+    tya
+    tax
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
+    inx
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_YD,x
     // enemy_add::@return
     // }
     // [173] return 
@@ -1132,6 +1129,19 @@ enemy_add: {
     sprite_enemy: .byte 0
   .segment DataEngineEnemies
     e: .byte 0
+}
+  // code segment
+.segment CodeEngineEnemies
+  // enemy_init
+// void equinoxe_enemy.enemy_init()
+// __bank(cx16_ram, 8) 
+enemy_init: {
+    // constants
+    // variables
+    // variables-zero-page
+    // enemy_init::@return
+    // [175] return 
+    rts
 }
   // code segment
 .segment Code
@@ -1146,7 +1156,7 @@ rand: {
     // variables
     // variables-zero-page
     // rand_state << 7
-    // [212] rand::$0 = rand_state << 7 -- vwum1=vwum2_rol_7 
+    // [214] rand::$0 = rand_state << 7 -- vwum1=vwum2_rol_7 
     lda rand_state+1
     lsr
     lda rand_state
@@ -1156,7 +1166,7 @@ rand: {
     ror
     sta rand__0
     // rand_state ^= rand_state << 7
-    // [213] rand_state = rand_state ^ rand::$0 -- vwum1=vwum1_bxor_vwum2 
+    // [215] rand_state = rand_state ^ rand::$0 -- vwum1=vwum1_bxor_vwum2 
     lda rand_state
     eor rand__0
     sta rand_state
@@ -1164,13 +1174,13 @@ rand: {
     eor rand__0+1
     sta rand_state+1
     // rand_state >> 9
-    // [214] rand::$1 = rand_state >> 9 -- vwum1=vwum2_ror_9 
+    // [216] rand::$1 = rand_state >> 9 -- vwum1=vwum2_ror_9 
     lsr
     sta rand__1
     lda #0
     sta rand__1+1
     // rand_state ^= rand_state >> 9
-    // [215] rand_state = rand_state ^ rand::$1 -- vwum1=vwum1_bxor_vwum2 
+    // [217] rand_state = rand_state ^ rand::$1 -- vwum1=vwum1_bxor_vwum2 
     lda rand_state
     eor rand__1
     sta rand_state
@@ -1178,13 +1188,13 @@ rand: {
     eor rand__1+1
     sta rand_state+1
     // rand_state << 8
-    // [216] rand::$2 = rand_state << 8 -- vwum1=vwum2_rol_8 
+    // [218] rand::$2 = rand_state << 8 -- vwum1=vwum2_rol_8 
     lda rand_state
     sta rand__2+1
     lda #0
     sta rand__2
     // rand_state ^= rand_state << 8
-    // [217] rand_state = rand_state ^ rand::$2 -- vwum1=vwum1_bxor_vwum2 
+    // [219] rand_state = rand_state ^ rand::$2 -- vwum1=vwum1_bxor_vwum2 
     lda rand_state
     eor rand__2
     sta rand_state
@@ -1192,14 +1202,14 @@ rand: {
     eor rand__2+1
     sta rand_state+1
     // return rand_state;
-    // [218] rand::return#0 = rand_state -- vwum1=vwum2 
+    // [220] rand::return#0 = rand_state -- vwum1=vwum2 
     lda rand_state
     sta return
     lda rand_state+1
     sta return+1
     // rand::@return
     // }
-    // [219] return 
+    // [221] return 
     rts
   .segment Data
     rand__0: .word 0

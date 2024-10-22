@@ -1,0 +1,1754 @@
+  // Library
+.namespace equinoxe_flight_cache {
+  // Upstart
+.cpu _65c02
+  .segmentdef Basic                   [start=$0801]
+.segmentdef Code                    [start=$80d]
+.segmentdef CodeBramHeap            [startAfter="Code"] 
+.segmentdef CodeVeraHeap            [startAfter="CodeBramHeap"] 
+.segmentdef CodeLruCache            [startAfter="CodeVeraHeap"] 
+.segmentdef CodeEngineFlight        [startAfter="CodeLruCache"] 
+.segmentdef CodeEngineFloor         [startAfter="CodeEngineFlight"] 
+.segmentdef CodeEngineAnimate       [startAfter="CodeEngineFloor"] 
+.segmentdef CodeEnginePalette       [startAfter="CodeEngineAnimate"] 
+
+.segmentdef Data                    [startAfter="CodeEnginePalette", align=$100]
+.segmentdef DataBramHeap            [startAfter="Data"] 
+.segmentdef DataVeraHeap            [startAfter="DataBramHeap"] 
+.segmentdef DataEngineAnimate       [startAfter="DataVeraHeap"] 
+.segmentdef DataEnginePalette       [startAfter="DataEngineAnimate"] 
+.segmentdef DataEngineFloor         [startAfter="DataEnginePalette"] 
+.segmentdef DataEngineStages        [startAfter="DataEngineFloor"]
+.segmentdef DataEngineBullets       [startAfter="DataEngineStages"]
+.segmentdef DataEnginePlayers       [startAfter="DataEngineBullets"]
+.segmentdef DataEngineEnemies       [startAfter="DataEnginePlayers"]
+.segmentdef DataEngineTowers        [startAfter="DataEngineEnemies"]
+.segmentdef DataEngineFlight        [startAfter="DataEngineTowers", align=$100] 
+.segmentdef DataSpriteCache         [startAfter="DataEngineFlight", align=$100]
+
+
+//.segmentdef BramEngineFloor       [startAfter=""] 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+
+  // start-assembler
+  // File Comments
+  // Global constants and variables
+  // constants
+  /// The colors of the C64
+  .label BLACK = 0
+  .label RED = 2
+  .label VERA_INC_1 = $10
+  .label VERA_ADDRSEL = 1
+  /// Sprite Attributes address in VERA VRAM $1FC00 - $1FFFF
+  .label VERA_SPRITE_ATTR = $1fc00
+  .label FE_CACHE = $10
+  .label OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE = $2a0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_SPRITE_BRAM = $10
+  .label OFFSET_STRUCT_SPRITE_T_COUNT = $60
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_COUNT = $20
+  .label OFFSET_STRUCT_SPRITE_T_OFFSET = $240
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET = $30
+  .label OFFSET_STRUCT_SPRITE_T_SPRITESIZE = $80
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE = $50
+  .label OFFSET_STRUCT_SPRITE_T_ZDEPTH = $100
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_ZDEPTH = $70
+  .label OFFSET_STRUCT_SPRITE_T_BPP = $160
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_BPP = $80
+  .label OFFSET_STRUCT_SPRITE_T_HEIGHT = $c0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_HEIGHT = $a0
+  .label OFFSET_STRUCT_SPRITE_T_WIDTH = $e0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_WIDTH = $90
+  .label OFFSET_STRUCT_SPRITE_T_HFLIP = $120
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_HFLIP = $b0
+  .label OFFSET_STRUCT_SPRITE_T_VFLIP = $140
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_VFLIP = $c0
+  .label OFFSET_STRUCT_SPRITE_T_REVERSE = $1a0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_REVERSE = $d0
+  .label OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET = $180
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_PALETTE_OFFSET = $100
+  .label OFFSET_STRUCT_SPRITE_T_LOOP = $280
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_LOOP = $f0
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_FILE = $110
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMIN = $210
+  .label OFFSET_STRUCT_AABB_T_YMIN = 1
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMIN = $220
+  .label OFFSET_STRUCT_AABB_T_XMAX = 2
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMAX = $230
+  .label OFFSET_STRUCT_AABB_T_YMAX = 3
+  .label OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMAX = $240
+  .label OFFSET_STRUCT_SPRITE_T_AABB = $1c0
+  .label SIZEOF_STRUCT_AABB_T = 4
+  .label SIZEOF_STRUCT_FE_SPRITE_CACHE_T = $250
+  /// $9F20 VRAM Address (7:0)
+  .label VERA_ADDRX_L = $9f20
+  /// $9F21 VRAM Address (15:8)
+  .label VERA_ADDRX_M = $9f21
+  /// $9F22 VRAM Address (7:0)
+  /// Bit 4-7: Address Increment  The following is the amount incremented per value value:increment
+  ///                             0:0, 1:1, 2:2, 3:4, 4:8, 5:16, 6:32, 7:64, 8:128, 9:256, 10:512, 11:40, 12:80, 13:160, 14:320, 15:640
+  /// Bit 3: DECR Setting the DECR bit, will decrement instead of increment by the value set by the 'Address Increment' field.
+  /// Bit 0: VRAM Address (16)
+  .label VERA_ADDRX_H = $9f22
+  /// $9F23	DATA0	VRAM Data port 0
+  .label VERA_DATA0 = $9f23
+  /// $9F25	CTRL Control
+  /// Bit 7: Reset
+  /// Bit 1: DCSEL
+  /// Bit 2: ADDRSEL
+  .label VERA_CTRL = $9f25
+  /// $9F2C	DC_BORDER (DCSEL=0)	Border Color
+  .label VERA_DC_BORDER = $9f2c
+  // variables
+  .label BRAM = 0
+  .label BROM = 1
+  // variables-zero-page
+  // code segment
+.segment Code
+  // __equinoxe_flight_cache_start
+// void equinoxe_flight_cache.__equinoxe_flight_cache_start()
+__equinoxe_flight_cache_start: {
+    // constants
+    // variables
+    // variables-zero-page
+    // __equinoxe_flight_cache_start::__init1
+    // __export volatile __address(0x00) unsigned char BRAM = 0
+    // [1] BRAM = 0 -- vbuz1=vbuc1 
+    lda #0
+    sta.z BRAM
+    // __export volatile __address(0x01) unsigned char BROM = 4
+    // [2] BROM = 4 -- vbuz1=vbuc1 
+    lda #4
+    sta.z BROM
+    // unsigned char flight_sprite_offset_pool = 1
+    // [3] flight_sprite_offset_pool = 1 -- vbum1=vbuc1 
+    lda #1
+    sta flight_sprite_offset_pool
+    // __equinoxe_flight_cache_start::@return
+    // [4] return 
+    rts
+}
+  // code segment
+.segment CodeEngineFlight
+  // flight_sprite_free_offset
+// void equinoxe_flight_cache.flight_sprite_free_offset(__mem() unsigned int sprite_offset)
+flight_sprite_free_offset: {
+    // constants
+    // variables
+    // variables-zero-page
+    // vera_sprite_id sprite_id = vera_sprite_get_id(sprite_offset)
+    // [5] flight_sprite_free_offset::vera_sprite_get_id1_sprite_offset#0 = flight_sprite_free_offset::sprite_offset -- vwum1=vwum2 
+    lda sprite_offset
+    sta vera_sprite_get_id1_sprite_offset
+    lda sprite_offset+1
+    sta vera_sprite_get_id1_sprite_offset+1
+    // flight_sprite_free_offset::vera_sprite_get_id1
+    // sprite_offset - WORD0(VERA_SPRITE_ATTR)
+    // [6] flight_sprite_free_offset::vera_sprite_get_id1_$0 = flight_sprite_free_offset::vera_sprite_get_id1_sprite_offset#0 - word0 VERA_SPRITE_ATTR -- vwum1=vwum1_minus_vwuc1 
+    lda vera_sprite_get_id1_flight_sprite_free_offset__0
+    sec
+    sbc #<VERA_SPRITE_ATTR&$ffff
+    sta vera_sprite_get_id1_flight_sprite_free_offset__0
+    lda vera_sprite_get_id1_flight_sprite_free_offset__0+1
+    sbc #>VERA_SPRITE_ATTR&$ffff
+    sta vera_sprite_get_id1_flight_sprite_free_offset__0+1
+    // (sprite_offset - WORD0(VERA_SPRITE_ATTR)) >> 3
+    // [7] flight_sprite_free_offset::vera_sprite_get_id1_$1 = flight_sprite_free_offset::vera_sprite_get_id1_$0 >> 3 -- vwum1=vwum1_ror_3 
+    lsr vera_sprite_get_id1_flight_sprite_free_offset__1+1
+    ror vera_sprite_get_id1_flight_sprite_free_offset__1
+    lsr vera_sprite_get_id1_flight_sprite_free_offset__1+1
+    ror vera_sprite_get_id1_flight_sprite_free_offset__1
+    lsr vera_sprite_get_id1_flight_sprite_free_offset__1+1
+    ror vera_sprite_get_id1_flight_sprite_free_offset__1
+    // BYTE0((sprite_offset - WORD0(VERA_SPRITE_ATTR)) >> 3)
+    // [8] flight_sprite_free_offset::vera_sprite_get_id1_return#0 = byte0  flight_sprite_free_offset::vera_sprite_get_id1_$1 -- vbuaa=_byte0_vwum1 
+    lda vera_sprite_get_id1_flight_sprite_free_offset__1
+    // flight_sprite_free_offset::@1
+    // flight_sprite_offsets[sprite_id] = 0
+    // [9] flight_sprite_free_offset::$1 = flight_sprite_free_offset::vera_sprite_get_id1_return#0 << 1 -- vbuaa=vbuaa_rol_1 
+    asl
+    // [10] flight_sprite_offsets[flight_sprite_free_offset::$1] = 0 -- pwuc1_derefidx_vbuaa=vbuc2 
+    tay
+    lda #0
+    sta flight_sprite_offsets,y
+    sta flight_sprite_offsets+1,y
+    // flight_sprite_free_offset::@return
+    // }
+    // [11] return 
+    rts
+  .segment DataEngineFlight
+    sprite_offset: .word 0
+  .segment Data
+    .label vera_sprite_get_id1_flight_sprite_free_offset__0 = vera_sprite_get_id1_sprite_offset
+  .segment Data
+    .label vera_sprite_get_id1_flight_sprite_free_offset__1 = vera_sprite_get_id1_sprite_offset
+  .segment Data
+    vera_sprite_get_id1_sprite_offset: .word 0
+}
+  // code segment
+.segment CodeEngineFlight
+  // flight_sprite_next_offset
+// __mem() unsigned int equinoxe_flight_cache.flight_sprite_next_offset()
+flight_sprite_next_offset: {
+    // constants
+    // variables
+    // variables-zero-page
+    // flight_sprite_next_offset::@1
+  __b1:
+    // !flight_sprite_offset_pool || flight_sprite_offsets[flight_sprite_offset_pool]
+    // [13] flight_sprite_next_offset::$5 = flight_sprite_offset_pool << 1 -- vbuxx=vbum1_rol_1 
+    lda flight_sprite_offset_pool
+    asl
+    tax
+    // while (!flight_sprite_offset_pool || flight_sprite_offsets[flight_sprite_offset_pool])
+    // [14] if(0==flight_sprite_offset_pool) goto flight_sprite_next_offset::@2 -- 0_eq_vbum1_then_la1 
+    lda flight_sprite_offset_pool
+    beq __b2
+    // flight_sprite_next_offset::@5
+    // [15] if(0!=flight_sprite_offsets[flight_sprite_next_offset::$5]) goto flight_sprite_next_offset::@2 -- 0_neq_pwuc1_derefidx_vbuxx_then_la1 
+    lda flight_sprite_offsets+1,x
+    ora flight_sprite_offsets,x
+    bne __b2
+    // flight_sprite_next_offset::@3
+    // vera_sprite_offset sprite_offset = vera_sprite_get_offset(flight_sprite_offset_pool)
+    // [16] flight_sprite_next_offset::vera_sprite_get_offset1_sprite_id#0 = flight_sprite_offset_pool -- vbuaa=vbum1 
+    lda flight_sprite_offset_pool
+    // flight_sprite_next_offset::vera_sprite_get_offset1
+    // ((unsigned int)sprite_id) << 3
+    // [17] flight_sprite_next_offset::vera_sprite_get_offset1_$2 = (unsigned int)flight_sprite_next_offset::vera_sprite_get_offset1_sprite_id#0 -- vwum1=_word_vbuaa 
+    sta vera_sprite_get_offset1_flight_sprite_next_offset__2
+    lda #0
+    sta vera_sprite_get_offset1_flight_sprite_next_offset__2+1
+    // [18] flight_sprite_next_offset::vera_sprite_get_offset1_$0 = flight_sprite_next_offset::vera_sprite_get_offset1_$2 << 3 -- vwum1=vwum1_rol_3 
+    asl vera_sprite_get_offset1_flight_sprite_next_offset__0
+    rol vera_sprite_get_offset1_flight_sprite_next_offset__0+1
+    asl vera_sprite_get_offset1_flight_sprite_next_offset__0
+    rol vera_sprite_get_offset1_flight_sprite_next_offset__0+1
+    asl vera_sprite_get_offset1_flight_sprite_next_offset__0
+    rol vera_sprite_get_offset1_flight_sprite_next_offset__0+1
+    // WORD0(VERA_SPRITE_ATTR)+(((unsigned int)sprite_id) << 3)
+    // [19] flight_sprite_next_offset::vera_sprite_get_offset1_$1 = word0 VERA_SPRITE_ATTR + flight_sprite_next_offset::vera_sprite_get_offset1_$0 -- vwum1=vwuc1_plus_vwum1 
+    lda vera_sprite_get_offset1_flight_sprite_next_offset__1
+    clc
+    adc #<VERA_SPRITE_ATTR&$ffff
+    sta vera_sprite_get_offset1_flight_sprite_next_offset__1
+    lda vera_sprite_get_offset1_flight_sprite_next_offset__1+1
+    adc #>VERA_SPRITE_ATTR&$ffff
+    sta vera_sprite_get_offset1_flight_sprite_next_offset__1+1
+    // return WORD0(VERA_SPRITE_ATTR)+(((unsigned int)sprite_id) << 3);
+    // [20] flight_sprite_next_offset::vera_sprite_get_offset1_return#0 = flight_sprite_next_offset::vera_sprite_get_offset1_$1
+    // flight_sprite_next_offset::vera_sprite_get_offset1_@return
+    // }
+    // [21] flight_sprite_next_offset::vera_sprite_get_offset1_return#1 = flight_sprite_next_offset::vera_sprite_get_offset1_return#0
+    // flight_sprite_next_offset::@4
+    // vera_sprite_offset sprite_offset = vera_sprite_get_offset(flight_sprite_offset_pool)
+    // [22] flight_sprite_next_offset::sprite_offset#0 = flight_sprite_next_offset::vera_sprite_get_offset1_return#1 -- vwum1=vwum2 
+    lda vera_sprite_get_offset1_return
+    sta sprite_offset
+    lda vera_sprite_get_offset1_return+1
+    sta sprite_offset+1
+    // flight_sprite_offsets[flight_sprite_offset_pool] = sprite_offset
+    // [23] flight_sprite_next_offset::$6 = flight_sprite_offset_pool << 1 -- vbuaa=vbum1_rol_1 
+    lda flight_sprite_offset_pool
+    asl
+    // [24] flight_sprite_offsets[flight_sprite_next_offset::$6] = flight_sprite_next_offset::sprite_offset#0 -- pwuc1_derefidx_vbuaa=vwum1 
+    tay
+    lda sprite_offset
+    sta flight_sprite_offsets,y
+    lda sprite_offset+1
+    sta flight_sprite_offsets+1,y
+    // return sprite_offset;
+    // [25] flight_sprite_next_offset::return = flight_sprite_next_offset::sprite_offset#0
+    // flight_sprite_next_offset::@return
+    // }
+    // [26] return 
+    rts
+    // flight_sprite_next_offset::@2
+  __b2:
+    // flight_sprite_offset_pool + 1
+    // [27] flight_sprite_next_offset::$3 = flight_sprite_offset_pool + 1 -- vbuaa=vbum1_plus_1 
+    lda flight_sprite_offset_pool
+    inc
+    // (flight_sprite_offset_pool + 1) % 128
+    // [28] flight_sprite_next_offset::$4 = flight_sprite_next_offset::$3 & $80-1 -- vbuaa=vbuaa_band_vbuc1 
+    and #$80-1
+    // flight_sprite_offset_pool = (flight_sprite_offset_pool + 1) % 128
+    // [29] flight_sprite_offset_pool = flight_sprite_next_offset::$4 -- vbum1=vbuaa 
+    sta flight_sprite_offset_pool
+    jmp __b1
+  .segment DataEngineFlight
+    .label return = sprite_offset
+  .segment Data
+    .label vera_sprite_get_offset1_flight_sprite_next_offset__0 = vera_sprite_get_offset1_flight_sprite_next_offset__2
+  .segment Data
+    .label vera_sprite_get_offset1_flight_sprite_next_offset__1 = vera_sprite_get_offset1_flight_sprite_next_offset__2
+  .segment Data
+    vera_sprite_get_offset1_flight_sprite_next_offset__2: .word 0
+  .segment Data
+    .label vera_sprite_get_offset1_return = vera_sprite_get_offset1_flight_sprite_next_offset__2
+  .segment DataEngineFlight
+    sprite_offset: .word 0
+}
+  // code segment
+.segment CodeEngineFlight
+  // flight_sprite_init_offset
+// void equinoxe_flight_cache.flight_sprite_init_offset()
+flight_sprite_init_offset: {
+    // constants
+    // variables
+    // variables-zero-page
+    // flight_sprite_offset_pool = 1
+    // [30] flight_sprite_offset_pool = 1 -- vbum1=vbuc1 
+    lda #1
+    sta flight_sprite_offset_pool
+    // flight_sprite_init_offset::@return
+    // }
+    // [31] return 
+    rts
+}
+  // code segment
+.segment CodeEngineFlight
+  // sprite_image_cache_vram
+// __mem() unsigned int equinoxe_flight_cache.sprite_image_cache_vram(__mem() char sprite_cache_index, __mem() char fe_sprite_image_index)
+sprite_image_cache_vram: {
+    // constants
+    .const bank_push_set_bram1_bank = 4
+    // variables
+    // variables-zero-page
+    .label sprite_ptr = $26
+    .label sprite_image_cache_vram__40 = $24
+    // unsigned int image_index = sprite_cache.offset[sprite_cache_index] + fe_sprite_image_index
+    // [32] sprite_image_cache_vram::$36 = sprite_image_cache_vram::sprite_cache_index << 1 -- vbuaa=vbum1_rol_1 
+    lda sprite_cache_index
+    asl
+    // [33] sprite_image_cache_vram::image_index#0 = ((unsigned int *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET)[sprite_image_cache_vram::$36] + sprite_image_cache_vram::fe_sprite_image_index -- vwum1=pwuc1_derefidx_vbuaa_plus_vbum2 
+    // check if the image in vram is in use where the fe_sprite_vram_image_index is pointing to.
+    // if this vram_image_used is false, that means that the image in vram is not in use anymore (not displayed or destroyed).
+    tay
+    lda fe_sprite_image_index
+    clc
+    adc sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET,y
+    sta image_index
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET+1,y
+    adc #0
+    sta image_index+1
+    // lru_cache_index_t vram_index = lru_cache_index(image_index)
+    // [34] lru_cache_index::key = sprite_image_cache_vram::image_index#0 -- vwum1=vwum2 
+    // We check if there is a cache hit?
+    lda image_index
+    sta lib_lru_cache.lru_cache_index.key
+    lda image_index+1
+    sta lib_lru_cache.lru_cache_index.key+1
+    // [35] callexecute lru_cache_index  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_index
+    // [36] sprite_image_cache_vram::vram_index#0 = lru_cache_index::return -- vbuaa=vbum1 
+    lda lib_lru_cache.lru_cache_index.return
+    // if (vram_index != 0xFF)
+    // [37] if(sprite_image_cache_vram::vram_index#0!=$ff) goto sprite_image_cache_vram::@1 -- vbuaa_neq_vbuc1_then_la1 
+    cmp #$ff
+    beq !__b1+
+    jmp __b1
+  !__b1:
+    // sprite_image_cache_vram::vera_display_set_border_color1
+    // *VERA_CTRL &= 0b10000001
+    // [38] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [39] *VERA_DC_BORDER = RED -- _deref_pbuc1=vbuc2 
+    lda #RED
+    sta VERA_DC_BORDER
+    // sprite_image_cache_vram::@8
+    // vera_heap_size_int_t vram_size_required = sprite_cache.size[sprite_cache_index]
+    // [40] sprite_image_cache_vram::$37 = sprite_image_cache_vram::sprite_cache_index << 1 -- vbuaa=vbum1_rol_1 
+    lda sprite_cache_index
+    asl
+    // [41] sprite_image_cache_vram::vram_size_required#0 = ((unsigned int *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE)[sprite_image_cache_vram::$37] -- vwum1=pwuc1_derefidx_vbuaa 
+    // The idea of this section is to free up lru_cache and/or vram memory until there is sufficient space available.
+    // The size requested contains the required size to be allocated on vram.
+    tay
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE,y
+    sta vram_size_required
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE+1,y
+    sta vram_size_required+1
+    // bool vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required)
+    // [42] vera_heap_has_free::s = 1 -- vbum1=vbuc1 
+    // We check if the vram heap has sufficient memory available for the size requested.
+    // We also check if the lru cache has sufficient elements left to contain the new sprite image.
+    lda #1
+    sta lib_veraheap.vera_heap_has_free.s
+    // [43] vera_heap_has_free::size_requested = sprite_image_cache_vram::vram_size_required#0 -- vwum1=vwum2 
+    lda vram_size_required
+    sta lib_veraheap.vera_heap_has_free.size_requested
+    lda vram_size_required+1
+    sta lib_veraheap.vera_heap_has_free.size_requested+1
+    // [44] callexecute vera_heap_has_free  -- call_var_near 
+    jsr lib_veraheap.vera_heap_has_free
+    // [45] sprite_image_cache_vram::vram_has_free#0 = vera_heap_has_free::return -- vbom1=vbom2 
+    lda lib_veraheap.vera_heap_has_free.return
+    sta vram_has_free
+    // bool lru_cache_max = lru_cache_is_max()
+    // [46] callexecute lru_cache_is_max  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_is_max
+    // [47] sprite_image_cache_vram::lru_cache_max#0 = lru_cache_is_max::return -- vboaa=vbom1 
+    lda lib_lru_cache.lru_cache_is_max.return
+    // [48] phi from sprite_image_cache_vram::@6 sprite_image_cache_vram::@8 to sprite_image_cache_vram::@3 [phi:sprite_image_cache_vram::@6/sprite_image_cache_vram::@8->sprite_image_cache_vram::@3]
+  __b3:
+    // [48] phi sprite_image_cache_vram::lru_cache_max#2 = sprite_image_cache_vram::lru_cache_max#1 [phi:sprite_image_cache_vram::@6/sprite_image_cache_vram::@8->sprite_image_cache_vram::@3#0] -- register_copy 
+    // [48] phi sprite_image_cache_vram::vram_has_free#2 = sprite_image_cache_vram::vram_has_free#1 [phi:sprite_image_cache_vram::@6/sprite_image_cache_vram::@8->sprite_image_cache_vram::@3#1] -- register_copy 
+  // Free up the lru_cache and vram memory until the requested size is available!
+  // This ensures that vram has sufficient place to allocate the new sprite image.
+    // sprite_image_cache_vram::@3
+    // while (lru_cache_max || !vram_has_free)
+    // [49] if(sprite_image_cache_vram::lru_cache_max#2) goto sprite_image_cache_vram::@4 -- vboaa_then_la1 
+    cmp #0
+    bne __b4
+    // sprite_image_cache_vram::@12
+    // [50] if(sprite_image_cache_vram::vram_has_free#2) goto sprite_image_cache_vram::@5 -- vbom1_then_la1 
+    lda vram_has_free
+    cmp #0
+    bne __b5
+    // [51] phi from sprite_image_cache_vram::@12 sprite_image_cache_vram::@3 to sprite_image_cache_vram::@4 [phi:sprite_image_cache_vram::@12/sprite_image_cache_vram::@3->sprite_image_cache_vram::@4]
+    // sprite_image_cache_vram::@4
+  __b4:
+    // lru_cache_key_t vram_last = lru_cache_find_last()
+    // [52] callexecute lru_cache_find_last  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_find_last
+    // [53] sprite_image_cache_vram::vram_last#0 = lru_cache_find_last::return -- vwum1=vwum2 
+    lda lib_lru_cache.lru_cache_find_last.return
+    sta vram_last
+    lda lib_lru_cache.lru_cache_find_last.return+1
+    sta vram_last+1
+    // lru_cache_data_t vram_handle = lru_cache_delete(vram_last)
+    // [54] lru_cache_delete::key = sprite_image_cache_vram::vram_last#0 -- vwum1=vwum2 
+    // We delete the least used image from the vram cache, and this function returns the stored vram handle obtained by the vram heap manager.
+    lda vram_last
+    sta lib_lru_cache.lru_cache_delete.key
+    lda vram_last+1
+    sta lib_lru_cache.lru_cache_delete.key+1
+    // [55] callexecute lru_cache_delete  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_delete
+    // [56] sprite_image_cache_vram::vram_handle#0 = lru_cache_delete::return -- vwum1=vwum2 
+    lda lib_lru_cache.lru_cache_delete.return
+    sta vram_handle
+    lda lib_lru_cache.lru_cache_delete.return+1
+    sta vram_handle+1
+    // if (vram_handle == 0xFFFF)
+    // [57] if(sprite_image_cache_vram::vram_handle#0!=$ffff) goto sprite_image_cache_vram::@6 -- vwum1_neq_vwuc1_then_la1 
+    cmp #>$ffff
+    bne __b6
+    lda vram_handle
+    cmp #<$ffff
+    // [58] phi from sprite_image_cache_vram::@4 to sprite_image_cache_vram::@7 [phi:sprite_image_cache_vram::@4->sprite_image_cache_vram::@7]
+    // sprite_image_cache_vram::@7
+    // sprite_image_cache_vram::@6
+  __b6:
+    // BYTE0(vram_handle)
+    // [59] sprite_image_cache_vram::$12 = byte0  sprite_image_cache_vram::vram_handle#0 -- vbuxx=_byte0_vwum1 
+    ldx vram_handle
+    // vera_heap_free(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle))
+    // [60] vera_heap_free::s = 1 -- vbum1=vbuc1 
+    // And we free the vram heap with the vram handle that we received.
+    // But before we can free the heap, we must first convert back from the sprite offset to the vram address.
+    // And then to a valid vram handle :-).
+    lda #1
+    sta lib_veraheap.vera_heap_free.s
+    // [61] vera_heap_free::free_index = sprite_image_cache_vram::$12 -- vbum1=vbuxx 
+    stx lib_veraheap.vera_heap_free.free_index
+    // [62] callexecute vera_heap_free  -- call_var_near 
+    jsr lib_veraheap.vera_heap_free
+    // vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required)
+    // [63] vera_heap_has_free::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_has_free.s
+    // [64] vera_heap_has_free::size_requested = sprite_image_cache_vram::vram_size_required#0 -- vwum1=vwum2 
+    lda vram_size_required
+    sta lib_veraheap.vera_heap_has_free.size_requested
+    lda vram_size_required+1
+    sta lib_veraheap.vera_heap_has_free.size_requested+1
+    // [65] callexecute vera_heap_has_free  -- call_var_near 
+    jsr lib_veraheap.vera_heap_has_free
+    // vram_has_free = vera_heap_has_free(VERA_HEAP_SEGMENT_SPRITES, vram_size_required)
+    // [66] sprite_image_cache_vram::vram_has_free#1 = vera_heap_has_free::return -- vbom1=vbom2 
+    lda lib_veraheap.vera_heap_has_free.return
+    sta vram_has_free
+    // lru_cache_is_max()
+    // [67] callexecute lru_cache_is_max  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_is_max
+    // lru_cache_max = lru_cache_is_max()
+    // [68] sprite_image_cache_vram::lru_cache_max#1 = lru_cache_is_max::return -- vboaa=vbom1 
+    lda lib_lru_cache.lru_cache_is_max.return
+    jmp __b3
+    // sprite_image_cache_vram::@5
+  __b5:
+    // vera_heap_index_t vram_handle = vera_heap_alloc(VERA_HEAP_SEGMENT_SPRITES, (unsigned long)sprite_cache.size[sprite_cache_index])
+    // [69] sprite_image_cache_vram::$38 = sprite_image_cache_vram::sprite_cache_index << 1 -- vbuxx=vbum1_rol_1 
+    lda sprite_cache_index
+    asl
+    tax
+    // [70] vera_heap_alloc::s = 1 -- vbum1=vbuc1 
+    // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
+    // Dynamic allocation of sprites in vera vram.
+    lda #1
+    sta lib_veraheap.vera_heap_alloc.s
+    // [71] vera_heap_alloc::size = (unsigned long)((unsigned int *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE)[sprite_image_cache_vram::$38] -- vdum1=_dword_pwuc1_derefidx_vbuxx 
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE,x
+    sta lib_veraheap.vera_heap_alloc.size
+    inx
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE,x
+    sta lib_veraheap.vera_heap_alloc.size+1
+    lda #0
+    sta lib_veraheap.vera_heap_alloc.size+2
+    sta lib_veraheap.vera_heap_alloc.size+3
+    // [72] callexecute vera_heap_alloc  -- call_var_near 
+    jsr lib_veraheap.vera_heap_alloc
+    // [73] sprite_image_cache_vram::vram_handle1#0 = vera_heap_alloc::return -- vbum1=vbum2 
+    lda lib_veraheap.vera_heap_alloc.return
+    sta vram_handle1
+    // BYTE0(vram_handle)
+    // [74] sprite_image_cache_vram::$17 = byte0  sprite_image_cache_vram::vram_handle1#0 -- vbuxx=_byte0_vbum1 
+    tax
+    // vram_bank_t vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle))
+    // [75] vera_heap_data_get_bank::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_data_get_bank.s
+    // [76] vera_heap_data_get_bank::index = sprite_image_cache_vram::$17 -- vbum1=vbuxx 
+    stx lib_veraheap.vera_heap_data_get_bank.index
+    // [77] callexecute vera_heap_data_get_bank  -- call_var_near 
+    jsr lib_veraheap.vera_heap_data_get_bank
+    // [78] sprite_image_cache_vram::vram_bank#0 = vera_heap_data_get_bank::return -- vbum1=vbum2 
+    lda lib_veraheap.vera_heap_data_get_bank.return
+    sta vram_bank
+    // BYTE0(vram_handle)
+    // [79] sprite_image_cache_vram::$19 = byte0  sprite_image_cache_vram::vram_handle1#0 -- vbuxx=_byte0_vbum1 
+    lda vram_handle1
+    tax
+    // vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle))
+    // [80] vera_heap_data_get_offset::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_data_get_offset.s
+    // [81] vera_heap_data_get_offset::index = sprite_image_cache_vram::$19 -- vbum1=vbuxx 
+    stx lib_veraheap.vera_heap_data_get_offset.index
+    // [82] callexecute vera_heap_data_get_offset  -- call_var_near 
+    jsr lib_veraheap.vera_heap_data_get_offset
+    // [83] sprite_image_cache_vram::vram_offset#0 = vera_heap_data_get_offset::return -- vwum1=vwum2 
+    lda lib_veraheap.vera_heap_data_get_offset.return
+    sta vram_offset
+    lda lib_veraheap.vera_heap_data_get_offset.return+1
+    sta vram_offset+1
+    // sprite_image_cache_vram::bank_push_set_bram1
+    // asm
+    // asm { lda$00 pha  }
+    lda.z 0
+    pha
+    // BRAM = bank
+    // [85] BRAM = sprite_image_cache_vram::bank_push_set_bram1_bank#0 -- vbuz1=vbuc1 
+    lda #bank_push_set_bram1_bank
+    sta.z BRAM
+    // sprite_image_cache_vram::@9
+    // sprite_bram_handles_t handle_bram = sprite_bram_handles[image_index]
+    // [86] sprite_image_cache_vram::$40 = sprite_bram_handles + sprite_image_cache_vram::image_index#0 -- pbuz1=pbuc1_plus_vwum2 
+    lda image_index
+    clc
+    adc #<sprite_bram_handles
+    sta.z sprite_image_cache_vram__40
+    lda image_index+1
+    adc #>sprite_bram_handles
+    sta.z sprite_image_cache_vram__40+1
+    // [87] sprite_image_cache_vram::handle_bram#0 = *sprite_image_cache_vram::$40 -- vbum1=_deref_pbuz2 
+    ldy #0
+    lda (sprite_image_cache_vram__40),y
+    sta handle_bram
+    // sprite_image_cache_vram::bank_pull_bram1
+    // asm
+    // asm { pla sta$00  }
+    pla
+    sta.z 0
+    // sprite_image_cache_vram::@10
+    // bram_bank_t sprite_bank = bram_heap_data_get_bank(0, handle_bram)
+    // [89] bram_heap_data_get_bank::s = 0 -- vbum1=vbuc1 
+    tya
+    sta lib_bramheap.bram_heap_data_get_bank.s
+    // [90] bram_heap_data_get_bank::index = sprite_image_cache_vram::handle_bram#0 -- vbum1=vbum2 
+    lda handle_bram
+    sta lib_bramheap.bram_heap_data_get_bank.index
+    // [91] callexecute bram_heap_data_get_bank  -- call_var_near 
+    jsr lib_bramheap.bram_heap_data_get_bank
+    // [92] sprite_image_cache_vram::sprite_bank#0 = bram_heap_data_get_bank::return -- vbum1=vbum2 
+    lda lib_bramheap.bram_heap_data_get_bank.return
+    sta sprite_bank
+    // bram_ptr_t sprite_ptr = bram_heap_data_get_offset(0, handle_bram)
+    // [93] bram_heap_data_get_offset::s = 0 -- vbum1=vbuc1 
+    lda #0
+    sta lib_bramheap.bram_heap_data_get_offset.s
+    // [94] bram_heap_data_get_offset::index = sprite_image_cache_vram::handle_bram#0 -- vbum1=vbum2 
+    lda handle_bram
+    sta lib_bramheap.bram_heap_data_get_offset.index
+    // [95] callexecute bram_heap_data_get_offset  -- call_var_near 
+    jsr lib_bramheap.bram_heap_data_get_offset
+    // [96] sprite_image_cache_vram::sprite_ptr#0 = bram_heap_data_get_offset::return -- pbuz1=pbuz2 
+    lda.z lib_bramheap.bram_heap_data_get_offset.return
+    sta.z sprite_ptr
+    lda.z lib_bramheap.bram_heap_data_get_offset.return+1
+    sta.z sprite_ptr+1
+    // unsigned int sprite_size = sprite_cache.size[sprite_cache_index]
+    // [97] sprite_image_cache_vram::$39 = sprite_image_cache_vram::sprite_cache_index << 1 -- vbuaa=vbum1_rol_1 
+    lda sprite_cache_index
+    asl
+    // [98] sprite_image_cache_vram::sprite_size#0 = ((unsigned int *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE)[sprite_image_cache_vram::$39] -- vwum1=pwuc1_derefidx_vbuaa 
+    tay
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE,y
+    sta sprite_size
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE+1,y
+    sta sprite_size+1
+    // memcpy_vram_bram(vram_bank, vram_offset, sprite_bank, sprite_ptr, sprite_size)
+    // [99] memcpy_vram_bram::dbank_vram#0 = sprite_image_cache_vram::vram_bank#0 -- vbuxx=vbum1 
+    ldx vram_bank
+    // [100] memcpy_vram_bram::doffset_vram#0 = sprite_image_cache_vram::vram_offset#0 -- vwum1=vwum2 
+    lda vram_offset
+    sta memcpy_vram_bram.doffset_vram
+    lda vram_offset+1
+    sta memcpy_vram_bram.doffset_vram+1
+    // [101] memcpy_vram_bram::sbank_bram#2 = sprite_image_cache_vram::sprite_bank#0 -- vbum1=vbum2 
+    lda sprite_bank
+    sta memcpy_vram_bram.sbank_bram
+    // [102] memcpy_vram_bram::sptr_bram#0 = sprite_image_cache_vram::sprite_ptr#0 -- pbuz1=pbuz2 
+    lda.z sprite_ptr
+    sta.z memcpy_vram_bram.sptr_bram
+    lda.z sprite_ptr+1
+    sta.z memcpy_vram_bram.sptr_bram+1
+    // [103] memcpy_vram_bram::num = sprite_image_cache_vram::sprite_size#0 -- vwum1=vwum2 
+    lda sprite_size
+    sta memcpy_vram_bram.num
+    lda sprite_size+1
+    sta memcpy_vram_bram.num+1
+    // [104] call memcpy_vram_bram
+    // [221] phi from sprite_image_cache_vram::@10 to memcpy_vram_bram [phi:sprite_image_cache_vram::@10->memcpy_vram_bram]
+    jsr memcpy_vram_bram
+    // sprite_image_cache_vram::vera_sprite_get_image_offset1
+    // vera_sprite_image_offset sprite_image_offset = offset >> 5
+    // [105] sprite_image_cache_vram::vera_sprite_get_image_offset1_sprite_image_offset#0 = sprite_image_cache_vram::vram_offset#0 >> 5 -- vwum1=vwum2_ror_5 
+    lda vram_offset+1
+    lsr
+    sta vera_sprite_get_image_offset1_sprite_image_offset+1
+    lda vram_offset
+    ror
+    sta vera_sprite_get_image_offset1_sprite_image_offset
+    lsr vera_sprite_get_image_offset1_sprite_image_offset+1
+    ror vera_sprite_get_image_offset1_sprite_image_offset
+    lsr vera_sprite_get_image_offset1_sprite_image_offset+1
+    ror vera_sprite_get_image_offset1_sprite_image_offset
+    lsr vera_sprite_get_image_offset1_sprite_image_offset+1
+    ror vera_sprite_get_image_offset1_sprite_image_offset
+    lsr vera_sprite_get_image_offset1_sprite_image_offset+1
+    ror vera_sprite_get_image_offset1_sprite_image_offset
+    // (unsigned int)bank << 11
+    // [106] sprite_image_cache_vram::vera_sprite_get_image_offset1_$2 = (unsigned int)sprite_image_cache_vram::vram_bank#0 -- vwum1=_word_vbum2 
+    lda vram_bank
+    sta vera_sprite_get_image_offset1_sprite_image_cache_vram__2
+    lda #0
+    sta vera_sprite_get_image_offset1_sprite_image_cache_vram__2+1
+    // [107] sprite_image_cache_vram::vera_sprite_get_image_offset1_$1 = sprite_image_cache_vram::vera_sprite_get_image_offset1_$2 << $b -- vwum1=vwum1_rol_vbuc1 
+    ldy #$b
+    cpy #0
+    beq !e+
+  !:
+    asl vera_sprite_get_image_offset1_sprite_image_cache_vram__1
+    rol vera_sprite_get_image_offset1_sprite_image_cache_vram__1+1
+    dey
+    bne !-
+  !e:
+    // sprite_image_offset |= ((unsigned int)bank << 11)
+    // [108] sprite_image_cache_vram::vera_sprite_get_image_offset1_return#0 = sprite_image_cache_vram::vera_sprite_get_image_offset1_sprite_image_offset#0 | sprite_image_cache_vram::vera_sprite_get_image_offset1_$1 -- vwum1=vwum2_bor_vwum3 
+    lda vera_sprite_get_image_offset1_sprite_image_offset
+    ora vera_sprite_get_image_offset1_sprite_image_cache_vram__1
+    sta vera_sprite_get_image_offset1_return
+    lda vera_sprite_get_image_offset1_sprite_image_offset+1
+    ora vera_sprite_get_image_offset1_sprite_image_cache_vram__1+1
+    sta vera_sprite_get_image_offset1_return+1
+    // sprite_image_cache_vram::@11
+    // vera_heap_set_image(VERA_HEAP_SEGMENT_SPRITES, vram_handle, sprite_offset)
+    // [109] vera_heap_set_image::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_set_image.s
+    // [110] vera_heap_set_image::index = sprite_image_cache_vram::vram_handle1#0 -- vbum1=vbum2 
+    lda vram_handle1
+    sta lib_veraheap.vera_heap_set_image.index
+    // [111] vera_heap_set_image::image = sprite_image_cache_vram::vera_sprite_get_image_offset1_return#0 -- vwum1=vwum2 
+    lda vera_sprite_get_image_offset1_return
+    sta lib_veraheap.vera_heap_set_image.image
+    lda vera_sprite_get_image_offset1_return+1
+    sta lib_veraheap.vera_heap_set_image.image+1
+    // [112] callexecute vera_heap_set_image  -- call_var_near 
+    jsr lib_veraheap.vera_heap_set_image
+    // lru_cache_insert(image_index, (lru_cache_data_t)vram_handle)
+    // [113] lru_cache_insert::key = sprite_image_cache_vram::image_index#0 -- vwum1=vwum2 
+    lda image_index
+    sta lib_lru_cache.lru_cache_insert.key
+    lda image_index+1
+    sta lib_lru_cache.lru_cache_insert.key+1
+    // [114] lru_cache_insert::data = (unsigned int)sprite_image_cache_vram::vram_handle1#0 -- vwum1=_word_vbum2 
+    lda vram_handle1
+    sta lib_lru_cache.lru_cache_insert.data
+    lda #0
+    sta lib_lru_cache.lru_cache_insert.data+1
+    // [115] callexecute lru_cache_insert  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_insert
+    // sprite_image_cache_vram::vera_display_set_border_color2
+    // *VERA_CTRL &= 0b10000001
+    // [116] *VERA_CTRL = *VERA_CTRL & $81 -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #$81
+    and VERA_CTRL
+    sta VERA_CTRL
+    // *VERA_DC_BORDER = color
+    // [117] *VERA_DC_BORDER = BLACK -- _deref_pbuc1=vbuc2 
+    lda #BLACK
+    sta VERA_DC_BORDER
+    // [118] phi from sprite_image_cache_vram::@1 sprite_image_cache_vram::vera_display_set_border_color2 to sprite_image_cache_vram::@2 [phi:sprite_image_cache_vram::@1/sprite_image_cache_vram::vera_display_set_border_color2->sprite_image_cache_vram::@2]
+    // [118] phi sprite_image_cache_vram::sprite_offset#3 = sprite_image_cache_vram::sprite_offset#1 [phi:sprite_image_cache_vram::@1/sprite_image_cache_vram::vera_display_set_border_color2->sprite_image_cache_vram::@2#0] -- register_copy 
+    // sprite_image_cache_vram::@2
+    // return sprite_offset;
+    // [119] sprite_image_cache_vram::return = sprite_image_cache_vram::sprite_offset#3
+  // We return the image offset in vram of the sprite to be drawn.
+  // This offset is used by the vera image set offset function to directly change the image displayed of the sprite!
+    // sprite_image_cache_vram::@return
+    // }
+    // [120] return 
+    rts
+    // sprite_image_cache_vram::@1
+  __b1:
+    // lru_cache_get(vram_index)
+    // [121] lru_cache_get::index = sprite_image_cache_vram::vram_index#0 -- vbum1=vbuaa 
+    sta lib_lru_cache.lru_cache_get.index
+    // [122] callexecute lru_cache_get  -- call_var_near 
+    jsr lib_lru_cache.lru_cache_get
+    // [123] sprite_image_cache_vram::$30 = lru_cache_get::return -- vwum1=vwum2 
+    lda lib_lru_cache.lru_cache_get.return
+    sta sprite_image_cache_vram__30
+    lda lib_lru_cache.lru_cache_get.return+1
+    sta sprite_image_cache_vram__30+1
+    // vera_heap_index_t vram_handle = (vera_heap_index_t)lru_cache_get(vram_index)
+    // [124] sprite_image_cache_vram::vram_handle2#0 = (char)sprite_image_cache_vram::$30 -- vbum1=_byte_vwum2 
+    // So we have a cache hit, so we can re-use the same image from the cache and we win time!
+    lda sprite_image_cache_vram__30
+    sta vram_handle2
+    // BYTE0(vram_handle)
+    // [125] sprite_image_cache_vram::$31 = byte0  sprite_image_cache_vram::vram_handle2#0 -- vbuxx=_byte0_vbum1 
+    tax
+    // vram_bank_t vram_bank = vera_heap_data_get_bank(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle))
+    // [126] vera_heap_data_get_bank::s = 1 -- vbum1=vbuc1 
+    // Now that we are sure that there is sufficient space in vram and on the cache, we allocate a new element.
+    // Dynamic allocation of sprites in vera vram.
+    lda #1
+    sta lib_veraheap.vera_heap_data_get_bank.s
+    // [127] vera_heap_data_get_bank::index = sprite_image_cache_vram::$31 -- vbum1=vbuxx 
+    stx lib_veraheap.vera_heap_data_get_bank.index
+    // [128] callexecute vera_heap_data_get_bank  -- call_var_near 
+    jsr lib_veraheap.vera_heap_data_get_bank
+    // BYTE0(vram_handle)
+    // [129] sprite_image_cache_vram::$33 = byte0  sprite_image_cache_vram::vram_handle2#0 -- vbuxx=_byte0_vbum1 
+    lda vram_handle2
+    tax
+    // vram_offset_t vram_offset = vera_heap_data_get_offset(VERA_HEAP_SEGMENT_SPRITES, (vera_heap_index_t)BYTE0(vram_handle))
+    // [130] vera_heap_data_get_offset::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_data_get_offset.s
+    // [131] vera_heap_data_get_offset::index = sprite_image_cache_vram::$33 -- vbum1=vbuxx 
+    stx lib_veraheap.vera_heap_data_get_offset.index
+    // [132] callexecute vera_heap_data_get_offset  -- call_var_near 
+    jsr lib_veraheap.vera_heap_data_get_offset
+    // vera_heap_get_image(VERA_HEAP_SEGMENT_SPRITES, vram_handle)
+    // [133] vera_heap_get_image::s = 1 -- vbum1=vbuc1 
+    lda #1
+    sta lib_veraheap.vera_heap_get_image.s
+    // [134] vera_heap_get_image::index = sprite_image_cache_vram::vram_handle2#0 -- vbum1=vbum2 
+    lda vram_handle2
+    sta lib_veraheap.vera_heap_get_image.index
+    // [135] callexecute vera_heap_get_image  -- call_var_near 
+    jsr lib_veraheap.vera_heap_get_image
+    // sprite_offset = vera_heap_get_image(VERA_HEAP_SEGMENT_SPRITES, vram_handle)
+    // [136] sprite_image_cache_vram::sprite_offset#1 = vera_heap_get_image::return -- vwum1=vwum2 
+    lda lib_veraheap.vera_heap_get_image.return
+    sta sprite_offset
+    lda lib_veraheap.vera_heap_get_image.return+1
+    sta sprite_offset+1
+    rts
+  .segment DataEngineFlight
+    sprite_cache_index: .byte 0
+  .segment DataEngineFlight
+    fe_sprite_image_index: .byte 0
+  .segment DataEngineFlight
+    .label return = sprite_offset
+  .segment DataEngineFlight
+    sprite_image_cache_vram__30: .word 0
+  .segment Data
+    .label vera_sprite_get_image_offset1_sprite_image_cache_vram__1 = vera_sprite_get_image_offset1_sprite_image_cache_vram__2
+  .segment Data
+    vera_sprite_get_image_offset1_sprite_image_cache_vram__2: .word 0
+  .segment DataEngineFlight
+    image_index: .word 0
+  .segment DataEngineFlight
+    vram_handle2: .byte 0
+  .segment DataEngineFlight
+    // lru_cache_data_t lru_cache_data;
+    sprite_offset: .word 0
+  .segment DataEngineFlight
+    vram_size_required: .word 0
+  .segment DataEngineFlight
+    vram_has_free: .byte 0
+  .segment DataEngineFlight
+    vram_last: .word 0
+  .segment DataEngineFlight
+    vram_handle: .word 0
+  .segment DataEngineFlight
+    vram_handle1: .byte 0
+  .segment DataEngineFlight
+    vram_bank: .byte 0
+  .segment DataEngineFlight
+    vram_offset: .word 0
+  .segment DataEngineFlight
+    handle_bram: .byte 0
+  .segment DataEngineFlight
+    sprite_bank: .byte 0
+  .segment DataEngineFlight
+    sprite_size: .word 0
+  .segment Data
+    vera_sprite_get_image_offset1_sprite_image_offset: .word 0
+  .segment Data
+    .label vera_sprite_get_image_offset1_return = sprite_offset
+}
+  // code segment
+.segment CodeEngineFlight
+  // fe_sprite_cache_free
+// void equinoxe_flight_cache.fe_sprite_cache_free(__mem() char fe_sprite_index)
+fe_sprite_cache_free: {
+    // constants
+    // variables
+    // variables-zero-page
+    // sprite_cache.used[fe_sprite_index]--;
+    // [137] ((char *)&sprite_cache)[fe_sprite_cache_free::fe_sprite_index] = -- ((char *)&sprite_cache)[fe_sprite_cache_free::fe_sprite_index] -- pbuc1_derefidx_vbum1=_dec_pbuc1_derefidx_vbum1 
+    ldx fe_sprite_index
+    dec sprite_cache,x
+    // fe_sprite_cache_free::@return
+    // }
+    // [138] return 
+    rts
+  .segment DataEngineFlight
+    fe_sprite_index: .byte 0
+}
+  // code segment
+.segment CodeEngineFlight
+  // fe_sprite_cache_copy
+// todo, need to detach vram allocation from cache management.
+// __mem() char equinoxe_flight_cache.fe_sprite_cache_copy(__mem() char sprite_index)
+fe_sprite_cache_copy: {
+    // constants
+    .const bank_push_set_bram1_bank = 4
+    // variables
+    // variables-zero-page
+    // fe_sprite_cache_copy::bank_push_set_bram1
+    // asm
+    // asm { lda$00 pha  }
+    lda.z 0
+    pha
+    // BRAM = bank
+    // [141] BRAM = fe_sprite_cache_copy::bank_push_set_bram1_bank#0 -- vbuz1=vbuc1 
+    lda #bank_push_set_bram1_bank
+    sta.z BRAM
+    // fe_sprite_cache_copy::@7
+    // unsigned char c = sprites.sprite_cache[sprite_index]
+    // [142] fe_sprite_cache_copy::c#0 = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE)[fe_sprite_cache_copy::sprite_index] -- vbum1=pbuc1_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE,y
+    sta c
+    // sprite_index_t cache_bram = (sprite_index_t)sprite_cache.sprite_bram[c]
+    // [143] fe_sprite_cache_copy::cache_bram#0 = ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SPRITE_BRAM)[fe_sprite_cache_copy::c#0] -- vbuaa=pbuc1_derefidx_vbum1 
+    tay
+    lda sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SPRITE_BRAM,y
+    // if (cache_bram != sprite_index)
+    // [144] if(fe_sprite_cache_copy::cache_bram#0==fe_sprite_cache_copy::sprite_index) goto fe_sprite_cache_copy::@1 -- vbuaa_eq_vbum1_then_la1 
+    cmp sprite_index
+    bne !__b1+
+    jmp __b1
+  !__b1:
+    // fe_sprite_cache_copy::@2
+    // if (sprite_cache.used[c])
+    // [145] if(0==((char *)&sprite_cache)[fe_sprite_cache_copy::c#0]) goto fe_sprite_cache_copy::@3 -- 0_eq_pbuc1_derefidx_vbum1_then_la1 
+    lda sprite_cache,y
+    cmp #0
+    beq __b3
+    // fe_sprite_cache_copy::@4
+  __b4:
+    // while (sprite_cache.used[sprite_cache_pool])
+    // [146] if(0!=((char *)&sprite_cache)[sprite_cache_pool]) goto fe_sprite_cache_copy::@5 -- 0_neq_pbuc1_derefidx_vbum1_then_la1 
+    ldy sprite_cache_pool
+    lda sprite_cache,y
+    cmp #0
+    beq !__b5+
+    jmp __b5
+  !__b5:
+    // fe_sprite_cache_copy::@6
+    // c = sprite_cache_pool
+    // [147] fe_sprite_cache_copy::c#1 = sprite_cache_pool -- vbum1=vbum2 
+    tya
+    sta c
+    // [148] phi from fe_sprite_cache_copy::@2 fe_sprite_cache_copy::@6 to fe_sprite_cache_copy::@3 [phi:fe_sprite_cache_copy::@2/fe_sprite_cache_copy::@6->fe_sprite_cache_copy::@3]
+    // [148] phi fe_sprite_cache_copy::c#5 = fe_sprite_cache_copy::c#0 [phi:fe_sprite_cache_copy::@2/fe_sprite_cache_copy::@6->fe_sprite_cache_copy::@3#0] -- register_copy 
+    // fe_sprite_cache_copy::@3
+  __b3:
+    // unsigned char co = c * FE_CACHE
+    // [149] fe_sprite_cache_copy::co#0 = fe_sprite_cache_copy::c#5 << 4 -- vbum1=vbum2_rol_4 
+    lda c
+    asl
+    asl
+    asl
+    asl
+    sta co
+    // sprites.sprite_cache[sprite_index] = c
+    // [150] ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE)[fe_sprite_cache_copy::sprite_index] = fe_sprite_cache_copy::c#5 -- pbuc1_derefidx_vbum1=vbum2 
+    lda c
+    ldy sprite_index
+    sta sprites+OFFSET_STRUCT_SPRITE_T_SPRITE_CACHE,y
+    // sprite_cache.sprite_bram[c] = sprite_index
+    // [151] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SPRITE_BRAM)[fe_sprite_cache_copy::c#5] = fe_sprite_cache_copy::sprite_index -- pbuc1_derefidx_vbum1=vbum2 
+    tya
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SPRITE_BRAM,y
+    // sprite_cache.count[c] = sprites.count[sprite_index]
+    // [152] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_COUNT)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_COUNT)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    tay
+    lda sprites+OFFSET_STRUCT_SPRITE_T_COUNT,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_COUNT,y
+    // sprite_cache.offset[c] = sprites.offset[sprite_index]
+    // [153] fe_sprite_cache_copy::$15 = fe_sprite_cache_copy::sprite_index << 1 -- vbuxx=vbum1_rol_1 
+    lda sprite_index
+    asl
+    tax
+    // [154] fe_sprite_cache_copy::$18 = fe_sprite_cache_copy::c#5 << 1 -- vbuyy=vbum1_rol_1 
+    tya
+    asl
+    tay
+    // [155] ((unsigned int *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET)[fe_sprite_cache_copy::$18] = ((unsigned int *)&sprites+OFFSET_STRUCT_SPRITE_T_OFFSET)[fe_sprite_cache_copy::$15] -- pwuc1_derefidx_vbuyy=pwuc2_derefidx_vbuxx 
+    lda sprites+OFFSET_STRUCT_SPRITE_T_OFFSET,x
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET,y
+    lda sprites+OFFSET_STRUCT_SPRITE_T_OFFSET+1,x
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_OFFSET+1,y
+    // sprite_cache.size[c] = sprites.SpriteSize[sprite_index]
+    // [156] fe_sprite_cache_copy::$17 = fe_sprite_cache_copy::sprite_index << 1 -- vbuaa=vbum1_rol_1 
+    lda sprite_index
+    asl
+    // [157] ((unsigned int *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE)[fe_sprite_cache_copy::$18] = ((unsigned int *)&sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE)[fe_sprite_cache_copy::$17] -- pwuc1_derefidx_vbuyy=pwuc2_derefidx_vbuaa 
+    tax
+    lda sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE,x
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE,y
+    lda sprites+OFFSET_STRUCT_SPRITE_T_SPRITESIZE+1,x
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_SIZE+1,y
+    // sprite_cache.zdepth[c] = sprites.Zdepth[sprite_index]
+    // [158] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_ZDEPTH)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_ZDEPTH)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_ZDEPTH,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_ZDEPTH,y
+    // sprite_cache.bpp[c] = sprites.BPP[sprite_index]
+    // [159] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_BPP)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_BPP)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_BPP,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_BPP,y
+    // sprite_cache.height[c] = sprites.Height[sprite_index]
+    // [160] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_HEIGHT)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_HEIGHT)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_HEIGHT,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_HEIGHT,y
+    // sprite_cache.width[c] = sprites.Width[sprite_index]
+    // [161] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_WIDTH)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_WIDTH)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_WIDTH,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_WIDTH,y
+    // sprite_cache.hflip[c] = sprites.Hflip[sprite_index]
+    // [162] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_HFLIP)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_HFLIP)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_HFLIP,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_HFLIP,y
+    // sprite_cache.vflip[c] = sprites.Vflip[sprite_index]
+    // [163] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_VFLIP)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_VFLIP)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_VFLIP,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_VFLIP,y
+    // sprite_cache.reverse[c] = sprites.reverse[sprite_index]
+    // [164] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_REVERSE)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_REVERSE)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_REVERSE,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_REVERSE,y
+    // sprite_cache.palette_offset[c] = sprites.PaletteOffset[sprite_index]
+    // [165] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_PALETTE_OFFSET)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_PALETTEOFFSET,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_PALETTE_OFFSET,y
+    // sprite_cache.loop[c] = sprites.loop[sprite_index]
+    // [166] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_LOOP)[fe_sprite_cache_copy::c#5] = ((char *)&sprites+OFFSET_STRUCT_SPRITE_T_LOOP)[fe_sprite_cache_copy::sprite_index] -- pbuc1_derefidx_vbum1=pbuc2_derefidx_vbum2 
+    ldy sprite_index
+    lda sprites+OFFSET_STRUCT_SPRITE_T_LOOP,y
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_LOOP,y
+    // strcpy(&sprite_cache.file[co], sprites.file[sprite_index])
+    // [167] strcpy::destination#0 = (char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_FILE + fe_sprite_cache_copy::co#0 -- pbuz1=pbuc1_plus_vbum2 
+    lda co
+    clc
+    adc #<sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_FILE
+    sta.z strcpy.destination
+    lda #>sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_FILE
+    adc #0
+    sta.z strcpy.destination+1
+    // [168] fe_sprite_cache_copy::$19 = fe_sprite_cache_copy::sprite_index << 1 -- vbuaa=vbum1_rol_1 
+    lda sprite_index
+    asl
+    // [169] strcpy::source#0 = ((char **)&sprites)[fe_sprite_cache_copy::$19] -- pbuz1=qbuc1_derefidx_vbuaa 
+    tay
+    lda sprites,y
+    sta.z strcpy.source
+    lda sprites+1,y
+    sta.z strcpy.source+1
+    // [170] call strcpy
+    // [268] phi from fe_sprite_cache_copy::@3 to strcpy [phi:fe_sprite_cache_copy::@3->strcpy]
+    jsr strcpy
+    // fe_sprite_cache_copy::@9
+    // sprites.aabb[sprite_index].xmin >> 2
+    // [171] fe_sprite_cache_copy::$20 = fe_sprite_cache_copy::sprite_index << 2 -- vbuaa=vbum1_rol_2 
+    lda sprite_index
+    asl
+    asl
+    // [172] fe_sprite_cache_copy::$11 = ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB)[fe_sprite_cache_copy::$20] >> 2 -- vbuaa=pbuc1_derefidx_vbuaa_ror_2 
+    tay
+    lda sprites+OFFSET_STRUCT_SPRITE_T_AABB,y
+    lsr
+    lsr
+    // sprite_cache.xmin[c] = sprites.aabb[sprite_index].xmin >> 2
+    // [173] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMIN)[fe_sprite_cache_copy::c#5] = fe_sprite_cache_copy::$11 -- pbuc1_derefidx_vbum1=vbuaa 
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMIN,y
+    // sprites.aabb[sprite_index].ymin >> 2
+    // [174] fe_sprite_cache_copy::$21 = fe_sprite_cache_copy::sprite_index << 2 -- vbuaa=vbum1_rol_2 
+    lda sprite_index
+    asl
+    asl
+    // [175] fe_sprite_cache_copy::$12 = ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMIN)[fe_sprite_cache_copy::$21] >> 2 -- vbuaa=pbuc1_derefidx_vbuaa_ror_2 
+    tay
+    lda sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMIN,y
+    lsr
+    lsr
+    // sprite_cache.ymin[c] = sprites.aabb[sprite_index].ymin >> 2
+    // [176] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMIN)[fe_sprite_cache_copy::c#5] = fe_sprite_cache_copy::$12 -- pbuc1_derefidx_vbum1=vbuaa 
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMIN,y
+    // sprites.aabb[sprite_index].xmax >> 2
+    // [177] fe_sprite_cache_copy::$22 = fe_sprite_cache_copy::sprite_index << 2 -- vbuaa=vbum1_rol_2 
+    lda sprite_index
+    asl
+    asl
+    // [178] fe_sprite_cache_copy::$13 = ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_XMAX)[fe_sprite_cache_copy::$22] >> 2 -- vbuaa=pbuc1_derefidx_vbuaa_ror_2 
+    tay
+    lda sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_XMAX,y
+    lsr
+    lsr
+    // sprite_cache.xmax[c] = sprites.aabb[sprite_index].xmax >> 2
+    // [179] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMAX)[fe_sprite_cache_copy::c#5] = fe_sprite_cache_copy::$13 -- pbuc1_derefidx_vbum1=vbuaa 
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_XMAX,y
+    // sprites.aabb[sprite_index].ymax >> 2
+    // [180] fe_sprite_cache_copy::$23 = fe_sprite_cache_copy::sprite_index << 2 -- vbuaa=vbum1_rol_2 
+    lda sprite_index
+    asl
+    asl
+    // [181] fe_sprite_cache_copy::$14 = ((char *)(aabb_t *)&sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMAX)[fe_sprite_cache_copy::$23] >> 2 -- vbuaa=pbuc1_derefidx_vbuaa_ror_2 
+    tay
+    lda sprites+OFFSET_STRUCT_SPRITE_T_AABB+OFFSET_STRUCT_AABB_T_YMAX,y
+    lsr
+    lsr
+    // sprite_cache.ymax[c] = sprites.aabb[sprite_index].ymax >> 2
+    // [182] ((char *)&sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMAX)[fe_sprite_cache_copy::c#5] = fe_sprite_cache_copy::$14 -- pbuc1_derefidx_vbum1=vbuaa 
+    ldy c
+    sta sprite_cache+OFFSET_STRUCT_FE_SPRITE_CACHE_T_YMAX,y
+    // [183] phi from fe_sprite_cache_copy::@7 fe_sprite_cache_copy::@9 to fe_sprite_cache_copy::@1 [phi:fe_sprite_cache_copy::@7/fe_sprite_cache_copy::@9->fe_sprite_cache_copy::@1]
+    // [183] phi fe_sprite_cache_copy::c#2 = fe_sprite_cache_copy::c#0 [phi:fe_sprite_cache_copy::@7/fe_sprite_cache_copy::@9->fe_sprite_cache_copy::@1#0] -- register_copy 
+    // fe_sprite_cache_copy::@1
+  __b1:
+    // sprite_cache.used[c]++;
+    // [184] ((char *)&sprite_cache)[fe_sprite_cache_copy::c#2] = ++ ((char *)&sprite_cache)[fe_sprite_cache_copy::c#2] -- pbuc1_derefidx_vbum1=_inc_pbuc1_derefidx_vbum1 
+    ldx c
+    inc sprite_cache,x
+    // fe_sprite_cache_copy::bank_pull_bram1
+    // asm
+    // asm { pla sta$00  }
+    pla
+    sta.z 0
+    // fe_sprite_cache_copy::@8
+    // return c;
+    // [186] fe_sprite_cache_copy::return = fe_sprite_cache_copy::c#2
+    // fe_sprite_cache_copy::@return
+    // }
+    // [187] return 
+    rts
+    // fe_sprite_cache_copy::@5
+  __b5:
+    // sprite_cache_pool + 1
+    // [188] fe_sprite_cache_copy::$6 = sprite_cache_pool + 1 -- vbuaa=vbum1_plus_1 
+    lda sprite_cache_pool
+    inc
+    // (sprite_cache_pool + 1) % FE_CACHE
+    // [189] fe_sprite_cache_copy::$7 = fe_sprite_cache_copy::$6 & FE_CACHE-1 -- vbuaa=vbuaa_band_vbuc1 
+    and #FE_CACHE-1
+    // sprite_cache_pool = (sprite_cache_pool + 1) % FE_CACHE
+    // [190] sprite_cache_pool = fe_sprite_cache_copy::$7 -- vbum1=vbuaa 
+    sta sprite_cache_pool
+    jmp __b4
+  .segment DataEngineFlight
+    sprite_index: .byte 0
+  .segment DataEngineFlight
+    .label return = c
+  .segment DataEngineFlight
+    c: .byte 0
+  .segment DataEngineFlight
+    co: .byte 0
+}
+  // code segment
+.segment Code
+  // memcpy_vram_bram
+/**
+ * @brief Copy block of memory from bram to vram.
+ * Copies num bytes from the source bram bank/pointer to the destination vram bank/offset.
+ *
+ * @param dbank_vram Destination vram bank between 0 and 1.
+ * @param doffset_vram Destination vram offset between 0x0000 and 0xFFFF.
+ * @param sbank_vram Source bram bank between 0 and 255 (Depending on banked ram availability, maxima can be 63, 127, 191 or 255).
+ * @param sptr_bram Source bram pointer between 0xA000 and 0xBFFF.
+ * @param num Amount of bytes to copy.
+ */
+// void memcpy_vram_bram(__register(X) char dbank_vram, __mem() unsigned int doffset_vram, __mem() char sbank_bram, __zp($28) char *sptr_bram, __mem() volatile unsigned int num)
+memcpy_vram_bram: {
+    // constants
+    .label pagemask = $ff00
+    // variables
+    // variables-zero-page
+    .label ptr = $2a
+    .label sptr_bram = $28
+    // memcpy_vram_bram::bank_get_bram1
+    // return BRAM;
+    // [222] memcpy_vram_bram::bank#10 = BRAM -- vbum1=vbuz2 
+    lda.z BRAM
+    sta bank
+    // memcpy_vram_bram::bank_set_bram1
+    // BRAM = bank
+    // [223] BRAM = memcpy_vram_bram::sbank_bram#2 -- vbuz1=vbum2 
+    lda sbank_bram
+    sta.z BRAM
+    // memcpy_vram_bram::@12
+    // *VERA_CTRL &= ~VERA_ADDRSEL
+    // [224] *VERA_CTRL = *VERA_CTRL & ~VERA_ADDRSEL -- _deref_pbuc1=_deref_pbuc1_band_vbuc2 
+    lda #VERA_ADDRSEL^$ff
+    and VERA_CTRL
+    sta VERA_CTRL
+    // BYTE0(doffset_vram)
+    // [225] memcpy_vram_bram::$2 = byte0  memcpy_vram_bram::doffset_vram#0 -- vbuaa=_byte0_vwum1 
+    lda doffset_vram
+    // *VERA_ADDRX_L = BYTE0(doffset_vram)
+    // [226] *VERA_ADDRX_L = memcpy_vram_bram::$2 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_L
+    // BYTE1(doffset_vram)
+    // [227] memcpy_vram_bram::$3 = byte1  memcpy_vram_bram::doffset_vram#0 -- vbuaa=_byte1_vwum1 
+    lda doffset_vram+1
+    // *VERA_ADDRX_M = BYTE1(doffset_vram)
+    // [228] *VERA_ADDRX_M = memcpy_vram_bram::$3 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_M
+    // dbank_vram | VERA_INC_1
+    // [229] memcpy_vram_bram::$4 = memcpy_vram_bram::dbank_vram#0 | VERA_INC_1 -- vbuaa=vbuxx_bor_vbuc1 
+    txa
+    ora #VERA_INC_1
+    // *VERA_ADDRX_H = dbank_vram | VERA_INC_1
+    // [230] *VERA_ADDRX_H = memcpy_vram_bram::$4 -- _deref_pbuc1=vbuaa 
+    sta VERA_ADDRX_H
+    // (unsigned int)sptr_bram & (unsigned int)pagemask
+    // [231] memcpy_vram_bram::$5 = (unsigned int)memcpy_vram_bram::sptr_bram#0 & (unsigned int)memcpy_vram_bram::pagemask -- vwum1=vwuz2_band_vwuc1 
+    lda.z sptr_bram
+    and #<pagemask
+    sta memcpy_vram_bram__5
+    lda.z sptr_bram+1
+    and #>pagemask
+    sta memcpy_vram_bram__5+1
+    // bram_ptr_t ptr = (bram_ptr_t)((unsigned int)sptr_bram & (unsigned int)pagemask)
+    // [232] memcpy_vram_bram::ptr = (char *)memcpy_vram_bram::$5 -- pbuz1=pbum2 
+    // Set the page boundary.
+    lda memcpy_vram_bram__5
+    sta.z ptr
+    lda memcpy_vram_bram__5+1
+    sta.z ptr+1
+    // unsigned char pos = BYTE0(sptr_bram)
+    // [233] memcpy_vram_bram::pos = byte0  memcpy_vram_bram::sptr_bram#0 -- vbum1=_byte0_pbuz2 
+    lda.z sptr_bram
+    sta pos
+    // BYTE0(sptr_bram)
+    // [234] memcpy_vram_bram::$7 = byte0  memcpy_vram_bram::sptr_bram#0 -- vbuaa=_byte0_pbuz1 
+    lda.z sptr_bram
+    // unsigned char len = -BYTE0(sptr_bram)
+    // [235] memcpy_vram_bram::len = - memcpy_vram_bram::$7 -- vbum1=_neg_vbuaa 
+    eor #$ff
+    clc
+    adc #1
+    sta len
+    // num <= (unsigned int)len
+    // [236] memcpy_vram_bram::$27 = (unsigned int)memcpy_vram_bram::len -- vwum1=_word_vbum2 
+    sta memcpy_vram_bram__27
+    lda #0
+    sta memcpy_vram_bram__27+1
+    // if (num <= (unsigned int)len)
+    // [237] if(memcpy_vram_bram::num>memcpy_vram_bram::$27) goto memcpy_vram_bram::@1 -- vwum1_gt_vwum2_then_la1 
+    cmp num+1
+    bcc __b1
+    bne !+
+    lda memcpy_vram_bram__27
+    cmp num
+    bcc __b1
+  !:
+    // memcpy_vram_bram::@5
+    // BYTE0(num)
+    // [238] memcpy_vram_bram::$11 = byte0  memcpy_vram_bram::num -- vbuaa=_byte0_vwum1 
+    lda num
+    // len = BYTE0(num)
+    // [239] memcpy_vram_bram::len = memcpy_vram_bram::$11 -- vbum1=vbuaa 
+    sta len
+    // memcpy_vram_bram::@1
+  __b1:
+    // if (len)
+    // [240] if(0==memcpy_vram_bram::len) goto memcpy_vram_bram::@2 -- 0_eq_vbum1_then_la1 
+    lda len
+    beq __b2
+    // memcpy_vram_bram::@6
+    // asm
+    // asm { ldypos ldxlen inx ldaptr sta!ptr++1 ldaptr+1 sta!ptr++2 !ptr: lda$ffff,y staVERA_DATA0 iny dex bne!ptr-  }
+    ldy pos
+    tax
+    inx
+    lda ptr
+    sta !ptr+ +1
+    lda ptr+1
+    sta !ptr+ +2
+  !ptr:
+    lda $ffff,y
+    sta VERA_DATA0
+    iny
+    dex
+    bne !ptr-
+    // ptr += 0x100
+    // [242] memcpy_vram_bram::ptr = memcpy_vram_bram::ptr + $100 -- pbuz1=pbuz1_plus_vwuc1 
+    // do {
+    //     // *VERA_DATA0 = ptr[y];
+    //     asm {
+    //         !ptr: lda $ffff,y
+    //         sta VERA_DATA0
+    //     }
+    //     y++;
+    //     // ptr++;
+    // } while(y<x);
+    lda.z ptr
+    clc
+    adc #<$100
+    sta.z ptr
+    lda.z ptr+1
+    adc #>$100
+    sta.z ptr+1
+    // num -= len
+    // [243] memcpy_vram_bram::num = memcpy_vram_bram::num - memcpy_vram_bram::len -- vwum1=vwum1_minus_vbum2 
+    sec
+    lda num
+    sbc len
+    sta num
+    bcs !+
+    dec num+1
+  !:
+    // memcpy_vram_bram::@2
+  __b2:
+    // BYTE1(ptr)
+    // [244] memcpy_vram_bram::$13 = byte1  memcpy_vram_bram::ptr -- vbuaa=_byte1_pbuz1 
+    lda.z ptr+1
+    // if (BYTE1(ptr) == 0xC0)
+    // [245] if(memcpy_vram_bram::$13!=$c0) goto memcpy_vram_bram::@3 -- vbuaa_neq_vbuc1_then_la1 
+    cmp #$c0
+    bne __b3
+    // memcpy_vram_bram::@7
+    // ptr = (unsigned char *)0xA000
+    // [246] memcpy_vram_bram::ptr = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z ptr
+    lda #>$a000
+    sta.z ptr+1
+    // bank_set_bram(++sbank_bram);
+    // [247] memcpy_vram_bram::bank_set_bram2_bank#0 = ++ memcpy_vram_bram::sbank_bram#2 -- vbum1=_inc_vbum1 
+    inc bank_set_bram2_bank
+    // memcpy_vram_bram::bank_set_bram2
+    // BRAM = bank
+    // [248] BRAM = memcpy_vram_bram::bank_set_bram2_bank#0 -- vbuz1=vbum2 
+    lda bank_set_bram2_bank
+    sta.z BRAM
+    // [249] phi from memcpy_vram_bram::@2 memcpy_vram_bram::bank_set_bram2 to memcpy_vram_bram::@3 [phi:memcpy_vram_bram::@2/memcpy_vram_bram::bank_set_bram2->memcpy_vram_bram::@3]
+    // [249] phi memcpy_vram_bram::sbank_bram#13 = memcpy_vram_bram::sbank_bram#2 [phi:memcpy_vram_bram::@2/memcpy_vram_bram::bank_set_bram2->memcpy_vram_bram::@3#0] -- register_copy 
+    // memcpy_vram_bram::@3
+  __b3:
+    // BYTE1(num)
+    // [250] memcpy_vram_bram::$16 = byte1  memcpy_vram_bram::num -- vbuaa=_byte1_vwum1 
+    lda num+1
+    // if (BYTE1(num))
+    // [251] if(0==memcpy_vram_bram::$16) goto memcpy_vram_bram::@4 -- 0_eq_vbuaa_then_la1 
+    cmp #0
+    beq __b4
+    // [252] phi from memcpy_vram_bram::@10 memcpy_vram_bram::@3 to memcpy_vram_bram::@9 [phi:memcpy_vram_bram::@10/memcpy_vram_bram::@3->memcpy_vram_bram::@9]
+    // [252] phi memcpy_vram_bram::sbank_bram#5 = memcpy_vram_bram::sbank_bram#12 [phi:memcpy_vram_bram::@10/memcpy_vram_bram::@3->memcpy_vram_bram::@9#0] -- register_copy 
+    // memcpy_vram_bram::@9
+  __b9:
+    // asm
+    // asm { ldy#0 ldaptr sta!ptr++1 ldaptr+1 sta!ptr++2 !: !ptr: lda$ffff,y staVERA_DATA0 iny bne!-  }
+    // register unsigned char y = 0;
+    ldy #0
+    lda ptr
+    sta !ptr+ +1
+    lda ptr+1
+    sta !ptr+ +2
+  !:
+  !ptr:
+    lda $ffff,y
+    sta VERA_DATA0
+    iny
+    bne !-
+    // ptr += 0x100
+    // [254] memcpy_vram_bram::ptr = memcpy_vram_bram::ptr + $100 -- pbuz1=pbuz1_plus_vwuc1 
+    // do {
+    //     // *VERA_DATA0 = ptr[y];
+    //     asm {
+    //         !ptr: lda $ffff,y
+    //         sta VERA_DATA0
+    //     }
+    //     y++;
+    //     // ptr++;
+    // } while(y);
+    lda.z ptr
+    clc
+    adc #<$100
+    sta.z ptr
+    lda.z ptr+1
+    adc #>$100
+    sta.z ptr+1
+    // BYTE1(ptr)
+    // [255] memcpy_vram_bram::$21 = byte1  memcpy_vram_bram::ptr -- vbuaa=_byte1_pbuz1 
+    // if (BYTE1(ptr) == 0xC0)
+    // [256] if(memcpy_vram_bram::$21!=$c0) goto memcpy_vram_bram::@10 -- vbuaa_neq_vbuc1_then_la1 
+    cmp #$c0
+    bne __b10
+    // memcpy_vram_bram::@11
+    // ptr = (unsigned char *)0xA000
+    // [257] memcpy_vram_bram::ptr = (char *) 40960 -- pbuz1=pbuc1 
+    lda #<$a000
+    sta.z ptr
+    lda #>$a000
+    sta.z ptr+1
+    // bank_set_bram(++sbank_bram);
+    // [258] memcpy_vram_bram::bank_set_bram3_bank#0 = ++ memcpy_vram_bram::sbank_bram#5 -- vbum1=_inc_vbum1 
+    inc bank_set_bram3_bank
+    // memcpy_vram_bram::bank_set_bram3
+    // BRAM = bank
+    // [259] BRAM = memcpy_vram_bram::bank_set_bram3_bank#0 -- vbuz1=vbum2 
+    lda bank_set_bram3_bank
+    sta.z BRAM
+    // [260] phi from memcpy_vram_bram::@9 memcpy_vram_bram::bank_set_bram3 to memcpy_vram_bram::@10 [phi:memcpy_vram_bram::@9/memcpy_vram_bram::bank_set_bram3->memcpy_vram_bram::@10]
+    // [260] phi memcpy_vram_bram::sbank_bram#12 = memcpy_vram_bram::sbank_bram#5 [phi:memcpy_vram_bram::@9/memcpy_vram_bram::bank_set_bram3->memcpy_vram_bram::@10#0] -- register_copy 
+    // memcpy_vram_bram::@10
+  __b10:
+    // num -= 256
+    // [261] memcpy_vram_bram::num = memcpy_vram_bram::num - $100 -- vwum1=vwum1_minus_vwuc1 
+    lda num
+    sec
+    sbc #<$100
+    sta num
+    lda num+1
+    sbc #>$100
+    sta num+1
+    // BYTE1(num)
+    // [262] memcpy_vram_bram::$25 = byte1  memcpy_vram_bram::num -- vbuaa=_byte1_vwum1 
+    // while (BYTE1(num))
+    // [263] if(0!=memcpy_vram_bram::$25) goto memcpy_vram_bram::@9 -- 0_neq_vbuaa_then_la1 
+    cmp #0
+    bne __b9
+    // memcpy_vram_bram::@4
+  __b4:
+    // if (num)
+    // [264] if(0==memcpy_vram_bram::num) goto memcpy_vram_bram::bank_set_bram4 -- 0_eq_vwum1_then_la1 
+    lda num
+    ora num+1
+    beq bank_set_bram4
+    // memcpy_vram_bram::@8
+    // asm
+    // asm { ldy#0 ldxnum inx ldaptr sta!ptr++1 ldaptr+1 sta!ptr++2 !ptr: lda$ffff,y staVERA_DATA0 iny dex bne!ptr-  }
+    ldy #0
+    ldx num
+    inx
+    lda ptr
+    sta !ptr+ +1
+    lda ptr+1
+    sta !ptr+ +2
+  !ptr:
+    lda $ffff,y
+    sta VERA_DATA0
+    iny
+    dex
+    bne !ptr-
+    // memcpy_vram_bram::bank_set_bram4
+  bank_set_bram4:
+    // BRAM = bank
+    // [266] BRAM = memcpy_vram_bram::bank#10 -- vbuz1=vbum2 
+    lda bank
+    sta.z BRAM
+    // memcpy_vram_bram::@return
+    // }
+    // [267] return 
+    rts
+  .segment Data
+    num: .word 0
+  .segment Data
+    memcpy_vram_bram__5: .word 0
+  .segment Data
+    pos: .byte 0
+  .segment Data
+    len: .byte 0
+  .segment Data
+    memcpy_vram_bram__27: .word 0
+  .segment Data
+    .label bank_set_bram2_bank = sbank_bram
+  .segment Data
+    .label bank_set_bram3_bank = sbank_bram
+  .segment Data
+    doffset_vram: .word 0
+  .segment Data
+    sbank_bram: .byte 0
+  .segment Data
+    bank: .byte 0
+}
+  // code segment
+.segment Code
+  // strcpy
+// Copies the C string pointed by source into the array pointed by destination, including the terminating null character (and stopping at that point).
+// char * strcpy(__zp($22) char *destination, __zp($28) char *source)
+strcpy: {
+    // constants
+    // variables
+    // variables-zero-page
+    .label dst = $22
+    .label src = $28
+    .label destination = $22
+    .label source = $28
+    // [269] phi from strcpy strcpy::@2 to strcpy::@1 [phi:strcpy/strcpy::@2->strcpy::@1]
+    // [269] phi strcpy::dst#2 = strcpy::destination#0 [phi:strcpy/strcpy::@2->strcpy::@1#0] -- register_copy 
+    // [269] phi strcpy::src#2 = strcpy::source#0 [phi:strcpy/strcpy::@2->strcpy::@1#1] -- register_copy 
+    // strcpy::@1
+  __b1:
+    // while(*src)
+    // [270] if(0!=*strcpy::src#2) goto strcpy::@2 -- 0_neq__deref_pbuz1_then_la1 
+    ldy #0
+    lda (src),y
+    cmp #0
+    bne __b2
+    // strcpy::@3
+    // *dst = 0
+    // [271] *strcpy::dst#2 = 0 -- _deref_pbuz1=vbuc1 
+    tya
+    tay
+    sta (dst),y
+    // strcpy::@return
+    // }
+    // [272] return 
+    rts
+    // strcpy::@2
+  __b2:
+    // *dst++ = *src++
+    // [273] *strcpy::dst#2 = *strcpy::src#2 -- _deref_pbuz1=_deref_pbuz2 
+    ldy #0
+    lda (src),y
+    sta (dst),y
+    // *dst++ = *src++;
+    // [274] strcpy::dst#1 = ++ strcpy::dst#2 -- pbuz1=_inc_pbuz1 
+    inc.z dst
+    bne !+
+    inc.z dst+1
+  !:
+    // [275] strcpy::src#1 = ++ strcpy::src#2 -- pbuz1=_inc_pbuz1 
+    inc.z src
+    bne !+
+    inc.z src+1
+  !:
+    jmp __b1
+}
+  // Exported Global Data
+.segment DataEngineFlight
+  // Flight engine control.
+  flight_sprite_offsets: .word 0
+  .fill 2*$7e, 0
+.segment DataEngineFlight
+  sprite_bram_handles: .fill $100, 0
+.segment Data
+.encoding "petscii_mixed"
+  __49: .text "t001"
+  .byte 0
+.segment Data
+  __50: .text "p001"
+  .byte 0
+.segment Data
+  __51: .text "n001"
+  .byte 0
+.segment Data
+  __52: .text "e0701"
+  .byte 0
+.segment Data
+  __53: .text "e0102"
+  .byte 0
+.segment Data
+  __54: .text "e0201"
+  .byte 0
+.segment Data
+  __55: .text "e0202"
+  .byte 0
+.segment Data
+  __56: .text "e0301"
+  .byte 0
+.segment Data
+  __57: .text "e0302"
+  .byte 0
+.segment Data
+  __58: .text "e0401"
+  .byte 0
+.segment Data
+  __59: .text "e0501"
+  .byte 0
+.segment Data
+  __60: .text "e0502"
+  .byte 0
+.segment Data
+  __61: .text "e0601"
+  .byte 0
+.segment Data
+  __62: .text "e0602"
+  .byte 0
+.segment Data
+  __63: .text "e0101"
+  .byte 0
+.segment Data
+  __64: .text "e0702"
+  .byte 0
+.segment Data
+  __65: .text "e0703"
+  .byte 0
+.segment Data
+  __66: .text "b001"
+  .byte 0
+.segment Data
+  __67: .text "b002"
+  .byte 0
+.segment Data
+  __68: .text "b003"
+  .byte 0
+.segment Data
+  __69: .text "b004"
+  .byte 0
+.segment BramEngineFlight
+  sprites: .word __49, __50, __51, __52, __53, __54, __55, __56, __57, __58, __59, __60, __61, __62, __63, __64, __65, __66, __67, __68, __69
+  .fill 2*$b, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .word 0
+  .fill 2*$1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .fill SIZEOF_STRUCT_AABB_T, 0
+  .word 0
+  .fill 2*$1f, 0
+  .byte 0
+  .fill $1f, 0
+  .byte 0
+  .fill $1f, 0
+.segment DataSpriteCache
+  // Cache to manage sprite control data fast, unbanked as making this banked will make things very, very complicated.
+  sprite_cache: .fill SIZEOF_STRUCT_FE_SPRITE_CACHE_T, 0
+.segment DataEngineFlight
+  sprite_cache_pool: .byte 0
+.segment DataEngineFlight
+  flight_sprite_offset_pool: .byte 0
+  // end-assembler
+  // End Namespace
+} // namespace
+ // Asm import library lib_lru_cache:
+.namespace lib_lru_cache {
+lru_cache_index: {
+  .label key = 0
+  .label return = 0
+}
+lru_cache_get: {
+  .label index = 0
+  .label return = 0
+}
+lru_cache_is_max: {
+  .label return = 0
+}
+lru_cache_find_last: {
+  .label return = 0
+}
+lru_cache_delete: {
+  .label key = 0
+  .label return = 0
+}
+lru_cache_insert: {
+  .label key = 0
+  .label data = 0
+  .label return = 0
+}
+} // namespacelib_lru_cache
+
+ // Asm import library lib_veraheap:
+.namespace lib_veraheap {
+vera_heap_alloc: {
+  .label s = 0
+  .label size = 0
+  .label return = 0
+}
+vera_heap_free: {
+  .label s = 0
+  .label free_index = 0
+  .label return = 0
+}
+vera_heap_data_get_offset: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+vera_heap_data_get_bank: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+vera_heap_get_image: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+vera_heap_set_image: {
+  .label s = 0
+  .label index = 0
+  .label image = 0
+  .label return = 0
+}
+vera_heap_has_free: {
+  .label s = 0
+  .label size_requested = 0
+  .label return = 0
+}
+} // namespacelib_veraheap
+
+ // Asm import library lib_bramheap:
+.namespace lib_bramheap {
+bram_heap_data_get_bank: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+bram_heap_data_get_offset: {
+  .label s = 0
+  .label index = 0
+  .label return = 0
+}
+} // namespacelib_bramheap
+
+ // Asm import library lib_file:
+.namespace lib_file {
+} // namespacelib_file
+
+ // Asm import library equinoxe-animate:
+.namespace equinoxe_animate {
+} // namespaceequinoxe_animate
+
+ // Asm import library equinoxe-palette:
+.namespace equinoxe_palette {
+} // namespaceequinoxe_palette
+

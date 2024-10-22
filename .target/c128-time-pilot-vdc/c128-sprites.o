@@ -1,0 +1,45 @@
+
+{
+    "target_platform": {
+        "platform": "C128",
+        "cpu": "mos6502x"
+    },
+    "asm_upstart": ".file [name=\"PALSPRITE01.BIN\", type=\"bin\", segments=\"palettes\"]\r\n.segmentdef Program [segments=\"Basic, Code, Data\"]\r\n.segmentdef Basic [start=$0801]\r\n.segmentdef Code [start=$1c0e]\r\n.segmentdef Data [startAfter=\"Code\"]\r\n.segment Basic\r\n:BasicUpstart(main)\r\n.segmentdef palettes\r\n.segment palettes\r\n",
+    "zp_reserved": [
+        0,
+        1,
+        252,
+        253,
+        254,
+        255
+    ],
+    "call_graph": {
+        "main": [
+        ]
+    },
+    "globals": {
+        "zp": {
+            "zp_fields": {
+            }
+        },
+        "asm_begin": "  // File Comments\n  // Global constants and variables\n",
+        "asm_constants": "  // constants\n",
+        "asm_variables": "  // variables\n",
+        "asm_end": "  // File Data Internal or Ignore\n.segment palettes\npalettes:\n.function GetPalette(bitmap) {\n        .var palette = Hashtable()\n        .var palList = List()\n        .var nxt_idx = 0;\n        .eval palette.put(0,0);\n        .eval palList.add(0)\n        .eval bitmap.size = (bitmap.width * bitmap.height) / (8 / bitmap.bpp)\n        .eval bitmap.count = round((bitmap.count / bitmap.skip))\n        .print \"count = \" + bitmap.count + \"size = \" + bitmap.size + \", width = \" + bitmap.width + \", height = \" + bitmap.height + \", bpp = \" + bitmap.bpp\n        .var image = bitmap.tile + \"_\" + bitmap.width + \"x\" + bitmap.height + \".\" + bitmap.ext\n        .print image\n        .var pic = LoadPicture(image)\n        .var xoff = bitmap.width * bitmap.start\n        .var yoff = 0\n        .for(var p=0;p<bitmap.count;p++) {\n            .for (var y=0; y<bitmap.height; y++) {\n                .for (var x=xoff;x<bitmap.width+xoff; x++) {\n                    // Find palette index (add if not known)\n                    .var rgb = pic.getPixel(x,y)\n                    .var idx = palette.get(rgb)\n                    .if(idx==null) {\n                        .eval idx = nxt_idx++\n                        .eval palette.put(rgb,idx)\n                        .eval palList.add(rgb)\n                        .print \"get rgb = \" + toHexString(rgb) + \" image = \" + image + \" x = \" + x + \" y = \" + y\n                    }\n                }\n            }\n            .eval xoff += bitmap.width * bitmap.skip\n        }\n        .return palList\n    }\n\n    .function MakeTile(bitmap,pallist) {\n        .var palette = Hashtable()\n        .print \"bpp=\" + bitmap.bpp\n        .for(var p=0;p<pallist.size();p++) {\n            .eval palette.put(pallist.get(p),p);\n        }\n        .var tiledata = List()\n        .var image = bitmap.tile + \"_\" + bitmap.width + \"x\" + bitmap.height + \".\" + bitmap.ext\n        .var pic = LoadPicture(image)\n        .var xoff = bitmap.width * bitmap.start\n        .var yoff = 0\n        .for(var p=0;p<bitmap.count;p++) {\n            .var hstep = 8 / bitmap.bpp\n            .var vstep = 1\n            .var hinc = 8 / bitmap.bpp\n            .var vinc = 1\n//            .print \"bitmap = \" + p\n            .for(var j=0; j<bitmap.height; j+=vstep) {\n//                .print \"j = \" + j\n                .for(var i=0+xoff; i<bitmap.width+xoff; i+=hstep) {\n//                    .print \"i = \" + i\n                    .for (var y=j; y<j+vstep; y+=vinc) {\n//                        .print \"y = \" + y\n                        .for (var x=i; x<i+hstep; x+=hinc) {\n//                            .print \"x = \" + x\n                            .var val = 0\n                            .for(var v=0; v<hinc; v++) {\n                                // Find palette index (add if not known)\n                                .var rgb = pic.getPixel(x+v,y)\n                                //.print \"rgb == \" + rgb\n                                .if(rgb == 0) {\n                                    .eval val = val * 2;\n                                } else {\n                                    .eval val = val * 2 + 1;\n                                }\n                            }\n                            //.print \"val = \" + val\n                            .eval tiledata.add(val);\n                        }\n                    }\n                }\n            }\n            .eval xoff += bitmap.width * bitmap.skip\n        }\n        .return tiledata\n    }\n\n    .function MakePalette(bitmap,pallist) {\n        .var palettedata = List()\n        .print \"put palette size = \" + pallist.size()\n        .if(pallist.size()>bitmap.palettecount) .error \"Tile \" + bitmap.tile + \" has too many colours \"+pallist.size()\n        .for(var i=0;i<bitmap.palettecount;i++) {\n            .var rgb = 0\n            .if(i<pallist.size())\n                .eval rgb = pallist.get(i)\n            .var green = ((rgb >> 8) & $ff) & $f0\n            .var blue = (rgb & $ff) >> 4\n            .var red = (rgb >>16) >> 4\n            .print \"put rgb = \" + toHexString(rgb) + \" green = \" + toHexString(green) + \" blue = \" + toHexString(blue) + \" red = \" + toHexString(red)\n            // bits 4-8: green, bits 0-3 blue\n            .eval palettedata.add(green | blue)\n            // bits bits 0-3 red\n            .eval palettedata.add(red)\n            // .printnow \"tile large: rgb = \" + rgb + \", i = \" + i\n        }\n        .return palettedata\n    }\n\n\n.segment palettes\nheader:\n.struct Sprite {tile, ext, start, count, skip, size, width, height, zorder, flipv, fliph, bpp, collision, reverse, palettecount, loop}\n\n    .macro Data(sprite, tiledata, pallistdata) {\n        // Header\n        .byte sprite.count, sprite.size, sprite.width, sprite.height, sprite.zorder, sprite.fliph, sprite.flipv, sprite.bpp, sprite.collision, sprite.reverse, sprite.loop,0,0,0,0\n\n        // Sprite\n        .print \"tiledata.size = \" + tiledata.size()\n        .var col = 0\n        .var line = \"\"\n        .for(var i=0;i<tiledata.size();i++) {\n            .eval line = line.string() + toBinaryString(tiledata.get(i),8) + \" \"\n            .eval col = col + 1\n            .if(col == sprite.width / 8) {\n                .eval col = 0\n                .print line \n                .eval line = \"\"\n            }\n            .byte tiledata.get(i)\n        }\n    }\n\n.segment palettes\nfly:\n{\n    .var sprite = Sprite(\"graphics/flies/fly_01\",\"png\",0,1,1,32,16,16,2,0,0,1,2,0,2,1)\n    .var pallist = GetPalette(sprite)\n    .var tiledata = MakeTile(sprite,pallist)\n    .var pallistdata = MakePalette(sprite,pallist)\n    .file [name=\"fly_01.bin\", type=\"bin\", segments=\"fly_01\"]\n    .segmentdef fly_01\n    .segment fly_01\n    Data(sprite,tiledata,pallistdata)\n};\n"
+    },
+    "procedures": {
+        "main": {
+            "zp": {
+                "zp_fields": {
+                }
+            },
+            "exported": false,
+            "asm_begin": "  // code segment\n.segment Code\n  // main\n// void main()\nmain: {\n",
+            "asm_constants": "  // constants\n",
+            "asm_variables": "  // variables\n",
+            "asm_end": "  // main::@return\n  // [1] return \n  rts\n}\n"
+        }
+    },
+    "resources": [
+    ]
+}

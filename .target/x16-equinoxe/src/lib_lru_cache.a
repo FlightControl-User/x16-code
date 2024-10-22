@@ -36,9 +36,8 @@ __lib_lru_cache_start: {
     // variables-zero-page
     // __lib_lru_cache_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -1024,7 +1023,7 @@ lru_cache_index: {
     // [172] lru_cache_index::index#1 = ((char *)&lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_LINK)[lru_cache_index::index#2] -- vbuxx=pbuc1_derefidx_vbuxx 
     lda lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_LINK,x
     tax
-    jmp __b1
+    bra __b1
   .segment CodeLruCache
     key: .word 0
   .segment CodeLruCache
@@ -1057,7 +1056,7 @@ lru_cache_is_max: {
     cmp #$60
     bcs !+
     lda #0
-    jmp !e+
+    bra !e+
   !:
     lda #1
   !e:
@@ -1119,7 +1118,7 @@ lru_cache_init: {
     // [181] phi from lru_cache_init::memset_fast1 to lru_cache_init::memset_fast1_@1 [phi:lru_cache_init::memset_fast1->lru_cache_init::memset_fast1_@1]
     // [181] phi lru_cache_init::memset_fast1_num#2 = SIZEOF_UNSIGNED_INT*$80 [phi:lru_cache_init::memset_fast1->lru_cache_init::memset_fast1_@1#0] -- vbuxx=vbuc1 
     ldx #SIZEOF_UNSIGNED_INT*$80
-    // [181] phi lru_cache_init::memset_fast1_x#2 = 0 [phi:lru_cache_init::memset_fast1->lru_cache_init::memset_fast1_@1#1] -- vbuyy=vbuc1 
+    // [181] phi lru_cache_init::memset_fast1_x#2 = 0 [phi:lru_cache_init::memset_fast1->lru_cache_init::memset_fast1_@1#1] -- vbuyy=0 
     ldy #0
     // [181] phi from lru_cache_init::memset_fast1_@1 to lru_cache_init::memset_fast1_@1 [phi:lru_cache_init::memset_fast1_@1->lru_cache_init::memset_fast1_@1]
     // [181] phi lru_cache_init::memset_fast1_num#2 = lru_cache_init::memset_fast1_num#1 [phi:lru_cache_init::memset_fast1_@1->lru_cache_init::memset_fast1_@1#0] -- register_copy 
@@ -1145,7 +1144,7 @@ lru_cache_init: {
     // [187] phi from lru_cache_init::memset_fast2 to lru_cache_init::memset_fast2_@1 [phi:lru_cache_init::memset_fast2->lru_cache_init::memset_fast2_@1]
     // [187] phi lru_cache_init::memset_fast2_num#2 = SIZEOF_UNSIGNED_INT*$80 [phi:lru_cache_init::memset_fast2->lru_cache_init::memset_fast2_@1#0] -- vbuxx=vbuc1 
     ldx #SIZEOF_UNSIGNED_INT*$80
-    // [187] phi lru_cache_init::memset_fast2_x#2 = 0 [phi:lru_cache_init::memset_fast2->lru_cache_init::memset_fast2_@1#1] -- vbuyy=vbuc1 
+    // [187] phi lru_cache_init::memset_fast2_x#2 = 0 [phi:lru_cache_init::memset_fast2->lru_cache_init::memset_fast2_@1#1] -- vbuyy=0 
     ldy #0
     // [187] phi from lru_cache_init::memset_fast2_@1 to lru_cache_init::memset_fast2_@1 [phi:lru_cache_init::memset_fast2_@1->lru_cache_init::memset_fast2_@1]
     // [187] phi lru_cache_init::memset_fast2_num#2 = lru_cache_init::memset_fast2_num#1 [phi:lru_cache_init::memset_fast2_@1->lru_cache_init::memset_fast2_@1#0] -- register_copy 
@@ -1171,7 +1170,7 @@ lru_cache_init: {
     // [193] phi from lru_cache_init::memset_fast3 to lru_cache_init::memset_fast3_@1 [phi:lru_cache_init::memset_fast3->lru_cache_init::memset_fast3_@1]
     // [193] phi lru_cache_init::memset_fast3_num#2 = SIZEOF_CHAR*$80 [phi:lru_cache_init::memset_fast3->lru_cache_init::memset_fast3_@1#0] -- vbuyy=vbuc1 
     ldy #SIZEOF_CHAR*$80
-    // [193] phi lru_cache_init::memset_fast3_x#2 = 0 [phi:lru_cache_init::memset_fast3->lru_cache_init::memset_fast3_@1#1] -- vbuxx=vbuc1 
+    // [193] phi lru_cache_init::memset_fast3_x#2 = 0 [phi:lru_cache_init::memset_fast3->lru_cache_init::memset_fast3_@1#1] -- vbuxx=0 
     ldx #0
     // [193] phi from lru_cache_init::memset_fast3_@1 to lru_cache_init::memset_fast3_@1 [phi:lru_cache_init::memset_fast3_@1->lru_cache_init::memset_fast3_@1]
     // [193] phi lru_cache_init::memset_fast3_num#2 = lru_cache_init::memset_fast3_num#1 [phi:lru_cache_init::memset_fast3_@1->lru_cache_init::memset_fast3_@1#0] -- register_copy 
@@ -1197,7 +1196,7 @@ lru_cache_init: {
     // [199] phi from lru_cache_init::memset_fast4 to lru_cache_init::memset_fast4_@1 [phi:lru_cache_init::memset_fast4->lru_cache_init::memset_fast4_@1]
     // [199] phi lru_cache_init::memset_fast4_num#2 = SIZEOF_CHAR*$80 [phi:lru_cache_init::memset_fast4->lru_cache_init::memset_fast4_@1#0] -- vbuyy=vbuc1 
     ldy #SIZEOF_CHAR*$80
-    // [199] phi lru_cache_init::memset_fast4_x#2 = 0 [phi:lru_cache_init::memset_fast4->lru_cache_init::memset_fast4_@1#1] -- vbuxx=vbuc1 
+    // [199] phi lru_cache_init::memset_fast4_x#2 = 0 [phi:lru_cache_init::memset_fast4->lru_cache_init::memset_fast4_@1#1] -- vbuxx=0 
     ldx #0
     // [199] phi from lru_cache_init::memset_fast4_@1 to lru_cache_init::memset_fast4_@1 [phi:lru_cache_init::memset_fast4_@1->lru_cache_init::memset_fast4_@1]
     // [199] phi lru_cache_init::memset_fast4_num#2 = lru_cache_init::memset_fast4_num#1 [phi:lru_cache_init::memset_fast4_@1->lru_cache_init::memset_fast4_@1#0] -- register_copy 
@@ -1223,7 +1222,7 @@ lru_cache_init: {
     // [205] phi from lru_cache_init::memset_fast5 to lru_cache_init::memset_fast5_@1 [phi:lru_cache_init::memset_fast5->lru_cache_init::memset_fast5_@1]
     // [205] phi lru_cache_init::memset_fast5_num#2 = SIZEOF_CHAR*$80 [phi:lru_cache_init::memset_fast5->lru_cache_init::memset_fast5_@1#0] -- vbuyy=vbuc1 
     ldy #SIZEOF_CHAR*$80
-    // [205] phi lru_cache_init::memset_fast5_x#2 = 0 [phi:lru_cache_init::memset_fast5->lru_cache_init::memset_fast5_@1#1] -- vbuxx=vbuc1 
+    // [205] phi lru_cache_init::memset_fast5_x#2 = 0 [phi:lru_cache_init::memset_fast5->lru_cache_init::memset_fast5_@1#1] -- vbuxx=0 
     ldx #0
     // [205] phi from lru_cache_init::memset_fast5_@1 to lru_cache_init::memset_fast5_@1 [phi:lru_cache_init::memset_fast5_@1->lru_cache_init::memset_fast5_@1]
     // [205] phi lru_cache_init::memset_fast5_num#2 = lru_cache_init::memset_fast5_num#1 [phi:lru_cache_init::memset_fast5_@1->lru_cache_init::memset_fast5_@1#0] -- register_copy 
@@ -1253,9 +1252,8 @@ lru_cache_init: {
     // [211] *((char *)&lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_LAST) = $ff -- _deref_pbuc1=vbuc2 
     sta lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_LAST
     // lru_cache.count = 0
-    // [212] *((char *)&lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_COUNT) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_COUNT
+    // [212] *((char *)&lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_COUNT) = 0 -- _deref_pbuc1=0 
+    stz lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_COUNT
     // lru_cache.size = LRU_CACHE_SIZE
     // [213] *((char *)&lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_SIZE) = $80 -- _deref_pbuc1=vbuc2 
     lda #$80
@@ -1377,7 +1375,7 @@ lru_cache_find_duplicate: {
     // [234] lru_cache_find_duplicate::index#2 = ((char *)&lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_LINK)[lru_cache_find_duplicate::index#3] -- vbuxx=pbuc1_derefidx_vbuxx 
     lda lru_cache+OFFSET_STRUCT_LRU_CACHE_TABLE_T_LINK,x
     tax
-    jmp __b1
+    bra __b1
   .segment CodeLruCache
     link: .byte 0
 }
@@ -1420,7 +1418,7 @@ lru_cache_find_empty: {
     // [241] lru_cache_find_empty::index#3 = lru_cache_find_empty::index#2 & $80-1 -- vbuxx=vbuaa_band_vbuc1 
     and #$80-1
     tax
-    jmp __b1
+    bra __b1
 }
   // Exported Global Data
 .segment CodeLruCache

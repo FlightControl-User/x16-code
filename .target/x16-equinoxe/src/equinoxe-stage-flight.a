@@ -116,9 +116,8 @@ __equinoxe_stage_flight_start: {
     // variables-zero-page
     // __equinoxe_stage_flight_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -219,9 +218,8 @@ stage_player_remove: {
     // [19] callexecute flight_remove  -- call_var_near 
     jsr equinoxe_flightengine.flight_remove
     // flight_remove(FLIGHT_PLAYER, p)
-    // [20] flight_remove::type = 0 -- vbum1=vbuc1 
-    lda #0
-    sta equinoxe_flightengine.flight_remove.type
+    // [20] flight_remove::type = 0 -- vbum1=0 
+    stz equinoxe_flightengine.flight_remove.type
     // [21] flight_remove::f = stage_player_remove::p -- vbum1=vbum2 
     lda p
     sta equinoxe_flightengine.flight_remove.f

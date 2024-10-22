@@ -99,9 +99,8 @@ __equinoxe_collision_start: {
     // variables-zero-page
     // __equinoxe_collision_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -166,7 +165,7 @@ __equinoxe_collision_start: {
  *   | OUTER LOOP     | A       | B     | C   | D |
  *   | INNER LOOP     | B C D E | C D E | D E | E |
  *
- * This results in the minimal sets of objects to be compared wit? each other, and thus, the most optimizal performance!
+ * This results in the minimal sets of objects to be compared witḣ each other, and thus, the most optimizal performance!
  *
  * On top of this comparison the properties of each object are evaluated. Each object as a coalition side,
  * which can be SIDE_FRIENDLY or SIDE_ENEMY. The game setup will only require objects to be compared with different coalitions.
@@ -183,9 +182,8 @@ collision_detect: {
     // variables
     // variables-zero-page
     // [5] phi from collision_detect to collision_detect::@1 [phi:collision_detect->collision_detect::@1]
-    // [5] phi collision_detect::gy#2 = 0 [phi:collision_detect->collision_detect::@1#0] -- vbum1=vbuc1 
-    lda #0
-    sta gy
+    // [5] phi collision_detect::gy#2 = 0 [phi:collision_detect->collision_detect::@1#0] -- vbum1=0 
+    stz gy
   // The collision key needs the gx and gy so that the key can be calculated using a simple addition.
   // We walk each row on the grid on the y-asis using the gy variable. There are in total 8 rows (480+64)/64.
   // However, we ensure that gy contains the sum of all the cells of each row considered,
@@ -205,9 +203,8 @@ collision_detect: {
   // We consider gx to be incremented for each cell in the column/row combination, so gx is incremented by 1!
     // [8] phi from collision_detect::@1 to collision_detect::@2 [phi:collision_detect::@1->collision_detect::@2]
   __b3:
-    // [8] phi collision_detect::gx#10 = 0 [phi:collision_detect::@1->collision_detect::@2#0] -- vbum1=vbuc1 
-    lda #0
-    sta gx
+    // [8] phi collision_detect::gx#10 = 0 [phi:collision_detect::@1->collision_detect::@2#0] -- vbum1=0 
+    stz gx
     // collision_detect::@2
   __b2:
     // for (unsigned char gx = 0; gx < ((640 + 64) >> (2 + 4)); gx += (64 >> (2 + 4)))
@@ -224,7 +221,7 @@ collision_detect: {
     sta gy
     // [5] phi from collision_detect::@3 to collision_detect::@1 [phi:collision_detect::@3->collision_detect::@1]
     // [5] phi collision_detect::gy#2 = collision_detect::gy#1 [phi:collision_detect::@3->collision_detect::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
     // collision_detect::collision_count1
   collision_count1:
     // gx + gy
@@ -263,7 +260,8 @@ collision_detect: {
     // [137] phi from collision_detect::@40 to ht_get [phi:collision_detect::@40->ht_get]
     jsr ht_get
     // ht_index_t ht_index_outer = ht_get(&collision_hash, ht_key_outer)
-    // [21] ht_get::return#3 = ht_get::return#2
+    // [21] ht_get::return#3 = ht_get::return#2 -- vbuaa=vbuxx 
+    txa
     // collision_detect::@41
     // [22] collision_detect::ht_index_outer#0 = ht_get::return#3 -- vbum1=vbuaa 
     sta ht_index_outer
@@ -285,7 +283,7 @@ collision_detect: {
     sta gx
     // [8] phi from collision_detect::@4 to collision_detect::@2 [phi:collision_detect::@4->collision_detect::@2]
     // [8] phi collision_detect::gx#10 = collision_detect::gx#1 [phi:collision_detect::@4->collision_detect::@2#0] -- register_copy 
-    jmp __b2
+    bra __b2
     // collision_detect::ht_get_next1
   ht_get_next1:
     // return ht_list.next[ht_index];
@@ -344,7 +342,7 @@ collision_detect: {
     ldy ht_get_next2_return
     lda ht_list+OFFSET_STRUCT_HT_LIST_S_NEXT,y
     sta ht_get_next2_return
-    jmp __b5
+    bra __b5
     // collision_detect::@7
   __b7:
     // collision_decision_t collision_inner
@@ -441,7 +439,7 @@ collision_detect: {
     beq __b10
     // [51] phi from collision_detect::@10 collision_detect::@16 collision_detect::@18 collision_detect::@27 collision_detect::@33 to collision_detect::@15 [phi:collision_detect::@10/collision_detect::@16/collision_detect::@18/collision_detect::@27/collision_detect::@33->collision_detect::@15]
   __b12:
-    // [51] phi collision_detect::collision_detected#11 = 0 [phi:collision_detect::@10/collision_detect::@16/collision_detect::@18/collision_detect::@27/collision_detect::@33->collision_detect::@15#0] -- vbuxx=vbuc1 
+    // [51] phi collision_detect::collision_detected#11 = 0 [phi:collision_detect::@10/collision_detect::@16/collision_detect::@18/collision_detect::@27/collision_detect::@33->collision_detect::@15#0] -- vbuxx=0 
     ldx #0
     // [51] phi from collision_detect::@11 collision_detect::@13 collision_detect::@19 collision_detect::@22 to collision_detect::@15 [phi:collision_detect::@11/collision_detect::@13/collision_detect::@19/collision_detect::@22->collision_detect::@15]
     // [51] phi collision_detect::collision_detected#11 = collision_detect::collision_detected#17 [phi:collision_detect::@11/collision_detect::@13/collision_detect::@19/collision_detect::@22->collision_detect::@15#0] -- register_copy 
@@ -531,7 +529,7 @@ collision_detect: {
     // [51] phi from collision_detect::@14 collision_detect::@20 collision_detect::@23 to collision_detect::@15 [phi:collision_detect::@14/collision_detect::@20/collision_detect::@23->collision_detect::@15]
     // [51] phi collision_detect::collision_detected#11 = 1 [phi:collision_detect::@14/collision_detect::@20/collision_detect::@23->collision_detect::@15#0] -- vbuxx=vbuc1 
     ldx #1
-    jmp __b15
+    bra __b15
     // collision_detect::@9
   __b9:
     // if (collision_inner.type == FLIGHT_ENEMY)
@@ -544,10 +542,10 @@ collision_detect: {
     // [72] phi from collision_detect::@12 to collision_detect::@11 [phi:collision_detect::@12->collision_detect::@11]
     // [72] phi collision_detect::collision_detected#17 = 1 [phi:collision_detect::@12->collision_detect::@11#0] -- vbuxx=vbuc1 
     tax
-    jmp __b11
+    bra __b11
     // [72] phi from collision_detect::@9 to collision_detect::@11 [phi:collision_detect::@9->collision_detect::@11]
   __b13:
-    // [72] phi collision_detect::collision_detected#17 = 0 [phi:collision_detect::@9->collision_detect::@11#0] -- vbuxx=vbuc1 
+    // [72] phi collision_detect::collision_detected#17 = 0 [phi:collision_detect::@9->collision_detect::@11#0] -- vbuxx=0 
     ldx #0
     // collision_detect::@11
   __b11:
@@ -555,9 +553,7 @@ collision_detect: {
     // [73] if(*((char *)&collision_detect::collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE)!=2) goto collision_detect::@15 -- _deref_pbuc1_neq_vbuc2_then_la1 
     lda #2
     cmp collision_inner+OFFSET_STRUCT_COLLISION_DECISION_T_TYPE
-    beq !__b15+
-    jmp __b15
-  !__b15:
+    bne __b15
     // collision_detect::@13
     // collision_detected++;
     // [74] collision_detect::collision_detected#2 = ++ collision_detect::collision_detected#17 -- vbuxx=_inc_vbuxx 
@@ -609,7 +605,7 @@ collision_detect: {
   !__b12:
     // [79] phi from collision_detect::@18 to collision_detect::@23 [phi:collision_detect::@18->collision_detect::@23]
     // collision_detect::@23
-    jmp __b14
+    bra __b14
     // collision_detect::@17
   __b17:
     // if (collision_inner.type == FLIGHT_BULLET)
@@ -622,10 +618,10 @@ collision_detect: {
     // [82] phi from collision_detect::@21 to collision_detect::@19 [phi:collision_detect::@21->collision_detect::@19]
     // [82] phi collision_detect::collision_detected#14 = 1 [phi:collision_detect::@21->collision_detect::@19#0] -- vbuxx=vbuc1 
     ldx #1
-    jmp __b19
+    bra __b19
     // [82] phi from collision_detect::@17 to collision_detect::@19 [phi:collision_detect::@17->collision_detect::@19]
   __b20:
-    // [82] phi collision_detect::collision_detected#14 = 0 [phi:collision_detect::@17->collision_detect::@19#0] -- vbuxx=vbuc1 
+    // [82] phi collision_detect::collision_detected#14 = 0 [phi:collision_detect::@17->collision_detect::@19#0] -- vbuxx=0 
     ldx #0
     // collision_detect::@19
   __b19:
@@ -650,7 +646,7 @@ collision_detect: {
   !__b12:
     // [86] phi from collision_detect::@16 to collision_detect::@20 [phi:collision_detect::@16->collision_detect::@20]
     // collision_detect::@20
-    jmp __b14
+    bra __b14
   .segment Data
     collision_outer: .fill SIZEOF_STRUCT_COLLISION_DECISION_T, 0
   .segment Data
@@ -703,19 +699,19 @@ collision_insert: {
     // [91] collision_insert::$12 = collision_insert::f << 1 -- vbuaa=vbum1_rol_1 
     lda f
     asl
-    // [92] collision_insert::xmin#0 = ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[collision_insert::$12] >> 2 -- vbuxx=pwuc1_derefidx_vbuaa_ror_2 
-    tax
+    // [92] collision_insert::xmin#0 = ((unsigned int *)&flight+OFFSET_STRUCT_FLIGHT_T_XI)[collision_insert::$12] >> 2 -- vbum1=pwuc1_derefidx_vbuaa_ror_2 
+    tay
     clc
-    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,x
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI+1,y
     ror
     sta.z $ff
-    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,x
+    lda equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_XI,y
     ror
     sta.z $fe
     clc
     ror.z $ff
     ror
-    tax
+    sta xmin
     // unsigned char ymin = flight.yi[f] >> 2
     // [93] collision_insert::$13 = collision_insert::f << 1 -- vbuaa=vbum1_rol_1 
     lda f
@@ -734,24 +730,24 @@ collision_insert: {
     ror
     sta ymin
     // flight.cx[f] = xmin
-    // [95] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CX)[collision_insert::f] = collision_insert::xmin#0 -- pbuc1_derefidx_vbum1=vbuxx 
+    // [95] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CX)[collision_insert::f] = collision_insert::xmin#0 -- pbuc1_derefidx_vbum1=vbum2 
+    lda xmin
     ldy f
-    txa
     sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_CX,y
     // flight.cy[f] = ymin
     // [96] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_CY)[collision_insert::f] = collision_insert::ymin#0 -- pbuc1_derefidx_vbum1=vbum2 
     lda ymin
     sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_CY,y
     // flight.collided[f] = 0
-    // [97] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_COLLIDED)[collision_insert::f] = 0 -- pbuc1_derefidx_vbum1=vbuc2 
-    lda #0
-    sta equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_COLLIDED,y
+    // [97] ((char *)&flight+OFFSET_STRUCT_FLIGHT_T_COLLIDED)[collision_insert::f] = 0 -- pbuc1_derefidx_vbum1=0 
+    ldx f
+    stz equinoxe_flightengine.flight+OFFSET_STRUCT_FLIGHT_T_COLLIDED,x
     // xmin += 16
-    // [98] collision_insert::xmin#1 = collision_insert::xmin#0 + $10 -- vbuxx=vbuxx_plus_vbuc1 
+    // [98] collision_insert::xmin#1 = collision_insert::xmin#0 + $10 -- vbuxx=vbum1_plus_vbuc1 
     // The coordinates start at -63, so we add 16 to avoid negative numbers in the grid key.
-    txa
+    lda #$10
     clc
-    adc #$10
+    adc xmin
     tax
     // ymin += 16
     // [99] collision_insert::ymin#1 = collision_insert::ymin#0 + $10 -- vbuyy=vbum1_plus_vbuc1 
@@ -829,7 +825,7 @@ collision_insert: {
     // gx += 1
     // [113] collision_insert::gx#1 = collision_insert::gx#2 + 1 -- vbum1=vbum1_plus_1 
     inc gx
-    jmp __b1
+    bra __b1
     // collision_insert::@4
   __b4:
     // ht_key_t ht_key = collision_key((unsigned char)gx, (unsigned char)gy)
@@ -873,9 +869,11 @@ collision_insert: {
     clc
     adc gy
     sta gy
-    jmp __b3
+    bra __b3
   .segment Data
     f: .byte 0
+  .segment Data
+    xmin: .byte 0
   .segment Data
     ymin: .byte 0
   .segment Data
@@ -907,9 +905,9 @@ collision_init: {
     // [127] phi from collision_init to collision_init::memset_fast1 [phi:collision_init->collision_init::memset_fast1]
     // collision_init::memset_fast1
     // [128] phi from collision_init::memset_fast1 to collision_init::memset_fast1_@1 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1]
-    // [128] phi collision_init::memset_fast1_num#2 = 0 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1#0] -- vbuxx=vbuc1 
+    // [128] phi collision_init::memset_fast1_num#2 = 0 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1#0] -- vbuxx=0 
     ldx #0
-    // [128] phi collision_init::memset_fast1_x#2 = 0 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1#1] -- vbuyy=vbuc1 
+    // [128] phi collision_init::memset_fast1_x#2 = 0 [phi:collision_init::memset_fast1->collision_init::memset_fast1_@1#1] -- vbuyy=0 
     ldy #0
     // [128] phi from collision_init::memset_fast1_@1 to collision_init::memset_fast1_@1 [phi:collision_init::memset_fast1_@1->collision_init::memset_fast1_@1]
     // [128] phi collision_init::memset_fast1_num#2 = collision_init::memset_fast1_num#1 [phi:collision_init::memset_fast1_@1->collision_init::memset_fast1_@1#0] -- register_copy 
@@ -993,8 +991,8 @@ ht_get: {
     cmp #0
     bne __b2
     // [143] phi from ht_get::@1 to ht_get::@return [phi:ht_get::@1->ht_get::@return]
-    // [143] phi ht_get::return#2 = 0 [phi:ht_get::@1->ht_get::@return#0] -- vbuaa=vbuc1 
-    lda #0
+    // [143] phi ht_get::return#2 = 0 [phi:ht_get::@1->ht_get::@return#0] -- vbuxx=0 
+    ldx #0
     // ht_get::@return
     // }
     // [144] return 
@@ -1011,8 +1009,8 @@ ht_get: {
     bne ht_hash_next1
     // ht_get::@3
     // return ht->next[ht_index];
-    // [147] ht_get::return#1 = ((char *)ht_get::ht#0+OFFSET_STRUCT_HT_ITEM_T_NEXT)[ht_get::ht_index#2] -- vbuaa=pbuc1_derefidx_vbuyy 
-    lda ht+OFFSET_STRUCT_HT_ITEM_T_NEXT,y
+    // [147] ht_get::return#1 = ((char *)ht_get::ht#0+OFFSET_STRUCT_HT_ITEM_T_NEXT)[ht_get::ht_index#2] -- vbuxx=pbuc1_derefidx_vbuyy 
+    ldx ht+OFFSET_STRUCT_HT_ITEM_T_NEXT,y
     // [143] phi from ht_get::@3 to ht_get::@return [phi:ht_get::@3->ht_get::@return]
     // [143] phi ht_get::return#2 = ht_get::return#1 [phi:ht_get::@3->ht_get::@return#0] -- register_copy 
     rts
@@ -1021,7 +1019,7 @@ ht_get: {
     // index+1
     // [148] ht_get::ht_hash_next1_return#0 = ht_get::ht_index#2 + 1 -- vbuyy=vbuyy_plus_1 
     iny
-    jmp __b1
+    bra __b1
   .segment Data
     ht_key: .byte 0
 }
@@ -1217,7 +1215,7 @@ ht_insert: {
     // index+1
     // [184] ht_insert::ht_hash_next1_return#0 = ht_insert::ht_index#2 + 1 -- vbuxx=vbuxx_plus_1 
     inx
-    jmp __b1
+    bra __b1
   .segment Data
     ht_next: .byte 0
   .segment Data
@@ -1243,9 +1241,9 @@ ht_init: {
     // [186] phi from ht_init to ht_init::memset_fast1 [phi:ht_init->ht_init::memset_fast1]
     // ht_init::memset_fast1
     // [187] phi from ht_init::memset_fast1 to ht_init::memset_fast1_@1 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1]
-    // [187] phi ht_init::memset_fast1_num#2 = 0 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1#0] -- vbuxx=vbuc1 
+    // [187] phi ht_init::memset_fast1_num#2 = 0 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1#0] -- vbuxx=0 
     ldx #0
-    // [187] phi ht_init::memset_fast1_x#2 = 0 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1#1] -- vbuyy=vbuc1 
+    // [187] phi ht_init::memset_fast1_x#2 = 0 [phi:ht_init::memset_fast1->ht_init::memset_fast1_@1#1] -- vbuyy=0 
     ldy #0
     // [187] phi from ht_init::memset_fast1_@1 to ht_init::memset_fast1_@1 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast1_@1]
     // [187] phi ht_init::memset_fast1_num#2 = ht_init::memset_fast1_num#1 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast1_@1#0] -- register_copy 
@@ -1269,9 +1267,9 @@ ht_init: {
     // [192] phi from ht_init::memset_fast1_@1 to ht_init::memset_fast2 [phi:ht_init::memset_fast1_@1->ht_init::memset_fast2]
     // ht_init::memset_fast2
     // [193] phi from ht_init::memset_fast2 to ht_init::memset_fast2_@1 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1]
-    // [193] phi ht_init::memset_fast2_num#2 = 0 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1#0] -- vbuxx=vbuc1 
+    // [193] phi ht_init::memset_fast2_num#2 = 0 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1#0] -- vbuxx=0 
     ldx #0
-    // [193] phi ht_init::memset_fast2_x#2 = 0 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1#1] -- vbuyy=vbuc1 
+    // [193] phi ht_init::memset_fast2_x#2 = 0 [phi:ht_init::memset_fast2->ht_init::memset_fast2_@1#1] -- vbuyy=0 
     ldy #0
     // [193] phi from ht_init::memset_fast2_@1 to ht_init::memset_fast2_@1 [phi:ht_init::memset_fast2_@1->ht_init::memset_fast2_@1]
     // [193] phi ht_init::memset_fast2_num#2 = ht_init::memset_fast2_num#1 [phi:ht_init::memset_fast2_@1->ht_init::memset_fast2_@1#0] -- register_copy 

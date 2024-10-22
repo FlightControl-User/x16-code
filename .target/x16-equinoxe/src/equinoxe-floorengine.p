@@ -9,4 +9,5 @@ extern __varcall __lib_import("equinoxe-floorengine") void floor_position();
 extern __varcall __lib_import("equinoxe-floorengine") void floor_scroll();
 extern __varcall __lib_import("equinoxe-floorengine") void floor_paint_background();
 extern __varcall __lib_import("equinoxe-floorengine") void floor_draw_background(__zp floor_t *floor);
+extern __phicall __lib_import("equinoxe-floorengine") void conio_x16_init();
 extern __phicall __lib_import("equinoxe-floorengine") void __equinoxe_floorengine_start();

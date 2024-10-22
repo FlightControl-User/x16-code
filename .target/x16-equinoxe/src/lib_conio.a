@@ -91,9 +91,8 @@ __lib_conio_start: {
     // variables-zero-page
     // __lib_conio_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -163,9 +162,9 @@ printf_uchar: {
     cpy #0
     bne __b1
     // [15] phi from printf_uchar to printf_uchar::@2 [phi:printf_uchar->printf_uchar::@2]
-    // [15] phi printf_uchar::$2 = 0 [phi:printf_uchar->printf_uchar::@2#0] -- vbuxx=vbuc1 
+    // [15] phi printf_uchar::$2 = 0 [phi:printf_uchar->printf_uchar::@2#0] -- vbuxx=0 
     ldx #0
-    jmp __b2
+    bra __b2
     // [14] phi from printf_uchar to printf_uchar::@1 [phi:printf_uchar->printf_uchar::@1]
     // printf_uchar::@1
   __b1:
@@ -287,10 +286,9 @@ printf_schar: {
     lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
     sta format_radix_1
     // printf_buffer.sign = 0
-    // [36] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // [36] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=0 
     // Handle any sign
-    lda #0
-    sta printf_buffer
+    stz printf_buffer
     // if(value<0)
     // [37] if(printf_schar::value#0<0) goto printf_schar::@1 -- vbsyy_lt_0_then_la1 
     cpy #0
@@ -371,7 +369,7 @@ printf_schar: {
     // [53] *((char *)&printf_buffer) = '-' -- _deref_pbuc1=vbuc2 
     lda #'-'
     sta printf_buffer
-    jmp __b2
+    bra __b2
   .segment Data
     format_min_length_1: .byte 0
   .segment Data
@@ -445,23 +443,23 @@ printf_uint: {
     cpy #0
     bne __b1
     // [64] phi from printf_uint to printf_uint::@2 [phi:printf_uint->printf_uint::@2]
-    // [64] phi printf_uint::$2 = 0 [phi:printf_uint->printf_uint::@2#0] -- vbuaa=vbuc1 
-    lda #0
-    jmp __b2
+    // [64] phi printf_uint::$2 = 0 [phi:printf_uint->printf_uint::@2#0] -- vbuyy=0 
+    ldy #0
+    bra __b2
     // [63] phi from printf_uint to printf_uint::@1 [phi:printf_uint->printf_uint::@1]
     // printf_uint::@1
   __b1:
     // format_sign_always?'+':0
     // [64] phi from printf_uint::@1 to printf_uint::@2 [phi:printf_uint::@1->printf_uint::@2]
-    // [64] phi printf_uint::$2 = '+' [phi:printf_uint::@1->printf_uint::@2#0] -- vbuaa=vbuc1 
-    lda #'+'
+    // [64] phi printf_uint::$2 = '+' [phi:printf_uint::@1->printf_uint::@2#0] -- vbuyy=vbuc1 
+    ldy #'+'
     // printf_uint::@2
   __b2:
     // printf_buffer.sign = format_sign_always?'+':0
-    // [65] *((char *)&printf_buffer) = printf_uint::$2 -- _deref_pbuc1=vbuaa 
+    // [65] *((char *)&printf_buffer) = printf_uint::$2 -- _deref_pbuc1=vbuyy 
     // void printf_uint(void (*putc)(char), unsigned int uvalue, struct printf_format_number format) {
     // Handle any sign
-    sta printf_buffer
+    sty printf_buffer
     // utoa(uvalue, printf_buffer.digits, format_radix)
     // [66] utoa::value#2 = printf_uint::uvalue#0 -- vwum1=vwum2 
     lda uvalue_1
@@ -577,10 +575,9 @@ printf_sint: {
     lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
     tax
     // printf_buffer.sign = 0
-    // [85] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // [85] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=0 
     // Handle any sign
-    lda #0
-    sta printf_buffer
+    stz printf_buffer
     // if(value<0)
     // [86] if(printf_sint::value#0<0) goto printf_sint::@1 -- vwsm1_lt_0_then_la1 
     lda value_1+1
@@ -665,7 +662,7 @@ printf_sint: {
     // [102] *((char *)&printf_buffer) = '-' -- _deref_pbuc1=vbuc2 
     lda #'-'
     sta printf_buffer
-    jmp __b2
+    bra __b2
   .segment Data
     value_1: .word 0
   .segment Data
@@ -741,22 +738,22 @@ printf_ulong: {
     cpy #0
     bne __b1
     // [113] phi from printf_ulong to printf_ulong::@2 [phi:printf_ulong->printf_ulong::@2]
-    // [113] phi printf_ulong::$2 = 0 [phi:printf_ulong->printf_ulong::@2#0] -- vbuaa=vbuc1 
-    lda #0
-    jmp __b2
+    // [113] phi printf_ulong::$2 = 0 [phi:printf_ulong->printf_ulong::@2#0] -- vbuyy=0 
+    ldy #0
+    bra __b2
     // [112] phi from printf_ulong to printf_ulong::@1 [phi:printf_ulong->printf_ulong::@1]
     // printf_ulong::@1
   __b1:
     // format_sign_always?'+':0
     // [113] phi from printf_ulong::@1 to printf_ulong::@2 [phi:printf_ulong::@1->printf_ulong::@2]
-    // [113] phi printf_ulong::$2 = '+' [phi:printf_ulong::@1->printf_ulong::@2#0] -- vbuaa=vbuc1 
-    lda #'+'
+    // [113] phi printf_ulong::$2 = '+' [phi:printf_ulong::@1->printf_ulong::@2#0] -- vbuyy=vbuc1 
+    ldy #'+'
     // printf_ulong::@2
   __b2:
     // printf_buffer.sign = format_sign_always?'+':0
-    // [114] *((char *)&printf_buffer) = printf_ulong::$2 -- _deref_pbuc1=vbuaa 
+    // [114] *((char *)&printf_buffer) = printf_ulong::$2 -- _deref_pbuc1=vbuyy 
     // Handle any sign
-    sta printf_buffer
+    sty printf_buffer
     // ultoa(uvalue, printf_buffer.digits, format_radix)
     // [115] ultoa::value#2 = printf_ulong::uvalue#0 -- vdum1=vdum2 
     lda uvalue_1
@@ -880,10 +877,9 @@ printf_slong: {
     lda STACK_BASE+OFFSET_STACK_FORMAT_RADIX,x
     tax
     // printf_buffer.sign = 0
-    // [134] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=vbuc2 
+    // [134] *((char *)&printf_buffer) = 0 -- _deref_pbuc1=0 
     // Handle any sign
-    lda #0
-    sta printf_buffer
+    stz printf_buffer
     // if(value<0)
     // [135] if(printf_slong::value#0<0) goto printf_slong::@1 -- vdsm1_lt_0_then_la1 
     lda value_1+3
@@ -985,7 +981,7 @@ printf_slong: {
     // [152] *((char *)&printf_buffer) = '-' -- _deref_pbuc1=vbuc2 
     lda #'-'
     sta printf_buffer
-    jmp __b2
+    bra __b2
   .segment Data
     value_1: .dword 0
   .segment Data
@@ -1055,7 +1051,7 @@ printf_str: {
     jsr icall1
     // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
     pla
-    jmp __b1
+    bra __b1
   icall1:
     jmp (putc_1)
 }
@@ -1088,7 +1084,7 @@ conio_x16_init: {
     // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
     pla
     // cursor(0)
-    // [171] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    // [171] stackpush(char) = 0 -- _stackpushbyte_=0 
     lda #0
     pha
     // [172] callexecute cursor  -- call_stack_near 
@@ -1582,7 +1578,7 @@ cputs: {
     jsr lib_conio.cputc
     // sideeffect stackpullpadding(1) -- _stackpullpadding_1 
     pla
-    jmp __b1
+    bra __b1
 }
   // code segment
 .segment Code
@@ -1648,9 +1644,8 @@ cputln: {
     // variables
     // variables-zero-page
     // __conio.cursor_x = 0
-    // [285] *((char *)&__conio) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta __conio
+    // [285] *((char *)&__conio) = 0 -- _deref_pbuc1=0 
+    stz __conio
     // __conio.cursor_y++;
     // [286] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = ++ *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) -- _deref_pbuc1=_inc__deref_pbuc1 
     inc __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
@@ -2004,7 +1999,7 @@ gotoxy: {
     bcs __b1
     // [347] phi from gotoxy gotoxy::@1 to gotoxy::@2 [phi:gotoxy/gotoxy::@1->gotoxy::@2]
     // [347] phi gotoxy::$3 = gotoxy::x#0 [phi:gotoxy/gotoxy::@1->gotoxy::@2#0] -- register_copy 
-    jmp __b2
+    bra __b2
     // gotoxy::@1
   __b1:
     // [346] gotoxy::$2 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_WIDTH) -- vbuyy=_deref_pbuc1 
@@ -2061,7 +2056,7 @@ gotoxy: {
     // (y>=__conio.height)?__conio.height:y
     // [358] gotoxy::$6 = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- vbuaa=_deref_pbuc1 
     lda __conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT
-    jmp __b5
+    bra __b5
   .segment Data
     gotoxy__9: .word 0
 }
@@ -2155,12 +2150,11 @@ clrscr: {
     bne __b1
     // clrscr::@4
     // __conio.cursor_x = 0
-    // [378] *((char *)&__conio) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta __conio
+    // [378] *((char *)&__conio) = 0 -- _deref_pbuc1=0 
+    stz __conio
     // __conio.cursor_y = 0
-    // [379] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = 0 -- _deref_pbuc1=vbuc2 
-    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
+    // [379] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y) = 0 -- _deref_pbuc1=0 
+    stz __conio+OFFSET_STRUCT___CX16_CONIO_S_CURSOR_Y
     // __conio.offset = __conio.mapbase_offset
     // [380] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_OFFSET) = *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) -- _deref_pwuc1=_deref_pwuc2 
     lda __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
@@ -2223,9 +2217,8 @@ uctoa: {
     // [389] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
     // *buffer = 0
-    // [390] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
+    // [390] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=0 
+    stz printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
     // uctoa::@return
     // }
     // [391] return 
@@ -2240,7 +2233,7 @@ uctoa: {
     // [392] phi uctoa::max_digits#7 = 3 [phi:uctoa->uctoa::@1#1] -- vbum1=vbuc1 
     lda #3
     sta max_digits
-    jmp __b1
+    bra __b1
     // [392] phi from uctoa::@2 to uctoa::@1 [phi:uctoa::@2->uctoa::@1]
   __b3:
     // [392] phi uctoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES_CHAR [phi:uctoa::@2->uctoa::@1#0] -- pbuz1=pbuc1 
@@ -2251,7 +2244,7 @@ uctoa: {
     // [392] phi uctoa::max_digits#7 = 2 [phi:uctoa::@2->uctoa::@1#1] -- vbum1=vbuc1 
     lda #2
     sta max_digits
-    jmp __b1
+    bra __b1
     // [392] phi from uctoa::@3 to uctoa::@1 [phi:uctoa::@3->uctoa::@1]
   __b4:
     // [392] phi uctoa::digit_values#8 = RADIX_OCTAL_VALUES_CHAR [phi:uctoa::@3->uctoa::@1#0] -- pbuz1=pbuc1 
@@ -2262,7 +2255,7 @@ uctoa: {
     // [392] phi uctoa::max_digits#7 = 3 [phi:uctoa::@3->uctoa::@1#1] -- vbum1=vbuc1 
     lda #3
     sta max_digits
-    jmp __b1
+    bra __b1
     // [392] phi from uctoa::@4 to uctoa::@1 [phi:uctoa::@4->uctoa::@1]
   __b5:
     // [392] phi uctoa::digit_values#8 = RADIX_BINARY_VALUES_CHAR [phi:uctoa::@4->uctoa::@1#0] -- pbuz1=pbuc1 
@@ -2281,12 +2274,11 @@ uctoa: {
     sta.z buffer
     lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     sta.z buffer+1
-    // [393] phi uctoa::started#2 = 0 [phi:uctoa::@1->uctoa::@6#1] -- vbum1=vbuc1 
-    lda #0
-    sta started
+    // [393] phi uctoa::started#2 = 0 [phi:uctoa::@1->uctoa::@6#1] -- vbum1=0 
+    stz started
     // [393] phi uctoa::value#3 = uctoa::value#10 [phi:uctoa::@1->uctoa::@6#2] -- register_copy 
-    // [393] phi uctoa::digit#2 = 0 [phi:uctoa::@1->uctoa::@6#3] -- vbum1=vbuc1 
-    sta digit
+    // [393] phi uctoa::digit#2 = 0 [phi:uctoa::@1->uctoa::@6#3] -- vbum1=0 
+    stz digit
     // uctoa::@6
   __b6:
     // max_digits-1
@@ -2313,7 +2305,7 @@ uctoa: {
     inc.z buffer+1
   !:
     // *buffer = 0
-    // [398] *uctoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    // [398] *uctoa::buffer#3 = 0 -- _deref_pbuz1=0 
     lda #0
     tay
     sta (buffer),y
@@ -2348,7 +2340,7 @@ uctoa: {
     // [393] phi uctoa::started#2 = uctoa::started#4 [phi:uctoa::@9->uctoa::@6#1] -- register_copy 
     // [393] phi uctoa::value#3 = uctoa::value#7 [phi:uctoa::@9->uctoa::@6#2] -- register_copy 
     // [393] phi uctoa::digit#2 = uctoa::digit#1 [phi:uctoa::@9->uctoa::@6#3] -- register_copy 
-    jmp __b6
+    bra __b6
     // uctoa::@10
   __b10:
     // uctoa_append(buffer++, value, digit_value)
@@ -2380,7 +2372,7 @@ uctoa: {
     lda #1
     sta started
     // [402] phi uctoa::value#7 = uctoa::value#0 [phi:uctoa::@11->uctoa::@9#2] -- register_copy 
-    jmp __b9
+    bra __b9
   .segment Data
     digit: .byte 0
   .segment Data
@@ -2442,9 +2434,8 @@ printf_number_buffer: {
     bpl __b1
     // [424] phi from printf_number_buffer printf_number_buffer::@13 to printf_number_buffer::@1 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1]
   __b6:
-    // [424] phi printf_number_buffer::padding#10 = 0 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1#0] -- vbsm1=vbsc1 
-    lda #0
-    sta padding
+    // [424] phi printf_number_buffer::padding#10 = 0 [phi:printf_number_buffer/printf_number_buffer::@13->printf_number_buffer::@1#0] -- vbsm1=0 
+    stz padding
     // [423] phi from printf_number_buffer::@13 to printf_number_buffer::@20 [phi:printf_number_buffer::@13->printf_number_buffer::@20]
     // printf_number_buffer::@20
     // [424] phi from printf_number_buffer::@20 to printf_number_buffer::@1 [phi:printf_number_buffer::@20->printf_number_buffer::@1]
@@ -2464,7 +2455,7 @@ printf_number_buffer: {
     lda padding
     cmp #0
     bne __b8
-    jmp __b2
+    bra __b2
     // printf_number_buffer::@8
   __b8:
     // printf_padding(putc, ' ',(char)padding)
@@ -2509,7 +2500,7 @@ printf_number_buffer: {
     lda padding
     cmp #0
     bne __b10
-    jmp __b4
+    bra __b4
     // printf_number_buffer::@10
   __b10:
     // printf_padding(putc, '0',(char)padding)
@@ -2661,9 +2652,8 @@ utoa: {
     // [461] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
     // *buffer = 0
-    // [462] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
+    // [462] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=0 
+    stz printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
     // utoa::@return
     // }
     // [463] return 
@@ -2678,7 +2668,7 @@ utoa: {
     // [464] phi utoa::max_digits#7 = 5 [phi:utoa->utoa::@1#1] -- vbum1=vbuc1 
     lda #5
     sta max_digits
-    jmp __b1
+    bra __b1
     // [464] phi from utoa::@2 to utoa::@1 [phi:utoa::@2->utoa::@1]
   __b3:
     // [464] phi utoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES [phi:utoa::@2->utoa::@1#0] -- pwuz1=pwuc1 
@@ -2689,7 +2679,7 @@ utoa: {
     // [464] phi utoa::max_digits#7 = 4 [phi:utoa::@2->utoa::@1#1] -- vbum1=vbuc1 
     lda #4
     sta max_digits
-    jmp __b1
+    bra __b1
     // [464] phi from utoa::@3 to utoa::@1 [phi:utoa::@3->utoa::@1]
   __b4:
     // [464] phi utoa::digit_values#8 = RADIX_OCTAL_VALUES [phi:utoa::@3->utoa::@1#0] -- pwuz1=pwuc1 
@@ -2700,7 +2690,7 @@ utoa: {
     // [464] phi utoa::max_digits#7 = 6 [phi:utoa::@3->utoa::@1#1] -- vbum1=vbuc1 
     lda #6
     sta max_digits
-    jmp __b1
+    bra __b1
     // [464] phi from utoa::@4 to utoa::@1 [phi:utoa::@4->utoa::@1]
   __b5:
     // [464] phi utoa::digit_values#8 = RADIX_BINARY_VALUES [phi:utoa::@4->utoa::@1#0] -- pwuz1=pwuc1 
@@ -2719,12 +2709,11 @@ utoa: {
     sta.z buffer
     lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     sta.z buffer+1
-    // [465] phi utoa::started#2 = 0 [phi:utoa::@1->utoa::@6#1] -- vbum1=vbuc1 
-    lda #0
-    sta started
+    // [465] phi utoa::started#2 = 0 [phi:utoa::@1->utoa::@6#1] -- vbum1=0 
+    stz started
     // [465] phi utoa::value#3 = utoa::value#10 [phi:utoa::@1->utoa::@6#2] -- register_copy 
-    // [465] phi utoa::digit#2 = 0 [phi:utoa::@1->utoa::@6#3] -- vbuxx=vbuc1 
-    tax
+    // [465] phi utoa::digit#2 = 0 [phi:utoa::@1->utoa::@6#3] -- vbuxx=0 
+    ldx #0
     // utoa::@6
   __b6:
     // max_digits-1
@@ -2752,7 +2741,7 @@ utoa: {
     inc.z buffer+1
   !:
     // *buffer = 0
-    // [471] *utoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    // [471] *utoa::buffer#3 = 0 -- _deref_pbuz1=0 
     lda #0
     tay
     sta (buffer),y
@@ -2798,7 +2787,7 @@ utoa: {
     // [465] phi utoa::started#2 = utoa::started#4 [phi:utoa::@9->utoa::@6#1] -- register_copy 
     // [465] phi utoa::value#3 = utoa::value#7 [phi:utoa::@9->utoa::@6#2] -- register_copy 
     // [465] phi utoa::digit#2 = utoa::digit#1 [phi:utoa::@9->utoa::@6#3] -- register_copy 
-    jmp __b6
+    bra __b6
     // utoa::@10
   __b10:
     // utoa_append(buffer++, value, digit_value)
@@ -2829,7 +2818,7 @@ utoa: {
     lda #1
     sta started
     // [476] phi utoa::value#7 = utoa::value#0 [phi:utoa::@11->utoa::@9#2] -- register_copy 
-    jmp __b9
+    bra __b9
   .segment Data
     digit_value: .word 0
   .segment Data
@@ -2886,9 +2875,8 @@ ultoa: {
     // [492] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2) = 'r' -- _deref_pbuc1=vbuc2 
     sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+2
     // *buffer = 0
-    // [493] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
+    // [493] *((char *)&printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3) = 0 -- _deref_pbuc1=0 
+    stz printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS+3
     // ultoa::@return
     // }
     // [494] return 
@@ -2903,7 +2891,7 @@ ultoa: {
     // [495] phi ultoa::max_digits#7 = $a [phi:ultoa->ultoa::@1#1] -- vbum1=vbuc1 
     lda #$a
     sta max_digits
-    jmp __b1
+    bra __b1
     // [495] phi from ultoa::@2 to ultoa::@1 [phi:ultoa::@2->ultoa::@1]
   __b3:
     // [495] phi ultoa::digit_values#8 = RADIX_HEXADECIMAL_VALUES_LONG [phi:ultoa::@2->ultoa::@1#0] -- pduz1=pduc1 
@@ -2914,7 +2902,7 @@ ultoa: {
     // [495] phi ultoa::max_digits#7 = 8 [phi:ultoa::@2->ultoa::@1#1] -- vbum1=vbuc1 
     lda #8
     sta max_digits
-    jmp __b1
+    bra __b1
     // [495] phi from ultoa::@3 to ultoa::@1 [phi:ultoa::@3->ultoa::@1]
   __b4:
     // [495] phi ultoa::digit_values#8 = RADIX_OCTAL_VALUES_LONG [phi:ultoa::@3->ultoa::@1#0] -- pduz1=pduc1 
@@ -2925,7 +2913,7 @@ ultoa: {
     // [495] phi ultoa::max_digits#7 = $b [phi:ultoa::@3->ultoa::@1#1] -- vbum1=vbuc1 
     lda #$b
     sta max_digits
-    jmp __b1
+    bra __b1
     // [495] phi from ultoa::@4 to ultoa::@1 [phi:ultoa::@4->ultoa::@1]
   __b5:
     // [495] phi ultoa::digit_values#8 = RADIX_BINARY_VALUES_LONG [phi:ultoa::@4->ultoa::@1#0] -- pduz1=pduc1 
@@ -2944,12 +2932,11 @@ ultoa: {
     sta.z buffer
     lda #>printf_buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     sta.z buffer+1
-    // [496] phi ultoa::started#2 = 0 [phi:ultoa::@1->ultoa::@6#1] -- vbum1=vbuc1 
-    lda #0
-    sta started
+    // [496] phi ultoa::started#2 = 0 [phi:ultoa::@1->ultoa::@6#1] -- vbum1=0 
+    stz started
     // [496] phi ultoa::value#3 = ultoa::value#10 [phi:ultoa::@1->ultoa::@6#2] -- register_copy 
-    // [496] phi ultoa::digit#2 = 0 [phi:ultoa::@1->ultoa::@6#3] -- vbuxx=vbuc1 
-    tax
+    // [496] phi ultoa::digit#2 = 0 [phi:ultoa::@1->ultoa::@6#3] -- vbuxx=0 
+    ldx #0
     // ultoa::@6
   __b6:
     // max_digits-1
@@ -2978,7 +2965,7 @@ ultoa: {
     inc.z buffer+1
   !:
     // *buffer = 0
-    // [502] *ultoa::buffer#3 = 0 -- _deref_pbuz1=vbuc1 
+    // [502] *ultoa::buffer#3 = 0 -- _deref_pbuz1=0 
     lda #0
     tay
     sta (buffer),y
@@ -3039,7 +3026,7 @@ ultoa: {
     // [496] phi ultoa::started#2 = ultoa::started#4 [phi:ultoa::@9->ultoa::@6#1] -- register_copy 
     // [496] phi ultoa::value#3 = ultoa::value#7 [phi:ultoa::@9->ultoa::@6#2] -- register_copy 
     // [496] phi ultoa::digit#2 = ultoa::digit#1 [phi:ultoa::@9->ultoa::@6#3] -- register_copy 
-    jmp __b6
+    bra __b6
     // ultoa::@10
   __b10:
     // ultoa_append(buffer++, value, digit_value)
@@ -3070,7 +3057,7 @@ ultoa: {
     lda #1
     sta started
     // [507] phi ultoa::value#7 = ultoa::value#0 [phi:ultoa::@11->ultoa::@9#2] -- register_copy 
-    jmp __b9
+    bra __b9
   .segment Data
     digit_value: .dword 0
   .segment Data
@@ -3093,12 +3080,11 @@ cbm_k_plot_get: {
     // variables
     // variables-zero-page
     // __mem unsigned char x
-    // [516] cbm_k_plot_get::x = 0 -- vbum1=vbuc1 
-    lda #0
-    sta x
+    // [516] cbm_k_plot_get::x = 0 -- vbum1=0 
+    stz x
     // __mem unsigned char y
-    // [517] cbm_k_plot_get::y = 0 -- vbum1=vbuc1 
-    sta y
+    // [517] cbm_k_plot_get::y = 0 -- vbum1=0 
+    stz y
     // kickasm
     // kickasm( uses cbm_k_plot_get::x uses cbm_k_plot_get::y uses CBM_PLOT) {{ sec         jsr CBM_PLOT         stx y         sty x      }}
     sec
@@ -3141,9 +3127,8 @@ screenlayer: {
     lda VERA_DC_VSCALE
     sta vera_dc_vscale_temp
     // __conio.layer = 0
-    // [523] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER) = 0 -- _deref_pbuc1=vbuc2 
-    lda #0
-    sta __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
+    // [523] *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER) = 0 -- _deref_pbuc1=0 
+    stz __conio+OFFSET_STRUCT___CX16_CONIO_S_LAYER
     // mapbase >> 7
     // [524] screenlayer::$0 = screenlayer::mapbase#0 >> 7 -- vbuaa=vbuyy_ror_7 
     tya
@@ -3158,13 +3143,12 @@ screenlayer: {
     tya
     asl
     // MAKEWORD((mapbase)<<1,0)
-    // [527] screenlayer::$2 = screenlayer::$1 w= 0 -- vwum1=vbuaa_word_vbuc1 
-    ldy #0
+    // [527] screenlayer::$2 = screenlayer::$1 w= 0 -- vwum1=vbuaa_word_0 
+    stz screenlayer__2
     sta screenlayer__2+1
-    sty screenlayer__2
     // __conio.mapbase_offset = MAKEWORD((mapbase)<<1,0)
     // [528] *((unsigned int *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET) = screenlayer::$2 -- _deref_pwuc1=vwum1 
-    tya
+    lda screenlayer__2
     sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET
     lda screenlayer__2+1
     sta __conio+OFFSET_STRUCT___CX16_CONIO_S_MAPBASE_OFFSET+1
@@ -3272,7 +3256,7 @@ screenlayer: {
     sta mapbase_offset+1
     // [548] phi from screenlayer to screenlayer::@1 [phi:screenlayer->screenlayer::@1]
     // [548] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#0 [phi:screenlayer->screenlayer::@1#0] -- register_copy 
-    // [548] phi screenlayer::y#2 = 0 [phi:screenlayer->screenlayer::@1#1] -- vbuxx=vbuc1 
+    // [548] phi screenlayer::y#2 = 0 [phi:screenlayer->screenlayer::@1#1] -- vbuxx=0 
     ldx #0
     // screenlayer::@1
   __b1:
@@ -3313,7 +3297,7 @@ screenlayer: {
     // [548] phi from screenlayer::@2 to screenlayer::@1 [phi:screenlayer::@2->screenlayer::@1]
     // [548] phi screenlayer::mapbase_offset#2 = screenlayer::mapbase_offset#1 [phi:screenlayer::@2->screenlayer::@1#0] -- register_copy 
     // [548] phi screenlayer::y#2 = screenlayer::y#1 [phi:screenlayer::@2->screenlayer::@1#1] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment Data
     VERA_LAYER_DIM: .byte $1f, $3f, $7f, $ff
   .segment Data
@@ -3343,9 +3327,8 @@ cbm_k_getin: {
     // variables
     // variables-zero-page
     // __mem unsigned char ch
-    // [555] cbm_k_getin::ch = 0 -- vbum1=vbuc1 
-    lda #0
-    sta ch
+    // [555] cbm_k_getin::ch = 0 -- vbum1=0 
+    stz ch
     // asm
     // asm { jsrCBM_GETIN stach  }
     jsr CBM_GETIN
@@ -3389,10 +3372,10 @@ cscroll: {
     bcs __breturn
     // cscroll::@3
     // gotoxy(0,0)
-    // [563] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    // [563] stackpush(char) = 0 -- _stackpushbyte_=0 
     lda #0
     pha
-    // [564] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    // [564] stackpush(char) = 0 -- _stackpushbyte_=0 
     pha
     // [565] callexecute gotoxy  -- call_stack_near 
     jsr lib_conio.gotoxy
@@ -3412,7 +3395,7 @@ cscroll: {
     jsr insertup
     // cscroll::@5
     // gotoxy( 0, __conio.height)
-    // [570] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    // [570] stackpush(char) = 0 -- _stackpushbyte_=0 
     lda #0
     pha
     // [571] stackpush(char) = *((char *)&__conio+OFFSET_STRUCT___CX16_CONIO_S_HEIGHT) -- _stackpushbyte_=_deref_pbuc1 
@@ -3446,7 +3429,7 @@ uctoa_append: {
     // variables-zero-page
     .label buffer = $26
     // [576] phi from uctoa_append to uctoa_append::@1 [phi:uctoa_append->uctoa_append::@1]
-    // [576] phi uctoa_append::digit#2 = 0 [phi:uctoa_append->uctoa_append::@1#0] -- vbuyy=vbuc1 
+    // [576] phi uctoa_append::digit#2 = 0 [phi:uctoa_append->uctoa_append::@1#0] -- vbuyy=0 
     ldy #0
     // [576] phi uctoa_append::value#2 = uctoa_append::value#0 [phi:uctoa_append->uctoa_append::@1#1] -- register_copy 
     // uctoa_append::@1
@@ -3479,7 +3462,7 @@ uctoa_append: {
     // [576] phi from uctoa_append::@2 to uctoa_append::@1 [phi:uctoa_append::@2->uctoa_append::@1]
     // [576] phi uctoa_append::digit#2 = uctoa_append::digit#1 [phi:uctoa_append::@2->uctoa_append::@1#0] -- register_copy 
     // [576] phi uctoa_append::value#2 = uctoa_append::value#1 [phi:uctoa_append::@2->uctoa_append::@1#1] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment Data
     sub: .byte 0
 }
@@ -3494,10 +3477,9 @@ strlen: {
     // variables-zero-page
     .label str = $2a
     // [583] phi from strlen to strlen::@1 [phi:strlen->strlen::@1]
-    // [583] phi strlen::len#2 = 0 [phi:strlen->strlen::@1#0] -- vwum1=vwuc1 
-    lda #<0
-    sta len
-    sta len+1
+    // [583] phi strlen::len#2 = 0 [phi:strlen->strlen::@1#0] -- vwum1=0 
+    stz len
+    stz len+1
     // [583] phi strlen::str#2 = (char *)&printf_number_buffer::buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS [phi:strlen->strlen::@1#1] -- pbuz1=pbuc1 
     lda #<printf_number_buffer.buffer+OFFSET_STRUCT_PRINTF_BUFFER_NUMBER_DIGITS
     sta.z str
@@ -3532,7 +3514,7 @@ strlen: {
     // [583] phi from strlen::@2 to strlen::@1 [phi:strlen::@2->strlen::@1]
     // [583] phi strlen::len#2 = strlen::len#1 [phi:strlen::@2->strlen::@1#0] -- register_copy 
     // [583] phi strlen::str#2 = strlen::str#0 [phi:strlen::@2->strlen::@1#1] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment Data
     len: .word 0
   .segment Data
@@ -3549,9 +3531,8 @@ printf_padding: {
     // variables-zero-page
     .label putc = $22
     // [589] phi from printf_padding to printf_padding::@1 [phi:printf_padding->printf_padding::@1]
-    // [589] phi printf_padding::i#2 = 0 [phi:printf_padding->printf_padding::@1#0] -- vbum1=vbuc1 
-    lda #0
-    sta i
+    // [589] phi printf_padding::i#2 = 0 [phi:printf_padding->printf_padding::@1#0] -- vbum1=0 
+    stz i
     // printf_padding::@1
   __b1:
     // for(char i=0;i<length; i++)
@@ -3579,7 +3560,7 @@ printf_padding: {
     inc i
     // [589] phi from printf_padding::@3 to printf_padding::@1 [phi:printf_padding::@3->printf_padding::@1]
     // [589] phi printf_padding::i#2 = printf_padding::i#1 [phi:printf_padding::@3->printf_padding::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
   icall3:
     jmp (putc)
   .segment Data
@@ -3641,7 +3622,7 @@ strupr: {
   !:
     // [597] phi from strupr::@3 to strupr::@1 [phi:strupr::@3->strupr::@1]
     // [597] phi strupr::src#2 = strupr::src#1 [phi:strupr::@3->strupr::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
 }
   // code segment
 .segment Code
@@ -3661,7 +3642,7 @@ utoa_append: {
     // variables-zero-page
     .label buffer = $28
     // [607] phi from utoa_append to utoa_append::@1 [phi:utoa_append->utoa_append::@1]
-    // [607] phi utoa_append::digit#2 = 0 [phi:utoa_append->utoa_append::@1#0] -- vbuyy=vbuc1 
+    // [607] phi utoa_append::digit#2 = 0 [phi:utoa_append->utoa_append::@1#0] -- vbuyy=0 
     ldy #0
     // [607] phi utoa_append::value#2 = utoa_append::value#0 [phi:utoa_append->utoa_append::@1#1] -- register_copy 
     // utoa_append::@1
@@ -3703,7 +3684,7 @@ utoa_append: {
     // [607] phi from utoa_append::@2 to utoa_append::@1 [phi:utoa_append::@2->utoa_append::@1]
     // [607] phi utoa_append::digit#2 = utoa_append::digit#1 [phi:utoa_append::@2->utoa_append::@1#0] -- register_copy 
     // [607] phi utoa_append::value#2 = utoa_append::value#1 [phi:utoa_append::@2->utoa_append::@1#1] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment Data
     .label value = utoa.value
   .segment Data
@@ -3729,7 +3710,7 @@ ultoa_append: {
     // variables-zero-page
     .label buffer = $28
     // [614] phi from ultoa_append to ultoa_append::@1 [phi:ultoa_append->ultoa_append::@1]
-    // [614] phi ultoa_append::digit#2 = 0 [phi:ultoa_append->ultoa_append::@1#0] -- vbuyy=vbuc1 
+    // [614] phi ultoa_append::digit#2 = 0 [phi:ultoa_append->ultoa_append::@1#0] -- vbuyy=0 
     ldy #0
     // [614] phi ultoa_append::value#2 = ultoa_append::value#0 [phi:ultoa_append->ultoa_append::@1#1] -- register_copy 
     // ultoa_append::@1
@@ -3785,7 +3766,7 @@ ultoa_append: {
     // [614] phi from ultoa_append::@2 to ultoa_append::@1 [phi:ultoa_append::@2->ultoa_append::@1]
     // [614] phi ultoa_append::digit#2 = ultoa_append::digit#1 [phi:ultoa_append::@2->ultoa_append::@1#0] -- register_copy 
     // [614] phi ultoa_append::value#2 = ultoa_append::value#1 [phi:ultoa_append::@2->ultoa_append::@1#1] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment Data
     .label value = ultoa.value
   .segment Data
@@ -3812,9 +3793,8 @@ insertup: {
     asl
     sta width
     // [622] phi from insertup to insertup::@1 [phi:insertup->insertup::@1]
-    // [622] phi insertup::y#2 = 0 [phi:insertup->insertup::@1#0] -- vbum1=vbuc1 
-    lda #0
-    sta y
+    // [622] phi insertup::y#2 = 0 [phi:insertup->insertup::@1#0] -- vbum1=0 
+    stz y
     // insertup::@1
   __b1:
     // for(unsigned char y=0; y<__conio.cursor_y; y++)
@@ -3873,7 +3853,7 @@ insertup: {
     inc y
     // [622] phi from insertup::@4 to insertup::@1 [phi:insertup::@4->insertup::@1]
     // [622] phi insertup::y#2 = insertup::y#1 [phi:insertup::@4->insertup::@1#0] -- register_copy 
-    jmp __b1
+    bra __b1
   .segment Data
     insertup__7: .byte 0
   .segment Data
@@ -4079,7 +4059,7 @@ memcpy8_vram_vram: {
     sta VERA_DATA1
     // [677] memcpy8_vram_vram::num8#6 = memcpy8_vram_vram::num8#0 -- vbum1=vbuxx 
     stx num8
-    jmp __b1
+    bra __b1
   .segment Data
     doffset_vram: .word 0
   .segment Data

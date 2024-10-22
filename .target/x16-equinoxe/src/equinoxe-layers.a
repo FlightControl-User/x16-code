@@ -2,9 +2,56 @@
 .namespace equinoxe_layers {
   // Upstart
 .cpu _65c02
-  
-   .segmentdef Code
-   .segmentdef Data
+  .segmentdef Code 
+.segmentdef CodeBramHeap 
+.segmentdef CodeVeraHeap 
+.segmentdef CodeLruCache 
+.segmentdef CodeEngineFlight 
+.segmentdef CodeEngineFloor 
+.segmentdef CodeEngineAnimate 
+.segmentdef CodeEnginePalette 
+
+.segmentdef Data
+.segmentdef DataBramHeap 
+.segmentdef DataVeraHeap 
+.segmentdef DataEngineAnimate 
+.segmentdef DataEnginePalette 
+.segmentdef DataEngineFloor 
+.segmentdef DataEngineStages
+.segmentdef DataEngineBullets
+.segmentdef DataEnginePlayers
+.segmentdef DataEngineEnemies
+.segmentdef DataEngineTowers
+.segmentdef DataEngineFlight 
+.segmentdef DataSpriteCache
+
+
+//.segmentdef BramEngineFloor 
+
+
+.segmentdef Hash                    [start=$0400, min=$0400, max=$06FF, align=$100]
+
+.segmentdef Debug                   [startAfter="Hash", align=$100]
+
+.segmentdef BramBramHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramVeraHeap            [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeVeraHeap            [startAfter="BramVeraHeap", min=$A000, max=$BFFF, align=$100] 
+//.segmentdef DataVeraHeap            [startAfter="CodeVeraHeap", min=$A000, max=$BFFF, align=$100] 
+
+.segmentdef CodeEngineStages        [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef BramEngineStages        [startAfter="CodeEngineStages", min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEnginePlayers       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineBullets       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineEnemies       [start=$A000, min=$A000, max=$BFFF, align=$100]
+.segmentdef CodeEngineTowers        [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+.segmentdef BramEngineFloor         [start=$A000, min=$A000, align=$100]
+.segmentdef BramEngineFlight        [start=$A000, min=$A000, max=$BF00, align=$100]
+.segmentdef BramEnginePalette       [start=$A000, min=$A000, max=$BFFF, align=$100]
+
+//.segmentdef CodeEngineFloor         [start=$A000, min=$A000, max=$BF00, align=$100]
+//.segmentdef CodeEngineFlight        [start=$A000, min=$A000, max=$BFFF, align=$100]
 
   // start-assembler
   // File Comments
@@ -82,9 +129,8 @@ __equinoxe_layers_start: {
     // variables-zero-page
     // __equinoxe_layers_start::__init1
     // __export volatile __address(0x00) unsigned char BRAM = 0
-    // [1] BRAM = 0 -- vbuz1=vbuc1 
-    lda #0
-    sta.z BRAM
+    // [1] BRAM = 0 -- vbuz1=0 
+    stz.z BRAM
     // __export volatile __address(0x01) unsigned char BROM = 4
     // [2] BROM = 4 -- vbuz1=vbuc1 
     lda #4
@@ -266,12 +312,11 @@ vera_floor_layer1: {
     // [72] phi vera_layer1_mode_tile::tilewidth#10 = VERA_TILEBASE_WIDTH_16 [phi:vera_floor_layer1->vera_layer1_mode_tile#1] -- vbum1=vbuc1 
     lda #VERA_TILEBASE_WIDTH_16
     sta vera_layer1_mode_tile.tilewidth
-    // [72] phi vera_layer1_mode_tile::tilebase_offset#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#2] -- vwum1=vwuc1 
-    lda #<0
-    sta vera_layer1_mode_tile.tilebase_offset
-    sta vera_layer1_mode_tile.tilebase_offset+1
-    // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#3] -- vbum1=vbuc1 
-    sta vera_layer1_mode_tile.tilebase_bank
+    // [72] phi vera_layer1_mode_tile::tilebase_offset#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#2] -- vwum1=0 
+    stz vera_layer1_mode_tile.tilebase_offset
+    stz vera_layer1_mode_tile.tilebase_offset+1
+    // [72] phi vera_layer1_mode_tile::tilebase_bank#10 = 0 [phi:vera_floor_layer1->vera_layer1_mode_tile#3] -- vbum1=0 
+    stz vera_layer1_mode_tile.tilebase_bank
     // [72] phi vera_layer1_mode_tile::mapbase_offset#3 = $e000 [phi:vera_floor_layer1->vera_layer1_mode_tile#4] -- vwum1=vwuc1 
     lda #<$e000
     sta vera_layer1_mode_tile.mapbase_offset
@@ -416,7 +461,7 @@ vera_petscii_init: {
     // [49] callexecute clrscr  -- call_stack_near 
     jsr lib_conio.clrscr
     // scroll(0)
-    // [50] stackpush(char) = 0 -- _stackpushbyte_=vbuc1 
+    // [50] stackpush(char) = 0 -- _stackpushbyte_=0 
     lda #0
     pha
     // [51] callexecute scroll  -- call_stack_near 

@@ -1,0 +1,10 @@
+extern __lib_import("equinoxe-flight-cache") __mem() sprite_t sprites;
+extern __lib_import("equinoxe-flight-cache") __mem() fe_sprite_cache_t sprite_cache;
+extern __lib_import("equinoxe-flight-cache") char sprite_bram_handles[$100];
+extern __varcall __lib_import("equinoxe-flight-cache") __mem() char fe_sprite_cache_copy(__mem() char sprite_index);
+extern __varcall __lib_import("equinoxe-flight-cache") void fe_sprite_cache_free(__mem() char fe_sprite_index);
+extern __varcall __lib_import("equinoxe-flight-cache") __mem() unsigned int sprite_image_cache_vram(__mem() char sprite_cache_index, __mem() char fe_sprite_image_index);
+extern __varcall __lib_import("equinoxe-flight-cache") void flight_sprite_init_offset();
+extern __varcall __lib_import("equinoxe-flight-cache") __mem() unsigned int flight_sprite_next_offset();
+extern __varcall __lib_import("equinoxe-flight-cache") void flight_sprite_free_offset(__mem() unsigned int sprite_offset);
+extern __phicall __lib_import("equinoxe-flight-cache") void __equinoxe_flight_cache_start();
